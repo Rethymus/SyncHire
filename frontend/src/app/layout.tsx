@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ErrorBoundaryWrapper } from "@/components/error-boundary-wrapper";
+import { QueryClientProvider } from "@/lib/react-query-setup";
 
 // 使用系统字体栈替代Google Fonts，避免网络依赖
 // 优先使用: system-ui, SF Pro, Inter, 等现代无衬线字体
@@ -57,7 +58,9 @@ export default function RootLayout({
         >
           跳转到主要内容
         </a>
-        <ErrorBoundaryWrapper>{children}</ErrorBoundaryWrapper>
+        <QueryClientProvider>
+          <ErrorBoundaryWrapper>{children}</ErrorBoundaryWrapper>
+        </QueryClientProvider>
       </body>
     </html>
   );
