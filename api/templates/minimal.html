@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume - Minimal Template</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: #ffffff;
+            font-size: 11pt;
+        }
+
+        .page {
+            width: 8.5in;
+            min-height: 11in;
+            padding: 0.75in 1in;
+            margin: 0 auto;
+            background: white;
+            position: relative;
+        }
+
+        .page:first-child {
+            padding-top: 1in;
+        }
+
+        /* Prevent page breaks */
+        .no-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .page-break {
+            page-break-before: always;
+            break-before: page;
+        }
+
+        /* Header */
+        .header {
+            margin-bottom: 24pt;
+            text-align: center;
+        }
+
+        .name {
+            font-size: 24pt;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 6pt;
+            color: #1a1a1a;
+        }
+
+        .title {
+            font-size: 12pt;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 12pt;
+        }
+
+        .contact {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12pt;
+            font-size: 9pt;
+            color: #666;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 4pt;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 18pt;
+        }
+
+        .section-title {
+            font-size: 11pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1pt solid #e5e5e5;
+            padding-bottom: 4pt;
+            margin-bottom: 10pt;
+            color: #1a1a1a;
+        }
+
+        /* Work Experience */
+        .experience-item {
+            margin-bottom: 14pt;
+            no-break: true;
+        }
+
+        .experience-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 4pt;
+        }
+
+        .company-name {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .experience-date {
+            font-size: 9pt;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .position-title {
+            font-size: 10pt;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4pt;
+        }
+
+        .experience-location {
+            font-size: 9pt;
+            color: #666;
+            margin-bottom: 6pt;
+            font-style: italic;
+        }
+
+        .experience-description {
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .experience-description ul {
+            margin: 4pt 0 0 16pt;
+        }
+
+        .experience-description li {
+            margin-bottom: 3pt;
+        }
+
+        /* Education */
+        .education-item {
+            margin-bottom: 10pt;
+        }
+
+        .education-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .school-name {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .education-date {
+            font-size: 9pt;
+            color: #666;
+        }
+
+        .degree {
+            font-size: 10pt;
+            color: #333;
+            margin-top: 2pt;
+        }
+
+        /* Skills */
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6pt;
+        }
+
+        .skill-tag {
+            font-size: 9pt;
+            background: #f5f5f5;
+            padding: 3pt 8pt;
+            border-radius: 3pt;
+            color: #333;
+        }
+
+        /* Projects */
+        .project-item {
+            margin-bottom: 10pt;
+        }
+
+        .project-name {
+            font-size: 10pt;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 3pt;
+        }
+
+        .project-description {
+            font-size: 9pt;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        /* Languages */
+        .language-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10pt;
+            margin-bottom: 3pt;
+        }
+
+        .language-name {
+            font-weight: 500;
+        }
+
+        .language-level {
+            color: #666;
+        }
+
+        /* Print optimization */
+        @media print {
+            body {
+                background: white;
+            }
+            .page {
+                margin: 0;
+                box-shadow: none;
+            }
+        }
+
+        @page {
+            margin: 0.75in 1in;
+            size: letter;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        {{content}}
+    </div>
+</body>
+</html>

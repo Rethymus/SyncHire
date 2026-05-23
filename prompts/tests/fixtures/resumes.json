@@ -1,0 +1,195 @@
+{
+  "software_engineer_cn": {
+    "name": "张明",
+    "contact": {
+      "email": "zhangming@example.com",
+      "phone": "138-0000-0000",
+      "location": "上海"
+    },
+    "summary": "3年后端开发经验，专注Python和Django",
+    "education": {
+      "degree": "学士",
+      "major": "计算机科学与技术",
+      "school": "上海交通大学",
+      "year": "2021"
+    },
+    "skills": [
+      "Python",
+      "Django",
+      "Flask",
+      "PostgreSQL",
+      "Redis",
+      "Docker",
+      "Git",
+      "RESTful API"
+    ],
+    "experience": [
+      {
+        "id": "exp_001",
+        "title": "后端开发工程师",
+        "company": "上海某互联网公司",
+        "dates": "2021.03 - 至今",
+        "description": "负责电商平台的后端开发和维护",
+        "achievements": [
+          "使用Django重构订单系统，性能提升40%",
+          "实现Redis缓存策略，页面加载时间减少60%",
+          "优化数据库查询，支持日均10万+订单"
+        ],
+        "technologies": ["Python", "Django", "PostgreSQL", "Redis", "Celery"]
+      },
+      {
+        "id": "exp_002",
+        "title": "软件开发实习生",
+        "company": "某科技公司",
+        "dates": "2020.06 - 2021.02",
+        "description": "参与Web应用开发",
+        "achievements": [
+          "开发了用户管理模块",
+          "编写单元测试，覆盖率达到80%"
+        ],
+        "technologies": ["Python", "Flask", "MySQL", "JUnit"]
+      }
+    ],
+    "projects": [
+      {
+        "id": "proj_001",
+        "name": "个人博客系统",
+        "role": "独立开发者",
+        "date": "2020",
+        "description": "基于Django的博客平台",
+        "technologies": ["Django", "Bootstrap", "SQLite"]
+      }
+    ]
+  },
+  "frontend_engineer_en": {
+    "name": "Sarah Chen",
+    "contact": {
+      "email": "sarah.chen@example.com",
+      "phone": "+1-555-0123",
+      "location": "San Francisco"
+    },
+    "summary": "Frontend developer with 4 years of React experience",
+    "education": {
+      "degree": "Bachelor of Science",
+      "major": "Computer Science",
+      "school": "University of California, Berkeley",
+      "year": "2020"
+    },
+    "skills": [
+      "React",
+      "TypeScript",
+      "Next.js",
+      "JavaScript (ES6+)",
+      "HTML5/CSS3",
+      "TailwindCSS",
+      "Redux",
+      "GraphQL"
+    ],
+    "experience": [
+      {
+        "id": "exp_001",
+        "title": "Senior Frontend Developer",
+        "company": "TechStartup Inc",
+        "dates": "2022 - Present",
+        "description": "Lead frontend development for SaaS platform",
+        "achievements": [
+          "Reduced initial load time by 50% through code splitting",
+          "Implemented comprehensive testing suite (90% coverage)",
+          "Mentored 2 junior developers"
+        ],
+        "technologies": ["React", "TypeScript", "Next.js", "Jest", "AWS"]
+      },
+      {
+        "id": "exp_002",
+        "title": "Frontend Developer",
+        "company": "WebAgency Co",
+        "dates": "2020 - 2022",
+        "description": "Developed responsive web applications",
+        "achievements": [
+          "Built 20+ responsive websites for various clients",
+          "Improved development workflow with CI/CD setup"
+        ],
+        "technologies": ["React", "JavaScript", "SASS", "Webpack"]
+      }
+    ],
+    "projects": [
+      {
+        "id": "proj_001",
+        "name": "E-commerce Dashboard",
+        "role": "Lead Developer",
+        "date": "2023",
+        "description": "Real-time analytics dashboard for online stores",
+        "technologies": ["React", "D3.js", "Node.js", "PostgreSQL"]
+      }
+    ]
+  },
+  "career_changer": {
+    "name": "李华",
+    "contact": {
+      "email": "lihua@example.com",
+      "location": "上海"
+    },
+    "summary": "从传统行业转行做程序员，有强烈的学习热情",
+    "education": {
+      "degree": "硕士",
+      "major": "机械工程",
+      "school": "同济大学",
+      "year": "2019"
+    },
+    "skills": [
+      "Python",
+      "JavaScript",
+      "HTML/CSS",
+      "SQL"
+    ],
+    "experience": [
+      {
+        "id": "exp_001",
+        "title": "机械工程师",
+        "company": "某制造企业",
+        "dates": "2019 - 2023",
+        "description": "负责设备维护和工艺优化",
+        "achievements": [
+          "优化生产线流程，效率提升15%"
+        ],
+        "technologies": ["AutoCAD", "MATLAB"]
+      }
+    ],
+    "projects": [
+      {
+        "id": "proj_001",
+        "name": "自学编程项目",
+        "role": "独立学习",
+        "date": "2023 - 2024",
+        "description": "完成了在线课程，做了几个小项目",
+        "technologies": ["Python", "Django", "React"]
+      }
+    ]
+  },
+  "edge_cases": {
+    "empty_resume": {
+      "name": "",
+      "experience": [],
+      "skills": [],
+      "education": {}
+    },
+    "minimal_resume": {
+      "name": "测试用户"
+    },
+    "multiple_short_jobs": {
+      "name": "频繁跳槽者",
+      "experience": [
+        {"title": "工程师", "company": "A公司", "dates": "2023.01 - 2023.06"},
+        {"title": "工程师", "company": "B公司", "dates": "2023.07 - 2023.12"},
+        {"title": "工程师", "company": "C公司", "dates": "2024.01 - 2024.06"}
+      ]
+    },
+    "employment_gap": {
+      "name": "有空窗期",
+      "experience": [
+        {"title": "工程师", "company": "A公司", "dates": "2020 - 2021"},
+        {"title": "工程师", "company": "B公司", "dates": "2023 - 至今"}
+      ]
+    }
+  }
+}

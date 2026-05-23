@@ -1,0 +1,32 @@
+{
+  "name": "@synchire/mcp-jd-parser",
+  "version": "1.0.0",
+  "description": "MCP server for parsing job descriptions into structured data",
+  "type": "module",
+  "main": "build/index.js",
+  "bin": {
+    "mcp-jd-parser": "build/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node build/index.js",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "mcp",
+    "job-description",
+    "parser",
+    "hr",
+    "recruiting"
+  ],
+  "author": "SyncHire",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}

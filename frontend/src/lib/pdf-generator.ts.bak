@@ -1,0 +1,152 @@
+// PDF Generation Service with Puppeteer
+// This would typically run as a separate microservice
+
+import puppeteer from "puppeteer";
+import { promises as fs } from "fs";
+import path from "path";
+
+interface PDFOptions {
+  template: "minimal" | "professional" | "creative";
+  filename?: string;
+  content: string;
+}
+
+export class PDFGenerator {
+  private browser: puppeteer.Browser | null = null;
+  private templateCache: Map<string, string> = new Map();
+
+  async initialize() {
+    if (!this.browser) {
+      this.browser = await puppeteer.launch({
+        headless: "new",
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--font-render-hinting=none",
+          "--disable-font-subpixel-positioning",
+        ],
+      });
+
+      // Preload templates
+      await this.loadTemplates();
+    }
+  }
+
+  private async loadTemplates() {
+    const templateDir = path.join(process.cwd(), "public", "templates");
+    const templates = ["minimal", "professional", "creative"];
+
+    for (const template of templates) {
+      try {
+        const cssPath = path.join(templateDir, `${template}.css`);
+        const css = await fs.readFile(cssPath, "utf-8");
+        this.templateCache.set(template, css);
+      } catch (error) {
+        console.error(`Failed to load template ${template}:`, error);
+      }
+    }
+  }
+
+  async generatePDF(options: PDFOptions): Promise<Buffer> {
+    await this.initialize();
+
+    if (!this.browser) {
+      throw new Error("Browser not initialized");
+    }
+
+    const page = await this.browser.newPage();
+
+    try {
+      // Get template CSS
+      const templateCSS =
+        this.templateCache.get(options.template) ||
+        this.templateCache.get("minimal") ||
+        "";
+
+      // Create HTML with Chinese font support
+      const html = this.createHTML(options.content, templateCSS);
+
+      // Set content with proper viewport for A4
+      await page.setContent(html, {
+        waitUntil: "networkidle0",
+      });
+
+      // Generate PDF
+      const pdf = await page.pdf({
+        format: "A4",
+        printBackground: true,
+        margin: {
+          top: "20px",
+          right: "20px",
+          bottom: "20px",
+          left: "20px",
+        },
+        preferCSSPageSize: true,
+      });
+
+      return Buffer.from(pdf);
+    } finally {
+      await page.close();
+    }
+  }
+
+  private createHTML(content: string, css: string): string {
+    return `
+      <!DOCTYPE html>
+      <html lang="zh-CN">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Resume</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+          ${css}
+        </style>
+      </head>
+      <body>
+        <div class="resume">
+          ${this.renderMarkdown(content)}
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  private renderMarkdown(markdown: string): string {
+    // Simple markdown to HTML conversion
+    return markdown
+      .replace(/^# (.*$)/gim, '<div class="resume-name">$1</div>')
+      .replace(/^## (.*$)/gim, '<div class="resume-section-title">$1</div>')
+      .replace(/^### (.*$)/gim, '<div class="resume-item-title">$1</div>')
+      .replace(/^\* (.*$)/gim, "<li>$1</li>")
+      .replace(/^- (.*$)/gim, "<li>$1</li>")
+      .replace(/\*\*(.*?)\*\*/gim, "<strong>$1</strong>")
+      .replace(/\n/gim, "<br>");
+  }
+
+  async close() {
+    if (this.browser) {
+      await this.browser.close();
+      this.browser = null;
+    }
+  }
+}
+
+// Singleton instance
+let pdfGenerator: PDFGenerator | null = null;
+
+export async function getPDFGenerator(): Promise<PDFGenerator> {
+  if (!pdfGenerator) {
+    pdfGenerator = new PDFGenerator();
+  }
+  return pdfGenerator;
+}
+
+// Cleanup on process exit
+if (typeof process !== "undefined") {
+  process.on("beforeExit", async () => {
+    if (pdfGenerator) {
+      await pdfGenerator.close();
+    }
+  });
+}

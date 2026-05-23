@@ -1,0 +1,197 @@
+{
+  "version": "1.0.0",
+  "templates": [
+    {
+      "id": "minimal",
+      "name": "Minimal",
+      "description": "Clean single-column, ATS-friendly design",
+      "category": "modern",
+      "thumbnail": "/api/templates/minimal/thumbnail",
+      "preview": "/api/templates/minimal/preview",
+      "features": [
+        "Single column layout",
+        "ATS-friendly",
+        "Clean typography",
+        "Optimized for applicant tracking systems"
+      ],
+      "customizable": {
+        "colors": {
+          "primary": "#1a1a1a",
+          "text": "#333333",
+          "muted": "#666666",
+          "border": "#e5e5e5"
+        },
+        "fonts": {
+          "heading": "Inter",
+          "body": "Inter"
+        },
+        "spacing": {
+          "section_spacing": "18pt",
+          "item_spacing": "14pt"
+        }
+      },
+      "suitable_for": [
+        "tech_industry",
+        "entry_level",
+        "mid_career",
+        "applications_via_ats"
+      ]
+    },
+    {
+      "id": "professional",
+      "name": "Professional",
+      "description": "Two-column layout with sidebar for contact and skills",
+      "category": "professional",
+      "thumbnail": "/api/templates/professional/thumbnail",
+      "preview": "/api/templates/professional/preview",
+      "features": [
+        "Two-column layout",
+        "Sidebar for contact info",
+        "Visual skill indicators",
+        "Professional color scheme"
+      ],
+      "customizable": {
+        "colors": {
+          "primary": "#2c3e50",
+          "secondary": "#3498db",
+          "sidebar_bg": "#2c3e50",
+          "sidebar_text": "#ffffff"
+        },
+        "fonts": {
+          "heading": "Inter",
+          "body": "Inter"
+        },
+        "layout": {
+          "sidebar_width": "2.2in"
+        }
+      },
+      "suitable_for": [
+        "corporate",
+        "mid_career",
+        "senior_roles",
+        "traditional_industries"
+      ]
+    },
+    {
+      "id": "creative",
+      "name": "Creative",
+      "description": "Modern design with gradient header and accent colors",
+      "category": "creative",
+      "thumbnail": "/api/templates/creative/thumbnail",
+      "preview": "/api/templates/creative/preview",
+      "features": [
+        "Gradient header",
+        "Modern typography",
+        "Skill pill badges",
+        "Decorative elements"
+      ],
+      "customizable": {
+        "colors": {
+          "gradient_start": "#6c5ce7",
+          "gradient_end": "#74b9ff",
+          "accent": "#6c5ce7",
+          "text": "#2d3436"
+        },
+        "fonts": {
+          "heading": "Poppins",
+          "body": "Poppins"
+        },
+        "decorations": {
+          "header_style": "gradient",
+          "section_divider": "line_with_dot"
+        }
+      },
+      "suitable_for": [
+        "design",
+        "tech_startups",
+        "creative_industries",
+        "portfolio_based_roles"
+      ]
+    },
+    {
+      "id": "executive",
+      "name": "Executive",
+      "description": "Conservative design for senior roles and executives",
+      "category": "executive",
+      "thumbnail": "/api/templates/executive/thumbnail",
+      "preview": "/api/templates/executive/preview",
+      "features": [
+        "Serif headings",
+        "Formal layout",
+        "Executive summary section",
+        "Highlight boxes"
+      ],
+      "customizable": {
+        "colors": {
+          "primary": "#1a1a1a",
+          "border": "#1a1a1a",
+          "accent": "#4a4a4a",
+          "highlight_bg": "#f8f8f8"
+        },
+        "fonts": {
+          "heading": "Playfair Display",
+          "body": "Source Sans Pro"
+        },
+        "sections": {
+          "executive_summary": true,
+          "leadership_highlights": true,
+          "awards_position": "bottom"
+        }
+      },
+      "suitable_for": [
+        "executive_level",
+        "senior_management",
+        "board_positions",
+        "conservative_industries"
+      ]
+    }
+  ],
+  "color_schemes": {
+    "professional_blue": {
+      "primary": "#2c3e50",
+      "secondary": "#3498db",
+      "accent": "#3498db",
+      "text": "#2c3e50",
+      "muted": "#7f8c8d"
+    },
+    "elegant_gray": {
+      "primary": "#1a1a1a",
+      "secondary": "#666666",
+      "accent": "#1a1a1a",
+      "text": "#1a1a1a",
+      "muted": "#666666"
+    },
+    "modern_purple": {
+      "primary": "#6c5ce7",
+      "secondary": "#a29bfe",
+      "accent": "#6c5ce7",
+      "text": "#2d3436",
+      "muted": "#636e72"
+    },
+    "classic_black": {
+      "primary": "#000000",
+      "secondary": "#333333",
+      "accent": "#000000",
+      "text": "#000000",
+      "muted": "#666666"
+    }
+  },
+  "font_pairs": {
+    "modern": {
+      "heading": "Inter",
+      "body": "Inter"
+    },
+    "professional": {
+      "heading": "Inter",
+      "body": "Source Sans Pro"
+    },
+    "creative": {
+      "heading": "Poppins",
+      "body": "Poppins"
+    },
+    "formal": {
+      "heading": "Playfair Display",
+      "body": "Source Sans Pro"
+    }
+  }
+}

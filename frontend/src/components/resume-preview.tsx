@@ -1,0 +1,357 @@
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { useAppStore } from "@/lib/store";
+import {
+  FileText,
+  Download,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { sanitizeHtml } from "@/lib/sanitize";
+import { logger } from "@/lib/logger";
+import { LogCategory } from "@/lib/logger";
+
+type Template = "minimal" | "professional" | "creative";
+
+const templates = [
+  {
+    id: "minimal" as Template,
+    name: "简约风格",
+    description: "简洁大方，适合大多数行业",
+    preview: "/templates/minimal.css",
+  },
+  {
+    id: "professional" as Template,
+    name: "商务风格",
+    description: "专业正式，适合金融、法律等行业",
+    preview: "/templates/professional.css",
+  },
+  {
+    id: "creative" as Template,
+    name: "创意风格",
+    description: "个性鲜明，适合设计、创意行业",
+    preview: "/templates/creative.css",
+  },
+];
+
+function renderMarkdownToHTML(markdown: string): string {
+  const lines = markdown.split("\n");
+  let html = "";
+  let inList = false;
+  let currentSection = "";
+
+  const parseInfo = (line: string) => {
+    // Extract contact info from header
+    if (line.includes("|")) {
+      const parts = line.split("|").map(p => p.trim());
+      if (parts.length >= 2) {
+        return `<div class="resume-contact-item">${parts[1]}</div>`;
+      }
+    }
+    return null;
+  };
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith("# ")) {
+      if (inList) {
+        html += "</ul>";
+        inList = false;
+      }
+      const text = trimmed.substring(2);
+      if (index < 5) {
+        // Assume first few headings are header info
+        if (!html.includes("resume-header")) {
+          html += `<div class="resume-header">
+            <div class="resume-name">${text.replace(/\*\*/g, "")}</div>`;
+        }
+      } else {
+        html += `<div class="resume-section">
+          <div class="resume-section-title">${text.replace(/\*\*/g, "")}</div>`;
+      }
+    } else if (trimmed.startsWith("### ")) {
+      if (inList) {
+        html += "</ul>";
+        inList = false;
+      }
+      const text = trimmed.substring(3).replace(/\*\*/g, "");
+      html += `<div class="resume-item">
+        <div class="resume-item-header">
+          <div class="resume-item-title">${text}</div>
+        </div>`;
+    } else if (trimmed.startsWith("## ")) {
+      if (inList) {
+        html += "</ul>";
+        inList = false;
+      }
+      const text = trimmed.substring(2);
+      if (!text.includes("经历") && !text.includes("项目") && !text.includes("技能") && !text.includes("教育")) {
+        html += `<div class="resume-item-subtitle">${text.replace(/\*\*/g, "")}</div>`;
+      } else {
+        html += `</div>`;
+        html += `<div class="resume-section">
+          <div class="resume-section-title">${text.replace(/\*\*/g, "")}</div>`;
+      }
+    } else if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+      if (!inList) {
+        html += "<ul>";
+        inList = true;
+      }
+      const text = trimmed.substring(2);
+      html += `<li>${text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")}</li>`;
+    } else if (trimmed.match(/^\*.*\*$/)) {
+      // Bold standalone text
+      if (!inList) {
+        html += `<div class="resume-item-description">${trimmed.replace(/\*/g, "")}</div>`;
+      }
+    } else if (trimmed && !trimmed.startsWith("#")) {
+      // Regular text
+      if (inList) {
+        html += "</ul>";
+        inList = false;
+      }
+      const text = trimmed.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+      html += `<div class="resume-item-description">${text}</div>`;
+    }
+  });
+
+  if (inList) {
+    html += "</ul>";
+  }
+
+  return html;
+}
+
+export function ResumePreview() {
+  const { currentResume } = useAppStore();
+  const [selectedTemplate, setSelectedTemplate] = useState<Template>("minimal");
+  const [zoom, setZoom] = useState(100);
+  const [loading, setLoading] = useState(true);
+  const [templateCSS, setTemplateCSS] = useState("");
+
+  // Memoize rendered HTML to avoid re-rendering markdown on every update
+  const renderedHTML = useMemo(() => {
+    const content = currentResume?.content || "";
+    return renderMarkdownToHTML(content);
+  }, [currentResume?.content]);
+
+  useEffect(() => {
+    const loadTemplate = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`/templates/${selectedTemplate}.css`);
+        const css = await response.text();
+        setTemplateCSS(css);
+      } catch (error) {
+        logger.error(LogCategory.PERF, "Failed to load template", error as Error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTemplate();
+  }, [selectedTemplate]);
+
+  const handleDownloadPDF = useCallback(async () => {
+    try {
+      const html = renderedHTML;
+
+      const response = await fetch("/api/generate-pdf", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          html,
+          template: selectedTemplate,
+          filename: currentResume?.name || "resume",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate PDF");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${currentResume?.name || "resume"}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      logger.error(LogCategory.PERF, "PDF generation error", error as Error);
+      // Fallback to HTML download
+      const html = `
+        <!DOCTYPE html>
+        <html lang="zh-CN">
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            ${templateCSS}
+          </style>
+        </head>
+        <body>
+          <div class="resume">
+            ${renderedHTML}
+          </div>
+        </body>
+        </html>
+      `;
+
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${currentResume?.name || "resume"}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  }, [currentResume, selectedTemplate, templateCSS]);
+
+  const handleZoomIn = useCallback(() => setZoom((prev) => Math.min(prev + 10, 150)), []);
+  const handleZoomOut = useCallback(() => setZoom((prev) => Math.max(prev - 10, 50)), []);
+
+  // Memoize template rendering to avoid unnecessary re-renders
+  const memoizedTemplates = useMemo(() =>
+    templates.map((template) => ({ ...template })),
+    [templates]
+  );
+
+  return (
+    <div className="flex flex-col h-full bg-gray-100">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200">
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg font-semibold text-gray-900">
+            简历预览
+          </h2>
+
+          {/* Template Selector */}
+          <div className="flex items-center gap-2">
+            <label htmlFor="template-select" className="text-sm text-gray-700">
+              模板:
+            </label>
+            <select
+              id="template-select"
+              value={selectedTemplate}
+              onChange={(e) => setSelectedTemplate(e.target.value as Template)}
+              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              {memoizedTemplates.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Zoom Controls */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleZoomOut}
+              disabled={zoom <= 50}
+              aria-label="缩小"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span
+              className="text-sm text-gray-700 min-w-[3rem] text-center"
+              aria-label={`当前缩放: ${zoom}%`}
+              role="status"
+            >
+              {zoom}%
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleZoomIn}
+              disabled={zoom >= 150}
+              aria-label="放大"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={handleDownloadPDF}
+            disabled={!currentResume || loading}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            导出 PDF
+          </Button>
+        </div>
+      </div>
+
+      {/* Preview Area */}
+      <div className="flex-1 overflow-auto p-8">
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-700">加载模板中...</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <div
+              className="bg-white shadow-lg"
+              style={{
+                transform: `scale(${zoom / 100})`,
+                transformOrigin: "top center",
+              }}
+            >
+              <style>{templateCSS}</style>
+              <div
+                className="resume"
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeHtml(renderedHTML),
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Template Info */}
+      <div className="p-4 bg-white border-t border-gray-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-medium text-gray-900">
+              {templates.find((t) => t.id === selectedTemplate)?.name}
+            </h3>
+            <p className="text-sm text-gray-700">
+              {templates.find((t) => t.id === selectedTemplate)?.description}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {memoizedTemplates.map((template) => (
+              <button
+                key={template.id}
+                onClick={() => setSelectedTemplate(template.id)}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                  selectedTemplate === template.id
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                )}
+              >
+                {template.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

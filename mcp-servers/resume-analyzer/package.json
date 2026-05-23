@@ -1,0 +1,35 @@
+{
+  "name": "@synchire/mcp-resume-analyzer",
+  "version": "1.0.0",
+  "description": "MCP server for parsing and analyzing resumes into structured data",
+  "type": "module",
+  "main": "build/index.js",
+  "bin": {
+    "mcp-resume-analyzer": "build/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node build/index.js",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "mcp",
+    "resume",
+    "cv",
+    "parser",
+    "hr",
+    "recruiting"
+  ],
+  "author": "SyncHire",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "pdf-parse": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/pdf-parse": "^1.1.4",
+    "typescript": "^5.7.2"
+  }
+}

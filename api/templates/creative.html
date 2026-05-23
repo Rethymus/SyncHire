@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume - Creative Template</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', 'Noto Sans SC', sans-serif;
+            line-height: 1.6;
+            color: #2d3436;
+            background: #ffffff;
+            font-size: 10pt;
+        }
+
+        .page {
+            width: 8.5in;
+            min-height: 11in;
+            padding: 0;
+            margin: 0 auto;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative header */
+        .header-decoration {
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 50%, #74b9ff 100%);
+            padding: 0.6in 1in 0.5in;
+            position: relative;
+        }
+
+        .header-decoration::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: white;
+            border-radius: 50% 50% 0 0;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .name {
+            font-size: 26pt;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 4pt;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .title {
+            font-size: 11pt;
+            font-weight: 400;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 8pt;
+        }
+
+        .contact {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10pt;
+            font-size: 9pt;
+            color: rgba(255,255,255,0.85);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 4pt;
+        }
+
+        /* Main content */
+        .content {
+            padding: 0.3in 1in 0.6in;
+        }
+
+        .section {
+            margin-bottom: 16pt;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .section-title {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #6c5ce7;
+            margin-bottom: 8pt;
+            display: flex;
+            align-items: center;
+            gap: 8pt;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 24pt;
+            height: 2pt;
+            background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+            border-radius: 1pt;
+        }
+
+        /* Experience cards */
+        .experience-item {
+            position: relative;
+            padding-left: 16pt;
+            margin-bottom: 12pt;
+        }
+
+        .experience-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 4pt;
+            width: 6pt;
+            height: 6pt;
+            background: #6c5ce7;
+            border-radius: 50%;
+        }
+
+        .experience-item::after {
+            content: '';
+            position: absolute;
+            left: 2pt;
+            top: 10pt;
+            bottom: -8pt;
+            width: 2pt;
+            background: #dfe6e9;
+        }
+
+        .experience-item:last-child::after {
+            display: none;
+        }
+
+        .experience-header {
+            margin-bottom: 3pt;
+        }
+
+        .company-name {
+            font-size: 10pt;
+            font-weight: 600;
+            color: #2d3436;
+        }
+
+        .experience-date {
+            font-size: 8pt;
+            color: #636e72;
+            font-weight: 500;
+        }
+
+        .position-title {
+            font-size: 9pt;
+            font-weight: 500;
+            color: #6c5ce7;
+            margin-bottom: 3pt;
+        }
+
+        .experience-description {
+            font-size: 9pt;
+            line-height: 1.5;
+            color: #636e72;
+        }
+
+        .experience-description ul {
+            margin: 3pt 0 0 12pt;
+        }
+
+        .experience-description li {
+            margin-bottom: 2pt;
+        }
+
+        /* Skills pills */
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5pt;
+        }
+
+        .skill-pill {
+            font-size: 8pt;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            padding: 3pt 10pt;
+            border-radius: 12pt;
+            font-weight: 500;
+        }
+
+        /* Projects */
+        .project-item {
+            background: #f8f9fa;
+            padding: 8pt 10pt;
+            border-radius: 6pt;
+            margin-bottom: 8pt;
+            border-left: 3pt solid #6c5ce7;
+        }
+
+        .project-name {
+            font-size: 9pt;
+            font-weight: 600;
+            color: #2d3436;
+            margin-bottom: 2pt;
+        }
+
+        .project-description {
+            font-size: 8.5pt;
+            color: #636e72;
+            line-height: 1.4;
+        }
+
+        /* Education */
+        .education-item {
+            margin-bottom: 8pt;
+        }
+
+        .education-header {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .school-name {
+            font-size: 10pt;
+            font-weight: 600;
+            color: #2d3436;
+        }
+
+        .education-date {
+            font-size: 8pt;
+            color: #636e72;
+        }
+
+        .degree {
+            font-size: 9pt;
+            color: #636e72;
+            margin-top: 1pt;
+        }
+
+        /* Page breaks */
+        .page-break {
+            page-break-before: always;
+            break-before: page;
+        }
+
+        .no-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+        }
+
+        @page {
+            margin: 0;
+            size: letter;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header class="header-decoration">
+            <div class="header-content">
+                <h1 class="name">{{name}}</h1>
+                <p class="title">{{title}}</p>
+                <div class="contact">{{contact}}</div>
+            </div>
+        </header>
+        <div class="content">
+            {{content}}
+        </div>
+    </div>
+</body>
+</html>

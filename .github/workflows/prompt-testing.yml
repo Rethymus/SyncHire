@@ -1,0 +1,317 @@
+name: Prompt Testing CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'prompts/**'
+      - '.github/workflows/prompt-testing.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'prompts/**'
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.11'
+  LANGCHAIN_TRACING_V2: true
+
+jobs:
+  prompt-tests:
+    name: Test AI Prompts
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        model:
+          - gpt-4o
+          - claude-3-5-sonnet-20241022
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r prompts/requirements.txt
+
+      - name: Set up LangSmith
+        run: |
+          echo "LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }}" >> $GITHUB_ENV
+          echo "LANGCHAIN_PROJECT=synchire-ci-cd" >> $GITHUB_ENV
+
+      - name: Run prompt tests
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
+        run: |
+          cd prompts
+          python test_evals.py --model ${{ matrix.model }} --save
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.model }}
+          path: prompts/test_results.json
+          retention-days: 30
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            try {
+              const results = JSON.parse(fs.readFileSync('prompts/test_results.json', 'utf8'));
+              const summary = results.summary;
+
+              const comment = `## 🤖 Prompt Test Results (${{ matrix.model }})
+
+              **Pass Rate:** ${summary.pass_rate.toFixed(1)}%
+              **Tests Passed:** ${summary.passed}/${summary.total_tests}
+              **Avg Score:** ${summary.average_score.toFixed(2)}
+              **Duration:** ${summary.total_duration_seconds.toFixed(1)}s
+
+              ${summary.failures.length > 0 ? '### ❌ Failures\n' + summary.failures.map(f => `- **${f.test}**: ${f.errors.join(', ')}`).join('\n') : '✅ All tests passed!'}
+
+              _Generated at: ${summary.timestamp}_`;
+
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            } catch (error) {
+              console.log('Could not post results:', error);
+            }
+
+  hallucination-check:
+    name: Resume Hallucination Detection
+    runs-on: ubuntu-latest
+    needs: prompt-tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r prompts/requirements.txt
+
+      - name: Run hallucination tests
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          cd prompts
+          python -c "
+          from test_evals import ResumeRestructureTester, ModelProvider
+          from test_data import get_test_resume, get_test_jd
+
+          tester = ResumeRestructureTester(model_provider=ModelProvider.OPENAI_GPT4O)
+          profile = get_test_resume('software_engineer_cn')
+          jd_text = get_test_jd('chinese', 'backend')
+
+          result = tester.test_hallucination_detection(profile, {'job_title': 'Backend Dev'})
+          print(f'Hallucination test passed: {result.passed}')
+          exit(0 if result.passed else 1)
+          "
+
+      - name: Fail on hallucination
+        if: failure()
+        run: |
+          echo "❌ HALLUCINATION DETECTED!"
+          echo "Resume restructure prompt is generating fabricated information."
+          exit 1
+
+  bilingual-test:
+    name: Bilingual JD Processing
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: pip install -r prompts/requirements.txt
+
+      - name: Test Chinese JD
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          cd prompts
+          python -c "
+          from test_evals import JDAnalysisTester, ModelProvider
+          from test_data import get_test_jd
+
+          tester = JDAnalysisTester(model_provider=ModelProvider.OPENAI_GPT4O)
+          jd = get_test_jd('chinese', 'backend')
+          result = tester.test_chinese_jd()
+          print(f'Chinese JD test passed: {result.passed}')
+          exit(0 if result.passed else 1)
+          "
+
+      - name: Test English JD
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          cd prompts
+          python -c "
+          from test_evals import JDAnalysisTester, ModelProvider
+          from test_data import get_test_jd
+
+          tester = JDAnalysisTester(model_provider=ModelProvider.OPENAI_GPT4O)
+          jd = get_test_jd('english', 'software')
+          result = tester.test_english_jd()
+          print(f'English JD test passed: {result.passed}')
+          exit(0 if result.passed else 1)
+          "
+
+      - name: Test Mixed Language JD
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          cd prompts
+          python -c "
+          from test_evals import JDAnalysisTester, ModelProvider
+          from test_data import get_test_jd
+
+          tester = JDAnalysisTester(model_provider=ModelProvider.OPENAI_GPT4O)
+          jd = get_test_jd('mixed', 'full_stack')
+          result = tester.test_mixed_language_jd()
+          print(f'Mixed language JD test passed: {result.passed}')
+          exit(0 if result.passed else 1)
+          "
+
+  security-scan:
+    name: Security Scan Prompts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Scan for prompt injection patterns
+        run: |
+          echo "Scanning prompts for potential injection vulnerabilities..."
+
+          # Check for dangerous patterns
+          if grep -r "ignore previous instructions" prompts/; then
+            echo "❌ Found potential prompt injection pattern"
+            exit 1
+          fi
+
+          if grep -r "forget everything" prompts/; then
+            echo "❌ Found potential prompt injection pattern"
+            exit 1
+          fi
+
+          if grep -r "disregard" prompts/*.md; then
+            echo "⚠️ Found 'disregard' - verify it's not injection-related"
+          fi
+
+          echo "✅ No obvious prompt injection patterns found"
+
+      - name: Check for hardcoded credentials
+        run: |
+          echo "Checking for hardcoded secrets..."
+
+          if grep -rE "(api[_-]?key|secret|password|token)\s*[:=]\s*['\"]" prompts/ --exclude-dir=__pycache__; then
+            echo "⚠️ Found potential hardcoded credentials - review needed"
+          else
+            echo "✅ No hardcoded credentials found"
+          fi
+
+  performance-test:
+    name: Prompt Performance Benchmarks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: pip install -r prompts/requirements.txt
+
+      - name: Benchmark prompt performance
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          cd prompts
+          python -c "
+          import time
+          from test_evals import JDAnalysisTester, ModelProvider
+          from test_data import get_test_jd
+
+          tester = JDAnalysisTester(model_provider=ModelProvider.OPENAI_GPT4O)
+
+          # Run 5 iterations
+          times = []
+          for i in range(5):
+              start = time.time()
+              result = tester.test_chinese_jd()
+              duration = time.time() - start
+              times.append(duration)
+              print(f'Run {i+1}: {duration:.2f}s')
+
+          avg_time = sum(times) / len(times)
+          print(f'Average response time: {avg_time:.2f}s')
+
+          # Fail if too slow (threshold: 30 seconds)
+          if avg_time > 30:
+              print(f'❌ Prompts too slow: {avg_time:.2f}s > 30s')
+              exit(1)
+          else:
+              print(f'✅ Performance acceptable: {avg_time:.2f}s')
+          "
+
+      - name: Post performance metrics
+        if: always()
+        run: |
+          echo "### 📊 Performance Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "Prompt response times tracked in LangSmith dashboard" >> $GITHUB_STEP_SUMMARY
+
+  notify-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [prompt-tests, hallucination-check, bilingual-test]
+    if: failure()
+
+    steps:
+      - name: Create failure report
+        run: |
+          echo "## ❌ Prompt Testing Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "One or more prompt tests failed. Please review:" >> $GITHUB_STEP_SUMMARY
+          echo "- Check test results in artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Review LangSmith traces" >> $GITHUB_STEP_SUMMARY
+          echo "- Verify prompt templates for issues" >> $GITHUB_STEP_SUMMARY

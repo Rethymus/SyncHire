@@ -1,0 +1,21 @@
+{
+  "chinese_backend": {
+    "title": "高级后端开发工程师",
+    "content": "职位：高级后端开发工程师\n部门：技术研发部\n类型：全职\n地点：上海\n\n职责：\n- 负责核心业务系统的后端开发和维护\n- 参与系统架构设计和技术方案评审\n- 优化系统性能，提升用户体验\n- 指导初级工程师，进行代码审查\n\n要求：\n- 本科及以上学历，计算机相关专业\n- 5年以上Java开发经验，熟悉Spring Boot、MyBatis\n- 熟悉MySQL、Redis等数据库，有性能优化经验\n- 有高并发、分布式系统经验者优先\n- 良好的沟通能力和团队协作精神\n- 有金融科技行业经验者优先\n\n薪资范围：25k-45k/月"
+  },
+  "english_frontend": {
+    "title": "Senior Frontend Developer",
+    "content": "Senior Frontend Developer\n\nDepartment: Engineering\nType: Full-time\nLocation: San Francisco / Remote\n\nResponsibilities:\n- Design and implement responsive user interfaces\n- Optimize frontend performance and user experience\n- Collaborate with UX designers and product managers\n- Participate in code reviews and architectural decisions\n\nRequirements:\n- 4+ years of frontend development experience\n- Proficiency in React, TypeScript, and modern JavaScript\n- Experience with state management (Redux, MobX)\n- Knowledge of web performance optimization techniques\n- Understanding of responsive design and accessibility\n- Excellent problem-solving and communication skills\n\nSalary: $150k-$200k"
+  },
+  "mixed_fullstack": {
+    "title": "Full Stack Developer 全栈开发工程师",
+    "content": "职位：Full Stack Developer 全栈开发工程师\n\nTeam: Platform Team 平台团队\nType: Fulltime 全职\nLocation: Beijing 北京 / Remote 远程\n\nResponsibilities 职责:\n- Develop responsive web applications using React and Node.js\n- 设计并实现RESTful API\n- Collaborate with designers and product managers 与产品经理协作\n- Optimize application performance 优化应用性能\n- Participate in code reviews 参与代码审查\n\nRequirements 要求:\n- 3+ years of full-stack development experience\n- Proficient in React, TypeScript, Node.js 熟练使用React/TS/Node\n- Experience with PostgreSQL and Redis\n- Knowledge of cloud services (AWS, Azure) 了解云服务\n- Good communication skills in English and Chinese 中英文沟通能力\n- Experience with microservices architecture 微服务架构经验"
+  },
+  "edge_cases": {
+    "empty": "",
+    "minimal": "We need a developer. Thanks.",
+    "malformed": "JOB!!!111\nskills: everything\nsalary: $$$$",
+    "very_long": "Senior Software Engineer\n" + "- Requirement " + "\n- Requirement ".join([str(i) + ": Some detailed requirement description" for i in range(50)]),
+    "special_chars": "职位：C++开发工程师（底层系统）\n要求：熟悉C++11/14/17标准、STL、Boost库\n工具：CMake, Git, Docker, Kubernetes\n薪资：¥30k-50k/月 ⚡️💰"
+  }
+}

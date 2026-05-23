@@ -1,0 +1,13 @@
+# SyncHire (知遇) - robots.txt
+
+User-agent: *
+Allow: /
+
+# 禁止爬取API路由
+Disallow: /api/
+
+# 禁止爬取私有路由
+Disallow: /dashboard/
+
+# 站点地图
+Sitemap: https://synchire.com/sitemap.xml
