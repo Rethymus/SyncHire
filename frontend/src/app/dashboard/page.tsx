@@ -62,7 +62,7 @@ function DashboardPage() {
       icon: XCircle,
       color: "bg-red-500",
     },
-  ], [applications.length, applications.map(a => a.status).join(',')]);
+  ], [applications.length]);
 
   // Memoize recent applications to avoid re-slicing on every render
   const recentApplications = useMemo(() => applications.slice(0, 5), [applications]);

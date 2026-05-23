@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
 import { Save, Download, Eye, Edit, Sparkles } from "lucide-react";
@@ -91,12 +91,14 @@ function ResumeEditorComponent() {
   const [previewMode, setPreviewMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [aiOptimizing, setAiOptimizing] = useState(false);
+  const prevResumeIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    if (currentResume?.content) {
+    if (currentResume?.id !== prevResumeIdRef.current && currentResume?.content) {
       setContent(currentResume.content);
+      prevResumeIdRef.current = currentResume.id;
     }
-  }, [currentResume]);
+  }, [currentResume?.id, currentResume?.content]);
 
   const handleSave = useCallback(async () => {
     if (!currentResume) return;
@@ -259,7 +261,7 @@ function ResumeEditorComponent() {
             </h3>
             <p className="text-sm text-blue-700 mt-1">
               使用 Markdown 语法编辑简历。支持标题（#, ##, ###）、列表（-, *）、加粗（**text**）等功能。
-              点击"AI 优化"按钮，让 AI 帮助您改进简历内容。
+              点击&ldquo;AI 优化&rdquo;按钮，让 AI 帮助您改进简历内容。
             </p>
           </div>
         </div>

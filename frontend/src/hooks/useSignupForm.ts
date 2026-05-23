@@ -167,6 +167,7 @@ export function useSignupForm() {
   return {
     formData,
     errors,
+    setErrors,
     loading,
     acceptTerms,
     passwordStrength,

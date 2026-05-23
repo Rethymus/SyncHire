@@ -37,7 +37,7 @@ export const SecureLink = forwardRef<HTMLAnchorElement, SecureLinkProps>(
     }
 
     return (
-      <Link href={href} ref={ref as any} {...props}>
+      <Link href={href} {...props}>
         {children}
       </Link>
     );

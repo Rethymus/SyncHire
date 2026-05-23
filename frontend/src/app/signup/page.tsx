@@ -15,6 +15,7 @@ export default function SignupPage() {
     acceptTerms,
     passwordStrength,
     setAcceptTerms,
+    setErrors,
     handleInputChange,
     handleInputBlur,
     handleSubmit,
@@ -82,7 +83,11 @@ export default function SignupPage() {
                 error={errors.terms}
                 onClearError={() => {
                   if (errors.terms) {
-                    errors.terms = undefined;
+                    setErrors(prev => {
+                      const newErrors = { ...prev };
+                      delete newErrors.terms;
+                      return newErrors;
+                    });
                   }
                 }}
               />

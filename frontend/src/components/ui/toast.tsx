@@ -43,6 +43,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const removeToast = useCallback((id: string) => {
+    // 清理对应的定时器
+    const timer = timersRef.current.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      timersRef.current.delete(id);
+    }
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  }, []);
+
   const addToast = useCallback((toast: Omit<Toast, "id">) => {
     const id = Math.random().toString(36).substring(2, 9);
     const newToast = { ...toast, id };
@@ -57,17 +67,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       }, toast.duration || 5000);
       timersRef.current.set(id, timer);
     }
-  }, []);
-
-  const removeToast = useCallback((id: string) => {
-    // 清理对应的定时器
-    const timer = timersRef.current.get(id);
-    if (timer) {
-      clearTimeout(timer);
-      timersRef.current.delete(id);
-    }
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  }, []);
+  }, [removeToast]);
 
   const clearToasts = useCallback(() => {
     setToasts([]);

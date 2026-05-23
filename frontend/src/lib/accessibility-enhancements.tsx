@@ -10,8 +10,7 @@ import React, {
   useRef,
   useEffect,
   useState,
-  useCallback,
-  type ElementRef,
+  useId,
   type ComponentPropsWithoutRef,
 } from "react";
 import { cn } from "@/lib/utils";
@@ -218,7 +217,8 @@ export const AccessibleInput = forwardRef<
     },
     ref
   ) => {
-    const inputId = id || useId();
+    const generatedId = useId();
+    const inputId = id || generatedId;
     const errorId = `${inputId}-error`;
     const helperId = `${inputId}-helper`;
 
@@ -279,8 +279,6 @@ export const AccessibleInput = forwardRef<
   }
 );
 AccessibleInput.displayName = "AccessibleInput";
-
-import { useId } from "react";
 
 /**
  * 增强的模态框组件
@@ -372,11 +370,14 @@ export const AccessibleModal = ({
  * 尊重用户系统偏好
  */
 export function useReducedMotion() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  // Initialize state from media query to avoid setState in effect
+  const mediaQuery = typeof window !== "undefined"
+    ? window.matchMedia("(prefers-reduced-motion: reduce)")
+    : null;
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(mediaQuery?.matches ?? false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
+    if (!mediaQuery) return;
 
     const listener = (e: MediaQueryListEvent) => {
       setPrefersReducedMotion(e.matches);
@@ -384,7 +385,7 @@ export function useReducedMotion() {
 
     mediaQuery.addEventListener("change", listener);
     return () => mediaQuery.removeEventListener("change", listener);
-  }, []);
+  }, [mediaQuery]);
 
   return prefersReducedMotion;
 }

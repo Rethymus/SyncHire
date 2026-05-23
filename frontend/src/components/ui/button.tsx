@@ -64,7 +64,7 @@ function Button({
     return React.cloneElement(children, {
       className: cn(buttonVariants({ variant, size, className }), childProps.className),
       ...props,
-    } as any)
+    } as React.HTMLAttributes<HTMLElement>)
   }
 
   return (

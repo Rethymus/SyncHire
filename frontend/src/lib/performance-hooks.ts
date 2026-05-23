@@ -282,17 +282,31 @@ export function useBatchUpdates() {
  * 智能组件懒加载Hook
  * 基于视口和用户行为
  */
-export function useSmartLazy(
-  importFn: () => Promise<{ default: React.ComponentType<any> }>,
+export function useSmartLazy<T extends React.ComponentType<unknown>>(
+  importFn: () => Promise<{ default: T }>,
   options?: {
     trigger?: "viewport" | "hover" | "click";
     threshold?: number;
   }
 ) {
-  const [Component, setComponent] = useState<React.ComponentType<any> | null>(null);
+  const [Component, setComponent] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const elementRef = useRef<HTMLDivElement>(null);
+
+  const loadComponent = useCallback(async () => {
+    if (Component || loading) return;
+
+    setLoading(true);
+    try {
+      const loadedModule = await importFn();
+      setComponent(() => loadedModule.default);
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setLoading(false);
+    }
+  }, [Component, loading, importFn]);
 
   useEffect(() => {
     if (options?.trigger === "viewport" && elementRef.current) {
@@ -309,21 +323,7 @@ export function useSmartLazy(
       observer.observe(elementRef.current);
       return () => observer.disconnect();
     }
-  }, [options?.trigger, options?.threshold]);
-
-  const loadComponent = useCallback(async () => {
-    if (Component || loading) return;
-
-    setLoading(true);
-    try {
-      const module = await importFn();
-      setComponent(() => module.default);
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setLoading(false);
-    }
-  }, [Component, loading, importFn]);
+  }, [options?.trigger, options?.threshold, loadComponent]);
 
   const loadOnHover = useCallback(() => {
     if (!Component && !loading) {
@@ -342,11 +342,12 @@ export function useSmartLazy(
 }
 
 /**
- * 状态选择器Hook
+ * 状态选择器工具函数
  * 优化Zustand状态选择，减少重渲染
+ * Note: This is a utility function, not a React hook
  */
 export function createSelectorHook<T, U>(
   selector: (state: T) => U
 ): (state: T) => U {
-  return useMemo(() => selector, [selector]);
+  return selector;
 }

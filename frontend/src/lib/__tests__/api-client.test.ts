@@ -8,7 +8,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { APIClient, apiClient, authAPI, resumeAPI, jdAPI, mockAPI } from '../api-client';
 
 // Mock fetch for testing
-global.fetch = vi.fn();
+interface MockResponse {
+  ok: boolean;
+  status: number;
+  json: () => Promise<unknown>;
+}
+
+const mockFetch = vi.fn();
+global.fetch = mockFetch as typeof global.fetch;
 
 describe('APIClient', () => {
   let client: APIClient;
@@ -25,7 +32,7 @@ describe('APIClient', () => {
   describe('request handling', () => {
     it('should make successful GET requests', async () => {
       const mockData = { message: 'Success' };
-      (global.fetch as any).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
         json: async () => mockData,
@@ -49,7 +56,7 @@ describe('APIClient', () => {
     it('should make successful POST requests', async () => {
       const mockData = { created: true };
       const postData = { name: 'Test' };
-      (global.fetch as any).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 201,
         json: async () => mockData,
@@ -70,7 +77,7 @@ describe('APIClient', () => {
 
     it('should handle HTTP errors properly', async () => {
       const errorResponse = { message: 'Not found' };
-      (global.fetch as any).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 404,
         json: async () => errorResponse,
@@ -83,7 +90,7 @@ describe('APIClient', () => {
     });
 
     it('should handle network errors', async () => {
-      (global.fetch as any).mockRejectedValueOnce(new Error('Network error'));
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
       const result = await client.get('/test');
 
@@ -93,7 +100,7 @@ describe('APIClient', () => {
 
     it('should handle timeout errors', async () => {
       // Mock slow response
-      (global.fetch as any).mockImplementationOnce(() =>
+      mockFetch.mockImplementationOnce(() =>
         new Promise((resolve) => {
           setTimeout(() => {
             resolve({
@@ -114,7 +121,7 @@ describe('APIClient', () => {
 
   describe('error handling', () => {
     it('should handle malformed error responses', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
         json: async () => {
@@ -129,7 +136,7 @@ describe('APIClient', () => {
     });
 
     it('should handle unknown errors', async () => {
-      (global.fetch as any).mockRejectedValueOnce('Unknown error type');
+      mockFetch.mockRejectedValueOnce('Unknown error type');
 
       const result = await client.get('/test');
 
@@ -149,7 +156,7 @@ describe('authAPI', () => {
       userId: 'user-123',
       token: 'jwt-token',
     };
-    (global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 201,
       json: async () => mockResponse,
@@ -166,7 +173,7 @@ describe('authAPI', () => {
   });
 
   it('should handle registration errors', async () => {
-    (global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 400,
       json: async () => ({ message: 'Email already exists' }),
@@ -187,7 +194,7 @@ describe('authAPI', () => {
       userId: 'user-123',
       token: 'jwt-token',
     };
-    (global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => mockResponse,
@@ -202,7 +209,7 @@ describe('authAPI', () => {
   });
 
   it('should handle login errors', async () => {
-    (global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 401,
       json: async () => ({ message: 'Invalid credentials' }),
@@ -228,7 +235,7 @@ describe('resumeAPI', () => {
       { id: 'resume-1', name: 'Resume.pdf', uploadedAt: '2024-01-01' },
       { id: 'resume-2', name: 'Resume2.pdf', uploadedAt: '2024-01-02' },
     ];
-    (global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => mockResumes,
@@ -247,7 +254,7 @@ describe('resumeAPI', () => {
       name: 'test.pdf',
       uploadedAt: '2024-01-01',
     };
-    (global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 201,
       json: async () => mockResponse,
@@ -259,7 +266,7 @@ describe('resumeAPI', () => {
   });
 
   it('should export resume to PDF', async () => {
-    (global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => ({ url: '/temp/resume-123.pdf' }),
@@ -283,7 +290,7 @@ describe('jdAPI', () => {
       missingSkills: ['GraphQL'],
       recommendations: ['Add more projects'],
     };
-    (global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => mockAnalysis,
@@ -305,7 +312,7 @@ describe('jdAPI', () => {
       description: 'We are looking for...',
       requirements: ['React', 'TypeScript', 'Node.js'],
     };
-    (global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => mockParsed,

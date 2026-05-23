@@ -42,7 +42,7 @@ function renderMarkdownToHTML(markdown: string): string {
   const lines = markdown.split("\n");
   let html = "";
   let inList = false;
-  let currentSection = "";
+  const currentSection = "";
 
   const parseInfo = (line: string) => {
     // Extract contact info from header

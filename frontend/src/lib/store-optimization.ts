@@ -3,8 +3,8 @@
  * 基于Zustand的最佳实践
  */
 
-import { useCallback, useRef } from "react";
-import { create, StoreApi } from "zustand";
+import { useRef, useEffect, useState } from "react";
+import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { useAppStore } from "@/lib/store";
 import { logger, LogCategory } from "@/lib/logger";
@@ -12,15 +12,12 @@ import { logger, LogCategory } from "@/lib/logger";
 /**
  * 选择器优化工具
  * 防止不必要的重渲染
+ * Note: This is a utility function, not a React hook
  */
 export function createSelector<T, U>(
   selector: (state: T) => U
 ): (state: T) => U {
-  const memoizedSelector = useCallback(
-    (state: T) => selector(state),
-    [selector]
-  );
-  return memoizedSelector;
+  return selector;
 }
 
 /**
@@ -77,9 +74,12 @@ export function combineStores<Slices extends Record<string, unknown>>(
  */
 export const enableDevTools = () => {
   if (process.env.NODE_ENV === "development") {
-    // zustand DevTools会自动检测
-    // 这里可以添加自定义配置
-    (window as any).__ZUSTAND_DEVTOOLS__ = {
+    interface WindowWithDevTools extends Window {
+      __ZUSTAND_DEVTOOLS__?: {
+        name: string;
+      };
+    }
+    (window as WindowWithDevTools).__ZUSTAND_DEVTOOLS__ = {
       name: "SyncHire",
     };
   }
@@ -158,17 +158,24 @@ export function createStoreWithMonitoring<T extends object>(
 
   // 开发环境下启用监控
   if (process.env.NODE_ENV === "development") {
-    (window as any).__STORE_METRICS__ = (
-      (window as any).__STORE_METRICS__ || {}
-    );
-    const state = useStore.getState() as any;
+    interface WindowWithStoreMetrics extends Window {
+      __STORE_METRICS__?: Record<string, () => unknown>;
+    }
+    const metricsWindow = window as WindowWithStoreMetrics;
+    metricsWindow.__STORE_METRICS__ = metricsWindow.__STORE_METRICS__ || {};
+
+    interface StoreWithMetrics {
+      _getMetrics?: () => { name: string; updateCount: number; stateSize: number };
+      _cleanupStoreMonitoring?: () => void;
+    }
+    const state = useStore.getState() as StoreWithMetrics;
     if (state._getMetrics) {
-      (window as any).__STORE_METRICS__[name] = state._getMetrics;
+      metricsWindow.__STORE_METRICS__[name] = state._getMetrics;
     }
 
     // 定期检查store大小，并返回清理函数
     const intervalId = setInterval(() => {
-      const metrics = (useStore.getState() as any)._getMetrics?.();
+      const metrics = (useStore.getState() as StoreWithMetrics)._getMetrics?.();
       if (metrics && metrics.stateSize > 100000) {
         logger.warn(
           LogCategory.PERF,
@@ -178,8 +185,7 @@ export function createStoreWithMonitoring<T extends object>(
     }, 30000); // 每30秒检查一次
 
     // 添加清理函数到 store
-    const originalStore = useStore;
-    (useStore as any)._cleanupStoreMonitoring = () => {
+    (useStore as StoreWithMetrics)._cleanupStoreMonitoring = () => {
       clearInterval(intervalId);
     };
   }
@@ -198,18 +204,20 @@ export function useResponsiveSelector<U>(
   const store = useAppStore();
   const selected = selector(store);
 
-  // 使用useRef存储上一次的值
-  const prevSelectedRef = useRef<U | undefined>(undefined);
+  // Initialize with selected value
+  const [optimizedSelected, setOptimizedSelected] = useState<U>(selected);
+  const prevSelectedRef = useRef<U>(selected);
 
-  // 只在值真正改变时触发更新
-  const shouldUpdate =
-    !equalityFn ||
-    !prevSelectedRef.current ||
-    equalityFn(prevSelectedRef.current, selected);
+  useEffect(() => {
+    const shouldUpdate =
+      !equalityFn ||
+      !equalityFn(prevSelectedRef.current, selected);
 
-  if (shouldUpdate) {
-    prevSelectedRef.current = selected;
-  }
+    if (shouldUpdate) {
+      prevSelectedRef.current = selected;
+      setOptimizedSelected(selected);
+    }
+  }, [selected, equalityFn]);
 
-  return selected;
+  return optimizedSelected;
 }
