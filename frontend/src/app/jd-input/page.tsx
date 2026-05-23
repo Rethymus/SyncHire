@@ -220,7 +220,7 @@ export default function JDInputPage() {
                   placeholder="粘贴完整的职位描述，包括岗位职责、任职要求等..."
                   required
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-600">
                   请尽可能提供完整的职位描述，以便更准确地分析匹配度
                 </p>
               </div>
@@ -240,7 +240,7 @@ export default function JDInputPage() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                   placeholder="每行一个要求，例如：&#10;- 3年以上前端开发经验&#10;- 精通 React 和 TypeScript&#10;- 有大型项目经验"
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-600">
                   每行一个要求，AI 将帮您逐一匹配
                 </p>
               </div>

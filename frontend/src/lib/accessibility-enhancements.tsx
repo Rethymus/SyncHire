@@ -270,7 +270,7 @@ export const AccessibleInput = forwardRef<
         )}
 
         {helperText && !error && (
-          <p id={helperId} className="text-sm text-gray-500">
+          <p id={helperId} className="text-sm text-gray-600">
             {helperText}
           </p>
         )}

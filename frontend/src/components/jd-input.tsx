@@ -271,7 +271,7 @@ function JDInputComponent() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
               placeholder="每行一个要求..."
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-600">
               每行一个要求，例如：3 年以上前端开发经验
             </p>
           </div>
@@ -296,7 +296,7 @@ function JDInputComponent() {
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5 text-gray-400" />
+                  <Briefcase className="h-5 w-5 text-gray-500" />
                   <div>
                     <p className="font-medium text-gray-900">{jd.title}</p>
                     <p className="text-sm text-gray-700">{jd.company}</p>

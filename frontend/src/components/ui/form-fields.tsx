@@ -54,7 +54,7 @@ export function FormField({
       <div className="relative">
         {Icon && (
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Icon className="h-5 w-5 text-gray-400" />
+            <Icon className="h-5 w-5 text-gray-500" />
           </div>
         )}
         <input
@@ -82,7 +82,7 @@ export function FormField({
       </div>
 
       {description && !error && (
-        <p id={descriptionId} className="text-xs text-gray-500">
+        <p id={descriptionId} className="text-xs text-gray-600">
           {description}
         </p>
       )}
@@ -156,7 +156,7 @@ export function PasswordField({
       </div>
 
       <div className="relative">
-        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 pointer-events-none" />
         <input
           id={`field-${name}`}
           type={showPassword ? "text" : "password"}
@@ -179,7 +179,7 @@ export function PasswordField({
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
           aria-label={showPassword ? "隐藏密码" : "显示密码"}
         >
           {showPassword ? (

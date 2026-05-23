@@ -139,7 +139,7 @@ function ResumeEditorComponent() {
             简历编辑器
           </h2>
           {currentResume && (
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-600">
               - {currentResume.name}
             </span>
           )}
@@ -234,7 +234,7 @@ function ResumeEditorComponent() {
             {/* Live Preview */}
             <div className="flex-1 overflow-auto bg-gray-50">
               <div className="max-w-4xl mx-auto p-8 bg-white shadow-sm">
-                <h3 className="text-sm font-medium text-gray-500 mb-4 pb-2 border-b">
+                <h3 className="text-sm font-medium text-gray-600 mb-4 pb-2 border-b">
                   实时预览
                 </h3>
                 <div

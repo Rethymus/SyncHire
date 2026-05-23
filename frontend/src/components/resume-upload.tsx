@@ -80,7 +80,7 @@ function ResumeUploadComponent() {
             <p className="mt-2 text-sm text-gray-700">
               拖放文件到此处，或点击选择文件
             </p>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-gray-600">
               支持 PDF、Word 文档，最多 5 个文件
             </p>
           </div>
@@ -100,7 +100,7 @@ function ResumeUploadComponent() {
                   <FileText className="h-8 w-8 text-blue-600" />
                   <div>
                     <p className="font-medium text-gray-900">{resume.name}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-600">
                       上传于 {new Date(resume.uploadedAt).toLocaleDateString("zh-CN")}
                     </p>
                   </div>

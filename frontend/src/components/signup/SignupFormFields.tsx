@@ -93,7 +93,7 @@ export const NameField = memo(function NameField({
       error={error}
       placeholder="您的姓名"
       label="姓名"
-      icon={<User className="h-5 w-5 text-gray-400" />}
+      icon={<User className="h-5 w-5 text-gray-500" />}
       ariaDescribedBy={error ? "name-error" : undefined}
     />
   );
@@ -116,7 +116,7 @@ export const EmailField = memo(function EmailField({
       error={error}
       placeholder="your@email.com"
       label="邮箱"
-      icon={<Mail className="h-5 w-5 text-gray-400" />}
+      icon={<Mail className="h-5 w-5 text-gray-500" />}
       ariaDescribedBy={error ? "email-error" : undefined}
     />
   );
@@ -149,7 +149,7 @@ export const PasswordField = memo(function PasswordField({
       </label>
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none" aria-hidden="true">
-          <Lock className="h-5 w-5 text-gray-400" />
+          <Lock className="h-5 w-5 text-gray-500" />
         </div>
         <input
           id="password"
@@ -207,7 +207,7 @@ export const PasswordField = memo(function PasswordField({
               {passwordStrength.label} <span aria-hidden="true">{passwordStrength.emoji}</span>
             </span>
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-600 mt-1">
             需包含: 12+字符, 大小写字母, 数字, 特殊字符
           </p>
         </div>
@@ -233,7 +233,7 @@ export const ConfirmPasswordField = memo(function ConfirmPasswordField({
       error={error}
       placeholder="再次输入密码"
       label="确认密码"
-      icon={<Lock className="h-5 w-5 text-gray-400" />}
+      icon={<Lock className="h-5 w-5 text-gray-500" />}
       ariaDescribedBy={error ? "confirm-password-error" : undefined}
     />
   );

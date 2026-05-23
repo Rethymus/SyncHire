@@ -215,7 +215,7 @@ export default function UploadPage() {
                         <p className="font-medium text-gray-900">
                           {resume.name}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-600">
                           上传于{" "}
                           {new Date(resume.uploadedAt).toLocaleDateString(
                             "zh-CN"

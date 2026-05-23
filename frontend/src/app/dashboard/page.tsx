@@ -159,7 +159,7 @@ function DashboardPage() {
                 <p className="text-sm font-medium text-gray-900 truncate">
                   用户
                 </p>
-                <p className="text-xs text-gray-500 truncate">
+                <p className="text-xs text-gray-600 truncate">
                   user@example.com
                 </p>
               </div>
@@ -374,7 +374,7 @@ function DashboardPage() {
                             ? "已拒绝"
                             : "草稿"}
                         </span>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-600">
                           {new Date(app.createdAt).toLocaleDateString("zh-CN")}
                         </span>
                       </div>
@@ -382,7 +382,7 @@ function DashboardPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-gray-600">
                   暂无活动记录
                 </div>
               )}

@@ -120,7 +120,7 @@ export function Divider({ text }: DividerProps) {
         <div className="w-full border-t border-gray-300" />
       </div>
       <div className="relative flex justify-center text-sm">
-        <span className="px-2 bg-white text-gray-500">{text}</span>
+        <span className="px-2 bg-white text-gray-600">{text}</span>
       </div>
     </div>
   );
@@ -198,7 +198,7 @@ export function InputField({
       </label>
       <div className="relative">
         {icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
             {icon}
           </div>
         )}

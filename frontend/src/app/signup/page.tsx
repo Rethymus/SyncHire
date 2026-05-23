@@ -108,7 +108,7 @@ export default function SignupPage() {
           </div>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-600">
               注册即表示您同意我们的服务条款和隐私政策
             </p>
           </div>
