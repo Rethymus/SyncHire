@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, status
 from app.models.application import Application
-from app.schemas.application import ApplicationCreate
+from app.schemas.application import ApplicationCreate, ApplicationUpdate
 from app.services.resume_service import ResumeService
 from app.services.jd_service import JDService
 from app.services.ai_service import AIService
@@ -165,3 +165,45 @@ class ApplicationService:
             )
 
         return prep
+
+    @staticmethod
+    async def update_application(
+        db: AsyncSession,
+        application_id: uuid.UUID,
+        user_id: uuid.UUID,
+        app_data: ApplicationUpdate,
+    ) -> Application:
+        application = await ApplicationService.get_application(
+            db, application_id, user_id
+        )
+
+        # Update fields if provided
+        if app_data.status is not None:
+            # Validate status
+            valid_statuses = ["applied", "interview", "rejected", "offer", "optimized"]
+            if app_data.status not in valid_statuses:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}",
+                )
+            application.status = app_data.status
+
+        if app_data.notes is not None:
+            application.notes = app_data.notes
+
+        await db.commit()
+        await db.refresh(application)
+
+        return application
+
+    @staticmethod
+    async def delete_application(
+        db: AsyncSession,
+        application_id: uuid.UUID,
+        user_id: uuid.UUID,
+    ) -> None:
+        application = await ApplicationService.get_application(
+            db, application_id, user_id
+        )
+        await db.delete(application)
+        await db.commit()

@@ -17,6 +17,12 @@ class JDCreate(JDBase):
     pass
 
 
+class JDUpdate(BaseModel):
+    title: str | None = None
+    company: str | None = None
+    content: str | None = None
+
+
 class JDResponse(JDBase):
     id: uuid.UUID
     user_id: uuid.UUID

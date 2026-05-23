@@ -1,6 +1,7 @@
 import json
-import os
 import uuid
+import tempfile
+import os
 from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -10,10 +11,9 @@ from app.schemas.resume import ResumeUpdate
 from app.core.config import get_settings
 from app.services.mcp_client import mcp_client, MCPError
 from app.services.ai_service import AIService
+from app.services.storage_service import StorageService
 
 settings = get_settings()
-UPLOAD_DIR = Path("uploads/resumes")
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class ResumeService:
@@ -26,25 +26,39 @@ class ResumeService:
     ) -> Resume:
         file_extension = Path(file.filename).suffix.lower()
 
-        if file_extension not in settings.ALLOWED_EXTENSIONS:
+        # Allowed file extensions
+        allowed_extensions = {".pdf", ".doc", ".docx", ".txt"}
+        if file_extension not in allowed_extensions:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"File type {file_extension} not allowed",
+                detail=f"File type {file_extension} not allowed. Allowed: {', '.join(allowed_extensions)}",
             )
 
         content = await file.read()
 
-        if len(content) > settings.MAX_UPLOAD_SIZE:
+        # Max upload size: 10MB
+        max_upload_size = 10 * 1024 * 1024
+        if len(content) > max_upload_size:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File too large",
+                detail=f"File too large. Maximum size: {max_upload_size / (1024 * 1024)}MB",
             )
 
-        file_id = uuid.uuid4()
-        file_path = UPLOAD_DIR / f"{file_id}{file_extension}"
+        # Determine content type
+        content_types = {
+            ".pdf": "application/pdf",
+            ".doc": "application/msword",
+            ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".txt": "text/plain",
+        }
+        content_type = content_types.get(file_extension, "application/octet-stream")
 
-        with open(file_path, "wb") as buffer:
-            buffer.write(content)
+        # Upload to Minio
+        s3_key = await StorageService.upload_file(
+            file_content=content,
+            file_name=file.filename,
+            content_type=content_type,
+        )
 
         # Parse resume using MCP client
         parsed_data = None
@@ -52,14 +66,25 @@ class ResumeService:
         embedding = None
 
         try:
-            parsed_data = await mcp_client.parse_resume(str(file_path), content)
-            resume_content = json.dumps(parsed_data, ensure_ascii=False)
+            # Create temporary file for MCP parsing
+            with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as tmp_file:
+                tmp_file.write(content)
+                tmp_file_path = tmp_file.name
 
-            # Generate embedding for semantic search
-            if parsed_data.get("text_content"):
-                embedding = await AIService.generate_embedding(
-                    parsed_data["text_content"]
-                )
+            try:
+                parsed_data = await mcp_client.parse_resume(tmp_file_path, content)
+                resume_content = json.dumps(parsed_data, ensure_ascii=False)
+
+                # Generate embedding for semantic search
+                if parsed_data.get("text_content"):
+                    embedding = await AIService.generate_embedding(
+                        parsed_data["text_content"]
+                    )
+            finally:
+                # Clean up temporary file
+                if os.path.exists(tmp_file_path):
+                    os.remove(tmp_file_path)
+
         except MCPError as e:
             # Log error but continue - resume is saved
             print(f"MCP parsing failed: {e}")
@@ -67,7 +92,7 @@ class ResumeService:
         db_resume = Resume(
             user_id=user_id,
             title=title,
-            file_path=str(file_path),
+            file_path=s3_key,
             content=resume_content,
             parsed_data=json.dumps(parsed_data) if parsed_data else None,
             embedding=embedding,
@@ -128,8 +153,9 @@ class ResumeService:
     ) -> None:
         resume = await ResumeService.get_resume(db, resume_id, user_id)
 
-        if os.path.exists(resume.file_path):
-            os.remove(resume.file_path)
+        # Delete file from Minio storage
+        if resume.file_path:
+            await StorageService.delete_file(resume.file_path)
 
         await db.delete(resume)
         await db.commit()
@@ -143,34 +169,45 @@ class ResumeService:
         """Re-parse a resume using MCP client."""
         resume = await ResumeService.get_resume(db, resume_id, user_id)
 
-        if not os.path.exists(resume.file_path):
+        # Download file from Minio
+        content = await StorageService.download_file(resume.file_path)
+        if content is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Resume file not found",
+                detail="Resume file not found in storage",
             )
 
         try:
-            with open(resume.file_path, "rb") as f:
-                content = f.read()
+            # Create temporary file for MCP parsing
+            file_extension = Path(resume.file_path).suffix
+            with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as tmp_file:
+                tmp_file.write(content)
+                tmp_file_path = tmp_file.name
 
-            parsed_data = await mcp_client.parse_resume(resume.file_path, content)
-            resume_content = json.dumps(parsed_data, ensure_ascii=False)
+            try:
+                parsed_data = await mcp_client.parse_resume(tmp_file_path, content)
+                resume_content = json.dumps(parsed_data, ensure_ascii=False)
 
-            # Update embedding
-            embedding = None
-            if parsed_data.get("text_content"):
-                embedding = await AIService.generate_embedding(
-                    parsed_data["text_content"]
-                )
+                # Update embedding
+                embedding = None
+                if parsed_data.get("text_content"):
+                    embedding = await AIService.generate_embedding(
+                        parsed_data["text_content"]
+                    )
 
-            resume.content = resume_content
-            resume.parsed_data = json.dumps(parsed_data)
-            resume.embedding = embedding
+                resume.content = resume_content
+                resume.parsed_data = json.dumps(parsed_data)
+                resume.embedding = embedding
 
-            await db.commit()
-            await db.refresh(resume)
+                await db.commit()
+                await db.refresh(resume)
 
-            return resume
+                return resume
+            finally:
+                # Clean up temporary file
+                if os.path.exists(tmp_file_path):
+                    os.remove(tmp_file_path)
+
         except MCPError as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

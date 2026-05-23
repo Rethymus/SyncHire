@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
-from app.schemas.application import ApplicationCreate, ApplicationResponse
+from app.schemas.application import ApplicationCreate, ApplicationUpdate, ApplicationResponse
 from app.services.application_service import ApplicationService
 
 router = APIRouter(prefix="/applications", tags=["applications"])
@@ -57,3 +57,34 @@ async def get_interview_prep(
     return await ApplicationService.generate_interview_prep(
         db, application_id, current_user.id
     )
+
+
+@router.get("/{application_id}", response_model=ApplicationResponse)
+async def get_application(
+    application_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return await ApplicationService.get_application(db, application_id, current_user.id)
+
+
+@router.put("/{application_id}", response_model=ApplicationResponse)
+async def update_application(
+    application_id: uuid.UUID,
+    app_data: ApplicationUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return await ApplicationService.update_application(
+        db, application_id, current_user.id, app_data
+    )
+
+
+@router.delete("/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_application(
+    application_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    await ApplicationService.delete_application(db, application_id, current_user.id)
+    return None

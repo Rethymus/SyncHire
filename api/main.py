@@ -4,7 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.core.database import init_db
 from app.core.redis import redis_client
-from app.api import auth, resumes, jds, applications
+from app.api import auth, resumes, jds, applications, search
+from app.services.storage_service import StorageService
 
 settings = get_settings()
 
@@ -17,6 +18,7 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown
     await redis_client.disconnect()
+    await StorageService.close()
 
 
 app = FastAPI(
@@ -38,6 +40,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(resumes.router, prefix="/api")
 app.include_router(jds.router, prefix="/api")
 app.include_router(applications.router, prefix="/api")
+app.include_router(search.router, prefix="/api")
 
 
 @app.get("/")

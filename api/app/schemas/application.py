@@ -12,6 +12,11 @@ class ApplicationCreate(ApplicationBase):
     pass
 
 
+class ApplicationUpdate(BaseModel):
+    status: str | None = None
+    notes: str | None = None
+
+
 class ApplicationResponse(ApplicationBase):
     id: uuid.UUID
     user_id: uuid.UUID

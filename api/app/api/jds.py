@@ -1,11 +1,11 @@
 import uuid
 from typing import List
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
-from app.schemas.jd import JDCreate, JDResponse, JDParse, JDParseResponse
+from app.schemas.jd import JDCreate, JDUpdate, JDResponse, JDParse, JDParseResponse
 from app.services.jd_service import JDService
 
 router = APIRouter(prefix="/jds", tags=["jds"])
@@ -44,3 +44,23 @@ async def get_jd(
     current_user: User = Depends(get_current_user),
 ):
     return await JDService.get_jd(db, jd_id, current_user.id)
+
+
+@router.put("/{jd_id}", response_model=JDResponse)
+async def update_jd(
+    jd_id: uuid.UUID,
+    jd_data: JDUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return await JDService.update_jd(db, jd_id, current_user.id, jd_data)
+
+
+@router.delete("/{jd_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_jd(
+    jd_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    await JDService.delete_jd(db, jd_id, current_user.id)
+    return None

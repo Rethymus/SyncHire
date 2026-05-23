@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, status
 from app.models.jd import JD
-from app.schemas.jd import JDCreate
+from app.schemas.jd import JDCreate, JDUpdate, JDResponse
 from app.services.ai_service import AIService
 from app.services.mcp_client import mcp_client, MCPError
 
@@ -70,3 +70,44 @@ class JDService:
             )
 
         return jd
+
+    @staticmethod
+    async def update_jd(
+        db: AsyncSession,
+        jd_id: uuid.UUID,
+        user_id: uuid.UUID,
+        jd_data: JDUpdate,
+    ) -> JD:
+        jd = await JDService.get_jd(db, jd_id, user_id)
+
+        # Update fields if provided
+        if jd_data.title is not None:
+            jd.title = jd_data.title
+        if jd_data.company is not None:
+            jd.company = jd_data.company
+        if jd_data.content is not None:
+            jd.content = jd_data.content
+            # Re-parse and generate new embedding if content changed
+            parsed_data = await JDService.parse_jd(jd_data.content)
+            jd.parsed_data = json.dumps(parsed_data, ensure_ascii=False)
+
+            try:
+                embedding = await AIService.generate_embedding(jd_data.content)
+                jd.embedding = embedding
+            except Exception as e:
+                print(f"Failed to generate embedding: {e}")
+
+        await db.commit()
+        await db.refresh(jd)
+
+        return jd
+
+    @staticmethod
+    async def delete_jd(
+        db: AsyncSession,
+        jd_id: uuid.UUID,
+        user_id: uuid.UUID,
+    ) -> None:
+        jd = await JDService.get_jd(db, jd_id, user_id)
+        await db.delete(jd)
+        await db.commit()
