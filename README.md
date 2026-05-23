@@ -1,75 +1,157 @@
 # SyncHire (知遇)
 
-AI-powered job application platform that helps you create optimized resumes, analyze job descriptions, and match your experience with requirements.
+<div align="center">
 
-## Quick Start
+**AI-Powered Job Application Platform**
 
-```bash
-# Clone the repository
-git clone <repository-url>
-cd SyncHire
+让每一次求职，都是一场被看见的知遇之恩
 
-# Start all services (infrastructure + migrations)
-./scripts/dev.sh
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
 
-# Start development servers
-npm run dev
+</div>
+
+## 🌟 Overview
+
+**SyncHire** is an innovative AI-powered job application platform designed to help job seekers create optimized resumes and analyze job descriptions with AI assistance. The platform leverages modern technologies including Next.js 14, FastAPI, and Model Context Protocol (MCP) servers to provide intelligent job matching and resume optimization services.
+
+## ✨ Key Features
+
+- **AI-Powered Resume Optimization**: Automatically optimize resume content for specific job positions
+- **Job Description Analysis**: Deep analysis of job requirements with matching score calculation
+- **Real-time Skill Matching**: Visual representation of skill gaps and requirements
+- **Secure Authentication**: JWT-based authentication with OAuth2 (Google, GitHub)
+- **Modern UI/UX**: Built with Next.js 14, TypeScript, and TailwindCSS
+- **Accessibility First**: WCAG 2.1 compliant with comprehensive ARIA support
+- **Performance Optimized**: React Server Components, lazy loading, and efficient state management
+
+## 🏗️ Architecture
+
+### Technology Stack
+
+**Frontend:**
+- Next.js 14 (App Router)
+- TypeScript 5
+- TailwindCSS 4
+- Zustand (state management)
+- React Hook Form + Zod (validation)
+- DOMPurify (XSS protection)
+
+**Backend:**
+- FastAPI (Python 3.11+)
+- PostgreSQL 16 + PGVector
+- Redis 7 (cache/queue)
+- Minio (S3-compatible storage)
+
+**AI Services:**
+- OpenAI GPT-4
+- Anthropic Claude 3
+- MCP Servers for modular AI processing
+
+### Project Structure
+
+```
+SyncHire/
+├── frontend/          # Next.js 14 application
+├── api/              # FastAPI backend
+├── mcp-servers/     # Modular MCP services
+├── db/               # Database schemas and migrations
+├── docs/             # Technical documentation
+└── docker-compose.yml
 ```
 
-Visit http://localhost:3000 to see the application.
-
-## Architecture
-
-- **Frontend**: Next.js 14, TypeScript, TailwindCSS, shadcn/ui
-- **Backend**: FastAPI, PostgreSQL + PGVector, Redis
-- **Storage**: Minio (S3-compatible)
-- **AI**: OpenAI GPT-4, Anthropic Claude
-
-## Development
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Docker & Docker Compose
-- Node.js 20+
+- Docker and Docker Compose
+- Node.js 18+
 - Python 3.11+
+- npm or yarn
 
-### Setup
+### Installation
 
-1. Configure environment variables
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Rethymus/synchire.git
+   cd synchire
+   ```
+
+2. **Configure environment variables**
    ```bash
    cp .env.example .env
-   # Edit .env with your API keys
+   # Edit .env with your configuration
    ```
 
-2. Start infrastructure
+3. **Start the development environment**
    ```bash
    docker-compose up -d
+   npm run db:migrate
+   npm run dev
    ```
 
-3. Run migrations
-   ```bash
-   ./scripts/migrate.sh
-   ```
+4. **Access the application**
+   - Frontend: http://localhost:3000
+   - API: http://localhost:8000
+   - API Docs: http://localhost:8000/docs
 
-4. Install dependencies
-   ```bash
-   npm install
-   cd api && pip install -r requirements.txt
-   ```
+## 📸 Screenshots
 
-### Available Scripts
+<div align="center">
+  <img src="docs/images/dashboard-preview.png" alt="Dashboard Preview" width="800">
+  <p align="center">Dashboard Overview</p>
+</div>
 
-- `./scripts/dev.sh` - Start all services
-- `./scripts/stop.sh` - Stop all services
-- `./scripts/migrate.sh` - Run database migrations
-- `./scripts/reset-db.sh` - Reset database (deletes data)
-- `npm run dev` - Start frontend and backend dev servers
+## 🤝 Contributing
 
-## Documentation
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
-- [Deployment Guide](./docs/deployment.md)
-- [CLAUDE.md](./CLAUDE.md) - Project context and guidelines
+### Development Workflow
 
-## License
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-MIT
+### Commit Message Guidelines
+
+- Use conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, etc.
+- All commit messages **MUST be in English**
+- Be descriptive and concise
+- Reference issues: `Fixes #123`, `Relates to #456`
+
+**Examples:**
+```
+feat: implement user authentication with OAuth2
+fix: resolve memory leak in performance monitoring
+docs: update API documentation with new endpoints
+refactor: optimize resume preview component rendering
+```
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👥 Authors
+
+- **Rethymus** - Initial work
+
+## 🙏 Acknowledgments
+
+- Next.js team for the amazing framework
+- OpenAI and Anthropic for AI capabilities
+- All contributors and supporters
+
+## 📞 Contact
+
+For questions, suggestions, or issues:
+- Email: [928136377@qq.com](mailto:928136377@qq.com)
+- GitHub Issues: [Create an issue](https://github.com/Rethymus/synchire/issues)
+
+---
+
+<div align="center">
+  <sub>Built with ❤️ by the SyncHire team</sub>
+</div>
