@@ -11,7 +11,7 @@ Provides caching layer for:
 import json
 import uuid
 from typing import Optional, Any
-from datetime import timedelta
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.redis import redis_client
 
 
@@ -19,10 +19,10 @@ class CacheService:
     """Redis caching service with TTL management"""
 
     # TTL constants (in seconds)
-    TTL_SHORT = 300      # 5 minutes - user sessions, frequently changing data
-    TTL_MEDIUM = 3600    # 1 hour - parsing results, match scores
-    TTL_LONG = 86400     # 24 hours - embeddings, user profiles
-    TTL_EXTENDED = 604800 # 7 days - static data, templates
+    TTL_SHORT = 300  # 5 minutes - user sessions, frequently changing data
+    TTL_MEDIUM = 3600  # 1 hour - parsing results, match scores
+    TTL_LONG = 86400  # 24 hours - embeddings, user profiles
+    TTL_EXTENDED = 604800  # 7 days - static data, templates
 
     @staticmethod
     def _make_key(prefix: str, identifier: str) -> str:
@@ -43,10 +43,7 @@ class CacheService:
 
     @staticmethod
     async def set(
-        prefix: str,
-        identifier: str,
-        value: Any,
-        ttl: int = TTL_MEDIUM
+        prefix: str, identifier: str, value: Any, ttl: int = TTL_MEDIUM
     ) -> bool:
         """Set value in cache with TTL"""
         key = CacheService._make_key(prefix, identifier)
@@ -95,10 +92,7 @@ class CachedQueries:
     async def set_user_resumes(user_id: uuid.UUID, resumes: list) -> bool:
         """Cache resume list for user"""
         return await CacheService.set(
-            "user_resumes",
-            str(user_id),
-            resumes,
-            CacheService.TTL_SHORT
+            "user_resumes", str(user_id), resumes, CacheService.TTL_SHORT
         )
 
     @staticmethod
@@ -110,10 +104,7 @@ class CachedQueries:
     async def set_user_jds(user_id: uuid.UUID, jds: list) -> bool:
         """Cache JD list for user"""
         return await CacheService.set(
-            "user_jds",
-            str(user_id),
-            jds,
-            CacheService.TTL_SHORT
+            "user_jds", str(user_id), jds, CacheService.TTL_SHORT
         )
 
     @staticmethod
@@ -125,10 +116,7 @@ class CachedQueries:
     async def set_jd_parse_result(content_hash: str, result: dict) -> bool:
         """Cache JD parsing result"""
         return await CacheService.set(
-            "jd_parse",
-            content_hash,
-            result,
-            CacheService.TTL_LONG
+            "jd_parse", content_hash, result, CacheService.TTL_LONG
         )
 
     @staticmethod
@@ -139,17 +127,12 @@ class CachedQueries:
 
     @staticmethod
     async def set_match_score(
-        resume_id: uuid.UUID,
-        jd_id: uuid.UUID,
-        score: dict
+        resume_id: uuid.UUID, jd_id: uuid.UUID, score: dict
     ) -> bool:
         """Cache match score"""
         key = f"{resume_id}:{jd_id}"
         return await CacheService.set(
-            "match_score",
-            key,
-            score,
-            CacheService.TTL_MEDIUM
+            "match_score", key, score, CacheService.TTL_MEDIUM
         )
 
     @staticmethod
@@ -164,6 +147,7 @@ class CachedQueries:
 # Cache decorator for service methods
 def cached(prefix: str, ttl: int = CacheService.TTL_MEDIUM):
     """Decorator to cache function results"""
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             # Generate cache key from function arguments
@@ -183,5 +167,7 @@ def cached(prefix: str, ttl: int = CacheService.TTL_MEDIUM):
                 await CacheService.set(prefix, cache_key, result, ttl)
 
             return result
+
         return wrapper
+
     return decorator

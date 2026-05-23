@@ -10,9 +10,15 @@ class Application(Base):
     __tablename__ = "applications"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    resume_id = Column(UUID(as_uuid=True), ForeignKey("resumes.id", ondelete="CASCADE"), nullable=False)
-    jd_id = Column(UUID(as_uuid=True), ForeignKey("jds.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    resume_id = Column(
+        UUID(as_uuid=True), ForeignKey("resumes.id", ondelete="CASCADE"), nullable=False
+    )
+    jd_id = Column(
+        UUID(as_uuid=True), ForeignKey("jds.id", ondelete="CASCADE"), nullable=False
+    )
     match_score = Column(Float)
     match_details = Column(Text)  # JSON string
     optimized_resume = Column(Text)  # JSON string

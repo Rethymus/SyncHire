@@ -10,7 +10,9 @@ class Resume(Base):
     __tablename__ = "resumes"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     title = Column(String, nullable=False)
     file_path = Column(String, nullable=False)
     content = Column(Text)

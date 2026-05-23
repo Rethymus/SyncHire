@@ -1,1 +1,2 @@
-from app.api import auth, resumes, jds, applications
+# API module initialization
+# Individual route modules are registered by the main application

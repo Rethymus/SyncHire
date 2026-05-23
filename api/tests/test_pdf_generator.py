@@ -11,11 +11,7 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from app.services.pdf_generator import (
-    PDFGenerator,
-    PDFGenerationOptions,
-    ResumeData
-)
+from app.services.pdf_generator import PDFGenerator, PDFGenerationOptions, ResumeData
 
 
 async def test_pdf_generation():
@@ -43,8 +39,8 @@ async def test_pdf_generation():
                     "Led development of ML infrastructure serving 1B+ daily requests",
                     "Reduced model inference latency by 40% through optimization",
                     "Mentored team of 5 engineers on best practices",
-                    "领导开发了每天处理10亿+请求的机器学习基础设施"
-                ]
+                    "领导开发了每天处理10亿+请求的机器学习基础设施",
+                ],
             },
             {
                 "company": "Meta",
@@ -55,9 +51,9 @@ async def test_pdf_generation():
                 "highlights": [
                     "Built real-time collaboration features for Workplace",
                     "Improved system reliability from 99.9% to 99.99% uptime",
-                    "构建了Workplace的实时协作功能"
-                ]
-            }
+                    "构建了Workplace的实时协作功能",
+                ],
+            },
         ],
         education=[
             {
@@ -66,49 +62,43 @@ async def test_pdf_generation():
                 "field": "Computer Science",
                 "start_date": "2016",
                 "end_date": "2018",
-                "gpa": "3.9"
+                "gpa": "3.9",
             },
             {
                 "school": "Tsinghua University 清华大学",
                 "degree": "Bachelor of Engineering",
                 "field": "Computer Science and Technology",
                 "start_date": "2012",
-                "end_date": "2016"
-            }
+                "end_date": "2016",
+            },
         ],
         skills=[
             {
                 "category": "Programming Languages 编程语言",
-                "skills": ["Python", "TypeScript", "Go", "Java", "C++"]
+                "skills": ["Python", "TypeScript", "Go", "Java", "C++"],
             },
             {
                 "category": "Frameworks & Tools",
-                "skills": ["React", "Next.js", "FastAPI", "Django", "TensorFlow"]
+                "skills": ["React", "Next.js", "FastAPI", "Django", "TensorFlow"],
             },
             {
                 "category": "Cloud & Infrastructure 云计算",
-                "skills": ["AWS", "GCP", "Kubernetes", "Docker", "Terraform"]
-            }
+                "skills": ["AWS", "GCP", "Kubernetes", "Docker", "Terraform"],
+            },
         ],
         projects=[
             {
                 "name": "AI Resume Optimizer 简历优化器",
                 "description": "Built an AI-powered platform that helps job seekers optimize their resumes for specific roles using NLP and machine learning. 使用自然语言处理和机器学习帮助求职者优化简历。",
                 "technologies": ["Python", "FastAPI", "OpenAI", "React", "PostgreSQL"],
-                "link": "https://github.com/johnzhang/resume-optimizer"
+                "link": "https://github.com/johnzhang/resume-optimizer",
             }
         ],
         languages=[
             {"name": "Chinese 中文", "level": "Native 母语"},
-            {"name": "English 英语", "level": "Professional 专业"}
+            {"name": "English 英语", "level": "Professional 专业"},
         ],
-        awards=[
-            {
-                "name": "Google Peer Bonus",
-                "year": "2023",
-                "issuer": "Google"
-            }
-        ]
+        awards=[{"name": "Google Peer Bonus", "year": "2023", "issuer": "Google"}],
     )
 
     # Test all templates
@@ -119,19 +109,17 @@ async def test_pdf_generation():
         for template in templates:
             print(f"Generating PDF with template: {template}...")
 
-            options = PDFGenerationOptions(
-                template=template,
-                dpi=300,
-                format="letter"
-            )
+            options = PDFGenerationOptions(template=template, dpi=300, format="letter")
 
-            output_path = Path(__file__).parent.parent.parent / "test_outputs" / f"resume_{template}.pdf"
+            output_path = (
+                Path(__file__).parent.parent.parent
+                / "test_outputs"
+                / f"resume_{template}.pdf"
+            )
             output_path.parent.mkdir(exist_ok=True)
 
             pdf_bytes = await generator.generate_pdf(
-                resume_data=resume_data,
-                options=options,
-                output_path=output_path
+                resume_data=resume_data, options=options, output_path=output_path
             )
 
             print(f"✓ Generated {template} template: {output_path}")

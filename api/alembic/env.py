@@ -32,6 +32,7 @@ target_metadata = Base.metadata
 
 def get_url():
     from app.core.config import get_settings
+
     settings = get_settings()
     return settings.async_database_url.replace("+asyncpg", "")
 

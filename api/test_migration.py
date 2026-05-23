@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Test database migration without running it"""
+
 import sys
 import os
 
@@ -12,6 +13,10 @@ print("Testing Alembic configuration...")
 try:
     from alembic import config
     from alembic.script import ScriptDirectory
+
+    # Verify alembic config is accessible (validation only)
+    assert config is not None, "Alembic config should be accessible"
+
     print("✓ Alembic imports successful")
 except ImportError as e:
     print(f"✗ Alembic import failed: {e}")
@@ -20,17 +25,26 @@ except ImportError as e:
 
 # Test 2: Check migration file
 try:
-    with open('alembic/versions/20250521_initial_schema.py') as f:
+    with open("alembic/versions/20250521_initial_schema.py") as f:
         content = f.read()
-        if 'CREATE EXTENSION IF NOT EXISTS vector' in content:
+        if "CREATE EXTENSION IF NOT EXISTS vector" in content:
             print("✓ PGVector extension found in migration")
         else:
             print("✗ PGVector extension missing")
             sys.exit(1)
 
-        tables = ['users', 'resumes', 'job_descriptions', 'applications', 'interview_prep_sessions']
+        tables = [
+            "users",
+            "resumes",
+            "job_descriptions",
+            "applications",
+            "interview_prep_sessions",
+        ]
         for table in tables:
-            if f'create_table(\n        "{table}"' in content or f'create_table(\n        "{table}"' in content:
+            if (
+                f'create_table(\n        "{table}"' in content
+                or f'create_table(\n        "{table}"' in content
+            ):
                 print(f"✓ Table '{table}' defined")
             else:
                 print(f"✗ Table '{table}' not found")

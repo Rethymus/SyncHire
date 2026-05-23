@@ -9,7 +9,9 @@ from app.services.auth_service import AuthService
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 async def register(
     user_data: UserCreate,
     request: Request,
@@ -65,5 +67,5 @@ async def refresh_token(token_data: TokenRefresh):
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user_info(current_user = Depends(get_current_user)):
+async def get_current_user_info(current_user=Depends(get_current_user)):
     return current_user

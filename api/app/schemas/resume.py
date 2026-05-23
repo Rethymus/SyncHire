@@ -33,22 +33,14 @@ class ResumeExportRequest(BaseModel):
 
     template: str = Field(
         default="minimal",
-        description="Template to use: minimal, professional, creative, executive"
+        description="Template to use: minimal, professional, creative, executive",
     )
     dpi: int | None = Field(
-        default=300,
-        ge=72,
-        le=600,
-        description="DPI for PDF generation (72-600)"
+        default=300, ge=72, le=600, description="DPI for PDF generation (72-600)"
     )
 
     class Config:
-        json_schema_extra = {
-            "example": {
-                "template": "professional",
-                "dpi": 300
-            }
-        }
+        json_schema_extra = {"example": {"template": "professional", "dpi": 300}}
 
 
 class ResumeExport(BaseModel):

@@ -18,7 +18,7 @@ Base = declarative_base(metadata=metadata)
 
 engine = create_async_engine(
     settings.async_database_url,
-    echo=settings.DEBUG if hasattr(settings, 'DEBUG') else False,
+    echo=settings.DEBUG if hasattr(settings, "DEBUG") else False,
     pool_pre_ping=True,
     pool_size=10,
     max_overflow=20,

@@ -1,6 +1,6 @@
 import uuid
 from typing import List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.deps import get_current_user
@@ -11,7 +11,9 @@ from app.services.application_service import ApplicationService
 router = APIRouter(prefix="/applications", tags=["applications"])
 
 
-@router.post("/", response_model=ApplicationResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/", response_model=ApplicationResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_application(
     app_data: ApplicationCreate,
     db: AsyncSession = Depends(get_db),
@@ -52,4 +54,6 @@ async def get_interview_prep(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return await ApplicationService.generate_interview_prep(db, application_id, current_user.id)
+    return await ApplicationService.generate_interview_prep(
+        db, application_id, current_user.id
+    )

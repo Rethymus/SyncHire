@@ -24,9 +24,7 @@ class RedisClient:
             return await self.redis.get(key)
         return None
 
-    async def set(
-        self, key: str, value: str, ex: int | None = None
-    ) -> bool:
+    async def set(self, key: str, value: str, ex: int | None = None) -> bool:
         if self.redis:
             return await self.redis.set(key, value, ex=ex)
         return False

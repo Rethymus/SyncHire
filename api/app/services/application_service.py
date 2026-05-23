@@ -1,6 +1,5 @@
 import json
 import uuid
-from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, status
@@ -19,8 +18,8 @@ class ApplicationService:
         user_id: uuid.UUID,
         app_data: ApplicationCreate,
     ) -> Application:
-        resume = await ResumeService.get_resume(db, app_data.resume_id, user_id)
-        jd = await JDService.get_jd(db, app_data.jd_id, user_id)
+        await ResumeService.get_resume(db, app_data.resume_id, user_id)
+        await JDService.get_jd(db, app_data.jd_id, user_id)
 
         db_application = Application(
             user_id=user_id,
@@ -35,7 +34,9 @@ class ApplicationService:
         return db_application
 
     @staticmethod
-    async def get_applications(db: AsyncSession, user_id: uuid.UUID) -> list[Application]:
+    async def get_applications(
+        db: AsyncSession, user_id: uuid.UUID
+    ) -> list[Application]:
         result = await db.execute(
             select(Application)
             .where(Application.user_id == user_id)
@@ -71,7 +72,9 @@ class ApplicationService:
         application_id: uuid.UUID,
         user_id: uuid.UUID,
     ) -> dict:
-        application = await ApplicationService.get_application(db, application_id, user_id)
+        application = await ApplicationService.get_application(
+            db, application_id, user_id
+        )
 
         if not application.resume.parsed_data or not application.jd.parsed_data:
             raise HTTPException(
@@ -103,7 +106,9 @@ class ApplicationService:
         application_id: uuid.UUID,
         user_id: uuid.UUID,
     ) -> dict:
-        application = await ApplicationService.get_application(db, application_id, user_id)
+        application = await ApplicationService.get_application(
+            db, application_id, user_id
+        )
 
         if not application.resume.parsed_data or not application.jd.parsed_data:
             raise HTTPException(
@@ -137,7 +142,9 @@ class ApplicationService:
         application_id: uuid.UUID,
         user_id: uuid.UUID,
     ) -> dict:
-        application = await ApplicationService.get_application(db, application_id, user_id)
+        application = await ApplicationService.get_application(
+            db, application_id, user_id
+        )
 
         if not application.resume.parsed_data or not application.jd.parsed_data:
             raise HTTPException(

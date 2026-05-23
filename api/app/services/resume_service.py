@@ -2,12 +2,11 @@ import json
 import os
 import uuid
 from pathlib import Path
-from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, status, UploadFile
 from app.models.resume import Resume
-from app.schemas.resume import ResumeCreate, ResumeUpdate
+from app.schemas.resume import ResumeUpdate
 from app.core.config import get_settings
 from app.services.mcp_client import mcp_client, MCPError
 from app.services.ai_service import AIService
@@ -58,7 +57,9 @@ class ResumeService:
 
             # Generate embedding for semantic search
             if parsed_data.get("text_content"):
-                embedding = await AIService.generate_embedding(parsed_data["text_content"])
+                embedding = await AIService.generate_embedding(
+                    parsed_data["text_content"]
+                )
         except MCPError as e:
             # Log error but continue - resume is saved
             print(f"MCP parsing failed: {e}")
@@ -81,12 +82,16 @@ class ResumeService:
     @staticmethod
     async def get_resumes(db: AsyncSession, user_id: uuid.UUID) -> list[Resume]:
         result = await db.execute(
-            select(Resume).where(Resume.user_id == user_id).order_by(Resume.created_at.desc())
+            select(Resume)
+            .where(Resume.user_id == user_id)
+            .order_by(Resume.created_at.desc())
         )
         return list(result.scalars().all())
 
     @staticmethod
-    async def get_resume(db: AsyncSession, resume_id: uuid.UUID, user_id: uuid.UUID) -> Resume:
+    async def get_resume(
+        db: AsyncSession, resume_id: uuid.UUID, user_id: uuid.UUID
+    ) -> Resume:
         result = await db.execute(
             select(Resume).where(Resume.id == resume_id, Resume.user_id == user_id)
         )
@@ -118,7 +123,9 @@ class ResumeService:
         return resume
 
     @staticmethod
-    async def delete_resume(db: AsyncSession, resume_id: uuid.UUID, user_id: uuid.UUID) -> None:
+    async def delete_resume(
+        db: AsyncSession, resume_id: uuid.UUID, user_id: uuid.UUID
+    ) -> None:
         resume = await ResumeService.get_resume(db, resume_id, user_id)
 
         if os.path.exists(resume.file_path):
@@ -152,7 +159,9 @@ class ResumeService:
             # Update embedding
             embedding = None
             if parsed_data.get("text_content"):
-                embedding = await AIService.generate_embedding(parsed_data["text_content"])
+                embedding = await AIService.generate_embedding(
+                    parsed_data["text_content"]
+                )
 
             resume.content = resume_content
             resume.parsed_data = json.dumps(parsed_data)

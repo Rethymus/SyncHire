@@ -1,14 +1,17 @@
 import uuid
 from pathlib import Path
 import tempfile
-from datetime import datetime
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, status
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
-from app.schemas.resume import ResumeCreate, ResumeResponse, ResumeUpdate, ResumeExportRequest
+from app.schemas.resume import (
+    ResumeResponse,
+    ResumeUpdate,
+    ResumeExportRequest,
+)
 from app.services.resume_service import ResumeService
 from app.services.pdf_generator import get_pdf_generator, PDFGenerationOptions
 from typing import List
@@ -50,7 +53,9 @@ async def update_resume(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return await ResumeService.update_resume(db, resume_id, current_user.id, update_data)
+    return await ResumeService.update_resume(
+        db, resume_id, current_user.id, update_data
+    )
 
 
 @router.delete("/{resume_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -108,14 +113,12 @@ async def export_resume_pdf(
         skills=resume.skills or [],
         projects=resume.projects or [],
         languages=resume.languages or [],
-        awards=resume.awards or []
+        awards=resume.awards or [],
     )
 
     # Configure PDF options
     options = PDFGenerationOptions(
-        template=export_request.template,
-        dpi=export_request.dpi or 300,
-        format="letter"
+        template=export_request.template, dpi=export_request.dpi or 300, format="letter"
     )
 
     # Generate PDF
@@ -126,20 +129,18 @@ async def export_resume_pdf(
         output_path = Path(tmp.name)
 
     try:
-        pdf_bytes = await generator.generate_pdf(
-            resume_data=resume_data,
-            options=options,
-            output_path=output_path
+        await generator.generate_pdf(
+            resume_data=resume_data, options=options, output_path=output_path
         )
 
         # Generate filename
-        safe_name = "".join(c for c in resume_data.name if c.isalnum() or c in (' ', '-', '_'))
+        safe_name = "".join(
+            c for c in resume_data.name if c.isalnum() or c in (" ", "-", "_")
+        )
         filename = f"{safe_name}_{export_request.template}_resume.pdf"
 
         return FileResponse(
-            path=output_path,
-            media_type="application/pdf",
-            filename=filename
+            path=output_path, media_type="application/pdf", filename=filename
         )
 
     except Exception as e:
@@ -148,7 +149,7 @@ async def export_resume_pdf(
             output_path.unlink()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"PDF generation failed: {str(e)}"
+            detail=f"PDF generation failed: {str(e)}",
         )
 
 
@@ -160,22 +161,22 @@ async def list_templates():
             {
                 "id": "minimal",
                 "name": "Minimal",
-                "description": "Clean single-column, ATS-friendly design"
+                "description": "Clean single-column, ATS-friendly design",
             },
             {
                 "id": "professional",
                 "name": "Professional",
-                "description": "Two-column layout with sidebar for contact and skills"
+                "description": "Two-column layout with sidebar for contact and skills",
             },
             {
                 "id": "creative",
                 "name": "Creative",
-                "description": "Modern design with accent colors and decorative elements"
+                "description": "Modern design with accent colors and decorative elements",
             },
             {
                 "id": "executive",
                 "name": "Executive",
-                "description": "Conservative design for senior roles and executives"
-            }
+                "description": "Conservative design for senior roles and executives",
+            },
         ]
     }

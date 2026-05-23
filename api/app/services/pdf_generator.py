@@ -8,17 +8,12 @@ Handles resume PDF generation with support for:
 - High DPI export for print
 """
 
-import os
-import re
 import asyncio
 from pathlib import Path
 from typing import Optional, Dict, Any, List
-from datetime import datetime
-import base64
-import hashlib
 
 from pydantic import BaseModel
-from playwright.async_api import async_playwright, Browser, Page
+from playwright.async_api import async_playwright, Browser
 
 
 class ResumeData(BaseModel):
@@ -88,12 +83,16 @@ class TemplateEngine:
         if template_name not in self._templates:
             template_path = self.templates_dir / f"{template_name}.html"
             if not template_path.exists():
-                raise ValueError(f"Template '{template_name}' not found at {template_path}")
+                raise ValueError(
+                    f"Template '{template_name}' not found at {template_path}"
+                )
             with open(template_path, "r", encoding="utf-8") as f:
                 self._templates[template_name] = f.read()
         return self._templates[template_name]
 
-    def render(self, template_name: str, data: ResumeData, options: PDFGenerationOptions) -> str:
+    def render(
+        self, template_name: str, data: ResumeData, options: PDFGenerationOptions
+    ) -> str:
         """Render template with resume data"""
         template = self.get_template(template_name)
 
@@ -142,12 +141,12 @@ class TemplateEngine:
 
         # Executive summary (first for executive template)
         if template_name == "executive" and data.summary:
-            sections.append(f'''
+            sections.append(f"""
             <div class="section">
                 <h2 class="section-title">Executive Summary</h2>
                 <p class="summary">{data.summary}</p>
             </div>
-            ''')
+            """)
 
         # Experience
         if data.experiences:
@@ -184,64 +183,76 @@ class TemplateEngine:
         sections = []
 
         # Contact
-        sections.append('''
+        sections.append("""
         <div class="sidebar-section">
             <h3 class="sidebar-title">Contact</h3>
             <div class="sidebar-content">
-        ''')
+        """)
 
         if data.email:
-            sections.append(f'<div class="contact-item"><span class="contact-icon">@</span>{data.email}</div>')
+            sections.append(
+                f'<div class="contact-item"><span class="contact-icon">@</span>{data.email}</div>'
+            )
         if data.phone:
-            sections.append(f'<div class="contact-item"><span class="contact-icon">📱</span>{data.phone}</div>')
+            sections.append(
+                f'<div class="contact-item"><span class="contact-icon">📱</span>{data.phone}</div>'
+            )
         if data.location:
-            sections.append(f'<div class="contact-item"><span class="contact-icon">📍</span>{data.location}</div>')
+            sections.append(
+                f'<div class="contact-item"><span class="contact-icon">📍</span>{data.location}</div>'
+            )
         if data.linkedin:
-            sections.append(f'<div class="contact-item"><span class="contact-icon">in</span>{data.linkedin}</div>')
+            sections.append(
+                f'<div class="contact-item"><span class="contact-icon">in</span>{data.linkedin}</div>'
+            )
         if data.github:
-            sections.append(f'<div class="contact-item"><span class="contact-icon">gh</span>{data.github}</div>')
+            sections.append(
+                f'<div class="contact-item"><span class="contact-icon">gh</span>{data.github}</div>'
+            )
 
-        sections.append('</div></div>')
+        sections.append("</div></div>")
 
         # Skills
         if data.skills:
-            sections.append('''
+            sections.append("""
             <div class="sidebar-section">
                 <h3 class="sidebar-title">Skills</h3>
                 <div class="sidebar-content">
-            ''')
+            """)
 
             for skill_group in data.skills:
                 skill_name = skill_group.get("name", "")
                 skill_level = skill_group.get("level", 3)
-                sections.append(f'<div class="skill-item"><div class="skill-name">{skill_name}</div>')
+                sections.append(
+                    f'<div class="skill-item"><div class="skill-name">{skill_name}</div>'
+                )
                 sections.append('<div class="skill-level">')
 
                 for i in range(5):
                     filled = "filled" if i < skill_level else ""
                     sections.append(f'<span class="skill-dot {filled}"></span>')
 
-                sections.append('</div></div>')
+                sections.append("</div></div>")
 
-            sections.append('</div></div>')
+            sections.append("</div></div>")
 
         # Languages
         if data.languages:
-            sections.append('''
+            sections.append("""
             <div class="sidebar-section">
                 <h3 class="sidebar-title">Languages</h3>
                 <div class="sidebar-content">
-            ''')
+            """)
 
             for lang in data.languages:
-                sections.append(f'''
+                sections.append(f"""
                 <div class="language-item">
                     <span class="language-name">{lang.get("name", "")}</span>
                     <span class="language-level">{lang.get("level", "")}</span>
                 </div>
-                ''')
+                """)
 
-            sections.append('</div></div>')
+            sections.append("</div></div>")
 
         return "\n".join(sections)
 
@@ -258,14 +269,14 @@ class TemplateEngine:
             description = exp.get("description", "")
             highlights = exp.get("highlights", [])
 
-            html = f'''
+            html = f"""
             <div class="experience-item">
                 <div class="experience-header">
                     <span class="company-name">{company}</span>
                     <span class="experience-date">{start_date} - {end_date}</span>
                 </div>
                 <div class="position-title">{position}</div>
-            '''
+            """
 
             if location:
                 html += f'<div class="experience-location">{location}</div>'
@@ -284,15 +295,15 @@ class TemplateEngine:
                     html += f"<li>{highlight}</li>"
                 html += "</ul></div>"
 
-            html += '</div>'
+            html += "</div>"
             items.append(html)
 
-        return f'''
+        return f"""
         <div class="section">
             <h2 class="section-title">Professional Experience</h2>
             {"".join(items)}
         </div>
-        '''
+        """
 
     def _render_education(self, education: List[Dict]) -> str:
         """Render education section"""
@@ -306,13 +317,13 @@ class TemplateEngine:
             end_date = edu.get("end_date", "")
             gpa = edu.get("gpa", "")
 
-            html = f'''
+            html = f"""
             <div class="education-item">
                 <div class="education-header">
                     <span class="school-name">{school}</span>
                     <span class="education-date">{start_date} - {end_date}</span>
                 </div>
-                <div class="degree">{degree}'''
+                <div class="degree">{degree}"""
 
             if field:
                 html += f" in {field}"
@@ -322,12 +333,12 @@ class TemplateEngine:
             html += "</div></div>"
             items.append(html)
 
-        return f'''
+        return f"""
         <div class="section">
             <h2 class="section-title">Education</h2>
             {"".join(items)}
         </div>
-        '''
+        """
 
     def _render_projects(self, projects: List[Dict], template_name: str) -> str:
         """Render projects section"""
@@ -339,27 +350,29 @@ class TemplateEngine:
             tech = project.get("technologies", [])
             link = project.get("link", "")
 
-            html = f'<div class="project-item">'
+            html = '<div class="project-item">'
             html += f'<div class="project-name">{name}'
 
             if link:
-                html += f' <a href="{link}" style="font-size: 8pt; color: #6c5ce7;">→</a>'
+                html += (
+                    f' <a href="{link}" style="font-size: 8pt; color: #6c5ce7;">→</a>'
+                )
 
-            html += '</div>'
+            html += "</div>"
             html += f'<div class="project-description">{description}'
 
             if tech:
                 html += f'<br><em>Tech: {", ".join(tech)}</em>'
 
-            html += '</div></div>'
+            html += "</div></div>"
             items.append(html)
 
-        return f'''
+        return f"""
         <div class="section">
             <h2 class="section-title">Projects</h2>
             {"".join(items)}
         </div>
-        '''
+        """
 
     def _render_skills(self, skills: List[Dict], template_name: str) -> str:
         """Render skills section"""
@@ -370,25 +383,27 @@ class TemplateEngine:
                 for skill in skills_list:
                     items.append(f'<span class="skill-pill">{skill}</span>')
 
-            return f'''
+            return f"""
             <div class="section">
                 <h2 class="section-title">Skills</h2>
                 <div class="skills-list">{"".join(items)}</div>
             </div>
-            '''
+            """
         else:
             categories = []
             for skill_group in skills:
                 category = skill_group.get("category", "Skills")
                 skills_list = skill_group.get("skills", [])
-                categories.append(f"<strong>{category}:</strong> {', '.join(skills_list)}")
+                categories.append(
+                    f"<strong>{category}:</strong> {', '.join(skills_list)}"
+                )
 
-            return f'''
+            return f"""
             <div class="section">
                 <h2 class="section-title">Skills</h2>
                 <p class="skills-list">{'<br>'.join(categories)}</p>
             </div>
-            '''
+            """
 
     def _render_languages(self, languages: List[Dict]) -> str:
         """Render languages section"""
@@ -397,19 +412,19 @@ class TemplateEngine:
         for lang in languages:
             name = lang.get("name", "")
             level = lang.get("level", "")
-            items.append(f'''
+            items.append(f"""
             <div class="language-item">
                 <span class="language-name">{name}</span>
                 <span class="language-level">{level}</span>
             </div>
-            ''')
+            """)
 
-        return f'''
+        return f"""
         <div class="section">
             <h2 class="section-title">Languages</h2>
             {"".join(items)}
         </div>
-        '''
+        """
 
     def _render_awards(self, awards: List[Dict]) -> str:
         """Render awards section"""
@@ -419,19 +434,19 @@ class TemplateEngine:
             name = award.get("name", "")
             year = award.get("year", "")
             issuer = award.get("issuer", "")
-            items.append(f'''
+            items.append(f"""
             <div class="award-item">
                 <span class="award-name">{name} {f"({issuer})" if issuer else ""}</span>
                 <span class="award-year">{year}</span>
             </div>
-            ''')
+            """)
 
-        return f'''
+        return f"""
         <div class="section">
             <h2 class="section-title">Awards & Certifications</h2>
             {"".join(items)}
         </div>
-        '''
+        """
 
     def _render_custom_section(self, name: str, data: List[Dict]) -> str:
         """Render custom section"""
@@ -442,10 +457,10 @@ class TemplateEngine:
             description = item.get("description", "")
             date = item.get("date", "")
 
-            items.append(f'''
+            items.append(f"""
             <div style="margin-bottom: 8pt;">
                 <div style="font-weight: 600;">{title}</div>
-            ''')
+            """)
 
             if date:
                 items.append(f'<div style="font-size: 9pt; color: #666;">{date}</div>')
@@ -453,14 +468,14 @@ class TemplateEngine:
             if description:
                 items.append(f'<div style="font-size: 9pt;">{description}</div>')
 
-            items.append('</div>')
+            items.append("</div>")
 
-        return f'''
+        return f"""
         <div class="section">
             <h2 class="section-title">{name}</h2>
             {"".join(items)}
         </div>
-        '''
+        """
 
 
 class PDFGenerator:
@@ -499,7 +514,7 @@ class PDFGenerator:
         self,
         resume_data: ResumeData,
         options: PDFGenerationOptions,
-        output_path: Optional[Path] = None
+        output_path: Optional[Path] = None,
     ) -> bytes:
         """
         Generate PDF from resume data
@@ -551,7 +566,7 @@ class PDFGenerator:
         self,
         markdown: str,
         options: PDFGenerationOptions,
-        output_path: Optional[Path] = None
+        output_path: Optional[Path] = None,
     ) -> bytes:
         """
         Generate PDF from markdown resume
@@ -574,7 +589,7 @@ class PDFGenerator:
 
         Simple parser for common markdown resume formats
         """
-        lines = markdown.split('\n')
+        lines = markdown.split("\n")
         data = ResumeData(
             name="",
             experiences=[],
@@ -582,7 +597,7 @@ class PDFGenerator:
             skills=[],
             projects=[],
             languages=[],
-            awards=[]
+            awards=[],
         )
 
         current_section = None
@@ -592,37 +607,41 @@ class PDFGenerator:
             line = line.strip()
 
             # Headers
-            if line.startswith('# '):
+            if line.startswith("# "):
                 data.name = line[2:].strip()
                 current_section = None
-            elif line.startswith('## '):
+            elif line.startswith("## "):
                 current_section = line[3:].strip().lower()
                 current_item = {}
-            elif line.startswith('### '):
+            elif line.startswith("### "):
                 if current_section == "experience":
                     current_item = {"company": line[4:].strip(), "highlights": []}
                 elif current_section == "education":
                     current_item = {"school": line[4:].strip()}
                 elif current_section == "projects":
                     current_item = {"name": line[4:].strip(), "technologies": []}
-            elif line.startswith('- ') or line.startswith('* '):
+            elif line.startswith("- ") or line.startswith("* "):
                 content = line[2:].strip()
                 if current_section == "experience" and current_item:
                     current_item["highlights"].append(content)
                 elif current_section == "skills":
                     # Parse skill items
-                    if "skills" not in [s.get("category", "").lower() for s in data.skills]:
+                    if "skills" not in [
+                        s.get("category", "").lower() for s in data.skills
+                    ]:
                         data.skills.append({"category": "Skills", "skills": []})
                     data.skills[0]["skills"].append(content)
                 elif current_section == "projects" and current_item:
                     if content.startswith("**Tech:**"):
                         tech = content.replace("**Tech:**", "").strip()
-                        current_item["technologies"] = [t.strip() for t in tech.split(",")]
+                        current_item["technologies"] = [
+                            t.strip() for t in tech.split(",")
+                        ]
                     else:
                         current_item["description"] = content
-            elif line.startswith('**') and line.endswith('**'):
+            elif line.startswith("**") and line.endswith("**"):
                 # Bold items (could be position, degree, etc)
-                key_value = line[2:-2].split(':', 1)
+                key_value = line[2:-2].split(":", 1)
                 if len(key_value) == 2:
                     key, value = key_value
                     key = key.strip().lower()
@@ -668,8 +687,7 @@ class BatchPDFGenerator:
         self.generator = PDFGenerator()
 
     async def generate_batch(
-        self,
-        resumes: List[tuple[ResumeData, PDFGenerationOptions, Path]]
+        self, resumes: List[tuple[ResumeData, PDFGenerationOptions, Path]]
     ) -> List[Path]:
         """
         Generate multiple PDFs in parallel

@@ -9,6 +9,10 @@ __all__ = ["User", "Resume", "JD", "Application"]
 from sqlalchemy.orm import relationship
 
 # Add back_populates to User
-User.resumes = relationship("Resume", back_populates="user", cascade="all, delete-orphan")
+User.resumes = relationship(
+    "Resume", back_populates="user", cascade="all, delete-orphan"
+)
 User.jds = relationship("JD", back_populates="user", cascade="all, delete-orphan")
-User.applications = relationship("Application", back_populates="user", cascade="all, delete-orphan")
+User.applications = relationship(
+    "Application", back_populates="user", cascade="all, delete-orphan"
+)
