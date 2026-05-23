@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppStore, type JobDescription } from "@/lib/store";
 import { Briefcase, Building2, Plus, X, AlertCircle } from "lucide-react";
@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { validateJobDescription, containsXSSPatterns } from "@/lib/validation";
 import { TIMING } from "@/lib/constants";
 
-export function JDInput() {
+function JDInputComponent() {
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
   const [description, setDescription] = useState("");
@@ -310,3 +310,5 @@ export function JDInput() {
     </div>
   );
 }
+
+export const JDInput = memo(JDInputComponent);

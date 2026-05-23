@@ -210,11 +210,12 @@ export function InputField({
           placeholder={placeholder}
           autoComplete={autoComplete}
           aria-invalid={!!error}
+          aria-describedby={error ? `${id}-error` : undefined}
           className={icon ? "pl-10" : ""}
         />
       </div>
       {error && (
-        <p className="text-sm text-red-600 flex items-center gap-1">
+        <p id={`${id}-error`} className="text-sm text-red-600 flex items-center gap-1" role="alert">
           <AlertCircle className="h-4 w-4" />
           {error}
         </p>

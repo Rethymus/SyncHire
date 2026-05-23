@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
 import { Save, Download, Eye, Edit, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { sanitizeHtml } from "@/lib/sanitize";
+import { sanitizeHtml, sanitizeMarkdownHtml } from "@/lib/sanitize";
 import { memo } from "react";
 import { TIMING } from "@/lib/constants";
+import { marked } from "marked";
 
 const defaultResumeTemplate = `# 张三
 **前端开发工程师**
@@ -68,24 +69,20 @@ const defaultResumeTemplate = `# 张三
 - ACM-ICPC区域赛银奖 (2019)
 `;
 
-const renderMarkdownRules = [
-  { pattern: /^### (.*$)/gim, replacement: "<h3 class='text-xl font-bold mt-6 mb-3'>$1</h3>" },
-  { pattern: /^## (.*$)/gim, replacement: "<h2 class='text-2xl font-bold mt-6 mb-4'>$1</h2>" },
-  { pattern: /^# (.*$)/gim, replacement: "<h1 class='text-3xl font-bold mb-4'>$1</h1>" },
-  { pattern: /\*\*(.*)\*\*/gim, replacement: "<strong class='font-semibold'>$1</strong>" },
-  { pattern: /^\* (.*$)/gim, replacement: "<li class='ml-4'>$1</li>" },
-  { pattern: /^- (.*$)/gim, replacement: "<li class='ml-4'>$1</li>" },
-  { pattern: /\n/gim, replacement: "<br>" },
-] as const;
-
 /**
- * 优化的markdown渲染函数
- * 使用规则数组提高可维护性和性能
+ * 安全的markdown渲染函数
+ * 使用marked库解析markdown，然后通过DOMPurify进行XSS防护
  */
 function renderMarkdown(markdown: string): string {
-  return renderMarkdownRules.reduce((text, rule) =>
-    text.replace(rule.pattern, rule.replacement), markdown
-  );
+  try {
+    // 使用marked库将markdown转换为HTML
+    const html = marked(markdown) as string;
+    // 使用DOMPurify净化HTML，防止XSS攻击
+    return sanitizeMarkdownHtml(html);
+  } catch (error) {
+    // 如果渲染失败，返回纯文本（转义HTML）
+    return sanitizeHtml(markdown);
+  }
 }
 
 function ResumeEditorComponent() {

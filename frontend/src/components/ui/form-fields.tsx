@@ -165,6 +165,9 @@ export function PasswordField({
           onChange={(e) => onChange(e.target.value)}
           autoComplete={autoComplete}
           aria-invalid={!!error}
+          aria-describedby={
+            (showStrength && strength) ? `${name}-strength` : error ? `${name}-error` : undefined
+          }
           className={cn(
             "block w-full rounded-lg border pl-10 pr-10 py-2.5 transition-colors",
             "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
@@ -188,7 +191,7 @@ export function PasswordField({
       </div>
 
       {showStrength && strength && (
-        <div className="flex gap-1">
+        <div id={`${name}-strength`} className="flex gap-1" role="status" aria-live="polite">
           <div className="h-1 flex-1 rounded bg-gray-200">
             <div
               className={cn("h-full rounded transition-all", strengthColors[strength])}
@@ -199,7 +202,7 @@ export function PasswordField({
       )}
 
       {error && (
-        <p className="text-sm text-red-600 flex items-center gap-1">
+        <p id={`${name}-error`} className="text-sm text-red-600 flex items-center gap-1" role="alert">
           <AlertCircle className="h-4 w-4" />
           {error}
         </p>
@@ -265,7 +268,7 @@ export function CheckboxField({
         </label>
       </div>
       {error && (
-        <p className="text-sm text-red-600 flex items-center gap-1">
+        <p id={`${name}-error`} className="text-sm text-red-600 flex items-center gap-1" role="alert">
           <AlertCircle className="h-4 w-4" />
           {error}
         </p>
