@@ -15,7 +15,7 @@ interface TestConfig {
 
 class APIIntegrationTester {
   private config: TestConfig;
-  private testResults: Map<string, any> = new Map();
+  private testResults: Map<string, Record<string, unknown>> = new Map();
 
   constructor(config: TestConfig) {
     this.config = config;
@@ -143,16 +143,22 @@ class APIIntegrationTester {
       });
       const uploadResult = await resumeAPI.upload(mockFile);
 
+      // Parse Response to get data
+      let uploadData: any = null;
+      if (uploadResult.ok) {
+        uploadData = await uploadResult.json().catch(() => null);
+      }
+
       results.upload = {
-        success: uploadResult.status === 201 || uploadResult.status === 200,
+        success: uploadResult.ok,
         status: uploadResult.status,
-        hasId: !!(uploadResult.data as any)?.id,
-        error: uploadResult.error,
+        hasId: !!uploadData?.id,
+        error: uploadResult.ok ? undefined : `HTTP ${uploadResult.status}`,
       };
 
       // Test get resume if upload succeeded
-      if ((uploadResult.data as any)?.id) {
-        const resumeId = (uploadResult.data as any).id;
+      if (uploadData?.id) {
+        const resumeId = uploadData.id;
         try {
           const getResult = await resumeAPI.get(resumeId);
           results.get = {
@@ -404,18 +410,24 @@ class APIIntegrationTester {
       report += `## ${category.toUpperCase()}\n\n`;
 
       for (const [test, result] of Object.entries(results)) {
-        if (result === null) continue;
+        if (result === null || result === undefined) continue;
 
         totalTests++;
-        const passed = result.success || result.healthy || result.handledCorrectly;
+        let passed = false;
+        if (typeof result === 'object' && result !== null && !Array.isArray(result)) {
+          const objResult = result as Record<string, unknown>;
+          passed = (objResult.success === true) || (objResult.healthy === true) || (objResult.handledCorrectly === true);
+        }
         if (passed) passedTests++;
 
         report += `### ${test}\n`;
         report += `- **Status**: ${passed ? '✅ PASS' : '❌ FAIL'}\n`;
 
-        for (const [key, value] of Object.entries(result)) {
-          if (key !== 'success' && key !== 'healthy' && key !== 'handledCorrectly') {
-            report += `- **${key}**: ${JSON.stringify(value)}\n`;
+        if (typeof result === 'object' && result !== null && !Array.isArray(result)) {
+          for (const [key, value] of Object.entries(result)) {
+            if (key !== 'success' && key !== 'healthy' && key !== 'handledCorrectly') {
+              report += `- **${key}**: ${JSON.stringify(value)}\n`;
+            }
           }
         }
         report += '\n';

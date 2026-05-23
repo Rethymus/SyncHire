@@ -95,7 +95,7 @@ describe('Logger System', () => {
       const error = new Error('Test error');
       error.stack = 'Error: Test error\n    at test.js:10:15';
 
-      logger.error(LogCategory.ERROR, 'Error occurred', error);
+      logger.error(LogCategory.API, 'Error occurred', error);
 
       expect(mockConsole.error).toHaveBeenCalledWith(
         expect.stringContaining('Test error'),
@@ -107,7 +107,7 @@ describe('Logger System', () => {
       const error = new Error('Simple error');
       delete (error as any).stack;
 
-      logger.error(LogCategory.ERROR, 'Error occurred', error);
+      logger.error(LogCategory.API, 'Error occurred', error);
 
       expect(mockConsole.error).toHaveBeenCalled();
     });

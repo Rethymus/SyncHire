@@ -82,7 +82,8 @@ describe('validateFile', () => {
   });
 
   it('should reject oversized files', () => {
-    const file = new File([new Array(6 * 1024 * 1024)], 'large.pdf', {
+    const largeContent = new Uint8Array(6 * 1024 * 1024);
+    const file = new File([largeContent], 'large.pdf', {
       type: 'application/pdf'
     });
     expect(validateFile(file).valid).toBe(false);

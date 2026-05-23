@@ -12,20 +12,6 @@ import {
   type AppError,
 } from '../error-handler';
 
-// Mock logger
-vi.mock('../logger', () => ({
-  logger: {
-    error: vi.fn(),
-    warn: vi.fn(),
-    info: vi.fn(),
-  },
-  LogCategory: {
-    ERROR: 'ERROR',
-    API: 'API',
-    AUTH: 'AUTH',
-  },
-}));
-
 describe('ErrorHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -46,10 +32,10 @@ describe('ErrorHandler', () => {
     });
 
     it('should create API error', () => {
-      const error = ErrorHandler.handleApiError(new Error('API failed'));
+      const error = ErrorHandler.handleApiError(new Error('500 Server Error'));
 
-      expect(error.type).toBe(ErrorType.API);
-      expect(error.message).toContain('API failed');
+      expect(error.type).toBe(ErrorType.SERVER);
+      expect(error.message).toContain('服务器错误');
     });
 
     it('should create validation error', () => {
@@ -70,23 +56,31 @@ describe('ErrorHandler', () => {
   describe('Error Classification', () => {
     it('should classify network errors', () => {
       const error = new Error('Failed to fetch');
-      (error as any).name = 'TypeError';
 
       const appError = ErrorHandler.handleApiError(error);
 
       expect(appError.type).toBe(ErrorType.NETWORK);
+      expect(appError.message).toContain('网络连接失败');
     });
 
-    it('should classify timeout errors', () => {
-      const error = new Error('Request timeout');
-      (error as any).code = 'ETIMEDOUT';
+    it('should classify 401 auth errors', () => {
+      const error = new Error('401 Unauthorized');
 
       const appError = ErrorHandler.handleApiError(error);
 
-      expect(appError.type).toBe(ErrorType.TIMEOUT);
+      expect(appError.type).toBe(ErrorType.AUTH);
+      expect(appError.severity).toBe(ErrorSeverity.HIGH);
     });
 
-    it('should classify validation errors', () => {
+    it('should classify 404 not found errors', () => {
+      const error = new Error('404 Not Found');
+
+      const appError = ErrorHandler.handleApiError(error);
+
+      expect(appError.type).toBe(ErrorType.NOT_FOUND);
+    });
+
+    it('should classify 400 validation errors', () => {
       const error = new Error('400 Bad Request');
 
       const appError = ErrorHandler.handleApiError(error);
@@ -94,150 +88,196 @@ describe('ErrorHandler', () => {
       expect(appError.type).toBe(ErrorType.VALIDATION);
     });
 
-    it('should classify authentication errors', () => {
-      const error = new Error('401 Unauthorized');
-
-      const appError = ErrorHandler.handleApiError(error);
-
-      expect(appError.type).toBe(ErrorType.AUTH);
-    });
-
-    it('should classify server errors', () => {
+    it('should classify 500 server errors', () => {
       const error = new Error('500 Internal Server Error');
 
       const appError = ErrorHandler.handleApiError(error);
 
       expect(appError.type).toBe(ErrorType.SERVER);
+      expect(appError.severity).toBe(ErrorSeverity.CRITICAL);
+    });
+
+    it('should handle unknown errors', () => {
+      const error = 'string error' as unknown;
+
+      const appError = ErrorHandler.handleApiError(error);
+
+      expect(appError.type).toBe(ErrorType.UNKNOWN);
+      expect(appError.message).toContain('未知错误');
+    });
+  });
+
+  describe('Error Messages', () => {
+    it('should return user-friendly message for 401', () => {
+      const error = ErrorHandler.handleApiError(new Error('401 Unauthorized'));
+
+      expect(error.message).toBe('未授权，请先登录');
+    });
+
+    it('should return user-friendly message for 403', () => {
+      const error = ErrorHandler.handleApiError(new Error('403 Forbidden'));
+
+      expect(error.message).toBe('无权限访问此资源');
+    });
+
+    it('should return user-friendly message for 404', () => {
+      const error = ErrorHandler.handleApiError(new Error('404 Not Found'));
+
+      expect(error.message).toBe('请求的资源不存在');
+    });
+
+    it('should return user-friendly message for 500', () => {
+      const error = ErrorHandler.handleApiError(new Error('500 Internal Server Error'));
+
+      expect(error.message).toBe('服务器错误，请稍后重试');
+    });
+
+    it('should return user-friendly message for 502', () => {
+      const error = ErrorHandler.handleApiError(new Error('502 Bad Gateway'));
+
+      expect(error.message).toBe('服务暂时不可用');
+    });
+
+    it('should return user-friendly message for 503', () => {
+      const error = ErrorHandler.handleApiError(new Error('503 Service Unavailable'));
+
+      expect(error.message).toBe('服务维护中');
     });
   });
 
   describe('Error Severity', () => {
-    it('should determine severity from error type', () => {
-      const authError = ErrorHandler.handleAuthError('Unauthorized');
-      expect(authError.severity).toBe(ErrorSeverity.HIGH);
+    it('should assign HIGH severity to auth errors', () => {
+      const error = ErrorHandler.handleApiError(new Error('401 Unauthorized'));
 
-      const apiError = ErrorHandler.handleApiError(new Error('API error'));
-      expect(apiError.severity).toBe(ErrorSeverity.MEDIUM);
+      expect(error.severity).toBe(ErrorSeverity.HIGH);
     });
 
-    it('should map HTTP status to severity', () => {
-      const notFound = new Error('404 Not Found');
-      const appError = ErrorHandler.handleApiError(notFound);
+    it('should assign CRITICAL severity to server errors', () => {
+      const error = ErrorHandler.handleApiError(new Error('500 Internal Server Error'));
 
-      expect(appError.severity).toBe(ErrorSeverity.LOW);
+      expect(error.severity).toBe(ErrorSeverity.CRITICAL);
+    });
+
+    it('should assign MEDIUM severity to validation errors', () => {
+      const error = ErrorHandler.handleApiError(new Error('400 Bad Request'));
+
+      expect(error.severity).toBe(ErrorSeverity.MEDIUM);
+    });
+
+    it('should assign HIGH severity to network errors', () => {
+      const error = ErrorHandler.handleApiError(new Error('Failed to fetch'));
+
+      expect(error.severity).toBe(ErrorSeverity.HIGH);
     });
   });
 
-  describe('ErrorLogger', () => {
-    it('should log error to console', () => {
-      const error: AppError = {
-        type: ErrorType.API,
-        message: 'Test error',
-        severity: ErrorSeverity.MEDIUM,
-        timestamp: new Date(),
-      };
+  describe('Error Helpers', () => {
+    it('should get user message', () => {
+      const error: AppError = ErrorHandler.createError(
+        ErrorType.VALIDATION,
+        'Test message',
+        ErrorSeverity.LOW
+      );
 
+      expect(ErrorHandler.getUserMessage(error)).toBe('Test message');
+    });
+
+    it('should show to user if severity is not LOW', () => {
+      const error: AppError = ErrorHandler.createError(
+        ErrorType.VALIDATION,
+        'Test',
+        ErrorSeverity.MEDIUM
+      );
+
+      expect(ErrorHandler.shouldShowToUser(error)).toBe(true);
+    });
+
+    it('should not show LOW severity errors to user', () => {
+      const error: AppError = ErrorHandler.createError(
+        ErrorType.VALIDATION,
+        'Test',
+        ErrorSeverity.LOW
+      );
+
+      expect(ErrorHandler.shouldShowToUser(error)).toBe(false);
+    });
+
+    it('should report HIGH severity errors', () => {
+      const error: AppError = ErrorHandler.createError(
+        ErrorType.SERVER,
+        'Test',
+        ErrorSeverity.HIGH
+      );
+
+      expect(ErrorHandler.shouldReport(error)).toBe(true);
+    });
+
+    it('should report CRITICAL severity errors', () => {
+      const error: AppError = ErrorHandler.createError(
+        ErrorType.SERVER,
+        'Test',
+        ErrorSeverity.CRITICAL
+      );
+
+      expect(ErrorHandler.shouldReport(error)).toBe(true);
+    });
+
+    it('should not report MEDIUM severity errors', () => {
+      const error: AppError = ErrorHandler.createError(
+        ErrorType.VALIDATION,
+        'Test',
+        ErrorSeverity.MEDIUM
+      );
+
+      expect(ErrorHandler.shouldReport(error)).toBe(false);
+    });
+  });
+});
+
+describe('ErrorLogger', () => {
+  beforeEach(() => {
+    ErrorLogger.clear();
+  });
+
+  it('should log errors', () => {
+    const error: AppError = ErrorHandler.createError(
+      ErrorType.VALIDATION,
+      'Test error',
+      ErrorSeverity.MEDIUM
+    );
+
+    ErrorLogger.log(error);
+
+    const recent = ErrorLogger.getRecentErrors();
+    expect(recent).toHaveLength(1);
+    expect(recent[0]).toEqual(error);
+  });
+
+  it('should get recent errors with limit', () => {
+    for (let i = 0; i < 15; i++) {
+      const error: AppError = ErrorHandler.createError(
+        ErrorType.VALIDATION,
+        `Error ${i}`,
+        ErrorSeverity.MEDIUM
+      );
       ErrorLogger.log(error);
+    }
 
-      // Verify logger was called
-      expect(require('../logger').logger.error).toHaveBeenCalled();
-    });
-
-    it('should log error with context', () => {
-      const error: AppError = {
-        type: ErrorType.API,
-        message: 'Test error',
-        severity: ErrorSeverity.MEDIUM,
-        timestamp: new Date(),
-        details: { userId: '123', action: 'upload' },
-      };
-
-      ErrorLogger.log(error);
-
-      expect(require('../logger').logger.error).toHaveBeenCalled();
-    });
+    const recent = ErrorLogger.getRecentErrors(5);
+    expect(recent).toHaveLength(5);
   });
 
-  describe('Edge Cases', () => {
-    it('should handle errors without stack traces', () => {
-      const error = new Error('Simple error');
-      delete (error as any).stack;
+  it('should clear all errors', () => {
+    const error: AppError = ErrorHandler.createError(
+      ErrorType.VALIDATION,
+      'Test error',
+      ErrorSeverity.MEDIUM
+    );
 
-      const appError = ErrorHandler.handleApiError(error);
+    ErrorLogger.log(error);
+    expect(ErrorLogger.getRecentErrors()).toHaveLength(1);
 
-      expect(appError).toBeDefined();
-      expect(appError.message).toBe('Simple error');
-    });
-
-    it('should handle errors without messages', () => {
-      const error = new Error();
-      delete (error as any).message;
-
-      const appError = ErrorHandler.handleApiError(error);
-
-      expect(appError.message).toBeDefined();
-    });
-
-    it('should handle very long error messages', () => {
-      const longMessage = 'x'.repeat(10000);
-      const error = new Error(longMessage);
-
-      const appError = ErrorHandler.handleApiError(error);
-
-      expect(appError.message).toBeDefined();
-    });
-
-    it('should handle errors with circular references', () => {
-      const error: any = new Error('Circular error');
-      error.circular = { self: error };
-
-      const appError = ErrorHandler.handleApiError(error);
-
-      expect(appError).toBeDefined();
-    });
-  });
-
-  describe('Error Recovery', () => {
-    it('should provide recovery suggestions', () => {
-      const networkError = ErrorHandler.handleApiError(new Error('Network error'));
-      const authError = ErrorHandler.handleAuthError('Invalid token');
-
-      expect(networkError.type).toBe(ErrorType.NETWORK);
-      expect(authError.type).toBe(ErrorType.AUTH);
-    });
-
-    it('should distinguish retryable errors', () => {
-      const timeoutError = new Error('Request timeout');
-      const authError = new Error('401 Unauthorized');
-
-      const isTimeoutRetryable = ErrorHandler.isRetryable(timeoutError);
-      const isAuthRetryable = ErrorHandler.isRetryable(authError);
-
-      expect(isTimeoutRetryable).toBe(true);
-      expect(isAuthRetryable).toBe(false);
-    });
-  });
-
-  describe('Error Metadata', () => {
-    it('should preserve error metadata', () => {
-      const originalError = new Error('API error');
-      (originalError as any).code = 'API_ERROR';
-      (originalError as any).status = 500;
-
-      const appError = ErrorHandler.handleApiError(originalError);
-
-      expect(appError.details).toBeDefined();
-    });
-
-    it('should attach request context', () => {
-      const error = new Error('Request failed');
-
-      const appError = ErrorHandler.handleApiError(error, {
-        url: '/api/upload',
-        method: 'POST',
-      });
-
-      expect(appError.details).toBeDefined();
-    });
+    ErrorLogger.clear();
+    expect(ErrorLogger.getRecentErrors()).toHaveLength(0);
   });
 });

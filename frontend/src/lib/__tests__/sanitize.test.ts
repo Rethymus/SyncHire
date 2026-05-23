@@ -3,7 +3,7 @@
  * Critical security tests for XSS prevention
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import DOMPurify from 'dompurify';
 import { sanitizeHtml, sanitizeMarkdownHtml } from '../sanitize';
 
