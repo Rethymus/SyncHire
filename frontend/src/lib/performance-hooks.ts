@@ -179,7 +179,7 @@ export function usePrefetch() {
     return () => {
       observerRef.current?.disconnect();
     };
-  }, []);
+  }, [router]);
 
   const prefetch = useCallback((href: string) => {
     if (!prefetchQueue.current.has(href)) {

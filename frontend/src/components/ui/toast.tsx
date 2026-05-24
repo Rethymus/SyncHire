@@ -37,8 +37,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   // 清理所有定时器
   useEffect(() => {
+    const timers = timersRef.current;
     return () => {
-      const timers = timersRef.current;
       timers.forEach((timer) => clearTimeout(timer));
       timers.clear();
     };

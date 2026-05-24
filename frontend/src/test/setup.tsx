@@ -28,6 +28,7 @@ vi.mock('next/headers', () => ({
 
 vi.mock('next/image', () => ({
   default: (props: any) => (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={props.src}
       alt={props.alt}
