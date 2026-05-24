@@ -22,6 +22,14 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
+    # Rate Limiting
+    RATE_LIMIT_PERIOD: int = 60  # 1 minute
+    RATE_LIMIT_REQUESTS: int = 100  # 100 requests per period
+
+    # File Upload
+    MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
+    ALLOWED_EXTENSIONS: set[str] = {".pdf", ".doc", ".docx", ".txt"}
+
     # AI APIs
     OPENAI_API_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""
