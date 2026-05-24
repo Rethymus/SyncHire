@@ -5,7 +5,8 @@
 
 import { useRef, useEffect, useState } from "react";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+// Note: persist middleware causes SSR issues, removed until proper SSR-safe implementation
+// import { persist } from "zustand/middleware";
 import { useAppStore } from "@/lib/store";
 import { logger, LogCategory } from "@/lib/logger";
 
@@ -29,25 +30,12 @@ export function createSlice<T extends object>(
   initial: T,
   actions: (set: (fn: (state: T) => T) => void, get: () => T) => Partial<T>
 ) {
-  const useStore = create<T>()(
-    persist(
-      (set, get) => ({
-        ...initial,
-        ...actions(set, get),
-      }),
-      {
-        name,
-        partialize: (state) => {
-          // 只持久化特定字段
-          const keys = Object.keys(initial) as Array<keyof T>;
-          return keys.reduce((acc, key) => {
-            acc[key] = state[key];
-            return acc;
-          }, {} as Partial<T>);
-        },
-      }
-    )
-  );
+  // Note: persist middleware removed due to SSR issues
+  // TODO: Implement SSR-safe persistence with proper hydration
+  const useStore = create<T>()((set, get) => ({
+    ...initial,
+    ...actions(set, get),
+  }));
 
   return useStore;
 }

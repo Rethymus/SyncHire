@@ -11,7 +11,6 @@ These tests demonstrate 2026 best practices for FastAPI testing:
 import pytest
 from unittest.mock import AsyncMock, patch
 from httpx import AsyncClient, ASGITransport
-from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # Import the app directly

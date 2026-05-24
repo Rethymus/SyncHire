@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 export interface Resume {
   id: string;
@@ -135,21 +134,11 @@ interface UIState {
   setTheme: (theme: "light" | "dark") => void;
 }
 
-export const useUIStore = create<UIState>()(
-  persist(
-    (set) => ({
-      sidebarOpen: true,
-      theme: "light",
-      setSidebarOpen: (open) => set({ sidebarOpen: open }),
-      setTheme: (theme) => set({ theme }),
-    }),
-    {
-      name: "synchire-ui",
-      // Only persist non-sensitive UI state
-      partialize: (state) => ({
-        sidebarOpen: state.sidebarOpen,
-        theme: state.theme,
-      }),
-    }
-  )
-);
+// Note: useUIStore with persist middleware causes SSR issues
+// Use useAppStore for now until proper SSR-safe persistence is implemented
+export const useUIStore = create<UIState>()((set) => ({
+  sidebarOpen: true,
+  theme: "light",
+  setSidebarOpen: (open) => set({ sidebarOpen: open }),
+  setTheme: (theme) => set({ theme }),
+}));

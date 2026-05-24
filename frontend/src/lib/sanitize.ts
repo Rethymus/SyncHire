@@ -8,22 +8,24 @@
 
 import DOMPurify from 'dompurify';
 
-// Configure DOMPurify to sanitize unsafe URL protocols
-DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
-  // Block unsafe URL protocols in href and src attributes
-  if (data.attrName === 'href' || data.attrName === 'src') {
-    const value = data.attrValue?.toLowerCase().trim();
-    if (value) {
-      // Block javascript:, data:, vbscript:, and other unsafe protocols
-      const unsafeProtocols = ['javascript:', 'data:', 'vbscript:', 'file:', 'about:', 'chrome:', 'chrome-extension:'];
-      if (unsafeProtocols.some(protocol => value.startsWith(protocol))) {
-        // Remove the unsafe attribute
-        data.attrValue = '';
-        node.removeAttribute(data.attrName);
+// Configure DOMPurify to sanitize unsafe URL protocols (client-side only)
+if (typeof window !== 'undefined') {
+  DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+    // Block unsafe URL protocols in href and src attributes
+    if (data.attrName === 'href' || data.attrName === 'src') {
+      const value = data.attrValue?.toLowerCase().trim();
+      if (value) {
+        // Block javascript:, data:, vbscript:, and other unsafe protocols
+        const unsafeProtocols = ['javascript:', 'data:', 'vbscript:', 'file:', 'about:', 'chrome:', 'chrome-extension:'];
+        if (unsafeProtocols.some(protocol => value.startsWith(protocol))) {
+          // Remove the unsafe attribute
+          data.attrValue = '';
+          node.removeAttribute(data.attrName);
+        }
       }
     }
-  }
-});
+  });
+}
 
 /**
  * Sanitize HTML string to prevent XSS attacks
