@@ -66,6 +66,7 @@ async def db_session(test_db) -> AsyncGenerator[AsyncSession, None]:
 @pytest.fixture
 async def client(test_db) -> AsyncGenerator[AsyncClient, None]:
     """Create test client with database override"""
+
     async def override_get_db():
         async with test_db() as session:
             yield session
@@ -117,24 +118,19 @@ async def authenticated_user(client: AsyncClient, sample_user: dict) -> dict:
     await client.post("/api/auth/register", json=sample_user)
 
     # Login to get token
-    response = await client.post("/api/auth/login", json={
-        "username": sample_user["username"],
-        "password": sample_user["password"]
-    })
+    response = await client.post(
+        "/api/auth/login",
+        json={"username": sample_user["username"], "password": sample_user["password"]},
+    )
 
     token_data = response.json()
-    return {
-        "user": sample_user,
-        "token": token_data["access_token"]
-    }
+    return {"user": sample_user, "token": token_data["access_token"]}
 
 
 @pytest.fixture
 def auth_headers(authenticated_user: dict) -> dict:
     """Generate authentication headers"""
-    return {
-        "Authorization": f"Bearer {authenticated_user['token']}"
-    }
+    return {"Authorization": f"Bearer {authenticated_user['token']}"}
 
 
 # Mock fixtures
@@ -142,12 +138,14 @@ def auth_headers(authenticated_user: dict) -> dict:
 def mock_openai_response():
     """Mock OpenAI API response"""
     return {
-        "choices": [{
-            "message": {
-                "role": "assistant",
-                "content": "This is a mocked OpenAI response for testing purposes"
+        "choices": [
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": "This is a mocked OpenAI response for testing purposes",
+                }
             }
-        }]
+        ]
     }
 
 
@@ -155,10 +153,9 @@ def mock_openai_response():
 def mock_anthropic_response():
     """Mock Anthropic API response"""
     return {
-        "content": [{
-            "type": "text",
-            "text": "This is a mocked Anthropic response for testing"
-        }]
+        "content": [
+            {"type": "text", "text": "This is a mocked Anthropic response for testing"}
+        ]
     }
 
 
@@ -182,7 +179,7 @@ def mock_database_operations():
         "query": AsyncMock(),
         "execute": AsyncMock(),
         "commit": AsyncMock(),
-        "rollback": AsyncMock()
+        "rollback": AsyncMock(),
     }
 
 
@@ -192,12 +189,6 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "unit: Unit tests (fast, no external dependencies)"
     )
-    config.addinivalue_line(
-        "markers", "integration: Integration tests (with database)"
-    )
-    config.addinivalue_line(
-        "markers", "e2e: End-to-end tests (slow, full stack)"
-    )
-    config.addinivalue_line(
-        "markers", "slow: Slow running tests"
-    )
+    config.addinivalue_line("markers", "integration: Integration tests (with database)")
+    config.addinivalue_line("markers", "e2e: End-to-end tests (slow, full stack)")
+    config.addinivalue_line("markers", "slow: Slow running tests")
