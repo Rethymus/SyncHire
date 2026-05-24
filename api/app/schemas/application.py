@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 import uuid
+from typing import List
 
 
 class ApplicationBase(BaseModel):
@@ -17,6 +18,17 @@ class ApplicationUpdate(BaseModel):
     notes: str | None = None
 
 
+class StatusHistoryEntry(BaseModel):
+    id: uuid.UUID
+    old_status: str | None
+    new_status: str
+    notes: str | None
+    changed_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class ApplicationResponse(ApplicationBase):
     id: uuid.UUID
     user_id: uuid.UUID
@@ -27,6 +39,12 @@ class ApplicationResponse(ApplicationBase):
     notes: str | None
     created_at: datetime
     updated_at: datetime
+    status_history: List[StatusHistoryEntry] = []
 
     class Config:
         from_attributes = True
+
+
+class ApplicationStatusUpdate(BaseModel):
+    status: str
+    notes: str | None = None

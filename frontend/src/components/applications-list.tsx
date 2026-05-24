@@ -4,6 +4,7 @@ import { useCallback, useMemo, memo } from "react";
 import Link from "next/link";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
+import { ApplicationStatusManager } from "@/components/application-status-manager";
 import {
   Briefcase,
   CheckCircle2,
@@ -51,7 +52,14 @@ const statusConfig = {
 };
 
 export const ApplicationsList = memo(function ApplicationsList() {
-  const { applications } = useAppStore();
+  const { applications, updateApplication } = useAppStore();
+
+  const handleStatusUpdate = useCallback(
+    (applicationId: string, newStatus: string) => {
+      updateApplication(applicationId, { status: newStatus as any });
+    },
+    [updateApplication]
+  );
 
   const sortedApplications = useMemo(() => {
     return [...applications].sort(
@@ -122,6 +130,11 @@ export const ApplicationsList = memo(function ApplicationsList() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  <ApplicationStatusManager
+                    applicationId={application.id}
+                    currentStatus={application.status}
+                    onStatusUpdate={(newStatus) => handleStatusUpdate(application.id, newStatus)}
+                  />
                   <Link href={`/editor?applicationId=${application.id}`}>
                     <Button variant="outline" size="sm">
                       <FileText className="h-4 w-4 mr-2" />

@@ -154,6 +154,18 @@ class APIClient {
     });
   }
 
+  async patch<T>(
+    endpoint: string,
+    data: unknown,
+    headers?: HeadersInit
+  ): Promise<APIResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      headers: addCSRFHeaders(headers),
+      body: JSON.stringify(data),
+    });
+  }
+
   async delete<T>(endpoint: string, headers?: HeadersInit): Promise<APIResponse<T>> {
     return this.request<T>(endpoint, {
       method: 'DELETE',
@@ -259,6 +271,11 @@ export const applicationAPI = {
   list: () => apiClient.get('/applications'),
 
   update: (id: string, data: unknown) => apiClient.put(`/applications/${id}`, data),
+
+  updateStatus: (id: string, status: string, notes?: string) =>
+    apiClient.patch(`/applications/${id}/status`, { status, notes }),
+
+  getStatusHistory: (id: string) => apiClient.get(`/applications/${id}/history`),
 
   delete: (id: string) => apiClient.delete(`/applications/${id}`),
 

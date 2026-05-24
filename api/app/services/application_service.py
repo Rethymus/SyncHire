@@ -4,7 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, status
 from app.models.application import Application
-from app.schemas.application import ApplicationCreate, ApplicationUpdate
+from app.models.application_status_history import ApplicationStatusHistory
+from app.schemas.application import (
+    ApplicationCreate,
+    ApplicationUpdate,
+    ApplicationStatusUpdate,
+)
 from app.services.resume_service import ResumeService
 from app.services.jd_service import JDService
 from app.services.ai_service import AIService
@@ -42,7 +47,18 @@ class ApplicationService:
             .where(Application.user_id == user_id)
             .order_by(Application.created_at.desc())
         )
-        return list(result.scalars().all())
+        applications = list(result.scalars().all())
+
+        # Load status history for each application
+        for app in applications:
+            history_result = await db.execute(
+                select(ApplicationStatusHistory)
+                .where(ApplicationStatusHistory.application_id == app.id)
+                .order_by(ApplicationStatusHistory.changed_at.desc())
+            )
+            app.status_history = list(history_result.scalars().all())
+
+        return applications
 
     @staticmethod
     async def get_application(
@@ -63,6 +79,14 @@ class ApplicationService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Application not found",
             )
+
+        # Load status history
+        history_result = await db.execute(
+            select(ApplicationStatusHistory)
+            .where(ApplicationStatusHistory.application_id == application.id)
+            .order_by(ApplicationStatusHistory.changed_at.desc())
+        )
+        application.status_history = list(history_result.scalars().all())
 
         return application
 
@@ -180,12 +204,31 @@ class ApplicationService:
         # Update fields if provided
         if app_data.status is not None:
             # Validate status
-            valid_statuses = ["applied", "interview", "rejected", "offer", "optimized"]
+            valid_statuses = [
+                "applied",
+                "interview",
+                "rejected",
+                "offer",
+                "optimized",
+                "pending",
+            ]
             if app_data.status not in valid_statuses:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}",
                 )
+
+            # Create status history entry
+            if application.status != app_data.status:
+                status_history = ApplicationStatusHistory(
+                    application_id=application.id,
+                    user_id=user_id,
+                    old_status=application.status,
+                    new_status=app_data.status,
+                    notes=app_data.notes,
+                )
+                db.add(status_history)
+
             application.status = app_data.status
 
         if app_data.notes is not None:
@@ -193,6 +236,69 @@ class ApplicationService:
 
         await db.commit()
         await db.refresh(application)
+
+        # Reload status history
+        history_result = await db.execute(
+            select(ApplicationStatusHistory)
+            .where(ApplicationStatusHistory.application_id == application.id)
+            .order_by(ApplicationStatusHistory.changed_at.desc())
+        )
+        application.status_history = list(history_result.scalars().all())
+
+        return application
+
+    @staticmethod
+    async def update_application_status(
+        db: AsyncSession,
+        application_id: uuid.UUID,
+        user_id: uuid.UUID,
+        status_update: ApplicationStatusUpdate,
+    ) -> Application:
+        """Update application status with history tracking"""
+        application = await ApplicationService.get_application(
+            db, application_id, user_id
+        )
+
+        # Validate status
+        valid_statuses = [
+            "applied",
+            "interview",
+            "rejected",
+            "offer",
+            "optimized",
+            "pending",
+        ]
+        if status_update.status not in valid_statuses:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}",
+            )
+
+        # Create status history entry
+        status_history = ApplicationStatusHistory(
+            application_id=application.id,
+            user_id=user_id,
+            old_status=application.status,
+            new_status=status_update.status,
+            notes=status_update.notes,
+        )
+        db.add(status_history)
+
+        # Update application status
+        application.status = status_update.status
+        if status_update.notes:
+            application.notes = status_update.notes
+
+        await db.commit()
+        await db.refresh(application)
+
+        # Reload status history
+        history_result = await db.execute(
+            select(ApplicationStatusHistory)
+            .where(ApplicationStatusHistory.application_id == application.id)
+            .order_by(ApplicationStatusHistory.changed_at.desc())
+        )
+        application.status_history = list(history_result.scalars().all())
 
         return application
 

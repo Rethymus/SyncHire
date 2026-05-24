@@ -3,6 +3,7 @@ import "./globals.css";
 import { ErrorBoundaryWrapper } from "@/components/error-boundary-wrapper";
 import { QueryClientProvider } from "@/lib/react-query-setup";
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { SearchProvider } from "@/contexts/search-context";
 
 // 使用系统字体栈替代Google Fonts，避免网络依赖
 // 优先使用: system-ui, SF Pro, Inter, 等现代无衬线字体
@@ -61,7 +62,9 @@ export default function RootLayout({
         </a>
         <QueryClientProvider>
           <AuthProvider>
-            <ErrorBoundaryWrapper>{children}</ErrorBoundaryWrapper>
+            <SearchProvider>
+              <ErrorBoundaryWrapper>{children}</ErrorBoundaryWrapper>
+            </SearchProvider>
           </AuthProvider>
         </QueryClientProvider>
       </body>

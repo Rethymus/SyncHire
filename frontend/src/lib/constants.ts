@@ -17,6 +17,12 @@ export const TIMING = {
     UPLOAD: 3000,    // 文件上传
   },
 
+  // 自动保存
+  AUTO_SAVE: {
+    INTERVAL: 30000, // 自动保存间隔（30秒）
+    DEBOUNCE: 1000,  // 防抖延迟
+  },
+
   // UI 交互延迟
   UI: {
     DEBOUNCE: 300,           // 防抖延迟

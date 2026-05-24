@@ -9,6 +9,7 @@ from app.schemas.application import (
     ApplicationCreate,
     ApplicationUpdate,
     ApplicationResponse,
+    ApplicationStatusUpdate,
 )
 from app.services.application_service import ApplicationService
 
@@ -82,6 +83,32 @@ async def update_application(
     return await ApplicationService.update_application(
         db, application_id, current_user.id, app_data
     )
+
+
+@router.patch("/{application_id}/status", response_model=ApplicationResponse)
+async def update_application_status(
+    application_id: uuid.UUID,
+    status_update: ApplicationStatusUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update application status with history tracking"""
+    return await ApplicationService.update_application_status(
+        db, application_id, current_user.id, status_update
+    )
+
+
+@router.get("/{application_id}/history", response_model=List[dict])
+async def get_application_status_history(
+    application_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get status change history for an application"""
+    application = await ApplicationService.get_application(
+        db, application_id, current_user.id
+    )
+    return application.status_history
 
 
 @router.delete("/{application_id}", status_code=status.HTTP_204_NO_CONTENT)

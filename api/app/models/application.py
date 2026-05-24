@@ -22,7 +22,9 @@ class Application(Base):
     match_score = Column(Float)
     match_details = Column(Text)  # JSON string
     optimized_resume = Column(Text)  # JSON string
-    status = Column(String, default="pending")  # pending, optimized, applied
+    status = Column(
+        String, default="pending"
+    )  # pending, optimized, applied, interview, offer, rejected
     notes = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -30,3 +32,9 @@ class Application(Base):
     user = relationship("User", back_populates="applications")
     resume = relationship("Resume")
     jd = relationship("JD")
+    status_history = relationship(
+        "ApplicationStatusHistory",
+        back_populates="application",
+        order_by="ApplicationStatusHistory.changed_at.desc()",
+        cascade="all, delete-orphan",
+    )

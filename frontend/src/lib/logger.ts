@@ -18,6 +18,8 @@ export enum LogCategory {
   PERF = "PERF",
   SECURITY = "SECURITY",
   DATABASE = "DATABASE",
+  USER_ACTION = "USER_ACTION",
+  API_ERROR = "API_ERROR",
 }
 
 interface LogEntry {

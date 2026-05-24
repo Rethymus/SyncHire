@@ -22,6 +22,7 @@ import {
   XCircle,
   Menu,
   X,
+  Search,
 } from "lucide-react";
 
 const steps = [
@@ -125,20 +126,28 @@ function DashboardPage() {
               控制台
             </Link>
             <Link
-              href="/dashboard/applications"
+              href="/search/applications"
               className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset min-h-[44px]"
               onClick={closeSidebar}
             >
-              <Briefcase className="h-5 w-5" aria-hidden="true" />
-              职位申请
+              <Search className="h-5 w-5" aria-hidden="true" />
+              搜索申请
             </Link>
             <Link
-              href="/dashboard/resumes"
+              href="/search/resumes"
               className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset min-h-[44px]"
               onClick={closeSidebar}
             >
               <FileText className="h-5 w-5" aria-hidden="true" />
-              我的简历
+              搜索简历
+            </Link>
+            <Link
+              href="/search/jds"
+              className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset min-h-[44px]"
+              onClick={closeSidebar}
+            >
+              <Briefcase className="h-5 w-5" aria-hidden="true" />
+              搜索职位
             </Link>
             <Link
               href="/dashboard/settings"

@@ -3,13 +3,14 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
-import { Save, Download, Eye, Edit, Sparkles, X, Check, AlertCircle } from "lucide-react";
+import { Save, Download, Eye, Edit, Sparkles, X, Check, AlertCircle, Clock, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sanitizeHtml, sanitizeMarkdownHtml } from "@/lib/sanitize";
 import { memo } from "react";
-import { TIMING } from "@/lib/constants";
+import { TIMING, RESUME } from "@/lib/constants";
 import { marked } from "marked";
 import { resumeAPI } from "@/lib/api-client-consolidated";
+import { useRouter } from "next/navigation";
 
 const defaultResumeTemplate = `# 张三
 **前端开发工程师**
@@ -93,8 +94,11 @@ interface OptimizationResult {
   sections_improved: string[];
 }
 
+type SaveStatus = "saving" | "saved" | "error" | "idle" | "unsaved";
+
 function ResumeEditorComponent() {
   const { currentResume, updateResume, currentJD } = useAppStore();
+  const router = useRouter();
   const [content, setContent] = useState(defaultResumeTemplate);
   const [previewMode, setPreviewMode] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -103,26 +107,211 @@ function ResumeEditorComponent() {
   const [optimizationResult, setOptimizationResult] = useState<OptimizationResult | null>(null);
   const [optimizationError, setOptimizationError] = useState<string | null>(null);
   const [appliedOptimization, setAppliedOptimization] = useState(false);
+
+  // Auto-save states
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle" as SaveStatus);
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const [lastSavedContent, setLastSavedContent] = useState("");
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const prevResumeIdRef = useRef<string | undefined>(undefined);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const saveStatusTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const INITIAL_CONTENT_REF = useRef("");
+  const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
+
+  // Derived state: has unsaved changes
+  const hasUnsavedChanges = lastSavedContent && content !== lastSavedContent;
 
   useEffect(() => {
     if (currentResume?.id !== prevResumeIdRef.current && currentResume?.content) {
       setContent(currentResume.content);
+      setLastSavedContent(currentResume.content);
+      INITIAL_CONTENT_REF.current = currentResume.content;
+      setSaveStatus("idle");
+      setSaveError(null);
       prevResumeIdRef.current = currentResume.id;
     }
   }, [currentResume?.id, currentResume?.content]);
+
+  // Auto-save functionality
+  useEffect(() => {
+    // Clear existing timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    // Only auto-save if there are unsaved changes and not currently saving
+    if (hasUnsavedChanges && saveStatus !== "saving" && currentResume) {
+      autoSaveTimerRef.current = setTimeout(() => {
+        // Direct inline auto-save logic to avoid useCallback dependency issues
+        if (!currentResume) return;
+
+        setSaveStatus("saving");
+        setSaveError(null);
+
+        updateResume(currentResume.id, { content });
+
+        // Simulate API call delay
+        setTimeout(() => {
+          setLastSavedContent(content);
+          setSaveStatus("saved");
+
+          // Reset status after 3 seconds
+          setTimeout(() => {
+            setSaveStatus(prevStatus => (prevStatus === "saved" || prevStatus === "error") ? "idle" : prevStatus);
+          }, 3000);
+        }, TIMING.API_CALL.SHORT);
+      }, AUTO_SAVE_INTERVAL);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [hasUnsavedChanges, saveStatus, currentResume, content, updateResume]);
+
+  // Reset save status timer
+  const resetSaveStatusTimer = useCallback(() => {
+    if (saveStatusTimerRef.current) {
+      clearTimeout(saveStatusTimerRef.current);
+    }
+
+    saveStatusTimerRef.current = setTimeout(() => {
+      setSaveStatus(prevStatus => {
+        if (prevStatus === "saved" || prevStatus === "error") {
+          return "unsaved";
+        }
+        return prevStatus;
+      });
+    }, 3000);
+  }, []);
+
+  // Handle navigation with unsaved changes warning
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = ""; // Required for Chrome
+        return "";
+      }
+    };
+
+    const handleRouteChange = (url: string) => {
+      if (hasUnsavedChanges) {
+        setPendingNavigation(url);
+        setShowUnsavedWarning(true);
+        // @ts-ignore - Preventing navigation
+        router.events?.emit("routeChangeError", url, url, { shallow: false });
+        throw new Error("Navigation cancelled due to unsaved changes");
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    // Note: Next.js App Router doesn't have router.events like Pages Router
+    // Navigation protection is handled through beforeunload event
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [hasUnsavedChanges, router]);
+
+  // Confirm navigation with unsaved changes
+  const confirmNavigation = useCallback((shouldSave: boolean) => {
+    setShowUnsavedWarning(false);
+
+    if (shouldSave && currentResume) {
+      // Save before navigating
+      setSaveStatus("saving");
+      setSaveError(null);
+
+      updateResume(currentResume.id, { content });
+
+      // Simulate API call delay and navigate
+      setTimeout(() => {
+        setLastSavedContent(content);
+        setSaveStatus("saved");
+
+        if (pendingNavigation) {
+          router.push(pendingNavigation);
+        }
+      }, TIMING.API_CALL.SHORT);
+    } else {
+      // Navigate without saving
+      if (pendingNavigation) {
+        router.push(pendingNavigation);
+      }
+    }
+
+    setPendingNavigation(null);
+  }, [currentResume, pendingNavigation, content, updateResume, router]);
 
   const handleSave = useCallback(async () => {
     if (!currentResume) return;
 
     setSaving(true);
+    setSaveStatus("saving");
+    setSaveError(null);
+
     try {
       updateResume(currentResume.id, { content });
+
       await new Promise(resolve => setTimeout(resolve, TIMING.API_CALL.SHORT));
+
+      setLastSavedContent(content);
+      setSaveStatus("saved");
+
+      // Reset status after 3 seconds
+      resetSaveStatusTimer();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "保存失败");
+      setSaveStatus("error");
+
+      // Reset status after 3 seconds
+      resetSaveStatusTimer();
     } finally {
       setSaving(false);
     }
-  }, [currentResume, updateResume, content]);
+  }, [currentResume, updateResume, content, resetSaveStatusTimer]);
+
+  // Get save status icon and text
+  const getSaveStatusDisplay = useCallback(() => {
+    // Show unsaved status if there are unsaved changes and not currently saving
+    if (hasUnsavedChanges && saveStatus === "idle") {
+      return {
+        icon: <AlertTriangle className="h-4 w-4" />,
+        text: RESUME.STATUS_UNSAVED,
+        className: "text-amber-600"
+      };
+    }
+
+    switch (saveStatus) {
+      case "saving":
+        return {
+          icon: <Clock className="h-4 w-4 animate-spin" />,
+          text: RESUME.STATUS_SAVING,
+          className: "text-blue-600"
+        };
+      case "saved":
+        return {
+          icon: <Check className="h-4 w-4" />,
+          text: RESUME.STATUS_SAVED,
+          className: "text-green-600"
+        };
+      case "error":
+        return {
+          icon: <AlertCircle className="h-4 w-4" />,
+          text: "保存失败",
+          className: "text-red-600"
+        };
+      default:
+        return null;
+    }
+  }, [saveStatus, hasUnsavedChanges]);
 
   const handleAIOptimize = useCallback(async () => {
     if (!currentResume?.id) {
@@ -191,6 +380,16 @@ function ResumeEditorComponent() {
               - {currentResume.name}
             </span>
           )}
+          {/* Save Status Indicator */}
+          {getSaveStatusDisplay() && (
+            <div className={cn(
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100",
+              getSaveStatusDisplay()?.className
+            )}>
+              {getSaveStatusDisplay()?.icon}
+              <span>{getSaveStatusDisplay()?.text}</span>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -237,7 +436,7 @@ function ResumeEditorComponent() {
           <Button
             size="sm"
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || !hasUnsavedChanges || saveStatus === "saving"}
             className="min-h-[44px] px-4"
           >
             <Save className="h-4 w-4 mr-2" />
@@ -458,6 +657,73 @@ function ResumeEditorComponent() {
                 应用优化
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unsaved Changes Warning Modal */}
+      {showUnsavedWarning && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-start gap-3 mb-4">
+              <AlertTriangle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  有未保存的更改
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  您有未保存的更改。是否要在离开前保存这些更改？
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => confirmNavigation(false)}
+                className="min-h-[44px] px-6"
+              >
+                不保存
+              </Button>
+              <Button
+                onClick={() => confirmNavigation(true)}
+                className="min-h-[44px] px-6"
+              >
+                保存并继续
+              </Button>
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setShowUnsavedWarning(false);
+                  setPendingNavigation(null);
+                }}
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
+                留在此页面
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Save Error Toast */}
+      {saveError && (
+        <div className="fixed bottom-20 right-4 max-w-md bg-red-50 border border-red-200 rounded-lg shadow-lg p-4 z-10">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="flex-1">
+              <h4 className="text-sm font-medium text-red-900">保存失败</h4>
+              <p className="text-sm text-red-700 mt-1">{saveError}</p>
+            </div>
+            <button
+              onClick={() => setSaveError(null)}
+              className="text-red-500 hover:text-red-700"
+              aria-label="关闭错误提示"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}

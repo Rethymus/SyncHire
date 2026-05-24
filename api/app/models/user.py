@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, Boolean, DateTime
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 
@@ -15,3 +16,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    applications = relationship(
+        "Application", back_populates="user", order_by="Application.created_at.desc()"
+    )
