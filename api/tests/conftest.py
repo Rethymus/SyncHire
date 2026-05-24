@@ -9,8 +9,7 @@ This file demonstrates:
 """
 
 import pytest
-import asyncio
-from typing import AsyncGenerator, Generator
+from typing import AsyncGenerator
 from testcontainers.postgres import PostgresContainer
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -20,8 +19,6 @@ from unittest.mock import AsyncMock
 
 from app.main import app
 from app.core.database import get_db, Base
-from app.models.user import User
-from app.models.jd import JD
 
 
 # Testcontainers setup
