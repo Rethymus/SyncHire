@@ -212,6 +212,7 @@ export function ResumePreview() {
       a.click();
       URL.revokeObjectURL(url);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentResume, selectedTemplate, templateCSS]);
 
   const handleZoomIn = useCallback(() => setZoom((prev) => Math.min(prev + 10, 150)), []);
@@ -220,7 +221,7 @@ export function ResumePreview() {
   // Memoize template rendering to avoid unnecessary re-renders
   const memoizedTemplates = useMemo(() =>
     templates.map((template) => ({ ...template })),
-    [templates]
+    []
   );
 
   return (

@@ -110,7 +110,7 @@ function ResumeEditorComponent() {
     } finally {
       setSaving(false);
     }
-  }, [currentResume, updateResume]);
+  }, [currentResume, updateResume, content]);
 
   const handleAIOptimize = useCallback(async () => {
     setAiOptimizing(true);

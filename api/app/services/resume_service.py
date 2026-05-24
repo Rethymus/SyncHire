@@ -67,7 +67,9 @@ class ResumeService:
 
         try:
             # Create temporary file for MCP parsing
-            with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as tmp_file:
+            with tempfile.NamedTemporaryFile(
+                delete=False, suffix=file_extension
+            ) as tmp_file:
                 tmp_file.write(content)
                 tmp_file_path = tmp_file.name
 
@@ -180,7 +182,9 @@ class ResumeService:
         try:
             # Create temporary file for MCP parsing
             file_extension = Path(resume.file_path).suffix
-            with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as tmp_file:
+            with tempfile.NamedTemporaryFile(
+                delete=False, suffix=file_extension
+            ) as tmp_file:
                 tmp_file.write(content)
                 tmp_file_path = tmp_file.name
 

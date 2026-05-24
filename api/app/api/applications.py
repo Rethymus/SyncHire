@@ -5,7 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
-from app.schemas.application import ApplicationCreate, ApplicationUpdate, ApplicationResponse
+from app.schemas.application import (
+    ApplicationCreate,
+    ApplicationUpdate,
+    ApplicationResponse,
+)
 from app.services.application_service import ApplicationService
 
 router = APIRouter(prefix="/applications", tags=["applications"])

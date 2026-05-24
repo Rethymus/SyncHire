@@ -173,7 +173,9 @@ class StorageService:
             return False
 
     @classmethod
-    async def get_presigned_url(cls, s3_key: str, expires_in: int = 3600) -> Optional[str]:
+    async def get_presigned_url(
+        cls, s3_key: str, expires_in: int = 3600
+    ) -> Optional[str]:
         """
         Generate a presigned URL for temporary file access.
 

@@ -32,7 +32,9 @@ class SearchResponse(BaseModel):
 async def search_resumes(
     q: str = Query(..., min_length=2, description="Search query"),
     limit: int = Query(10, ge=1, le=50, description="Number of results"),
-    threshold: float = Query(0.7, ge=0, le=1, description="Minimum similarity threshold"),
+    threshold: float = Query(
+        0.7, ge=0, le=1, description="Minimum similarity threshold"
+    ),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -75,7 +77,9 @@ async def search_resumes(
         SearchResult(
             id=row.id,
             title=row.title,
-            content=row.content[:500] + "..." if len(row.content) > 500 else row.content,
+            content=(
+                row.content[:500] + "..." if len(row.content) > 500 else row.content
+            ),
             similarity=float(row.similarity),
             type="resume",
         )
@@ -89,7 +93,9 @@ async def search_resumes(
 async def search_jds(
     q: str = Query(..., min_length=2, description="Search query"),
     limit: int = Query(10, ge=1, le=50, description="Number of results"),
-    threshold: float = Query(0.7, ge=0, le=1, description="Minimum similarity threshold"),
+    threshold: float = Query(
+        0.7, ge=0, le=1, description="Minimum similarity threshold"
+    ),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -128,7 +134,9 @@ async def search_jds(
         SearchResult(
             id=row.id,
             title=row.title,
-            content=row.content[:500] + "..." if len(row.content) > 500 else row.content,
+            content=(
+                row.content[:500] + "..." if len(row.content) > 500 else row.content
+            ),
             similarity=float(row.similarity),
             type="jd",
         )
@@ -150,9 +158,7 @@ async def get_match_score(
     """
     # Get resume
     resume_result = await db.execute(
-        select(Resume).where(
-            Resume.id == resume_id, Resume.user_id == current_user.id
-        )
+        select(Resume).where(Resume.id == resume_id, Resume.user_id == current_user.id)
     )
     resume = resume_result.scalar_one_or_none()
 

@@ -11,6 +11,7 @@ settings = get_settings()
 
 class LogCategory(Enum):
     """Log categories for structured logging."""
+
     STORAGE = "storage"
     DATABASE = "database"
     API = "api"
@@ -40,8 +41,8 @@ class StructuredLogger:
 
         # Detailed format with timestamp, level, category and message
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - [%(category)s] - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
+            "%(asctime)s - %(name)s - %(levelname)s - [%(category)s] - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
         console_handler.setFormatter(formatter)
 
@@ -50,9 +51,11 @@ class StructuredLogger:
         # Prevent propagation to avoid duplicate logs
         self.logger.propagate = False
 
-    def _log_with_category(self, level: int, category: LogCategory, message: str, **kwargs):
+    def _log_with_category(
+        self, level: int, category: LogCategory, message: str, **kwargs
+    ):
         """Log a message with category context."""
-        extra = {'category': category.value}
+        extra = {"category": category.value}
         extra.update(kwargs)
         self.logger.log(level, message, extra=extra)
 
@@ -82,7 +85,7 @@ class StructuredLogger:
 
     def exception(self, category: LogCategory, message: str, **kwargs):
         """Log exception with category."""
-        extra = {'category': category.value}
+        extra = {"category": category.value}
         extra.update(kwargs)
         self.logger.exception(message, extra=extra)
 
