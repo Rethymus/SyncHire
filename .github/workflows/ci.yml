@@ -131,7 +131,7 @@ jobs:
       - name: Run Safety check
         run: |
           cd api
-          safety check --json --output safety-report.json || true
+          safety check --json || true
 
       - name: Upload security reports
         uses: actions/upload-artifact@v4
