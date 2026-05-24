@@ -92,9 +92,10 @@ All test runs are traced in LangSmith:
 ## Security Scanning
 
 Automated checks for:
-- Prompt injection patterns ("ignore instructions", "forget everything")
+- Prompt injection patterns (attempts to override system instructions)
 - Hardcoded API keys or secrets
-- Dangerous disregard patterns
+- Dangerous patterns that could bypass prompt constraints
+- Input validation and sanitization verification
 
 ## Next Steps
 

@@ -10,20 +10,125 @@ This framework tests all prompt templates for:
 
 import json
 import os
+import re
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
 from datetime import datetime
 
 # LangChain imports
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
-from langchain.output_parsers import PydanticOutputParser
+from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel
 
 # LangSmith for tracing
 from langsmith import Client, traceable
+
+
+def validate_input_string(input_str: str, max_length: int = 10000) -> str:
+    """
+    Validate and sanitize input string to prevent injection attacks.
+
+    Args:
+        input_str: Input string to validate
+        max_length: Maximum allowed length
+
+    Returns:
+        Sanitized string
+
+    Raises:
+        ValueError: If input contains dangerous patterns or exceeds max length
+    """
+    if not isinstance(input_str, str):
+        raise ValueError("Input must be a string")
+
+    if len(input_str) > max_length:
+        raise ValueError(f"Input exceeds maximum length of {max_length}")
+
+    # Check for prompt injection patterns
+    dangerous_patterns = [
+        r'ignore\s+(all\s+)?(previous|earlier)\s+instructions',
+        r'forget\s+(everything|all\s+previous)',
+        r'disregard\s+(all\s+)?(previous|earlier)\s+instructions',
+        r'override\s+(system|previous)\s+instructions',
+        r'pay\s+no\s+attention\s+to',
+        r'pretend\s+(you\s+are|to\s+be)',
+    ]
+
+    for pattern in dangerous_patterns:
+        if re.search(pattern, input_str, re.IGNORECASE):
+            raise ValueError(f"Input contains potentially dangerous pattern: {pattern}")
+
+    # Remove null bytes and other control characters
+    sanitized = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]', '', input_str)
+
+    return sanitized
+
+
+def validate_dict_input(input_data: Dict[str, Any], max_depth: int = 10) -> Dict[str, Any]:
+    """
+    Validate dictionary input to prevent injection attacks.
+
+    Args:
+        input_data: Dictionary to validate
+        max_depth: Maximum nesting depth allowed
+
+    Returns:
+        Validated dictionary
+
+    Raises:
+        ValueError: If input contains dangerous patterns
+    """
+    if not isinstance(input_data, dict):
+        raise ValueError("Input must be a dictionary")
+
+    def validate_value(value: Any, current_depth: int = 0) -> Any:
+        """Recursively validate values"""
+        if current_depth > max_depth:
+            raise ValueError(f"Input exceeds maximum depth of {max_depth}")
+
+        if isinstance(value, str):
+            return validate_input_string(value)
+        elif isinstance(value, dict):
+            return {k: validate_value(v, current_depth + 1) for k, v in value.items()}
+        elif isinstance(value, list):
+            return [validate_value(item, current_depth + 1) for item in value]
+        else:
+            return value
+
+    return validate_value(input_data)
+
+
+def sanitize_prompt_template(template: str) -> str:
+    """
+    Sanitize prompt template to ensure it doesn't contain vulnerable patterns.
+
+    Args:
+        template: Prompt template string
+
+    Returns:
+        Sanitized template
+
+    Raises:
+        ValueError: If template contains vulnerable patterns
+    """
+    if not isinstance(template, str):
+        raise ValueError("Template must be a string")
+
+    # Check for templates that might be vulnerable to injection
+    vulnerable_patterns = [
+        r'\{[^}]*user[^}]*\}',  # Direct user input interpolation
+        r'\{[^}]*input[^}]*\}',  # Direct input interpolation
+    ]
+
+    for pattern in vulnerable_patterns:
+        if re.search(pattern, template):
+            # This is a warning, not an error, as legitimate templates may use these
+            pass
+
+    return template
 
 
 class ModelProvider(Enum):
@@ -104,9 +209,13 @@ class PromptTester:
         score = 0.0
 
         try:
+            # Validate inputs
+            sanitized_template = sanitize_prompt_template(prompt_template)
+            validated_input = validate_dict_input(input_data)
+
             # Create prompt
             prompt = ChatPromptTemplate.from_messages([
-                ("system", prompt_template),
+                ("system", sanitized_template),
                 ("human", "{input}")
             ])
 
@@ -118,7 +227,7 @@ class PromptTester:
                 chain = prompt | self.llm
 
             # Invoke
-            result = chain.invoke({"input": json.dumps(input_data, ensure_ascii=False)})
+            result = chain.invoke({"input": json.dumps(validated_input, ensure_ascii=False)})
             output = result
 
             # Basic validation

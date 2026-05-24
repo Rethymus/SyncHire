@@ -1,25 +1,27 @@
 # SyncHire Prompt Testing Framework Requirements
+# NOTE: Pinned versions for security and reproducibility
 
 # LangChain Core
-langchain>=0.1.0
-langchain-openai>=0.0.5
-langchain-anthropic>=0.1.0
-langchain-community>=0.0.20
+langchain==0.3.14
+langchain-openai==0.2.14
+langchain-anthropic==0.3.0
+langchain-community==0.3.14
+langchain-core==0.3.28
 
 # LangSmith for tracing and evaluation
-langsmith>=0.1.0
+langsmith==0.1.144
 
 # Pydantic for output parsing
-pydantic>=2.0.0
+pydantic==2.10.4
 
 # Async support
-asyncio-throttle>=1.0.0
+asyncio-throttle==1.0.2
 
 # Testing
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
-pytest-cov>=4.1.0
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
 
 # Utilities
-python-dotenv>=1.0.0
-requests>=2.31.0
+python-dotenv==1.0.1
+requests==2.32.3

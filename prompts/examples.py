@@ -4,12 +4,52 @@ Example usage of SyncHire AI prompts
 This file demonstrates how to use the prompt templates with LangChain.
 """
 
-from langchain.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
-from langchain.output_parsers import PydanticOutputParser
-from pydantic import BaseModel, Field
+import re
 from typing import List, Optional
 import json
+
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain_core.output_parsers import PydanticOutputParser
+from pydantic import BaseModel, Field
+
+
+def validate_user_input(input_text: str, max_length: int = 10000) -> str:
+    """
+    Validate user input to prevent injection attacks and ensure safety.
+
+    Args:
+        input_text: User input to validate
+        max_length: Maximum allowed length
+
+    Returns:
+        Validated and sanitized input
+
+    Raises:
+        ValueError: If input contains dangerous patterns
+    """
+    if not isinstance(input_text, str):
+        raise ValueError("Input must be a string")
+
+    if len(input_text) > max_length:
+        raise ValueError(f"Input exceeds maximum length of {max_length}")
+
+    # Check for prompt injection patterns
+    dangerous_patterns = [
+        r'ignore\s+(all\s+)?(previous|earlier)\s+instructions',
+        r'forget\s+(everything|all\s+previous)',
+        r'disregard\s+(all\s+)?(previous|earlier)\s+instructions',
+        r'override\s+(system|previous)\s+instructions',
+    ]
+
+    for pattern in dangerous_patterns:
+        if re.search(pattern, input_text, re.IGNORECASE):
+            raise ValueError(f"Input contains potentially dangerous pattern")
+
+    # Remove control characters
+    sanitized = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]', '', input_text)
+
+    return sanitized
 
 # Example: JD Analysis with Pydantic model
 class JDAnalysis(BaseModel):
@@ -57,6 +97,9 @@ def analyze_jd(jd_text: str) -> JDAnalysis:
     Returns:
         JDAnalysis object with structured requirements
     """
+    # Validate input
+    validated_jd_text = validate_user_input(jd_text)
+
     # Initialize parser
     parser = PydanticOutputParser(pydantic_object=JDAnalysis)
 
@@ -78,7 +121,7 @@ def analyze_jd(jd_text: str) -> JDAnalysis:
 
     # Invoke
     try:
-        result = chain.invoke({"jd_text": jd_text})
+        result = chain.invoke({"jd_text": validated_jd_text})
         return result
     except Exception as e:
         print(f"Error analyzing JD: {e}")

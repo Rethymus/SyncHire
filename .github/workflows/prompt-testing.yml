@@ -18,6 +18,7 @@ on:
 env:
   PYTHON_VERSION: '3.11'
   LANGCHAIN_TRACING_V2: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   prompt-tests:
@@ -33,6 +34,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -107,6 +113,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -150,6 +161,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -253,6 +269,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
       - name: Set up Python
         uses: actions/setup-python@v5

@@ -8,6 +8,8 @@ The prompt must NEVER fabricate experiences, skills, or achievements.
 import pytest
 from langchain_core.prompts import ChatPromptTemplate
 
+from test_validation import validate_test_input
+
 
 @pytest.mark.critical
 class TestResumeRestructureHallucination:

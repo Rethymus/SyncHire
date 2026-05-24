@@ -3,6 +3,7 @@ Pytest configuration and fixtures for SyncHire prompt testing
 """
 
 import os
+import re
 import json
 import pytest
 from typing import Dict, Any
@@ -11,6 +12,48 @@ from pathlib import Path
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from pydantic import BaseModel, Field
+
+
+def validate_test_input(input_data: Any, max_length: int = 10000) -> Any:
+    """
+    Validate test input data to prevent injection attacks.
+
+    Args:
+        input_data: Input data to validate (str, dict, list)
+        max_length: Maximum length for string inputs
+
+    Returns:
+        Validated input data
+
+    Raises:
+        ValueError: If input contains dangerous patterns
+    """
+    if isinstance(input_data, str):
+        if len(input_data) > max_length:
+            raise ValueError(f"Input exceeds maximum length of {max_length}")
+
+        # Check for prompt injection patterns
+        dangerous_patterns = [
+            r'ignore\s+(all\s+)?(previous|earlier)\s+instructions',
+            r'forget\s+(everything|all\s+previous)',
+            r'disregard\s+(all\s+)?(previous|earlier)\s+instructions',
+        ]
+
+        for pattern in dangerous_patterns:
+            if re.search(pattern, input_data, re.IGNORECASE):
+                raise ValueError(f"Input contains potentially dangerous pattern")
+
+        # Remove control characters
+        return re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]', '', input_data)
+
+    elif isinstance(input_data, dict):
+        return {k: validate_test_input(v, max_length) for k, v in input_data.items()}
+
+    elif isinstance(input_data, list):
+        return [validate_test_input(item, max_length) for item in input_data]
+
+    else:
+        return input_data
 
 
 # Test data directory

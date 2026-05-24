@@ -4,6 +4,78 @@ Sample test data for SyncHire prompt testing
 Contains realistic Chinese and English JDs, resumes, and edge cases.
 """
 
+import re
+from typing import Dict, Any, List
+
+
+def validate_test_data(data: Dict[str, Any], data_type: str = "generic") -> Dict[str, Any]:
+    """
+    Validate test data to ensure it's safe for testing.
+
+    Args:
+        data: Dictionary containing test data
+        data_type: Type of data (jd, resume, generic)
+
+    Returns:
+        Validated test data
+
+    Raises:
+        ValueError: If data contains dangerous patterns
+    """
+    if not isinstance(data, dict):
+        raise ValueError("Test data must be a dictionary")
+
+    # Check for prompt injection patterns
+    def check_string(value: str, context: str = "") -> None:
+        """Check string for dangerous patterns"""
+        dangerous_patterns = [
+            r'ignore\s+(all\s+)?(previous|earlier)\s+instructions',
+            r'forget\s+(everything|all\s+previous)',
+            r'disregard\s+(all\s+)?(previous|earlier)\s+instructions',
+        ]
+
+        for pattern in dangerous_patterns:
+            if re.search(pattern, value, re.IGNORECASE):
+                raise ValueError(f"Dangerous pattern found in {context}: {pattern}")
+
+    # Validate strings in the data
+    for key, value in data.items():
+        if isinstance(value, str):
+            check_string(value, context=f"{data_type}.{key}")
+        elif isinstance(value, dict):
+            validate_test_data(value, f"{data_type}.{key}")
+        elif isinstance(value, list):
+            for i, item in enumerate(value):
+                if isinstance(item, str):
+                    check_string(item, context=f"{data_type}.{key}[{i}]")
+                elif isinstance(item, dict):
+                    validate_test_data(item, f"{data_type}.{key}[{i}]")
+
+    return data
+
+
+def sanitize_test_input(input_text: str, max_length: int = 5000) -> str:
+    """
+    Sanitize test input to prevent injection attacks.
+
+    Args:
+        input_text: Input text to sanitize
+        max_length: Maximum allowed length
+
+    Returns:
+        Sanitized text
+    """
+    if not isinstance(input_text, str):
+        raise ValueError("Input must be a string")
+
+    if len(input_text) > max_length:
+        raise ValueError(f"Input exceeds maximum length of {max_length}")
+
+    # Remove null bytes and control characters
+    sanitized = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]', '', input_text)
+
+    return sanitized
+
 # Chinese JD Samples
 CHINESE_JD_SAMPLES = {
     "backend_engineer": """
