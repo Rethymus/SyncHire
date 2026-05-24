@@ -178,7 +178,7 @@ describe('authAPI', () => {
     });
 
     const result = await authAPI.register({
-      name: 'John Doe',
+      full_name: 'John Doe',
       email: 'john@example.com',
       password: 'SecurePass123',
     });
@@ -195,7 +195,7 @@ describe('authAPI', () => {
     });
 
     const result = await authAPI.register({
-      name: 'John Doe',
+      full_name: 'John Doe',
       email: 'existing@example.com',
       password: 'SecurePass123',
     });
@@ -281,15 +281,16 @@ describe('resumeAPI', () => {
   });
 
   it('should export resume to PDF', async () => {
+    const mockBlob = new Blob(['PDF content'], { type: 'application/pdf' });
     mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
-      json: async () => ({ url: '/temp/resume-123.pdf' }),
+      blob: async () => mockBlob,
     });
 
-    const result = await resumeAPI.export('resume-123', 'pdf');
+    const result = await resumeAPI.export('resume-123', { template: 'minimal', dpi: 300 });
 
-    expect(result.data).toEqual({ url: '/temp/resume-123.pdf' });
+    expect(result).toEqual(mockBlob);
   });
 });
 

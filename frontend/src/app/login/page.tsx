@@ -6,11 +6,14 @@ import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/lib/logger";
 import { LogCategory } from "@/lib/logger";
-import { TIMING } from "@/lib/constants";
+import { authAPI } from "@/lib/api-client";
+import { storeTokens, storeUserData } from "@/lib/auth";
+import { useAppStore } from "@/lib/store";
 import { Sparkles, Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
+  const setUser = useAppStore((state) => state.setUser);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -44,8 +47,32 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // TODO: Implement auth API call
-      await new Promise((resolve) => setTimeout(resolve, TIMING.API_CALL.MEDIUM));
+      const response = await authAPI.login({ email, password });
+
+      if (response.error || !response.data) {
+        setErrors({ general: response.error || "登录失败，请检查邮箱和密码" });
+        return;
+      }
+
+      const { access_token, refresh_token } = response.data;
+
+      // Store tokens
+      storeTokens({ accessToken: access_token, refreshToken: refresh_token });
+
+      // Get user data
+      const userResponse = await authAPI.getCurrentUser();
+      if (userResponse.data) {
+        const userData = {
+          id: userResponse.data.id,
+          email: userResponse.data.email,
+          fullName: userResponse.data.full_name,
+          isActive: userResponse.data.is_active,
+        };
+
+        storeUserData(userData);
+        setUser(userData);
+        logger.info(LogCategory.AUTH, "User logged in successfully", { email: userData.email });
+      }
 
       // Redirect to dashboard
       router.push("/dashboard");

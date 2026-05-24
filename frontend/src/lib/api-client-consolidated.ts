@@ -206,6 +206,14 @@ export const resumeAPI = {
       body: formData,
     });
   },
+
+  optimize: (id: string, jdContent: string) =>
+    apiClient.post<{
+      optimized_content: string;
+      changes_made: string[];
+      keywords_added: string[];
+      sections_improved: string[];
+    }>(`/resumes/${id}/optimize`, { jd_content: jdContent }),
 };
 
 // Job Description API endpoints
@@ -225,6 +233,19 @@ export const jdAPI = {
       description: string;
       requirements: string[];
     }>('/jd/parse', { text }),
+
+  upload: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return fetch('/api/jds/upload', {
+      method: 'POST',
+      headers: {
+        ...addCSRFHeaders({}),
+      },
+      body: formData,
+    });
+  },
 };
 
 // Application API endpoints

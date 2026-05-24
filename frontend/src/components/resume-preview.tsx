@@ -133,6 +133,7 @@ export function ResumePreview() {
   const [zoom, setZoom] = useState(100);
   const [loading, setLoading] = useState(true);
   const [templateCSS, setTemplateCSS] = useState("");
+  const [pdfGenerating, setPdfGenerating] = useState(false);
 
   // Memoize rendered HTML to avoid re-rendering markdown on every update
   const renderedHTML = useMemo(() => {
@@ -158,62 +159,50 @@ export function ResumePreview() {
   }, [selectedTemplate]);
 
   const handleDownloadPDF = useCallback(async () => {
-    try {
-      const html = renderedHTML;
+    if (!currentResume?.id) {
+      logger.error(LogCategory.UI, "No resume selected for PDF export");
+      return;
+    }
 
-      const response = await fetch("/api/generate-pdf", {
+    setPdfGenerating(true);
+    try {
+      // Call backend API to generate PDF
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/resumes/${currentResume.id}/export`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          html,
           template: selectedTemplate,
-          filename: currentResume?.name || "resume",
+          dpi: 300,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate PDF");
+        const errorData = await response.json().catch(() => ({ detail: "Unknown error" }));
+        throw new Error(errorData.detail || "Failed to generate PDF");
       }
 
+      // Download the PDF file
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${currentResume?.name || "resume"}.html`;
+      a.download = `${currentResume.name || "resume"}_${selectedTemplate}.pdf`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (error) {
-      logger.error(LogCategory.PERF, "PDF generation error", error as Error);
-      // Fallback to HTML download
-      const html = `
-        <!DOCTYPE html>
-        <html lang="zh-CN">
-        <head>
-          <meta charset="UTF-8">
-          <style>
-            ${templateCSS}
-          </style>
-        </head>
-        <body>
-          <div class="resume">
-            ${renderedHTML}
-          </div>
-        </body>
-        </html>
-      `;
 
-      const blob = new Blob([html], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${currentResume?.name || "resume"}.html`;
-      a.click();
-      URL.revokeObjectURL(url);
+      logger.info(LogCategory.UI, "PDF exported successfully");
+    } catch (error) {
+      logger.error(LogCategory.UI, "PDF generation error", error as Error);
+      // Show user-friendly error message
+      alert(`PDF generation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setPdfGenerating(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentResume, selectedTemplate, templateCSS]);
+  }, [currentResume, selectedTemplate]);
 
   const handleZoomIn = useCallback(() => setZoom((prev) => Math.min(prev + 10, 150)), []);
   const handleZoomOut = useCallback(() => setZoom((prev) => Math.max(prev - 10, 50)), []);
@@ -286,10 +275,10 @@ export function ResumePreview() {
           <Button
             size="sm"
             onClick={handleDownloadPDF}
-            disabled={!currentResume || loading}
+            disabled={!currentResume || loading || pdfGenerating}
           >
             <Download className="h-4 w-4 mr-2" />
-            导出 PDF
+            {pdfGenerating ? "生成中..." : "导出 PDF"}
           </Button>
         </div>
       </div>

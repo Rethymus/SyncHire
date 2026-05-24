@@ -52,7 +52,7 @@ class MCPClient:
         return await self._call_tool(
             server_name="jd-parser",
             tool_name="parse_jd",
-            arguments={"content": content},
+            arguments={"jd_text": content},
         )
 
     async def match_resume_to_jd(
@@ -75,10 +75,10 @@ class MCPClient:
         resume_data: Dict[str, Any],
         jd_data: Dict[str, Any],
     ) -> Dict[str, Any]:
-        """Generate interview preparation materials."""
+        """Generate interview preparation materials using interview-prep server."""
         return await self._call_tool(
-            server_name="job-matcher",
-            tool_name="interview_prep",
+            server_name="interview-prep",
+            tool_name="generate_interview_prep",
             arguments={
                 "resume": resume_data,
                 "jd": jd_data,

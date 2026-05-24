@@ -6,7 +6,9 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { logger, LogCategory } from '@/lib/logger';
-import { TIMING } from '@/lib/constants';
+import { authAPI } from '@/lib/api-client';
+import { storeTokens, storeUserData } from '@/lib/auth';
+import { useAppStore } from '@/lib/store';
 
 export interface SignupFormData {
   name: string;
@@ -32,6 +34,7 @@ export interface PasswordStrength {
 
 export function useSignupForm() {
   const router = useRouter();
+  const setUser = useAppStore((state) => state.setUser);
   const [formData, setFormData] = useState<SignupFormData>({
     name: '',
     email: '',
@@ -149,12 +152,49 @@ export function useSignupForm() {
     setLoading(true);
 
     try {
-      // 模拟 API 调用
-      await new Promise(resolve => setTimeout(resolve, TIMING.API_CALL.LONG));
+      // Call register API
+      const response = await authAPI.register({
+        full_name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
 
-      // 生产环境中应调用认证 API
-      // TODO: 实现认证 API 调用
+      if (response.error || !response.data) {
+        setErrors({ general: response.error || '注册失败，请稍后重试' });
+        return;
+      }
 
+      // Auto-login after successful registration
+      const loginResponse = await authAPI.login({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (loginResponse.error || !loginResponse.data) {
+        setErrors({ general: '注册成功，但自动登录失败，请手动登录' });
+        router.push('/login');
+        return;
+      }
+
+      const { access_token, refresh_token } = loginResponse.data;
+
+      // Store tokens
+      storeTokens({ accessToken: access_token, refreshToken: refresh_token });
+
+      // Store user data
+      const userData = {
+        id: response.data.id,
+        email: response.data.email,
+        fullName: response.data.full_name,
+        isActive: response.data.is_active,
+      };
+
+      storeUserData(userData);
+      setUser(userData);
+
+      logger.info(LogCategory.AUTH, 'User registered successfully', { email: userData.email });
+
+      // Redirect to dashboard
       router.push('/dashboard');
     } catch (error) {
       logger.error(LogCategory.AUTH, 'Signup error', error as Error);
@@ -162,7 +202,7 @@ export function useSignupForm() {
     } finally {
       setLoading(false);
     }
-  }, [validateForm, router]);
+  }, [validateForm, formData, router, setUser]);
 
   return {
     formData,

@@ -3,12 +3,13 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
-import { Save, Download, Eye, Edit, Sparkles } from "lucide-react";
+import { Save, Download, Eye, Edit, Sparkles, X, Check, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sanitizeHtml, sanitizeMarkdownHtml } from "@/lib/sanitize";
 import { memo } from "react";
 import { TIMING } from "@/lib/constants";
 import { marked } from "marked";
+import { resumeAPI } from "@/lib/api-client-consolidated";
 
 const defaultResumeTemplate = `# 张三
 **前端开发工程师**
@@ -85,12 +86,23 @@ function renderMarkdown(markdown: string): string {
   }
 }
 
+interface OptimizationResult {
+  optimized_content: string;
+  changes_made: string[];
+  keywords_added: string[];
+  sections_improved: string[];
+}
+
 function ResumeEditorComponent() {
-  const { currentResume, updateResume } = useAppStore();
+  const { currentResume, updateResume, currentJD } = useAppStore();
   const [content, setContent] = useState(defaultResumeTemplate);
   const [previewMode, setPreviewMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [aiOptimizing, setAiOptimizing] = useState(false);
+  const [showOptimization, setShowOptimization] = useState(false);
+  const [optimizationResult, setOptimizationResult] = useState<OptimizationResult | null>(null);
+  const [optimizationError, setOptimizationError] = useState<string | null>(null);
+  const [appliedOptimization, setAppliedOptimization] = useState(false);
   const prevResumeIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
@@ -113,13 +125,47 @@ function ResumeEditorComponent() {
   }, [currentResume, updateResume, content]);
 
   const handleAIOptimize = useCallback(async () => {
+    if (!currentResume?.id) {
+      setOptimizationError("请先选择要优化的简历");
+      return;
+    }
+
+    if (!currentJD?.description) {
+      setOptimizationError("请先选择目标职位描述");
+      return;
+    }
+
     setAiOptimizing(true);
+    setOptimizationError(null);
+    setAppliedOptimization(false);
+
     try {
-      await new Promise(resolve => setTimeout(resolve, TIMING.API_CALL.EXTRA_LONG));
-      // TODO: Implement AI optimization API call
+      const response = await resumeAPI.optimize(currentResume.id, currentJD.description);
+
+      if (response.success && response.data) {
+        setOptimizationResult(response.data);
+        setShowOptimization(true);
+      } else {
+        setOptimizationError(response.error || "优化失败，请重试");
+      }
+    } catch (error) {
+      setOptimizationError(error instanceof Error ? error.message : "优化过程中出现错误");
     } finally {
       setAiOptimizing(false);
     }
+  }, [currentResume, currentJD]);
+
+  const handleApplyOptimization = useCallback(() => {
+    if (optimizationResult?.optimized_content) {
+      setContent(optimizationResult.optimized_content);
+      setAppliedOptimization(true);
+      setShowOptimization(false);
+    }
+  }, [optimizationResult]);
+
+  const handleRejectOptimization = useCallback(() => {
+    setShowOptimization(false);
+    setOptimizationResult(null);
   }, []);
 
   const handleExportPDF = useCallback(() => {
@@ -171,7 +217,7 @@ function ResumeEditorComponent() {
             variant="outline"
             size="sm"
             onClick={handleAIOptimize}
-            disabled={aiOptimizing}
+            disabled={aiOptimizing || !currentJD}
             className="min-h-[44px] px-4"
           >
             <Sparkles className="h-4 w-4 mr-2" />
@@ -263,9 +309,158 @@ function ResumeEditorComponent() {
               使用 Markdown 语法编辑简历。支持标题（#, ##, ###）、列表（-, *）、加粗（**text**）等功能。
               点击&ldquo;AI 优化&rdquo;按钮，让 AI 帮助您改进简历内容。
             </p>
+            {currentJD ? (
+              <p className="text-sm text-green-700 mt-1">
+                ✓ 已选择目标职位：{currentJD.title}
+              </p>
+            ) : (
+              <p className="text-sm text-amber-700 mt-1">
+                ⚠ 请先选择目标职位描述以使用AI优化功能
+              </p>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Optimization Error Alert */}
+      {optimizationError && (
+        <div className="absolute bottom-20 right-4 max-w-md bg-red-50 border border-red-200 rounded-lg shadow-lg p-4 z-10">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="flex-1">
+              <h4 className="text-sm font-medium text-red-900">优化失败</h4>
+              <p className="text-sm text-red-700 mt-1">{optimizationError}</p>
+            </div>
+            <button
+              onClick={() => setOptimizationError(null)}
+              className="text-red-500 hover:text-red-700"
+              aria-label="关闭错误提示"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Optimization Result Panel */}
+      {showOptimization && optimizationResult && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">AI 优化结果</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    查看优化建议并决定是否应用更改
+                  </p>
+                </div>
+                <button
+                  onClick={handleRejectOptimization}
+                  className="text-gray-400 hover:text-gray-600"
+                  aria-label="关闭优化结果"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-auto p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Changes Summary */}
+                <div className="lg:col-span-2 space-y-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-medium text-green-900 flex items-center gap-2">
+                      <Check className="h-4 w-4" />
+                      改进内容
+                    </h4>
+                    <ul className="mt-2 space-y-1 text-sm text-green-800">
+                      {optimizationResult.changes_made.map((change, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <span className="text-green-600 mt-1">•</span>
+                          <span>{change}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-900">新增关键词</h4>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {optimizationResult.keywords_added.map((keyword, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm"
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h4 className="font-medium text-purple-900">优化的部分</h4>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {optimizationResult.sections_improved.map((section, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm"
+                        >
+                          {section}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Original vs Optimized */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">原始简历</h4>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 h-96 overflow-auto">
+                    <div
+                      className="prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{
+                        __html: sanitizeHtml(renderMarkdown(content)),
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">优化后简历</h4>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 h-96 overflow-auto">
+                    <div
+                      className="prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{
+                        __html: sanitizeHtml(renderMarkdown(optimizationResult.optimized_content)),
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={handleRejectOptimization}
+                className="min-h-[44px] px-6"
+              >
+                拒绝更改
+              </Button>
+              <Button
+                onClick={handleApplyOptimization}
+                className="min-h-[44px] px-6 bg-green-600 hover:bg-green-700"
+              >
+                <Check className="h-4 w-4 mr-2" />
+                应用优化
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -36,3 +36,14 @@ class JDResponse(JDBase):
 
 class JDParseResponse(BaseModel):
     parsed_data: dict
+
+
+class JDFileUploadResponse(BaseModel):
+    id: uuid.UUID
+    title: str
+    company: str | None
+    content: str
+    parsed_data: dict | None
+    created_at: datetime
+    updated_at: datetime
+    message: str

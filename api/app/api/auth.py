@@ -69,3 +69,10 @@ async def refresh_token(token_data: TokenRefresh):
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_info(current_user=Depends(get_current_user)):
     return current_user
+
+
+@router.post("/logout")
+async def logout():
+    # In a stateless JWT setup, logout is handled client-side by removing tokens
+    # This endpoint exists for future token blacklisting or session management
+    return {"message": "Successfully logged out"}

@@ -59,7 +59,7 @@ class APIIntegrationTester {
     try {
       const timestamp = Date.now();
       const registerResult = await authAPI.register({
-        name: `Test User ${timestamp}`,
+        full_name: `Test User ${timestamp}`,
         email: `test${timestamp}@example.com`,
         password: 'TestPass123!',
       });
@@ -67,15 +67,10 @@ class APIIntegrationTester {
       results.register = {
         success: registerResult.status === 201,
         status: registerResult.status,
-        hasToken: !!registerResult.data?.token,
-        hasUserId: !!registerResult.data?.userId,
+        hasId: !!registerResult.data?.id,
+        hasEmail: !!registerResult.data?.email,
         error: registerResult.error,
       };
-
-      // Store token for subsequent tests
-      if (registerResult.data?.token) {
-        this.config.authToken = registerResult.data.token;
-      }
     } catch (error) {
       results.register = {
         success: false,
@@ -93,7 +88,8 @@ class APIIntegrationTester {
       results.login = {
         success: loginResult.status === 200,
         status: loginResult.status,
-        hasToken: !!loginResult.data?.token,
+        hasAccessToken: !!loginResult.data?.access_token,
+        hasRefreshToken: !!loginResult.data?.refresh_token,
         error: loginResult.error,
       };
     } catch (error) {
@@ -176,12 +172,11 @@ class APIIntegrationTester {
 
         // Test export
         try {
-          const exportResult = await resumeAPI.export(resumeId, 'pdf');
+          const exportBlob = await resumeAPI.export(resumeId, { template: 'minimal', dpi: 300 });
           results.export = {
-            success: exportResult.status === 200,
-            status: exportResult.status,
-            hasUrl: !!(exportResult.data as any)?.url,
-            error: exportResult.error,
+            success: exportBlob instanceof Blob,
+            hasData: exportBlob.size > 0,
+            error: undefined,
           };
         } catch (error) {
           results.export = {

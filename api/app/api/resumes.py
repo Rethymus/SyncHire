@@ -13,6 +13,7 @@ from app.schemas.resume import (
     ResumeExportRequest,
 )
 from app.services.resume_service import ResumeService
+from app.services.ai_service import AIService
 from app.services.pdf_generator import get_pdf_generator, PDFGenerationOptions
 from typing import List
 
@@ -95,25 +96,42 @@ async def export_resume_pdf(
     # Get resume data from database
     resume = await ResumeService.get_resume(db, resume_id, current_user.id)
 
+    # Parse resume data from JSON
+    import json
+
+    parsed_data = {}
+    if resume.parsed_data:
+        try:
+            parsed_data = json.loads(resume.parsed_data)
+        except json.JSONDecodeError:
+            parsed_data = {}
+
+    # Extract data from parsed resume, using safe defaults
+    # Handle both parsed resume structure and direct field access
+    personal_info = parsed_data.get("personal_info", {})
+    work_experience = parsed_data.get("work_experience", [])
+    education_list = parsed_data.get("education", [])
+    skills_list = parsed_data.get("skills", [])
+
     # Convert to PDF generator format
     from app.services.pdf_generator import ResumeData
 
     resume_data = ResumeData(
-        name=current_user.full_name or "User",
-        title=resume.title or "",
-        email=current_user.email,
-        phone=resume.phone,
-        location=resume.location,
-        linkedin=resume.linkedin,
-        github=resume.github,
-        website=resume.website,
-        summary=resume.summary,
-        experiences=resume.experiences or [],
-        education=resume.education or [],
-        skills=resume.skills or [],
-        projects=resume.projects or [],
-        languages=resume.languages or [],
-        awards=resume.awards or [],
+        name=personal_info.get("name") or current_user.full_name or "User",
+        title=personal_info.get("title") or resume.title or "",
+        email=personal_info.get("email") or current_user.email,
+        phone=personal_info.get("phone"),
+        location=personal_info.get("location"),
+        linkedin=personal_info.get("linkedin"),
+        github=personal_info.get("github"),
+        website=personal_info.get("website"),
+        summary=personal_info.get("summary") or parsed_data.get("summary"),
+        experiences=_convert_experience_format(work_experience),
+        education=_convert_education_format(education_list),
+        skills=_convert_skills_format(skills_list),
+        projects=parsed_data.get("projects", []),
+        languages=parsed_data.get("languages", []),
+        awards=parsed_data.get("awards", []),
     )
 
     # Configure PDF options
@@ -153,6 +171,70 @@ async def export_resume_pdf(
         )
 
 
+def _convert_experience_format(experiences: list) -> list:
+    """Convert work experience to PDF generator format"""
+    converted = []
+    for exp in experiences:
+        if isinstance(exp, dict):
+            converted.append(
+                {
+                    "company": exp.get("company", ""),
+                    "position": exp.get("position") or exp.get("title", ""),
+                    "location": exp.get("location", ""),
+                    "start_date": exp.get("start_date", ""),
+                    "end_date": exp.get("end_date", "Present"),
+                    "description": exp.get("description", ""),
+                    "highlights": exp.get("highlights") or exp.get("achievements", []),
+                }
+            )
+    return converted
+
+
+def _convert_education_format(education: list) -> list:
+    """Convert education to PDF generator format"""
+    converted = []
+    for edu in education:
+        if isinstance(edu, dict):
+            converted.append(
+                {
+                    "school": edu.get("school", ""),
+                    "degree": edu.get("degree", ""),
+                    "field": edu.get("field") or edu.get("major", ""),
+                    "start_date": edu.get("start_date", ""),
+                    "end_date": edu.get("end_date", ""),
+                    "gpa": edu.get("gpa", ""),
+                }
+            )
+    return converted
+
+
+def _convert_skills_format(skills: list) -> list:
+    """Convert skills to PDF generator format"""
+    if not skills:
+        return []
+
+    # If skills is a list of strings, convert to category format
+    if all(isinstance(skill, str) for skill in skills):
+        return [{"category": "Skills", "skills": skills}]
+
+    # If skills is already in category format
+    converted = []
+    for skill_group in skills:
+        if isinstance(skill_group, dict):
+            if "skills" in skill_group:
+                # Already in correct format
+                converted.append(skill_group)
+            elif "name" in skill_group:
+                # Convert {name: "Python", level: 5} format
+                converted.append(
+                    {
+                        "name": skill_group.get("name", ""),
+                        "level": skill_group.get("level", 3),
+                    }
+                )
+    return converted
+
+
 @router.get("/templates")
 async def list_templates():
     """List available resume templates"""
@@ -180,3 +262,37 @@ async def list_templates():
             },
         ]
     }
+
+
+@router.post("/{resume_id}/optimize")
+async def optimize_resume(
+    resume_id: uuid.UUID,
+    jd_content: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Optimize resume for a specific job description using AI
+
+    This endpoint analyzes the resume content and optimizes it for the given job description,
+    providing improved content while maintaining truthfulness.
+    """
+    resume = await ResumeService.get_resume(db, resume_id, current_user.id)
+
+    if not resume.content:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Resume content not available. Please re-parse the resume first.",
+        )
+
+    # Parse JD to extract structured information
+    parsed_jd = await AIService.parse_jd(jd_content)
+
+    # Optimize resume content
+    optimized = await AIService.optimize_resume(
+        resume_content=resume.content,
+        jd_content=jd_content,
+        parsed_jd=parsed_jd,
+    )
+
+    return optimized

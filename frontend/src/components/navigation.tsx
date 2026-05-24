@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sparkles } from "lucide-react";
+import { Menu, X, Sparkles, LogOut } from "lucide-react";
 import { memo } from "react";
+import { useAppStore } from "@/lib/store";
+import { clearAuthData } from "@/lib/auth";
 
 const navLinks = [
   { name: "首页", href: "/" },
@@ -14,6 +17,10 @@ const navLinks = [
 ] as const;
 
 function NavigationComponent() {
+  const router = useRouter();
+  const isAuthenticated = useAppStore((state) => state.isAuthenticated);
+  const user = useAppStore((state) => state.user);
+  const logout = useAppStore((state) => state.logout);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -25,6 +32,14 @@ function NavigationComponent() {
   const handleCloseMenu = useCallback(() => {
     setMobileMenuOpen(false);
   }, []);
+
+  // Handle logout with useCallback
+  const handleLogout = useCallback(() => {
+    clearAuthData();
+    logout();
+    router.push('/login');
+    setMobileMenuOpen(false);
+  }, [logout, router]);
 
   // Handle ESC key to close menu
   useEffect(() => {
@@ -115,12 +130,29 @@ function NavigationComponent() {
         </div>
 
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
-          <Button variant="ghost" asChild>
-            <Link href="/login">登录</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/signup">免费开始</Link>
-          </Button>
+          {isAuthenticated ? (
+            <>
+              <span className="text-sm text-gray-700 self-center">
+                {user?.fullName || user?.email}
+              </span>
+              <Button variant="ghost" asChild>
+                <Link href="/dashboard">仪表盘</Link>
+              </Button>
+              <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                登出
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" asChild>
+                <Link href="/login">登录</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/signup">免费开始</Link>
+              </Button>
+            </>
+          )}
         </div>
       </nav>
 
@@ -170,24 +202,47 @@ function NavigationComponent() {
                   ))}
                 </div>
                 <div className="py-6 space-y-2">
-                  <Button variant="ghost" className="w-full justify-start" asChild>
-                    <Link
-                      href="/login"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="focus:outline-none focus:ring-2 focus:ring-blue-600"
-                    >
-                      登录
-                    </Link>
-                  </Button>
-                  <Button className="w-full" asChild>
-                    <Link
-                      href="/signup"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="focus:outline-none focus:ring-2 focus:ring-blue-600"
-                    >
-                      免费开始
-                    </Link>
-                  </Button>
+                  {isAuthenticated ? (
+                    <>
+                      <div className="px-3 py-2 text-sm text-gray-700">
+                        {user?.fullName || user?.email}
+                      </div>
+                      <Button variant="ghost" className="w-full justify-start" asChild>
+                        <Link
+                          href="/dashboard"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        >
+                          仪表盘
+                        </Link>
+                      </Button>
+                      <Button variant="outline" className="w-full" onClick={handleLogout}>
+                        <LogOut className="h-4 w-4 mr-2" />
+                        登出
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button variant="ghost" className="w-full justify-start" asChild>
+                        <Link
+                          href="/login"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        >
+                          登录
+                        </Link>
+                      </Button>
+                      <Button className="w-full" asChild>
+                        <Link
+                          href="/signup"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        >
+                          免费开始
+                        </Link>
+                      </Button>
+                    </>
+                  )}
                 </div>
               </nav>
             </div>

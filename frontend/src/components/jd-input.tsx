@@ -3,10 +3,11 @@
 import { useState, useCallback, useRef, useEffect, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppStore, type JobDescription } from "@/lib/store";
-import { Briefcase, Building2, Plus, X, AlertCircle } from "lucide-react";
+import { Briefcase, Building2, Plus, X, AlertCircle, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { validateJobDescription, containsXSSPatterns } from "@/lib/validation";
 import { TIMING } from "@/lib/constants";
+import { JDFileUpload } from "@/components/jd-file-upload";
 
 function JDInputComponent() {
   const [title, setTitle] = useState("");
@@ -15,6 +16,7 @@ function JDInputComponent() {
   const [requirements, setRequirements] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSecurityAlert, setShowSecurityAlert] = useState(false);
+  const [showFileUpload, setShowFileUpload] = useState(false);
   const securityAlertTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { addJobDescription, currentJD, setCurrentJD, jobDescriptions } = useAppStore();
 
@@ -116,13 +118,51 @@ function JDInputComponent() {
     setCurrentJD(null);
   }, [setCurrentJD]);
 
+  const handleFileUploadSuccess = useCallback((data: {
+    id: string;
+    title: string;
+    company: string | null;
+    content: string;
+    parsedData: Record<string, unknown> | null;
+  }) => {
+    const newJD: JobDescription = {
+      id: data.id,
+      title: data.title,
+      company: data.company || "",
+      description: data.content,
+      requirements: [],
+      skills: [],
+      createdAt: new Date(),
+    };
+
+    addJobDescription(newJD);
+    setCurrentJD(newJD);
+    setShowFileUpload(false);
+  }, [addJobDescription, setCurrentJD]);
+
+  const handleFileUploadError = useCallback((error: string) => {
+    setErrors({ file: error });
+  }, []);
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">职位描述</h2>
-        <p className="mt-2 text-gray-700">
-          输入职位描述信息，AI 将帮助您分析匹配度并优化简历
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">职位描述</h2>
+          <p className="mt-2 text-gray-700">
+            输入职位描述信息，AI 将帮助您分析匹配度并优化简历
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          onClick={() => setShowFileUpload(!showFileUpload)}
+          className="gap-2"
+        >
+          <FileText className="h-5 w-5" />
+          {showFileUpload ? "手动输入" : "上传文件"}
+        </Button>
       </div>
 
       {showSecurityAlert && (
@@ -178,6 +218,11 @@ function JDInputComponent() {
             )}
           </div>
         </div>
+      ) : showFileUpload ? (
+        <JDFileUpload
+          onUploadSuccess={handleFileUploadSuccess}
+          onError={handleFileUploadError}
+        />
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

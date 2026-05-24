@@ -5,6 +5,8 @@
  */
 
 import { getCSRFTokenHeader, addCSRFHeaders } from './csrf';
+import { getAccessToken, refreshAccessToken, clearAuthData } from './auth';
+import { logger, LogCategory } from './logger';
 
 interface APIResponse<T> {
   data?: T;
@@ -42,16 +44,44 @@ class APIClient {
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
     try {
-      const response = await fetch(url, {
+      // Add auth token if available
+      const token = getAccessToken();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...(options.headers as Record<string, string> || {}),
+      };
+
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      let response = await fetch(url, {
         ...options,
         signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
+        headers,
       });
 
       clearTimeout(timeoutId);
+
+      // Handle 401 - try to refresh token
+      if (response.status === 401 && token) {
+        const newToken = await refreshAccessToken();
+        if (newToken) {
+          headers.Authorization = `Bearer ${newToken}`;
+          response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+            headers,
+          });
+        } else {
+          // Token refresh failed, clear auth data
+          clearAuthData();
+          return {
+            error: 'Authentication failed. Please login again.',
+            status: 401,
+          };
+        }
+      }
 
       if (!response.ok) {
         const error: APIError = await response.json().catch(() => ({
@@ -142,16 +172,18 @@ export { APIClient };
  * Auth API endpoints
  */
 export const authAPI = {
-  register: (data: { name: string; email: string; password: string }) =>
-    apiClient.post<{ userId: string; token: string }>('/auth/register', data),
+  register: (data: { full_name: string; email: string; password: string }) =>
+    apiClient.post<{ id: string; email: string; full_name: string; is_active: boolean }>('/auth/register', data),
 
   login: (data: { email: string; password: string }) =>
-    apiClient.post<{ userId: string; token: string }>('/auth/login', data),
+    apiClient.post<{ access_token: string; refresh_token: string; token_type: string }>('/auth/login', data),
 
   logout: () => apiClient.post<void>('/auth/logout', {}),
 
   verifyEmail: (token: string) =>
     apiClient.post<void>('/auth/verify-email', { token }),
+
+  getCurrentUser: () => apiClient.get<{ id: string; email: string; full_name: string; is_active: boolean }>('/auth/me'),
 };
 
 /**
@@ -176,8 +208,24 @@ export const resumeAPI = {
 
   delete: (id: string) => apiClient.delete(`/resumes/${id}`),
 
-  export: (id: string, format: 'pdf' | 'docx' = 'pdf') =>
-    apiClient.get(`/resumes/${id}/export?format=${format}`),
+  export: async (id: string, options: { template?: string; dpi?: number } = {}) => {
+    const response = await fetch(`/api/resumes/${id}/export`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        template: options.template || 'minimal',
+        dpi: options.dpi || 300,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`PDF export failed: ${response.statusText}`);
+    }
+
+    return response.blob();
+  },
 };
 
 /**
@@ -213,6 +261,8 @@ export const applicationAPI = {
   update: (id: string, data: unknown) => apiClient.put(`/applications/${id}`, data),
 
   delete: (id: string) => apiClient.delete(`/applications/${id}`),
+
+  getInterviewPrep: (id: string) => apiClient.get(`/applications/${id}/interview-prep`),
 };
 
 /**

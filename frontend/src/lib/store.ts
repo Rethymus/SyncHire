@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { UserData } from "./auth";
 
 export interface Resume {
   id: string;
@@ -33,6 +34,12 @@ export interface JobDescription {
 }
 
 interface AppState {
+  // Auth state
+  user: UserData | null;
+  isAuthenticated: boolean;
+  setUser: (user: UserData | null) => void;
+  logout: () => void;
+
   // Resume state
   resumes: Resume[];
   currentResume: Resume | null;
@@ -61,12 +68,32 @@ interface AppState {
 // Main store without persistence for sensitive data
 export const useAppStore = create<AppState>()((set) => ({
   // Initial state
+  user: null,
+  isAuthenticated: false,
   resumes: [],
   currentResume: null,
   applications: [],
   jobDescriptions: [],
   currentJD: null,
   sidebarOpen: true,
+
+  // Auth actions
+  setUser: (user) =>
+    set({
+      user,
+      isAuthenticated: !!user
+    }),
+
+  logout: () =>
+    set({
+      user: null,
+      isAuthenticated: false,
+      resumes: [],
+      currentResume: null,
+      applications: [],
+      jobDescriptions: [],
+      currentJD: null,
+    }),
 
   // Resume actions
   addResume: (resume) =>
