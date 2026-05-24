@@ -110,10 +110,6 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://synchire:synchire_test@localhost:5432/synchire_test
           REDIS_URL: redis://localhost:6379
           TEST_MODE: true
-        env:
-          DATABASE_URL: postgresql+asyncpg://synchire:synchire_test@localhost:5432/synchire_test
-          REDIS_URL: redis://localhost:6379
-          TEST_MODE: true
 
   security-scan:
     runs-on: ubuntu-latest
