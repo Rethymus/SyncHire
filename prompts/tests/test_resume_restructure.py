@@ -6,7 +6,6 @@ The prompt must NEVER fabricate experiences, skills, or achievements.
 """
 
 import pytest
-from typing import Dict, Any, Set
 from langchain.prompts import ChatPromptTemplate
 
 
@@ -16,7 +15,7 @@ class TestResumeRestructureHallucination:
 
     def test_no_fabricated_skills(self, openai_llm, resume_restructure_prompt, sample_user_profile):
         """CRITICAL: Ensure no new skills are fabricated"""
-        input_skills = set(skill.lower() for skill in sample_user_profile["skills"])
+        set(skill.lower() for skill in sample_user_profile["skills"])
 
         prompt = ChatPromptTemplate.from_messages([
             ("system", resume_restructure_prompt),
@@ -133,8 +132,8 @@ class TestResumeRestructureHallucination:
         """CRITICAL: Ensure education details are not fabricated"""
         original_edu = sample_user_profile.get("education", {})
         original_school = original_edu.get("school", "").lower()
-        original_degree = original_edu.get("degree", "").lower()
-        original_major = original_edu.get("major", "").lower()
+        original_edu.get("degree", "").lower()
+        original_edu.get("major", "").lower()
 
         prompt = ChatPromptTemplate.from_messages([
             ("system", resume_restructure_prompt),
@@ -265,7 +264,7 @@ class TestResumeRestructureStructure:
         # Result indicators (metrics)
         result_patterns = ["%", "times", "倍", "x", "improvement", "savings"]
 
-        has_situation = any(pattern in result_text for pattern in situation_patterns)
+        any(pattern in result_text for pattern in situation_patterns)
         has_action = any(pattern in result_text for pattern in action_patterns)
         has_result = any(pattern in result_text for pattern in result_patterns)
 
@@ -390,7 +389,7 @@ class TestResumeRestructureQuality:
         # Should not have obvious repetition
         # Check for repeated phrases (keyword stuffing)
         lines = result_text.split('\n')
-        non_empty_lines = [l.strip() for l in lines if l.strip()]
+        non_empty_lines = [line.strip() for line in lines if line.strip()]
 
         # No line should repeat
         assert len(non_empty_lines) == len(set(non_empty_lines)), \

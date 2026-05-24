@@ -5,8 +5,7 @@ Tests the full user journey from signup to interview preparation.
 """
 
 import pytest
-import asyncio
-from typing import Dict, Any
+from typing import Dict
 from pathlib import Path
 
 
@@ -217,7 +216,7 @@ class TestCompleteUserWorkflow:
 
         # Benchmark resume optimization (should be < 30s)
         start = time.time()
-        optimize_response = await self._test_resume_optimization(
+        await self._test_resume_optimization(
             api_base_url,
             workflow_state["user_id"],
             match_response["match_id"]
@@ -227,7 +226,7 @@ class TestCompleteUserWorkflow:
 
         # Benchmark interview prep generation (should be < 15s)
         start = time.time()
-        interview_response = await self._test_interview_prep_generation(
+        await self._test_interview_prep_generation(
             api_base_url,
             workflow_state["user_id"],
             match_response["match_id"]

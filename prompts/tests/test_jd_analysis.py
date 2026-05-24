@@ -10,8 +10,6 @@ Tests cover:
 """
 
 import pytest
-import json
-from typing import Dict, Any
 from langchain.prompts import ChatPromptTemplate
 from langchain.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field

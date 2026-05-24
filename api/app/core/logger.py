@@ -1,8 +1,6 @@
 import logging
 import sys
 from enum import Enum
-from pathlib import Path
-from typing import Optional
 
 from app.core.config import get_settings
 

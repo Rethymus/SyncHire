@@ -1,10 +1,9 @@
 import uuid
-import asyncio
-from typing import Optional, BinaryIO
+from typing import Optional
 from pathlib import Path
 from botocore.exceptions import ClientError
 from app.core.config import get_settings
-from app.core.logger import logger
+from app.core.logger import logger, LogCategory
 
 settings = get_settings()
 
@@ -213,7 +212,3 @@ class StorageService:
         if cls._s3_client is not None:
             await cls._s3_client.close()
             cls._s3_client = None
-
-
-# Import LogCategory after logger is imported
-from app.core.logger import LogCategory

@@ -5,7 +5,6 @@ Integration test configuration and fixtures
 import pytest
 import os
 from pathlib import Path
-from typing import Dict, Any
 
 # Add project root to path
 import sys

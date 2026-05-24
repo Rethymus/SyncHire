@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, status
 from app.models.jd import JD
-from app.schemas.jd import JDCreate, JDUpdate, JDResponse
+from app.schemas.jd import JDCreate, JDUpdate
 from app.services.ai_service import AIService
 from app.services.mcp_client import mcp_client, MCPError
 

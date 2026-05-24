@@ -14,7 +14,6 @@ import time
 import httpx
 from pathlib import Path
 from typing import Dict, Any
-import json
 
 
 class APIPerformanceTester:

@@ -13,7 +13,6 @@ import os
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
-import asyncio
 from datetime import datetime
 
 # LangChain imports
@@ -21,13 +20,10 @@ from langchain.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain.output_parsers import PydanticOutputParser
-from langchain.schema import BaseMessage, HumanMessage, SystemMessage
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 # LangSmith for tracing
 from langsmith import Client, traceable
-from langsmith.evaluation import evaluate, LangSmithStringEvaluator
-from langsmith.run_trees import RunTree
 
 
 class ModelProvider(Enum):
@@ -429,8 +425,8 @@ class SelfIntroTester(PromptTester):
                 one_min_text = result.output.get("one_minute", "")
                 three_min_text = result.output.get("three_minute", "")
 
-                one_min_words = len(one_min_text.split())
-                three_min_words = len(three_min_text.split())
+                len(one_min_text.split())
+                len(three_min_text.split())
 
                 # 1-minute: ~120-180 words, 3-minute: ~380-500 words (Chinese)
                 # Adjusted for Chinese character count

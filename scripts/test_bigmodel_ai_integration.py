@@ -12,7 +12,6 @@ import json
 from typing import Dict, Any, List
 from dataclasses import dataclass
 from datetime import datetime
-import os
 from openai import AsyncOpenAI
 
 
@@ -57,7 +56,7 @@ class BigModelAITester:
         print(f"  Quality Score: {result.quality_score:.1f}/10")
 
         if result.issues:
-            print(f"  Issues Found:")
+            print("  Issues Found:")
             for issue in result.issues:
                 print(f"    • {issue}")
 
@@ -701,7 +700,7 @@ Return a JSON object with:
     async def run_all_tests(self):
         """Run all AI feature tests"""
         self.print_header("BigModel AI API Integration Testing")
-        print(f"API Provider: BigModel (智谱AI)")
+        print("API Provider: BigModel (智谱AI)")
         print(f"Model: {self.model}")
         print(f"Base URL: {self.base_url}")
         print(f"Test Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
