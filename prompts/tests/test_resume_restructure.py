@@ -6,7 +6,7 @@ The prompt must NEVER fabricate experiences, skills, or achievements.
 """
 
 import pytest
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 
 
 @pytest.mark.critical
