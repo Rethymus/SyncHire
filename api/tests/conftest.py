@@ -17,7 +17,7 @@ from httpx import AsyncClient
 from faker import Faker
 from unittest.mock import AsyncMock
 
-from app.main import app
+from main import app
 from app.core.database import get_db, Base
 
 

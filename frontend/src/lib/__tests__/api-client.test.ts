@@ -99,21 +99,36 @@ describe('APIClient', () => {
     });
 
     it('should handle timeout errors', async () => {
-      // Mock slow response
-      mockFetch.mockImplementationOnce(() =>
-        new Promise((resolve) => {
-          setTimeout(() => {
+      // Create a client with a very short timeout for testing
+      const shortTimeoutClient = new APIClient('https://api.test.com', 100, 2); // 100ms timeout
+
+      // Mock fetch that respects AbortController
+      mockFetch.mockImplementationOnce((url: string, options: RequestInit = {}) =>
+        new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
             resolve({
               ok: true,
               status: 200,
               json: async () => ({}),
             });
-          }, 6000); // Longer than 5s timeout
+          }, 200); // Longer than 100ms timeout
+
+          // Respect abort signal
+          if (options.signal) {
+            options.signal.addEventListener('abort', () => {
+              clearTimeout(timeout);
+              const error = new Error('请求超时，请稍后重试');
+              (error as any).name = 'AbortError';
+              reject(error);
+            });
+          }
         })
       );
 
-      const result = await client.get('/slow');
+      // The global fetch mock should be used by the new client instance
+      const result = await shortTimeoutClient.get('/slow');
 
+      // The request should timeout and return timeout error
       expect(result.error).toBe('请求超时，请稍后重试');
       expect(result.status).toBe(408);
     });

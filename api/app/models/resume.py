@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, Text, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, VECTOR
+from sqlalchemy.dialects.postgresql import UUID
+from pgvector.sqlalchemy import Vector
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
@@ -17,7 +18,7 @@ class Resume(Base):
     file_path = Column(String, nullable=False)
     content = Column(Text)
     parsed_data = Column(Text)  # JSON string
-    embedding = Column(VECTOR(1536))  # OpenAI embedding dimension
+    embedding = Column(Vector(1536))  # OpenAI embedding dimension
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

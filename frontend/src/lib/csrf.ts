@@ -30,7 +30,13 @@ export function getCSRFTokenFromCookie(): string | null {
 
   if (!csrfCookie) return null;
 
-  return csrfCookie.split("=")[1]?.trim() || null;
+  // Split on first '=' only to handle values containing '='
+  const parts = csrfCookie.split("=");
+  if (parts.length < 2) return null;
+
+  // Return the value part (join back if there were multiple '=' signs)
+  const value = parts.slice(1).join("=").trim();
+  return value; // Return empty string if value is empty, not null
 }
 
 /**

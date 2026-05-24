@@ -129,7 +129,8 @@ export class ErrorHandler {
 
   // 私有辅助方法
   private static extractStatusCode(error: Error): number {
-    const match = error.message.match(/status (\d+)/);
+    // Match both "status 401" and "401 Unauthorized" formats
+    const match = error.message.match(/(?:status\s+)?(\d{3})/);
     return match ? parseInt(match[1], 10) : 500;
   }
 

@@ -10,21 +10,39 @@ These tests demonstrate 2026 best practices for FastAPI testing:
 
 import pytest
 from unittest.mock import AsyncMock, patch
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
+
+# Import the app directly
+from main import app
 
 
 @pytest.mark.unit
 class TestHealthEndpoints:
     """Test health check endpoints"""
 
-    async def test_health_check(self, client: AsyncClient):
-        """Test the health check endpoint"""
-        response = await client.get("/health")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "healthy"
+    @pytest.mark.asyncio
+    async def test_health_check_no_db(self):
+        """Test the health check endpoint without database dependencies"""
+        # Create a client without database overrides for simple health check
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.get("/health")
+            assert response.status_code == 200
+            data = response.json()
+            assert data["status"] == "healthy"
+
+    @pytest.mark.asyncio
+    async def test_root_endpoint(self):
+        """Test the root endpoint"""
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.get("/")
+            assert response.status_code == 200
+            data = response.json()
+            assert data["message"] == "SyncHire API"
+            assert data["version"] == "1.0.0"
 
 
 @pytest.mark.unit
@@ -152,13 +170,6 @@ class TestMockingStrategies:
 
 # Pytest fixtures
 @pytest.fixture
-async def client(app: FastAPI):
-    """Create an async test client"""
-    async with AsyncClient(app=app, base_url="http://test") as ac:
-        yield ac
-
-
-@pytest.fixture
 def mock_ai_response():
     """Mock AI service response"""
     return {
@@ -166,10 +177,3 @@ def mock_ai_response():
         "soft_skills": ["Communication"],
         "experience_level": "Senior",
     }
-
-
-@pytest.fixture
-async def db_session(test_db):
-    """Create a test database session"""
-    async with test_db() as session:
-        yield session

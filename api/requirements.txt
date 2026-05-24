@@ -6,6 +6,7 @@ asyncpg==0.30.0
 alembic==1.14.0
 pydantic==2.10.0
 pydantic-settings==2.6.0
+email-validator==2.2.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.17
@@ -33,5 +34,4 @@ bandit==1.8.0
 safety==3.2.11
 
 # Development Tools
-pytest-postgresql==6.1.1
 playwright==1.48.0

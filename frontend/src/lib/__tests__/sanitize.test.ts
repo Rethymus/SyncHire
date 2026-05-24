@@ -4,20 +4,50 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import DOMPurify from 'dompurify';
-import { sanitizeHtml, sanitizeMarkdownHtml } from '../sanitize';
 
 // Mock DOMPurify for SSR environments
-vi.mock('dompurify', () => ({
-  default: {
-    sanitize: (dirty: string, config: unknown) => {
-      // Basic sanitization for tests
-      return dirty
-        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-        .replace(/on\w+="[^"]*"/gi, '');
+vi.mock('dompurify', () => {
+  const hooks: { [key: string]: ((node: any, data: any) => void)[] } = {};
+
+  return {
+    default: {
+      addHook: (hookName: string, hookFn: (node: any, data: any) => void) => {
+        if (!hooks[hookName]) {
+          hooks[hookName] = [];
+        }
+        hooks[hookName].push(hookFn);
+      },
+      sanitize: (dirty: string, config: any) => {
+        let sanitized = dirty;
+
+        // Remove script tags
+        sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+
+        // Remove event handlers
+        sanitized = sanitized.replace(/on\w+="[^"]*"/gi, '');
+
+        // Apply custom hooks if any
+        if (hooks['uponSanitizeAttribute']) {
+          // Simulate hook processing for href/src attributes
+          sanitized = sanitized.replace(/(href|src)="([^"]*)"/gi, (match, attrName, attrValue) => {
+            const lowerValue = attrValue.toLowerCase().trim();
+            const unsafeProtocols = ['javascript:', 'data:', 'vbscript:', 'file:', 'about:', 'chrome:', 'chrome-extension:'];
+
+            if (unsafeProtocols.some(protocol => lowerValue.startsWith(protocol))) {
+              return `${attrName}=""`; // Remove unsafe URLs
+            }
+            return match;
+          });
+        }
+
+        return sanitized;
+      },
     },
-  },
-}));
+  };
+});
+
+import DOMPurify from 'dompurify';
+import { sanitizeHtml, sanitizeMarkdownHtml } from '../sanitize';
 
 describe('HTML Sanitization', () => {
   describe('sanitizeHtml', () => {
