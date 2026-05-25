@@ -11,10 +11,9 @@ This file demonstrates:
 import pytest
 from faker import Faker
 from unittest.mock import AsyncMock, MagicMock
-from typing import Dict, Any, Generator
+from typing import Dict, Any
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.orm import sessionmaker
 from app.core.database import Base, get_db
 from app.models.user import User
 from app.models.resume import Resume
