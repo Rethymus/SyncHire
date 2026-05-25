@@ -6,6 +6,7 @@
 import { User, Mail, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { memo } from 'react';
+import { PasswordStrengthIndicator } from '@/components/password-strength-indicator';
 
 interface BaseFieldProps {
   id: string;
@@ -127,6 +128,8 @@ interface PasswordFieldProps extends Pick<BaseFieldProps, 'value' | 'onChange' |
     level: number;
     label: string;
     emoji: string;
+    color: string;
+    requirements: { met: boolean; text: string }[];
   };
 }
 
@@ -172,7 +175,7 @@ export const PasswordField = memo(function PasswordField({
               ? "border-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300"
           )}
-          placeholder="至少8个字符"
+          placeholder="至少12个字符，包含大小写字母、数字和特殊字符"
         />
       </div>
       {error && (
@@ -181,36 +184,12 @@ export const PasswordField = memo(function PasswordField({
         </p>
       )}
 
+      {/* Enhanced password strength indicator */}
       {hasPassword && passwordStrength && (
-        <div id="password-strength" className="mt-3" aria-live="polite">
-          <div className="flex gap-1 mb-2" role="presentation">
-            {[1, 2, 3, 4, 5].map((level) => (
-              <div
-                key={level}
-                className={cn(
-                  "flex-1 h-1 rounded-full transition-colors",
-                  level <= passwordStrength.level
-                    ? passwordStrength.level <= 2
-                      ? "bg-red-500"
-                      : passwordStrength.level <= 3
-                      ? "bg-yellow-500"
-                      : "bg-green-500"
-                    : "bg-gray-200"
-                )}
-                aria-hidden="true"
-              />
-            ))}
-          </div>
-          <p className="text-xs text-gray-700 flex items-center gap-2">
-            密码强度:{" "}
-            <span className="font-medium">
-              {passwordStrength.label} <span aria-hidden="true">{passwordStrength.emoji}</span>
-            </span>
-          </p>
-          <p className="text-xs text-gray-600 mt-1">
-            需包含: 12+字符, 大小写字母, 数字, 特殊字符
-          </p>
-        </div>
+        <PasswordStrengthIndicator
+          passwordStrength={passwordStrength}
+          password={value}
+        />
       )}
     </div>
   );

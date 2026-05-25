@@ -45,23 +45,55 @@ export function useSignupForm() {
   const [loading, setLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
 
-  // 密码强度计算
-  const passwordStrength: PasswordStrength = useMemo(() => {
-    const score = [
-      formData.password.length >= 12,
-      /[a-z]/.test(formData.password),
-      /[A-Z]/.test(formData.password),
-      /\d/.test(formData.password),
-      /[!@#$%^&*]/.test(formData.password),
-    ].filter(Boolean).length;
+  // 密码强度计算 - 增强版
+  const passwordStrength: PasswordStrength & {
+    requirements: { met: boolean; text: string }[];
+    color: string;
+  } = useMemo(() => {
+    const requirements = [
+      { test: formData.password.length >= 12, text: '至少12个字符' },
+      { test: /[a-z]/.test(formData.password), text: '包含小写字母' },
+      { test: /[A-Z]/.test(formData.password), text: '包含大写字母' },
+      { test: /\d/.test(formData.password), text: '包含数字' },
+      { test: /[!@#$%^&*]/.test(formData.password), text: '包含特殊字符(!@#$%^&*)' },
+    ];
 
-    if (score <= 2) {
-      return { level: score, label: '弱', emoji: '😟' };
-    } else if (score <= 3) {
-      return { level: score, label: '中', emoji: '😐' };
+    const metCount = requirements.filter(r => r.test).length;
+
+    let level: number;
+    let label: string;
+    let emoji: string;
+    let color: string;
+
+    if (metCount <= 2) {
+      level = metCount;
+      label = '弱';
+      emoji = '😟';
+      color = 'bg-red-500';
+    } else if (metCount <= 3) {
+      level = metCount;
+      label = '中';
+      emoji = '😐';
+      color = 'bg-yellow-500';
+    } else if (metCount <= 4) {
+      level = metCount;
+      label = '强';
+      emoji = '😊';
+      color = 'bg-green-500';
     } else {
-      return { level: score, label: '强', emoji: '😊' };
+      level = metCount;
+      label = '非常强';
+      emoji = '🎉';
+      color = 'bg-green-600';
     }
+
+    return {
+      level,
+      label,
+      emoji,
+      color,
+      requirements: requirements.map(r => ({ met: r.test, text: r.text })),
+    };
   }, [formData.password]);
 
   // 验证表单
@@ -100,39 +132,97 @@ export function useSignupForm() {
     return Object.keys(newErrors).length === 0;
   }, [formData, acceptTerms]);
 
-  // 处理输入变化
+  // 处理输入变化 - 增强版实时验证
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
 
-    // 清除错误
-    if (errors[name as keyof SignupFormErrors]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[name as keyof SignupFormErrors];
-        return newErrors;
-      });
-    }
-  }, [errors]);
+    // 实时验证 - 提供即时反馈
+    const newErrors: SignupFormErrors = {};
 
-  // 处理失焦验证
+    // 姓名实时验证
+    if (name === 'name' && value) {
+      if (value.length > 0 && value.length < 2) {
+        newErrors.name = '姓名至少2个字符';
+      }
+    }
+
+    // 邮箱实时验证
+    if (name === 'email' && value) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        newErrors.email = '请输入有效的邮箱地址';
+      }
+    }
+
+    // 密码实时验证
+    if (name === 'password' && value) {
+      if (value.length < 12) {
+        newErrors.password = '密码至少需要12个字符';
+      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(value)) {
+        newErrors.password = '密码需包含大小写字母、数字和特殊字符';
+      }
+
+      // 如果确认密码已填写，实时检查匹配
+      if (formData.confirmPassword && value !== formData.confirmPassword) {
+        newErrors.confirmPassword = '两次密码不一致';
+      }
+    }
+
+    // 确认密码实时验证
+    if (name === 'confirmPassword' && value) {
+      if (formData.password !== value) {
+        newErrors.confirmPassword = '两次密码不一致';
+      }
+    }
+
+    // 更新错误状态
+    setErrors(prev => {
+      const updated = { ...prev };
+      // 清除当前字段的错误（如果有新的错误会覆盖）
+      if (newErrors[name as keyof SignupFormErrors] !== undefined) {
+        updated[name as keyof SignupFormErrors] = newErrors[name as keyof SignupFormErrors];
+      } else {
+        delete updated[name as keyof SignupFormErrors];
+      }
+      return updated;
+    });
+  }, [formData.password, formData.confirmPassword]);
+
+  // 处理失焦验证 - 增强版验证和建议
   const handleInputBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
     const { name } = e.target;
     const newErrors: SignupFormErrors = {};
 
     if (name === 'email' && formData.email) {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        newErrors.email = '请输入有效的邮箱地址';
+        newErrors.email = '请输入有效的邮箱地址，格式: user@example.com';
+      } else if (formData.email.length > 254) {
+        newErrors.email = '邮箱地址过长';
       }
     } else if (name === 'password' && formData.password) {
       if (formData.password.length < 12) {
-        newErrors.password = '密码至少需要12个字符';
+        newErrors.password = `密码太短，当前${formData.password.length}个字符，需要至少12个`;
       } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(formData.password)) {
-        newErrors.password = '密码需包含大小写字母、数字和特殊字符';
+        const missing = [];
+        if (!/[a-z]/.test(formData.password)) missing.push('小写字母');
+        if (!/[A-Z]/.test(formData.password)) missing.push('大写字母');
+        if (!/\d/.test(formData.password)) missing.push('数字');
+        if (!/[!@#$%^&*]/.test(formData.password)) missing.push('特殊字符(!@#$%^&*)');
+        newErrors.password = `密码缺少: ${missing.join('、')}`;
+      } else if (formData.password.length > 128) {
+        newErrors.password = '密码过长，最多128个字符';
       }
     } else if (name === 'confirmPassword' && formData.confirmPassword) {
       if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = '两次密码不一致';
+        newErrors.confirmPassword = '两次密码不一致，请仔细检查';
+      }
+    } else if (name === 'name' && formData.name) {
+      if (formData.name.length < 2) {
+        newErrors.name = '姓名至少2个字符';
+      } else if (formData.name.length > 50) {
+        newErrors.name = '姓名过长，最多50个字符';
+      } else if (!/^[一-龥a-zA-Z\s]+$/.test(formData.name)) {
+        newErrors.name = '姓名只能包含中文、英文和空格';
       }
     }
 
