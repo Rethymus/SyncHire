@@ -6,10 +6,11 @@
 import React from 'react';
 import { AlertCircle, RefreshCw, ExternalLink, CheckCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useErrorRecovery, ErrorContext } from '@/hooks/useErrorRecovery';
+import type { ErrorRecoveryStrategy } from '@/lib/error-recovery';
+import { ErrorHandler, ErrorType, ErrorSeverity } from '@/lib/error-handler';
 
 interface ErrorRecoveryProps {
-  error: ErrorContext | null;
+  error: ErrorRecoveryStrategy | null;
   isRetrying: boolean;
   onRetry?: () => Promise<void>;
   onDismiss?: () => void;
@@ -28,13 +29,13 @@ export function ErrorRecovery({
   }
 
   const getErrorIcon = () => {
-    switch (error.type) {
-      case 'network':
-      case 'server':
+    switch (error.error.type) {
+      case ErrorType.NETWORK:
+      case ErrorType.SERVER:
         return <AlertCircle className="h-5 w-5 text-orange-500" aria-hidden="true" />;
-      case 'authentication':
+      case ErrorType.AUTH:
         return <AlertCircle className="h-5 w-5 text-red-500" aria-hidden="true" />;
-      case 'validation':
+      case ErrorType.VALIDATION:
         return <AlertCircle className="h-5 w-5 text-yellow-500" aria-hidden="true" />;
       default:
         return <AlertCircle className="h-5 w-5 text-gray-500" aria-hidden="true" />;
@@ -42,13 +43,13 @@ export function ErrorRecovery({
   };
 
   const getErrorColor = () => {
-    switch (error.type) {
-      case 'network':
-      case 'server':
+    switch (error.error.type) {
+      case ErrorType.NETWORK:
+      case ErrorType.SERVER:
         return 'bg-orange-50 border-orange-200';
-      case 'authentication':
+      case ErrorType.AUTH:
         return 'bg-red-50 border-red-200';
-      case 'validation':
+      case ErrorType.VALIDATION:
         return 'bg-yellow-50 border-yellow-200';
       default:
         return 'bg-gray-50 border-gray-200';
@@ -69,8 +70,8 @@ export function ErrorRecovery({
             {getErrorIcon()}
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900">{error.title}</h3>
-            <p className="text-sm text-gray-700 mt-1">{error.message}</p>
+            <h3 className="font-semibold text-gray-900">{error.userMessage}</h3>
+            <p className="text-sm text-gray-700 mt-1">{error.error.message}</p>
           </div>
         </div>
         {onDismiss && (
@@ -85,11 +86,11 @@ export function ErrorRecovery({
       </div>
 
       {/* Recovery steps */}
-      {error.recoverySteps && error.recoverySteps.length > 0 && (
+      {error.context.suggestedActions && error.context.suggestedActions.length > 0 && (
         <div className="mt-4">
           <p className="text-sm font-medium text-gray-900 mb-2">建议操作:</p>
           <ol className="space-y-2">
-            {error.recoverySteps.map((step, index) => (
+            {error.context.suggestedActions.map((step, index: number) => (
               <li key={index} className="flex items-start gap-2 text-sm">
                 <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center bg-white border border-gray-300 rounded-full text-xs font-medium text-gray-600">
                   {index + 1}
@@ -102,30 +103,26 @@ export function ErrorRecovery({
       )}
 
       {/* Related help links */}
-      {showRelatedHelp && error.relatedHelp && error.relatedHelp.length > 0 && (
+      {showRelatedHelp && error.context.documentationUrl && (
         <div className="mt-4 pt-4 border-t border-gray-300">
           <p className="text-sm font-medium text-gray-900 mb-2">相关帮助:</p>
           <div className="flex flex-wrap gap-2">
-            {error.relatedHelp.map((help, index) => (
-              <button
-                key={index}
-                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 underline"
-                onClick={() => {
-                  // TODO: Open help modal or navigate to help page
-                  console.log('Open help:', help);
-                }}
-              >
-                {help}
-                <ExternalLink className="h-3 w-3" aria-hidden="true" />
-              </button>
-            ))}
+            <button
+              className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 underline"
+              onClick={() => {
+                window.location.href = error.context.documentationUrl!;
+              }}
+            >
+              查看帮助文档
+              <ExternalLink className="h-3 w-3" aria-hidden="true" />
+            </button>
           </div>
         </div>
       )}
 
       {/* Action buttons */}
       <div className="mt-4 pt-4 border-t border-gray-300 flex flex-wrap gap-2">
-        {error.canRetry && onRetry && (
+        {error.context.canRetry && onRetry && (
           <Button
             onClick={onRetry}
             disabled={isRetrying}
@@ -140,40 +137,23 @@ export function ErrorRecovery({
             ) : (
               <>
                 <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
-                <span>
-                  {error.userAction === 'relogin'
-                    ? '重新登录'
-                    : error.userAction === 'check_connection'
-                    ? '检查连接后重试'
-                    : '重试'}
-                </span>
+                <span>重试</span>
               </>
             )}
           </Button>
         )}
 
-        {error.userAction === 'contact_support' && (
+        {error.actions.map((action) => (
           <Button
-            variant="outline"
-            onClick={() => {
-              // TODO: Open support modal or navigate to contact page
-              window.location.href = '/support';
-            }}
+            key={action.id}
+            variant={action.primary ? 'default' : 'outline'}
+            onClick={async () => await action.action()}
             className="min-h-[44px] px-4"
           >
-            联系客服
+            {action.icon && <span className="mr-2">{action.icon}</span>}
+            {action.label}
           </Button>
-        )}
-
-        {error.userAction === 'refresh' && (
-          <Button
-            variant="outline"
-            onClick={() => window.location.reload()}
-            className="min-h-[44px] px-4"
-          >
-            刷新页面
-          </Button>
-        )}
+        ))}
 
         {onDismiss && (
           <Button
@@ -194,9 +174,9 @@ export function ErrorRecovery({
       )}
 
       {/* Error code for debugging */}
-      {error.code && (
+      {error.error.code && (
         <p className="text-xs text-gray-500 mt-2">
-          错误代码: {error.code}
+          错误代码: {error.error.code}
         </p>
       )}
     </div>
@@ -252,16 +232,40 @@ export class ErrorBoundaryWithRecovery extends React.Component<
           <div className="max-w-md w-full">
             <ErrorRecovery
               error={{
-                type: 'unknown',
-                title: '页面加载失败',
-                message: '页面遇到错误，无法正常显示',
-                recoverySteps: [
-                  '尝试刷新页面',
-                  '清除浏览器缓存后重试',
-                  '如果问题持续存在，请联系客服',
+                error: ErrorHandler.createError(
+                  ErrorType.UNKNOWN,
+                  '页面遇到错误，无法正常显示',
+                  ErrorSeverity.HIGH
+                ),
+                userMessage: '页面加载失败',
+                context: {
+                  canRetry: true,
+                  canGoBack: true,
+                  canContactSupport: true,
+                  canRefresh: true,
+                  suggestedActions: [
+                    '尝试刷新页面',
+                    '清除浏览器缓存后重试',
+                    '如果问题持续存在，请联系客服',
+                  ],
+                  documentationUrl: '/help',
+                },
+                actions: [
+                  {
+                    id: 'refresh',
+                    label: '刷新页面',
+                    icon: '🔃',
+                    action: () => window.location.reload(),
+                    primary: true,
+                  },
+                  {
+                    id: 'home',
+                    label: '返回首页',
+                    icon: '🏠',
+                    action: () => { window.location.href = '/'; },
+                  },
                 ],
-                canRetry: true,
-                userAction: 'refresh',
+                technicalDetails: '页面遇到错误，无法正常显示',
               }}
               isRetrying={false}
               onRetry={async () => {

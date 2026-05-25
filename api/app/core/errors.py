@@ -260,11 +260,13 @@ class ErrorFormatter:
         errors = []
         for err in error.errors():
             field_path = " -> ".join(str(loc) for loc in err["loc"])
-            errors.append({
-                "field": field_path,
-                "message": err["msg"],
-                "type": err["type"],
-            })
+            errors.append(
+                {
+                    "field": field_path,
+                    "message": err["msg"],
+                    "type": err["type"],
+                }
+            )
 
         return {
             "error": {
@@ -396,7 +398,9 @@ async def general_error_handler(
     )
 
 
-def handle_database_error(error: Exception, operation: str = "database operation") -> None:
+def handle_database_error(
+    error: Exception, operation: str = "database operation"
+) -> None:
     """
     Handle database errors with proper logging and user-friendly messages
     Raises appropriate SyncHireError based on the database error type

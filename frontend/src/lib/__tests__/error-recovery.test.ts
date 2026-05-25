@@ -91,14 +91,6 @@ describe('Error Recovery System', () => {
   });
 
   describe('retryWithBackoff', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-      vi.restoreAllMocks();
-    });
-
     it('should succeed on first attempt', async () => {
       const fn = vi.fn().mockResolvedValue('success');
 
@@ -110,7 +102,13 @@ describe('Error Recovery System', () => {
 
     it('should retry on failure', async () => {
       const fn = vi.fn()
-        .mockRejectedValueOnce(new Error('Network error'))
+        .mockRejectedValueOnce(
+          Object.assign(new Error('Network error'), {
+            type: ErrorType.NETWORK,
+            severity: ErrorSeverity.HIGH,
+            timestamp: new Date(),
+          })
+        )
         .mockResolvedValue('success');
 
       const onRetry = vi.fn();
@@ -119,8 +117,8 @@ describe('Error Recovery System', () => {
         fn,
         {
           maxAttempts: 3,
-          initialDelay: 1000,
-          maxDelay: 10000,
+          initialDelay: 10,
+          maxDelay: 100,
           backoffMultiplier: 2,
           retryableErrors: [ErrorType.NETWORK],
         },
@@ -133,15 +131,21 @@ describe('Error Recovery System', () => {
     });
 
     it('should exhaust retries and throw', async () => {
-      const fn = vi.fn().mockRejectedValue(new Error('Persistent error'));
+      const fn = vi.fn().mockRejectedValue(
+        Object.assign(new Error('Persistent error'), {
+          type: ErrorType.NETWORK,
+          severity: ErrorSeverity.HIGH,
+          timestamp: new Date(),
+        })
+      );
 
       await expect(
         retryWithBackoff(
           fn,
           {
             maxAttempts: 2,
-            initialDelay: 1000,
-            maxDelay: 10000,
+            initialDelay: 10,
+            maxDelay: 100,
             backoffMultiplier: 2,
             retryableErrors: [ErrorType.NETWORK],
           }
@@ -155,6 +159,8 @@ describe('Error Recovery System', () => {
       const fn = vi.fn().mockRejectedValue(
         Object.assign(new Error('Validation error'), {
           type: ErrorType.VALIDATION,
+          severity: ErrorSeverity.LOW,
+          timestamp: new Date(),
         })
       );
 
@@ -163,8 +169,8 @@ describe('Error Recovery System', () => {
           fn,
           {
             maxAttempts: 3,
-            initialDelay: 1000,
-            maxDelay: 10000,
+            initialDelay: 10,
+            maxDelay: 100,
             backoffMultiplier: 2,
             retryableErrors: [ErrorType.NETWORK],
           }

@@ -368,14 +368,14 @@ function AnalyticsPage() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   dataKey="date"
-                  tickFormatter={(value) => {
+                  tickFormatter={(value: string | number) => {
                     const date = new Date(value);
                     return `${date.getMonth() + 1}/${date.getDate()}`;
                   }}
                 />
                 <YAxis />
                 <Tooltip
-                  labelFormatter={(value) => {
+                  labelFormatter={(value: any) => {
                     const date = new Date(value);
                     return date.toLocaleDateString("zh-CN");
                   }}
