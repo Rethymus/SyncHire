@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Status Update</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            margin: 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-optimized { background: #dbeafe; color: #1e40af; }
+        .status-applied { background: #d1fae5; color: #065f46; }
+        .status-interview { background: #e0e7ff; color: #3730a3; }
+        .status-offer { background: #d1fae5; color: #065f46; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+
+        .message-box {
+            background: #f9fafb;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .button-container {
+            text-align: center;
+            margin: 25px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+        }
+        .next-steps {
+            margin-top: 20px;
+        }
+        .next-steps h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .next-steps ul {
+            padding-left: 20px;
+        }
+        .next-steps li {
+            margin-bottom: 8px;
+        }
+        .footer {
+            background: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .company-info {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .company-info strong {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Application Status Update</h1>
+        </div>
+        <div class="content">
+            <p class="greeting">Hello {{ user_name }},</p>
+            <p>Great news! Your application status has been updated.</p>
+
+            <div class="company-info">
+                <p><strong>Company:</strong> {{ company_name }}</p>
+                {% if position %}
+                <p><strong>Position:</strong> {{ position }}</p>
+                {% endif %}
+            </div>
+
+            <div style="text-align: center;">
+                <span class="status-badge status-{{ status }}">{{ status_text }}</span>
+            </div>
+
+            {% if message %}
+            <div class="message-box">
+                {{ message }}
+            </div>
+            {% endif %}
+
+            {% if next_steps %}
+            <div class="next-steps">
+                <h3>Recommended Next Steps:</h3>
+                <ul>
+                    {% for step in next_steps %}
+                    <li>{{ step }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="button-container">
+                <a href="{{ application_url }}" class="button">View Application Details</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>You received this email because you signed up for SyncHire.</p>
+            <p>
+                <a href="{{ unsubscribe_url }}">Unsubscribe</a> •
+                <a href="{{ settings_url }}">Manage Notifications</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

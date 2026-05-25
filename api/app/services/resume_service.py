@@ -12,6 +12,7 @@ from app.core.config import get_settings
 from app.services.mcp_client import mcp_client, MCPError
 from app.services.ai_service import AIService
 from app.services.storage_service import StorageService
+from app.services.file_parser import FileParserService
 
 settings = get_settings()
 
@@ -24,25 +25,20 @@ class ResumeService:
         file: UploadFile,
         title: str,
     ) -> Resume:
-        file_extension = Path(file.filename).suffix.lower()
+        """Create a new resume by uploading and parsing a file."""
 
-        # Allowed file extensions
-        allowed_extensions = {".pdf", ".doc", ".docx", ".txt"}
-        if file_extension not in allowed_extensions:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"File type {file_extension} not allowed. Allowed: {', '.join(allowed_extensions)}",
-            )
-
+        # Read file content
         content = await file.read()
 
-        # Max upload size: 10MB
-        max_upload_size = 10 * 1024 * 1024
+        # Validate file size
+        max_upload_size = 10 * 1024 * 1024  # 10MB
         if len(content) > max_upload_size:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"File too large. Maximum size: {max_upload_size / (1024 * 1024)}MB",
             )
+
+        file_extension = Path(file.filename).suffix.lower()
 
         # Determine content type
         content_types = {
@@ -60,36 +56,53 @@ class ResumeService:
             content_type=content_type,
         )
 
-        # Parse resume using MCP client
+        # Parse resume using file parser service
         parsed_data = None
         resume_content = None
         embedding = None
 
         try:
-            # Create temporary file for MCP parsing
-            with tempfile.NamedTemporaryFile(
-                delete=False, suffix=file_extension
-            ) as tmp_file:
-                tmp_file.write(content)
-                tmp_file_path = tmp_file.name
+            # Extract text from file using FileParserService
+            extracted_text = await FileParserService.parse_file(file.filename, content)
 
+            # Store extracted text as content
+            resume_content = extracted_text
+
+            # Try to parse structured data using MCP client
             try:
-                parsed_data = await mcp_client.parse_resume(tmp_file_path, content)
-                resume_content = json.dumps(parsed_data, ensure_ascii=False)
+                # Create temporary file for MCP parsing
+                with tempfile.NamedTemporaryFile(
+                    delete=False, suffix=file_extension
+                ) as tmp_file:
+                    tmp_file.write(content)
+                    tmp_file_path = tmp_file.name
 
-                # Generate embedding for semantic search
-                if parsed_data.get("text_content"):
-                    embedding = await AIService.generate_embedding(
-                        parsed_data["text_content"]
-                    )
-            finally:
-                # Clean up temporary file
-                if os.path.exists(tmp_file_path):
-                    os.remove(tmp_file_path)
+                try:
+                    parsed_data = await mcp_client.parse_resume(tmp_file_path, content)
 
-        except MCPError as e:
+                    # Generate embedding for semantic search
+                    text_for_embedding = parsed_data.get("text_content") or extracted_text
+                    if text_for_embedding:
+                        embedding = await AIService.generate_embedding(text_for_embedding)
+
+                finally:
+                    # Clean up temporary file
+                    if os.path.exists(tmp_file_path):
+                        os.remove(tmp_file_path)
+
+            except MCPError as mcp_error:
+                # Log MCP error but continue - resume is saved with extracted text
+                print(f"MCP parsing failed: {mcp_error}")
+                # Still generate embedding from extracted text
+                if extracted_text:
+                    embedding = await AIService.generate_embedding(extracted_text)
+
+        except HTTPException:
+            # Re-raise HTTP exceptions from file parser
+            raise
+        except Exception as e:
             # Log error but continue - resume is saved
-            print(f"MCP parsing failed: {e}")
+            print(f"Resume parsing failed: {e}")
 
         db_resume = Resume(
             user_id=user_id,

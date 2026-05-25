@@ -14,6 +14,7 @@ from app.services.resume_service import ResumeService
 from app.services.jd_service import JDService
 from app.services.ai_service import AIService
 from app.services.mcp_client import mcp_client, MCPError
+from app.services.notification_service import notification_service
 
 
 class ApplicationService:
@@ -155,8 +156,19 @@ class ApplicationService:
             )
 
         application.optimized_resume = json.dumps(optimized, ensure_ascii=False)
+        old_status = application.status
         application.status = "optimized"
         await db.commit()
+        await db.refresh(application)
+
+        # Send notification about optimization
+        await notification_service.notify_application_status_change(
+            db=db,
+            application=application,
+            old_status=old_status,
+            new_status="optimized",
+            notes="Your resume has been optimized using AI."
+        )
 
         return optimized
 
@@ -274,11 +286,14 @@ class ApplicationService:
                 detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}",
             )
 
+        # Store old status before updating
+        old_status = application.status
+
         # Create status history entry
         status_history = ApplicationStatusHistory(
             application_id=application.id,
             user_id=user_id,
-            old_status=application.status,
+            old_status=old_status,
             new_status=status_update.status,
             notes=status_update.notes,
         )
@@ -299,6 +314,15 @@ class ApplicationService:
             .order_by(ApplicationStatusHistory.changed_at.desc())
         )
         application.status_history = list(history_result.scalars().all())
+
+        # Send notification about status change
+        await notification_service.notify_application_status_change(
+            db=db,
+            application=application,
+            old_status=old_status,
+            new_status=status_update.status,
+            notes=status_update.notes
+        )
 
         return application
 

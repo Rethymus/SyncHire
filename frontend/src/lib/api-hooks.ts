@@ -6,6 +6,13 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { authAPI, resumeAPI, jdAPI, applicationAPI } from './api-client-consolidated';
 
+// Helper to normalize error to string
+function normalizeError(error: string | { message: string } | undefined): string {
+  if (!error) return 'Unknown error';
+  if (typeof error === 'string') return error;
+  return error.message;
+}
+
 // Query keys for cache management
 export const queryKeys = {
   auth: {
@@ -73,7 +80,7 @@ export function useResumes(options?: Omit<UseQueryOptions, 'queryKey' | 'queryFn
     queryFn: async () => {
       const result = await resumeAPI.list();
       if (!result.success) {
-        throw new Error(result.error || 'Failed to fetch resumes');
+        throw new Error(normalizeError(result.error) || 'Failed to fetch resumes');
       }
       return result.data || [];
     },
@@ -88,7 +95,7 @@ export function useResume(id: string, options?: Omit<UseQueryOptions, 'queryKey'
     queryFn: async () => {
       const result = await resumeAPI.get(id);
       if (!result.success) {
-        throw new Error(result.error || 'Failed to fetch resume');
+        throw new Error(normalizeError(result.error) || 'Failed to fetch resume');
       }
       return result.data;
     },
@@ -153,7 +160,7 @@ export function useApplications(options?: Omit<UseQueryOptions, 'queryKey' | 'qu
     queryFn: async () => {
       const result = await applicationAPI.list();
       if (!result.success) {
-        throw new Error(result.error || 'Failed to fetch applications');
+        throw new Error(normalizeError(result.error) || 'Failed to fetch applications');
       }
       return result.data || [];
     },

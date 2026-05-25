@@ -14,7 +14,7 @@ import { getCSRFTokenHeader, addCSRFHeaders } from './csrf';
 
 interface APIResponse<T> {
   data?: T;
-  error?: string;
+  error?: string | APIError;
   status: number;
   success: boolean;
 }
@@ -180,9 +180,23 @@ export const authAPI = {
 
 // Resume API endpoints
 export const resumeAPI = {
-  list: () => apiClient.get<Array<{ id: string; name: string; uploadedAt: string }>>('/resumes'),
+  list: () => apiClient.get<Array<{ id: string; title: string; created_at: string }>>('/resumes'),
 
-  get: (id: string) => apiClient.get(`/resumes/${id}`),
+  get: (id: string) => apiClient.get<{
+    id: string;
+    title: string;
+    content: string;
+    parsed_data: string;
+    created_at: string;
+  }>(`/resumes/${id}`),
+
+  getById: (id: string) => apiClient.get<{
+    id: string;
+    title: string;
+    content: string;
+    parsed_data: string;
+    created_at: string;
+  }>(`/resumes/${id}`),
 
   create: (data: { title: string; content: string }) =>
     apiClient.post<{ id: string }>('/resumes', data),
@@ -191,18 +205,16 @@ export const resumeAPI = {
 
   delete: (id: string) => apiClient.delete<void>(`/resumes/${id}`),
 
-  export: (id: string, format: 'pdf' | 'docx' = 'pdf') =>
-    apiClient.get<{ url: string }>(`/resumes/${id}/export?format=${format}`),
+  export: (id: string, template: string = 'minimal', dpi?: number) =>
+    apiClient.get<{ url: string }>(`/resumes/${id}/export?template=${template}${dpi ? `&dpi=${dpi}` : ''}`),
 
-  upload: (file: File) => {
+  upload: (file: File, title?: string) => {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('title', title || file.name.replace(/\.[^/.]+$/, ''));
 
-    return fetch('/api/resumes/upload', {
+    return fetch('/api/resumes', {
       method: 'POST',
-      headers: {
-        ...addCSRFHeaders({}),
-      },
       body: formData,
     });
   },
@@ -218,6 +230,28 @@ export const resumeAPI = {
 
 // Job Description API endpoints
 export const jdAPI = {
+  list: () =>
+    apiClient.get<Array<{
+      id: string;
+      title: string;
+      company: string;
+      description: string;
+      requirements: string[];
+      skills: string[];
+      created_at: string;
+    }>>('/jds/'),
+
+  getById: (id: string) =>
+    apiClient.get<{
+      id: string;
+      title: string;
+      company: string;
+      description: string;
+      requirements: string[];
+      skills: string[];
+      created_at: string;
+    }>(`/jds/${id}`),
+
   analyze: (data: { description: string; requirements?: string[] }) =>
     apiClient.post<{
       score: number;
@@ -250,16 +284,141 @@ export const jdAPI = {
 
 // Application API endpoints
 export const applicationAPI = {
-  create: (data: { resumeId: string; jdId: string }) =>
-    apiClient.post<{ applicationId: string }>('/applications', data),
+  create: (data: { resume_id: string; jd_id: string; notes?: string }) =>
+    apiClient.post<{
+      id: string;
+      resume_id: string;
+      jd_id: string;
+      status: string;
+      match_score?: number;
+      created_at: string;
+      updated_at: string;
+      notes?: string;
+      resume?: {
+        id: string;
+        title: string;
+        content?: string;
+        created_at: string;
+      };
+      jd?: {
+        id: string;
+        title: string;
+        company: string;
+        description?: string;
+        created_at: string;
+      };
+    }>('/applications/', data),
 
-  list: () => apiClient.get('/applications'),
+  list: () =>
+    apiClient.get<Array<{
+      id: string;
+      resume_id: string;
+      jd_id: string;
+      status: string;
+      match_score?: number;
+      created_at: string;
+      updated_at: string;
+      notes?: string;
+    }>>('/applications/'),
 
-  get: (id: string) => apiClient.get(`/applications/${id}`),
+  getById: (id: string) =>
+    apiClient.get<{
+      id: string;
+      resume_id: string;
+      jd_id: string;
+      status: string;
+      match_score?: number;
+      match_details?: string;
+      optimized_resume?: string;
+      created_at: string;
+      updated_at: string;
+      notes?: string;
+      status_history?: Array<{
+        id: string;
+        old_status: string | null;
+        new_status: string;
+        notes: string | null;
+        changed_at: string;
+      }>;
+      resume?: {
+        id: string;
+        title: string;
+        content?: string;
+        created_at: string;
+      };
+      jd?: {
+        id: string;
+        title: string;
+        company: string;
+        description?: string;
+        created_at: string;
+      };
+    }>(`/applications/${id}`),
 
-  update: (id: string, data: unknown) => apiClient.put(`/applications/${id}`, data),
+  update: (id: string, data: { notes?: string; status?: string }) =>
+    apiClient.put<{
+      id: string;
+      resume_id: string;
+      jd_id: string;
+      status: string;
+      match_score?: number;
+      created_at: string;
+      updated_at: string;
+      notes?: string;
+    }>(`/applications/${id}`, data),
+
+  updateStatus: (id: string, data: { status: string; notes?: string }) =>
+    apiClient.patch<{
+      id: string;
+      resume_id: string;
+      jd_id: string;
+      status: string;
+      match_score?: number;
+      created_at: string;
+      updated_at: string;
+      notes?: string;
+    }>(`/applications/${id}/status`, data),
 
   delete: (id: string) => apiClient.delete<void>(`/applications/${id}`),
+
+  getMatchScore: (id: string) =>
+    apiClient.get<{
+      match_score: number;
+      match_details: {
+        skills_match: number;
+        experience_match: number;
+        education_match: number;
+        missing_skills: string[];
+        recommendations: string[];
+      };
+    }>(`/applications/${id}/match`),
+
+  optimizeResume: (id: string) =>
+    apiClient.post<{
+      optimized_resume: string;
+      changes_made: string[];
+      keywords_added: string[];
+      sections_improved: string[];
+    }>(`/applications/${id}/optimize`, {}),
+
+  getInterviewPrep: (id: string) =>
+    apiClient.get<{
+      questions: Array<{
+        question: string;
+        category: string;
+        suggested_answer: string;
+      }>;
+      tips: string[];
+    }>(`/applications/${id}/interview-prep`),
+
+  getStatusHistory: (id: string) =>
+    apiClient.get<Array<{
+      id: string;
+      old_status: string | null;
+      new_status: string;
+      notes: string | null;
+      changed_at: string;
+    }>>(`/applications/${id}/history`),
 };
 
 // Export types for use in components

@@ -1,13 +1,19 @@
 "use client";
 
-import { useState, useCallback, useMemo, memo } from "react";
+import { useState, useCallback, useMemo, memo, useEffect } from "react";
 import Link from "next/link";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { ResumeUpload } from "@/components/resume-upload";
 import { JDInput } from "@/components/jd-input";
-import { useAppStore } from "@/lib/store";
+import OnboardingWorkflow from "@/components/onboarding-workflow";
+import OnboardingProgress from "@/components/onboarding-progress";
+import WelcomeBanner from "@/components/welcome-banner";
+import { ApplicationCreateDialog } from "@/components/application-create-dialog";
+import { useAppStore, type Resume } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { resumeAPI, jdAPI } from "@/lib/api-client-consolidated";
+import { logger, LogCategory } from "@/lib/logger";
 import {
   LayoutDashboard,
   FileText,
@@ -23,6 +29,8 @@ import {
   Menu,
   X,
   Search,
+  BarChart3,
+  Plus,
 } from "lucide-react";
 
 const steps = [
@@ -33,9 +41,65 @@ const steps = [
 ];
 
 function DashboardPage() {
-  const { resumes, currentJD, applications } = useAppStore();
+  const { resumes, currentJD, applications, onboarding, setResumes, addApplication, jobDescriptions, setJobDescriptions } = useAppStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [loadingResumes, setLoadingResumes] = useState(false);
+  const [applicationDialogOpen, setApplicationDialogOpen] = useState(false);
+
+  // Load resumes on mount
+  useEffect(() => {
+    const loadResumes = async () => {
+      setLoadingResumes(true);
+      try {
+        const response = await resumeAPI.list();
+        if (response.success && response.data) {
+          const transformedResumes: Resume[] = response.data.map((resume: any) => ({
+            id: resume.id,
+            name: resume.title,
+            content: resume.content || '',
+            uploadedAt: new Date(resume.created_at),
+            fileUrl: resume.file_path,
+          }));
+          setResumes(transformedResumes);
+        }
+      } catch (error) {
+        logger.error(LogCategory.API, "Failed to load resumes", error as Error);
+      } finally {
+        setLoadingResumes(false);
+      }
+    };
+
+    loadResumes();
+  }, [setResumes]);
+
+  // Load job descriptions on mount
+  useEffect(() => {
+    const loadJDs = async () => {
+      try {
+        const response = await jdAPI.list();
+        if (response.success && response.data) {
+          const transformedJDs = response.data.map((jd: any) => ({
+            id: jd.id,
+            title: jd.title,
+            company: jd.company,
+            description: jd.description,
+            requirements: jd.requirements || [],
+            skills: jd.skills || [],
+            createdAt: new Date(jd.created_at),
+          }));
+          setJobDescriptions(transformedJDs);
+        }
+      } catch (error) {
+        logger.error(LogCategory.API, "Failed to load JDs", error as Error);
+      }
+    };
+
+    loadJDs();
+  }, [setJobDescriptions]);
+
+  // Show onboarding workflow for new users
+  const shouldShowOnboarding = !onboarding.isOnboarded && !onboarding.skipped;
 
   // Memoize stats to avoid recalculation on every render
   const stats = useMemo(() => [
@@ -86,6 +150,9 @@ function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Onboarding Workflow */}
+      <OnboardingWorkflow />
+
       <Navigation />
 
       <div className="flex flex-col md:flex-row">
@@ -125,6 +192,24 @@ function DashboardPage() {
               <LayoutDashboard className="h-5 w-5" aria-hidden="true" />
               控制台
             </Link>
+            <Link
+              href="/analytics"
+              className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset min-h-[44px]"
+              onClick={closeSidebar}
+            >
+              <BarChart3 className="h-5 w-5" aria-hidden="true" />
+              数据分析
+            </Link>
+            <button
+              className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors w-full focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset min-h-[44px]"
+              onClick={() => {
+                setApplicationDialogOpen(true);
+                closeSidebar();
+              }}
+            >
+              <Plus className="h-5 w-5" aria-hidden="true" />
+              创建申请
+            </button>
             <Link
               href="/search/applications"
               className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset min-h-[44px]"
@@ -187,14 +272,32 @@ function DashboardPage() {
         <main className="flex-1 p-4 md:p-8">
           <div className="max-w-6xl mx-auto space-y-8">
             {/* Header */}
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                欢迎回来
-              </h1>
-              <p className="mt-2 text-gray-700">
-                开始您今天的求职旅程
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  欢迎回来
+                </h1>
+                <p className="mt-2 text-gray-700">
+                  开始您今天的求职旅程
+                </p>
+              </div>
+              <Button
+                onClick={() => setApplicationDialogOpen(true)}
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                创建申请
+              </Button>
             </div>
+
+            {/* Onboarding Progress */}
+            {!onboarding.isOnboarded && (
+              <>
+                <WelcomeBanner />
+                <OnboardingProgress />
+              </>
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -399,6 +502,15 @@ function DashboardPage() {
           </div>
         </main>
       </div>
+
+      {/* Application Creation Dialog */}
+      <ApplicationCreateDialog
+        open={applicationDialogOpen}
+        onOpenChange={setApplicationDialogOpen}
+        onSuccess={(application) => {
+          logger.info(LogCategory.API, "Application created successfully", { applicationId: application.id });
+        }}
+      />
     </div>
   );
 }

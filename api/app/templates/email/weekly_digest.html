@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Weekly Job Search Digest</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .header .date-range {
+            margin: 10px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+        }
+        .stat-card {
+            background: #f9fafb;
+            padding: 20px 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+        }
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .section {
+            margin: 30px 0;
+        }
+        .section h2 {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+        .job-card {
+            background: #f9fafb;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s;
+        }
+        .job-card:hover {
+            transform: translateX(5px);
+        }
+        .job-card .company {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 5px;
+        }
+        .job-card .position {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .job-card .match-score {
+            display: inline-block;
+            background: #ecfdf5;
+            color: #065f46;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .interview-card {
+            background: #fef3c7;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 4px solid #f59e0b;
+        }
+        .interview-card .datetime {
+            color: #92400e;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            background: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #9ca3af;
+            font-style: italic;
+        }
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Your Weekly Job Search Digest</h1>
+            <p class="date-range">{{ week_start }} - {{ week_end }}</p>
+        </div>
+        <div class="content">
+            <p class="greeting">Hello <strong>{{ user_name }}</strong>,</p>
+            <p>Here's your weekly summary of job search activity and progress.</p>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ applications_submitted }}</div>
+                    <div class="stat-label">Applications</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ interviews_scheduled }}</div>
+                    <div class="stat-label">Interviews</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ profile_views }}</div>
+                    <div class="stat-label">Profile Views</div>
+                </div>
+            </div>
+
+            {% if new_matches %}
+            <div class="section">
+                <h2>🎯 New Job Matches</h2>
+                {% for job in new_matches %}
+                <div class="job-card">
+                    <div class="company">{{ job.company }}</div>
+                    <div class="position">{{ job.position }}</div>
+                    <span class="match-score">{{ job.match_score }}% Match</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if upcoming_interviews %}
+            <div class="section">
+                <h2>📅 Upcoming Interviews</h2>
+                {% for interview in upcoming_interviews %}
+                <div class="interview-card">
+                    <div class="company">{{ interview.company }}</div>
+                    <div class="position">{{ interview.position }}</div>
+                    <div class="datetime">{{ interview.date }} at {{ interview.time }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if not new_matches and not upcoming_interviews %}
+            <div class="empty-state">
+                <p>No new matches or upcoming interviews this week.</p>
+                <p>Keep checking back – new opportunities are added daily!</p>
+            </div>
+            {% endif %}
+
+            <div class="button-container">
+                <a href="{{ dashboard_url }}" class="button">View Your Dashboard</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>You received this email because you signed up for SyncHire.</p>
+            <p>
+                <a href="{{ unsubscribe_url }}">Unsubscribe</a> •
+                <a href="{{ settings_url }}">Manage Notifications</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

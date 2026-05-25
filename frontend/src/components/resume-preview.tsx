@@ -9,34 +9,15 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
+  Palette,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { logger } from "@/lib/logger";
 import { LogCategory } from "@/lib/logger";
-
-type Template = "minimal" | "professional" | "creative";
-
-const templates = [
-  {
-    id: "minimal" as Template,
-    name: "简约风格",
-    description: "简洁大方，适合大多数行业",
-    preview: "/templates/minimal.css",
-  },
-  {
-    id: "professional" as Template,
-    name: "商务风格",
-    description: "专业正式，适合金融、法律等行业",
-    preview: "/templates/professional.css",
-  },
-  {
-    id: "creative" as Template,
-    name: "创意风格",
-    description: "个性鲜明，适合设计、创意行业",
-    preview: "/templates/creative.css",
-  },
-];
+import { resumeTemplates, getTemplateById, type ResumeTemplate } from "@/lib/templates/resume-templates";
+import { TemplateGallery } from "@/components/template-gallery";
 
 function renderMarkdownToHTML(markdown: string): string {
   const lines = markdown.split("\n");
@@ -129,17 +110,25 @@ function renderMarkdownToHTML(markdown: string): string {
 
 export function ResumePreview() {
   const { currentResume } = useAppStore();
-  const [selectedTemplate, setSelectedTemplate] = useState<Template>("minimal");
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("minimal");
   const [zoom, setZoom] = useState(100);
   const [loading, setLoading] = useState(true);
   const [templateCSS, setTemplateCSS] = useState("");
   const [pdfGenerating, setPdfGenerating] = useState(false);
+  const [showTemplateGallery, setShowTemplateGallery] = useState(false);
+  const [currentTemplateData, setCurrentTemplateData] = useState<ResumeTemplate | null>(null);
 
   // Memoize rendered HTML to avoid re-rendering markdown on every update
   const renderedHTML = useMemo(() => {
     const content = currentResume?.content || "";
     return renderMarkdownToHTML(content);
   }, [currentResume?.content]);
+
+  // Update current template data when template changes
+  const template = useMemo(() => getTemplateById(selectedTemplate), [selectedTemplate]);
+  if (template !== currentTemplateData) {
+    setCurrentTemplateData(template || null);
+  }
 
   useEffect(() => {
     const loadTemplate = async () => {
@@ -157,6 +146,12 @@ export function ResumePreview() {
 
     loadTemplate();
   }, [selectedTemplate]);
+
+  const handleTemplateSelect = useCallback((templateId: string) => {
+    setSelectedTemplate(templateId);
+    setShowTemplateGallery(false);
+    logger.info(LogCategory.UI, `Template changed to: ${templateId}`);
+  }, []);
 
   const handleDownloadPDF = useCallback(async () => {
     if (!currentResume?.id) {
@@ -209,7 +204,7 @@ export function ResumePreview() {
 
   // Memoize template rendering to avoid unnecessary re-renders
   const memoizedTemplates = useMemo(() =>
-    templates.map((template) => ({ ...template })),
+    resumeTemplates.map((template) => ({ ...template })),
     []
   );
 
@@ -224,13 +219,19 @@ export function ResumePreview() {
 
           {/* Template Selector */}
           <div className="flex items-center gap-2">
-            <label htmlFor="template-select" className="text-sm text-gray-700">
-              模板:
-            </label>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowTemplateGallery(true)}
+              className="min-h-[36px] px-3"
+            >
+              <Palette className="h-4 w-4 mr-2" />
+              {currentTemplateData?.name || "选择模板"}
+            </Button>
             <select
               id="template-select"
               value={selectedTemplate}
-              onChange={(e) => setSelectedTemplate(e.target.value as Template)}
+              onChange={(e) => setSelectedTemplate(e.target.value)}
               className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               {memoizedTemplates.map((template) => (
@@ -317,31 +318,68 @@ export function ResumePreview() {
       <div className="p-4 bg-white border-t border-gray-200">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-medium text-gray-900">
-              {templates.find((t) => t.id === selectedTemplate)?.name}
+            <h3 className="font-medium text-gray-900 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-indigo-600" />
+              {currentTemplateData?.name}
             </h3>
             <p className="text-sm text-gray-700">
-              {templates.find((t) => t.id === selectedTemplate)?.description}
+              {currentTemplateData?.description}
             </p>
+            {currentTemplateData && (
+              <div className="flex items-center gap-2 mt-2">
+                {currentTemplateData.atsFriendly && (
+                  <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-medium">
+                    ATS友好
+                  </span>
+                )}
+                <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs">
+                  {currentTemplateData.layout === "single-column" && "单栏"}
+                  {currentTemplateData.layout === "two-column" && "双栏"}
+                  {currentTemplateData.layout === "sidebar" && "侧边栏"}
+                  {currentTemplateData.layout === "modern" && "现代"}
+                </span>
+                <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">
+                  {currentTemplateData.difficulty === "beginner" && "入门"}
+                  {currentTemplateData.difficulty === "intermediate" && "进阶"}
+                  {currentTemplateData.difficulty === "advanced" && "高级"}
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex gap-2">
-            {memoizedTemplates.map((template) => (
+            {memoizedTemplates.slice(0, 4).map((template) => (
               <button
                 key={template.id}
                 onClick={() => setSelectedTemplate(template.id)}
                 className={cn(
-                  "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
                   selectedTemplate === template.id
-                    ? "bg-blue-600 text-white"
+                    ? "bg-indigo-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 )}
               >
                 {template.name}
               </button>
             ))}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowTemplateGallery(true)}
+            >
+              <Palette className="h-4 w-4 mr-1" />
+              更多
+            </Button>
           </div>
         </div>
       </div>
+
+      {/* Template Gallery */}
+      {showTemplateGallery && (
+        <TemplateGallery
+          onSelectTemplate={handleTemplateSelect}
+          onClose={() => setShowTemplateGallery(false)}
+        />
+      )}
     </div>
   );
 }

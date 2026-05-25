@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
-import { Save, Download, Eye, Edit, Sparkles, X, Check, AlertCircle, Clock, AlertTriangle } from "lucide-react";
+import { Save, Download, Eye, Edit, Sparkles, X, Check, AlertCircle, Clock, AlertTriangle, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sanitizeHtml, sanitizeMarkdownHtml } from "@/lib/sanitize";
 import { memo } from "react";
@@ -11,6 +11,9 @@ import { TIMING, RESUME } from "@/lib/constants";
 import { marked } from "marked";
 import { resumeAPI } from "@/lib/api-client-consolidated";
 import { useRouter } from "next/navigation";
+import { TemplateGallery } from "@/components/template-gallery";
+import { SavedTemplatesManager } from "@/components/saved-templates-manager";
+import { logger, LogCategory } from "@/lib/logger";
 
 const defaultResumeTemplate = `# 张三
 **前端开发工程师**
@@ -107,6 +110,8 @@ function ResumeEditorComponent() {
   const [optimizationResult, setOptimizationResult] = useState<OptimizationResult | null>(null);
   const [optimizationError, setOptimizationError] = useState<string | null>(null);
   const [appliedOptimization, setAppliedOptimization] = useState(false);
+  const [showTemplateGallery, setShowTemplateGallery] = useState(false);
+  const [showSavedTemplates, setShowSavedTemplates] = useState(false);
 
   // Auto-save states
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle" as SaveStatus);
@@ -335,7 +340,11 @@ function ResumeEditorComponent() {
         setOptimizationResult(response.data);
         setShowOptimization(true);
       } else {
-        setOptimizationError(response.error || "优化失败，请重试");
+        // Normalize error to string (handle both string and APIError types)
+        const errorMessage = typeof response.error === 'string'
+          ? response.error
+          : response.error?.message || "优化失败，请重试";
+        setOptimizationError(errorMessage);
       }
     } catch (error) {
       setOptimizationError(error instanceof Error ? error.message : "优化过程中出现错误");
@@ -365,6 +374,16 @@ function ResumeEditorComponent() {
 
   const handleTogglePreview = useCallback(() => {
     setPreviewMode(prev => !prev);
+  }, []);
+
+  const handleSelectTemplate = useCallback((templateId: string) => {
+    // Template selection logic
+    logger.info(LogCategory.UI, `Template selected: ${templateId}`);
+    // Could integrate with backend to save template preference
+  }, []);
+
+  const handleManageTemplates = useCallback(() => {
+    setShowSavedTemplates(true);
   }, []);
 
   return (
@@ -410,6 +429,26 @@ function ResumeEditorComponent() {
                 预览
               </>
             )}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowTemplateGallery(true)}
+            className="min-h-[44px] px-4"
+          >
+            <Palette className="h-4 w-4 mr-2" />
+            选择模板
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleManageTemplates}
+            className="min-h-[44px] px-4"
+          >
+            <Palette className="h-4 w-4 mr-2" />
+            我的模板
           </Button>
 
           <Button
@@ -726,6 +765,22 @@ function ResumeEditorComponent() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Template Gallery */}
+      {showTemplateGallery && (
+        <TemplateGallery
+          onSelectTemplate={handleSelectTemplate}
+          onClose={() => setShowTemplateGallery(false)}
+        />
+      )}
+
+      {/* Saved Templates Manager */}
+      {showSavedTemplates && (
+        <SavedTemplatesManager
+          onLoadTemplate={handleSelectTemplate}
+          onClose={() => setShowSavedTemplates(false)}
+        />
       )}
     </div>
   );

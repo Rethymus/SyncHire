@@ -20,11 +20,17 @@ class UserLogin(BaseModel):
 class UserResponse(UserBase):
     id: uuid.UUID
     is_active: bool
+    is_onboarded: bool = False
     created_at: datetime
     updated_at: datetime
 
     class Config:
         from_attributes = True
+
+
+class OnboardingUpdate(BaseModel):
+    is_onboarded: bool
+    completed_steps: list[str] = []
 
 
 class Token(BaseModel):

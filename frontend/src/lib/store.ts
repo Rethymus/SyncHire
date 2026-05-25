@@ -33,6 +33,24 @@ export interface JobDescription {
   createdAt: Date;
 }
 
+export interface OnboardingState {
+  isOnboarded: boolean;
+  currentStep: number;
+  completedSteps: string[];
+  skipped: boolean;
+  startedAt?: Date;
+  completedAt?: Date;
+}
+
+export type OnboardingStep =
+  | "welcome"
+  | "profile"
+  | "resume-upload"
+  | "first-jd"
+  | "first-analysis"
+  | "tutorial"
+  | "complete";
+
 interface AppState {
   // Auth state
   user: UserData | null;
@@ -45,8 +63,16 @@ interface AppState {
   currentResume: Resume | null;
   addResume: (resume: Resume) => void;
   updateResume: (id: string, updates: Partial<Resume>) => void;
+  setResumes: (resumes: Resume[]) => void;
   deleteResume: (id: string) => void;
   setCurrentResume: (resume: Resume | null) => void;
+
+  // Template state
+  selectedTemplate: string;
+  templateCustomization: Record<string, any>;
+  setSelectedTemplate: (templateId: string) => void;
+  setTemplateCustomization: (customization: Record<string, any>) => void;
+  saveTemplatePreferences: (templateId: string, customization: Record<string, any>) => void;
 
   // Job application state
   applications: JobApplication[];
@@ -58,11 +84,21 @@ interface AppState {
   jobDescriptions: JobDescription[];
   currentJD: JobDescription | null;
   addJobDescription: (jd: JobDescription) => void;
+  setJobDescriptions: (jds: JobDescription[]) => void;
   setCurrentJD: (jd: JobDescription | null) => void;
 
   // UI state
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+
+  // Onboarding state
+  onboarding: OnboardingState;
+  setOnboardingStep: (step: number) => void;
+  completeOnboardingStep: (step: string) => void;
+  skipOnboarding: () => void;
+  resetOnboarding: () => void;
+  startOnboarding: () => void;
+  finishOnboarding: () => void;
 }
 
 // Main store without persistence for sensitive data
@@ -72,10 +108,18 @@ export const useAppStore = create<AppState>()((set) => ({
   isAuthenticated: false,
   resumes: [],
   currentResume: null,
+  selectedTemplate: "minimal",
+  templateCustomization: {},
   applications: [],
   jobDescriptions: [],
   currentJD: null,
   sidebarOpen: true,
+  onboarding: {
+    isOnboarded: false,
+    currentStep: 0,
+    completedSteps: [],
+    skipped: false,
+  },
 
   // Auth actions
   setUser: (user) =>
@@ -113,6 +157,8 @@ export const useAppStore = create<AppState>()((set) => ({
           : state.currentResume,
     })),
 
+  setResumes: (resumes: Resume[]) => set({ resumes }),
+
   deleteResume: (id) =>
     set((state) => ({
       resumes: state.resumes.filter((r) => r.id !== id),
@@ -121,6 +167,35 @@ export const useAppStore = create<AppState>()((set) => ({
     })),
 
   setCurrentResume: (resume) => set({ currentResume: resume }),
+
+  // Template actions
+  setSelectedTemplate: (templateId) => {
+    set({ selectedTemplate: templateId });
+    // Save to localStorage for persistence
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('selectedTemplate', templateId);
+    }
+  },
+
+  setTemplateCustomization: (customization) => {
+    set({ templateCustomization: customization });
+    // Save to localStorage for persistence
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('templateCustomization', JSON.stringify(customization));
+    }
+  },
+
+  saveTemplatePreferences: (templateId, customization) => {
+    set({
+      selectedTemplate: templateId,
+      templateCustomization: customization
+    });
+    // Save to localStorage for persistence
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('selectedTemplate', templateId);
+      localStorage.setItem('templateCustomization', JSON.stringify(customization));
+    }
+  },
 
   // Application actions
   addApplication: (application) =>
@@ -147,10 +222,65 @@ export const useAppStore = create<AppState>()((set) => ({
       currentJD: jd,
     })),
 
+  setJobDescriptions: (jds) =>
+    set({ jobDescriptions: jds }),
+
   setCurrentJD: (jd) => set({ currentJD: jd }),
 
   // UI actions
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
+
+  // Onboarding actions
+  setOnboardingStep: (step) =>
+    set((state) => ({
+      onboarding: { ...state.onboarding, currentStep: step },
+    })),
+
+  completeOnboardingStep: (step) =>
+    set((state) => ({
+      onboarding: {
+        ...state.onboarding,
+        completedSteps: [...state.onboarding.completedSteps, step],
+      },
+    })),
+
+  skipOnboarding: () =>
+    set((state) => ({
+      onboarding: {
+        ...state.onboarding,
+        skipped: true,
+        isOnboarded: true,
+      },
+    })),
+
+  resetOnboarding: () =>
+    set({
+      onboarding: {
+        isOnboarded: false,
+        currentStep: 0,
+        completedSteps: [],
+        skipped: false,
+      },
+    }),
+
+  startOnboarding: () =>
+    set((state) => ({
+      onboarding: {
+        ...state.onboarding,
+        startedAt: new Date(),
+        currentStep: 1,
+      },
+    })),
+
+  finishOnboarding: () =>
+    set((state) => ({
+      onboarding: {
+        ...state.onboarding,
+        isOnboarded: true,
+        completedAt: new Date(),
+        currentStep: 7,
+      },
+    })),
 }));
 
 // Separate UI-only store with persistence for non-sensitive data

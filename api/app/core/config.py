@@ -43,6 +43,23 @@ class Settings(BaseSettings):
     MINIO_SECRET_KEY: str = os.getenv("MINIO_SECRET_KEY", "minioadmin")
     MINIO_USE_SSL: bool = False
 
+    # Email/SMTP Configuration
+    SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
+    SMTP_USERNAME: str = os.getenv("SMTP_USERNAME", "")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
+    SMTP_USE_TLS: bool = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
+    FROM_EMAIL: str = os.getenv("FROM_EMAIL", "noreply@synchire.com")
+    FROM_NAME: str = os.getenv("FROM_NAME", "SyncHire")
+
+    # Email Queue Configuration
+    EMAIL_QUEUE_ENABLED: bool = os.getenv("EMAIL_QUEUE_ENABLED", "true").lower() == "true"
+    EMAIL_QUEUE_BATCH_SIZE: int = int(os.getenv("EMAIL_QUEUE_BATCH_SIZE", "10"))
+    EMAIL_QUEUE_PROCESS_INTERVAL: int = int(os.getenv("EMAIL_QUEUE_PROCESS_INTERVAL", "60"))  # seconds
+
+    # Frontend URLs
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
     class Config:
         env_file = ".env"
         case_sensitive = True

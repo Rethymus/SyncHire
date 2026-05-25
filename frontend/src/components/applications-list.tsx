@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, memo } from "react";
+import { useCallback, useMemo, memo, useState } from "react";
 import Link from "next/link";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -15,10 +15,17 @@ import {
   MessageSquare,
   TrendingUp,
   ChevronRight,
+  ArrowUpDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { rankApplications, getMatchLevel } from "@/lib/match-ranking";
 
-const statusConfig = {
+const statusConfig: Record<string, {
+  label: string;
+  icon: any;
+  color: string;
+  borderColor: string;
+}> = {
   draft: {
     label: "草稿",
     icon: FileText,
@@ -49,10 +56,24 @@ const statusConfig = {
     color: "bg-red-100 text-red-800",
     borderColor: "border-red-200",
   },
+  optimized: {
+    label: "已优化",
+    icon: TrendingUp,
+    color: "bg-green-100 text-green-800",
+    borderColor: "border-green-200",
+  },
+  pending: {
+    label: "处理中",
+    icon: Clock,
+    color: "bg-yellow-100 text-yellow-800",
+    borderColor: "border-yellow-200",
+  },
 };
 
-export const ApplicationsList = memo(function ApplicationsList() {
+export const ApplicationsList = memo(function ApplicationsList({ showRanking = false }: { showRanking?: boolean }) {
   const { applications, updateApplication } = useAppStore();
+  const [sortBy, setSortBy] = useState<"matchScore" | "updatedAt">("updatedAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const handleStatusUpdate = useCallback(
     (applicationId: string, newStatus: string) => {
@@ -62,10 +83,23 @@ export const ApplicationsList = memo(function ApplicationsList() {
   );
 
   const sortedApplications = useMemo(() => {
-    return [...applications].sort(
-      (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()
-    );
-  }, [applications]);
+    const ranked = rankApplications(applications, {
+      sortBy,
+      sortOrder,
+      filterBy: { matchLevel: "all" },
+    });
+
+    return ranked;
+  }, [applications, sortBy, sortOrder]);
+
+  const toggleSort = (field: "matchScore" | "updatedAt") => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(field);
+      setSortOrder("desc");
+    }
+  };
 
   if (applications.length === 0) {
     return (
@@ -84,6 +118,41 @@ export const ApplicationsList = memo(function ApplicationsList() {
 
   return (
     <div className="space-y-4">
+      {/* Sorting Controls */}
+      {showRanking && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-gray-700">排序方式:</span>
+            <div className="flex gap-2">
+              <Button
+                variant={sortBy === "matchScore" ? "default" : "outline"}
+                size="sm"
+                onClick={() => toggleSort("matchScore")}
+              >
+                <Target className="h-4 w-4 mr-2" />
+                匹配度
+                {sortBy === "matchScore" && (
+                  <ArrowUpDown className="h-3 w-3 ml-2" />
+                )}
+              </Button>
+              <Button
+                variant={sortBy === "updatedAt" ? "default" : "outline"}
+                size="sm"
+                onClick={() => toggleSort("updatedAt")}
+              >
+                <Clock className="h-4 w-4 mr-2" />
+                更新时间
+                {sortBy === "updatedAt" && (
+                  <ArrowUpDown className="h-3 w-3 ml-2" />
+                )}
+              </Button>
+            </div>
+            <div className="ml-auto text-sm text-gray-600">
+              显示 {sortedApplications.length} 个结果
+            </div>
+          </div>
+        </div>
+      )}
       {sortedApplications.map((application) => {
         const config = statusConfig[application.status];
         const StatusIcon = config.icon;
@@ -113,11 +182,35 @@ export const ApplicationsList = memo(function ApplicationsList() {
                   </div>
                   <p className="text-sm text-gray-600 mb-3">{application.companyName}</p>
                   <div className="flex items-center gap-4 text-sm">
+                    {/* Rank Badge */}
+                    {sortBy === "matchScore" && application.matchScore !== undefined && (application as any).rank && (
+                      <div className="flex items-center gap-1.5">
+                        <div className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
+                          (application as any).rank <= 3 ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white" : "bg-gray-200 text-gray-700"
+                        )}>
+                          {(application as any).rank}
+                        </div>
+                      </div>
+                    )}
                     {application.matchScore !== undefined && (
                       <div className="flex items-center gap-1.5">
                         <Target className="h-4 w-4 text-blue-600" />
                         <span className="text-gray-700">
                           匹配度: <span className="font-semibold">{application.matchScore}%</span>
+                        </span>
+                        {/* Match Level Badge */}
+                        <span className={cn(
+                          "px-2 py-0.5 text-xs font-medium rounded",
+                          getMatchLevel(application.matchScore) === "excellent" && "bg-green-100 text-green-800",
+                          getMatchLevel(application.matchScore) === "good" && "bg-blue-100 text-blue-800",
+                          getMatchLevel(application.matchScore) === "fair" && "bg-yellow-100 text-yellow-800",
+                          getMatchLevel(application.matchScore) === "poor" && "bg-red-100 text-red-800"
+                        )}>
+                          {getMatchLevel(application.matchScore) === "excellent" && "优秀"}
+                          {getMatchLevel(application.matchScore) === "good" && "良好"}
+                          {getMatchLevel(application.matchScore) === "fair" && "一般"}
+                          {getMatchLevel(application.matchScore) === "poor" && "较差"}
                         </span>
                       </div>
                     )}

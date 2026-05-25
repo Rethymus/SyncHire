@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sparkles, LogOut } from "lucide-react";
+import { Menu, X, Sparkles, LogOut, Settings } from "lucide-react";
 import { memo } from "react";
 import { useAppStore } from "@/lib/store";
 import { clearAuthData } from "@/lib/auth";
+import { NotificationCenter } from "@/components/notification-center";
 
 const navLinks = [
   { name: "首页", href: "/" },
@@ -135,8 +136,18 @@ function NavigationComponent() {
               <span className="text-sm text-gray-700 self-center">
                 {user?.fullName || user?.email}
               </span>
+              <NotificationCenter />
               <Button variant="ghost" asChild>
                 <Link href="/dashboard">仪表盘</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/analytics">数据分析</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/settings">
+                  <Settings className="h-4 w-4 mr-2" />
+                  设置
+                </Link>
               </Button>
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
@@ -207,6 +218,9 @@ function NavigationComponent() {
                       <div className="px-3 py-2 text-sm text-gray-700">
                         {user?.fullName || user?.email}
                       </div>
+                      <div className="px-3 py-2">
+                        <NotificationCenter />
+                      </div>
                       <Button variant="ghost" className="w-full justify-start" asChild>
                         <Link
                           href="/dashboard"
@@ -214,6 +228,25 @@ function NavigationComponent() {
                           className="focus:outline-none focus:ring-2 focus:ring-blue-600"
                         >
                           仪表盘
+                        </Link>
+                      </Button>
+                      <Button variant="ghost" className="w-full justify-start" asChild>
+                        <Link
+                          href="/analytics"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        >
+                          数据分析
+                        </Link>
+                      </Button>
+                      <Button variant="ghost" className="w-full justify-start" asChild>
+                        <Link
+                          href="/settings"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        >
+                          <Settings className="h-4 w-4 mr-2" />
+                          设置
                         </Link>
                       </Button>
                       <Button variant="outline" className="w-full" onClick={handleLogout}>

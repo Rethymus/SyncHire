@@ -1,6 +1,6 @@
 import uuid
 from typing import List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, text, and_, or_
@@ -167,7 +167,7 @@ async def search_resumes(
             page_size=page_size,
         )
 
-    except Exception as e:
+    except Exception:
         # Fallback to full-text search if semantic search fails
         query_stmt = select(
             Resume.id,
@@ -350,7 +350,7 @@ async def search_jds(
             page_size=page_size,
         )
 
-    except Exception as e:
+    except Exception:
         # Fallback to full-text search if semantic search fails
         query_stmt = select(
             JD.id,

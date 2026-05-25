@@ -4,8 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.core.database import init_db
 from app.core.redis import redis_client
-from app.api import auth, resumes, jds, applications, search
+from app.api import auth, resumes, jds, applications, search, notifications, analytics
 from app.services.storage_service import StorageService
+from app.services.email_service import email_service
 
 settings = get_settings()
 
@@ -14,10 +15,12 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     # Startup
     await redis_client.connect()
+    await email_service.initialize_redis()
     await init_db()
     yield
     # Shutdown
     await redis_client.disconnect()
+    await email_service.close_redis()
     await StorageService.close()
 
 
@@ -41,6 +44,8 @@ app.include_router(resumes.router, prefix="/api")
 app.include_router(jds.router, prefix="/api")
 app.include_router(applications.router, prefix="/api")
 app.include_router(search.router, prefix="/api")
+app.include_router(notifications.router)
+app.include_router(analytics.router, prefix="/api")
 
 
 @app.get("/")
