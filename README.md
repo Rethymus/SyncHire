@@ -111,9 +111,51 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. **Run pre-commit skills**:
+   ```bash
+   /code-review-expert          # Security & architecture review
+   /fixing-accessibility        # WCAG 2.1 AA compliance check
+   /supabase-postgres-best-practices  # Database optimization
+   ```
+4. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
+5. **Run CI/CD validation**:
+   ```bash
+   npm run type-check          # TypeScript compilation
+   npm run lint                # ESLint check
+   npm run build               # Production build
+   npm run test                # Test suite
+   ```
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+### Skills & Tools
+
+This project uses **security-validated Claude Code skills** for development automation:
+
+| Skill | Purpose | Usage |
+|-------|---------|-------|
+| `code-review-expert` | Security & SOLID review | Pre-commit |
+| `vercel-react-best-practices` | React/Next.js optimization | Active ✅ |
+| `fixing-accessibility` | WCAG 2.1 AA compliance | UI development |
+| `supabase-postgres-best-practices` | PostgreSQL optimization | Backend development |
+| `web-perf` | Performance audit | Pre-deployment |
+| `seo-audit` | SEO health check | Public pages |
+| `skill-vetter` | Security vetting | New skill installation |
+
+**Documentation**:
+- [Skills Index](SKILLS_INDEX.md) - Central navigation hub
+- [Skills Search Guide](SKILLS_SEARCH_GUIDE.md) - Find skills by tag/use case
+- [Skills Quick Reference](SKILLS_QUICK_REFERENCE.md) - Daily command reference
+- [Version Tracking](docs/VERSION_TRACKING.md) - Skill versions and updates
+
+**Modular Documentation**:
+- [Security & Code Review](docs/security-review.md) - code-review-expert, skill-vetter
+- [Database & Performance](docs/database-optimization.md) - PostgreSQL, web-perf
+- [Frontend & Accessibility](docs/frontend-performance.md) - React, accessibility
+- [Testing & QA](docs/testing-qa.md) - Exploratory testing with dogfood
+- [SEO & Analytics](docs/seo-analytics.md) - SEO optimization
+
+**All skills have been security-vetted** using the `skill-vetter` protocol.
 
 ### Commit Message Guidelines
 
