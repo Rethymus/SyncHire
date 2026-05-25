@@ -11,8 +11,7 @@ router = APIRouter()
 
 @router.get("/status", response_model=UserResponse)
 async def get_onboarding_status(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     """
     Get current user's onboarding status
@@ -24,7 +23,7 @@ async def get_onboarding_status(
 async def complete_onboarding(
     onboarding_data: OnboardingUpdate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Mark user as onboarded and record completion details
@@ -41,8 +40,7 @@ async def complete_onboarding(
 
 @router.post("/skip", response_model=UserResponse)
 async def skip_onboarding(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     """
     Skip onboarding flow
@@ -58,8 +56,7 @@ async def skip_onboarding(
 
 @router.post("/reset", response_model=UserResponse)
 async def reset_onboarding(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     """
     Reset onboarding status (for testing or re-onboarding)

@@ -28,6 +28,7 @@ class TestMCPClientInitialization:
         """Test that MCP client is a singleton instance."""
         from app.services.mcp_client import mcp_client as client1
         from app.services.mcp_client import mcp_client as client2
+
         assert client1 is client2
 
 
@@ -570,10 +571,7 @@ class TestMCPClientPerformance:
 
             client = MCPClient()
             # Create multiple concurrent requests
-            tasks = [
-                client.parse_jd(f"Job description {i}")
-                for i in range(10)
-            ]
+            tasks = [client.parse_jd(f"Job description {i}") for i in range(10)]
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # All requests should complete successfully

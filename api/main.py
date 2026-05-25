@@ -13,7 +13,16 @@ from app.core.errors import (
     http_error_handler,
     general_error_handler,
 )
-from app.api import auth, resumes, jds, applications, search, notifications, analytics, search_history
+from app.api import (
+    auth,
+    resumes,
+    jds,
+    applications,
+    search,
+    notifications,
+    analytics,
+    search_history,
+)
 from app.services.storage_service import StorageService
 from app.services.email_service import email_service
 from app.middleware.rate_limit import RateLimitMiddleware
@@ -81,11 +90,7 @@ app.include_router(analytics.router, prefix="/api")
 
 @app.get("/")
 async def root():
-    return {
-        "message": "SyncHire API",
-        "version": "1.0.0",
-        "status": "operational"
-    }
+    return {"message": "SyncHire API", "version": "1.0.0", "status": "operational"}
 
 
 @app.get("/health")
@@ -96,6 +101,6 @@ async def health():
         "services": {
             "api": "operational",
             "redis": "operational" if redis_client.is_connected() else "degraded",
-        }
+        },
     }
     return health_status

@@ -3,7 +3,16 @@ import logging
 from pathlib import Path
 import tempfile
 from typing import List
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, status, Query
+from fastapi import (
+    APIRouter,
+    Depends,
+    UploadFile,
+    File,
+    Form,
+    HTTPException,
+    status,
+    Query,
+)
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
@@ -27,11 +36,13 @@ logger = logging.getLogger(__name__)
 
 class PaginatedResumeResponse(BaseModel):
     """Paginated response for resume list."""
+
     items: List[ResumeResponse]
     total: int
     page: int
     page_size: int
     total_pages: int
+
 
 router = APIRouter(prefix="/resumes", tags=["resumes"])
 
@@ -121,7 +132,9 @@ async def bulk_delete_resumes(
     - **failed_count**: Number of resumes that failed to delete
     - **errors**: List of errors for failed deletions with ID and error message
     """
-    logger.info(f"Bulk delete request for {len(request.ids)} resumes by user {current_user.id}")
+    logger.info(
+        f"Bulk delete request for {len(request.ids)} resumes by user {current_user.id}"
+    )
     return await ResumeService.bulk_delete_resumes(db, current_user.id, request.ids)
 
 

@@ -488,10 +488,7 @@ class MockMCPServerFactory:
     @classmethod
     def create_all_servers(cls) -> Dict[str, MockMCPServer]:
         """Create all mock MCP servers."""
-        return {
-            name: cls.create_server(name)
-            for name in cls._servers.keys()
-        }
+        return {name: cls.create_server(name) for name in cls._servers.keys()}
 
 
 # Convenience functions for testing

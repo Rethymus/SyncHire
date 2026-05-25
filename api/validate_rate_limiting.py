@@ -90,7 +90,9 @@ async def validate_rate_limit_check():
         )
 
         if "current" in status and "max" in status:
-            print(f"✅ Rate limit status retrieved: {status['current']}/{status['max']}")
+            print(
+                f"✅ Rate limit status retrieved: {status['current']}/{status['max']}"
+            )
         else:
             print("❌ Rate limit status missing required fields")
             return False
@@ -154,7 +156,7 @@ async def validate_decorator_functionality():
     request.headers = {}
 
     # Mock rate limit check to always pass
-    with patch('app.middleware.rate_limit.RateLimiter.check_rate_limit') as mock_check:
+    with patch("app.middleware.rate_limit.RateLimiter.check_rate_limit") as mock_check:
         mock_check.return_value = (True, None)
 
         @rate_limit(RateLimitType.SEARCH)

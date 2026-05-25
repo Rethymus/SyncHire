@@ -62,10 +62,7 @@ class JDService:
 
     @staticmethod
     async def get_jds_paginated(
-        db: AsyncSession,
-        user_id: uuid.UUID,
-        page: int = 1,
-        page_size: int = 20
+        db: AsyncSession, user_id: uuid.UUID, page: int = 1, page_size: int = 20
     ) -> tuple[list[JD], int]:
         """
         Get paginated JDs for a user.
@@ -194,10 +191,7 @@ class JDService:
 
             # Fetch all JDs that belong to the user
             result = await db.execute(
-                select(JD).where(
-                    JD.id.in_(valid_ids),
-                    JD.user_id == user_id
-                )
+                select(JD).where(JD.id.in_(valid_ids), JD.user_id == user_id)
             )
             jds = list(result.scalars().all())
             found_ids = {jd.id for jd in jds}
@@ -205,7 +199,9 @@ class JDService:
             # Identify IDs that weren't found
             missing_ids = set(valid_ids) - found_ids
 
-            logger.info(f"Found {len(jds)} out of {len(valid_ids)} JDs for user {user_id}")
+            logger.info(
+                f"Found {len(jds)} out of {len(valid_ids)} JDs for user {user_id}"
+            )
 
             # Delete JDs one by one to handle partial failures
             success_count = 0
@@ -220,34 +216,30 @@ class JDService:
                 except Exception as e:
                     failed_count += 1
                     error_msg = str(e)
-                    errors.append({
-                        "id": str(jd.id),
-                        "error": error_msg
-                    })
+                    errors.append({"id": str(jd.id), "error": error_msg})
                     logger.error(f"Failed to delete JD {jd.id}: {error_msg}")
 
             # Add missing IDs to errors
             for missing_id in missing_ids:
                 failed_count += 1
-                errors.append({
-                    "id": str(missing_id),
-                    "error": "JD not found or access denied"
-                })
+                errors.append(
+                    {"id": str(missing_id), "error": "JD not found or access denied"}
+                )
 
             # Commit transaction if at least one deletion succeeded
             if success_count > 0:
                 try:
                     await db.commit()
-                    logger.info(f"Bulk delete completed: {success_count} succeeded, {failed_count} failed")
+                    logger.info(
+                        f"Bulk delete completed: {success_count} succeeded, {failed_count} failed"
+                    )
                 except Exception as e:
                     await db.rollback()
                     logger.error(f"Failed to commit bulk delete transaction: {e}")
                     raise
 
             return BulkDeleteResponse(
-                success_count=success_count,
-                failed_count=failed_count,
-                errors=errors
+                success_count=success_count, failed_count=failed_count, errors=errors
             )
 
         except Exception as e:

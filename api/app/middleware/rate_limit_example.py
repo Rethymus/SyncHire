@@ -5,7 +5,11 @@ This file demonstrates how to use the rate limiting middleware in different scen
 """
 
 from fastapi import APIRouter, Request, Depends
-from app.middleware.rate_limit import rate_limit, RateLimitType, create_rate_limit_dependency
+from app.middleware.rate_limit import (
+    rate_limit,
+    RateLimitType,
+    create_rate_limit_dependency,
+)
 
 router = APIRouter(prefix="/examples", tags=["rate-limit-examples"])
 
@@ -21,7 +25,7 @@ async def example_with_decorator():
 # Example 2: Using dependency injection
 @router.get("/dependency")
 async def example_with_dependency(
-    _rate_limit: None = Depends(create_rate_limit_dependency(RateLimitType.UPLOAD))
+    _rate_limit: None = Depends(create_rate_limit_dependency(RateLimitType.UPLOAD)),
 ):
     """This endpoint uses dependency injection for rate limiting"""
     return {"message": "This endpoint is rate limited using dependencies"}
@@ -59,7 +63,7 @@ async def manual_rate_limit_check(request: Request):
     from app.middleware.rate_limit import RateLimiter, RateLimitType
 
     # Get identifier
-    if hasattr(request.state, 'user_id') and request.state.user_id:
+    if hasattr(request.state, "user_id") and request.state.user_id:
         identifier = f"user:{request.state.user_id}"
     else:
         forwarded = request.headers.get("X-Forwarded-For")
@@ -76,9 +80,9 @@ async def manual_rate_limit_check(request: Request):
 
     if not is_allowed:
         from app.core.errors import RateLimitError
+
         raise RateLimitError(
-            message="Manual rate limit check failed",
-            retry_after=retry_after
+            message="Manual rate limit check failed", retry_after=retry_after
         )
 
     return {"message": "Manual rate limit check passed"}
@@ -91,7 +95,7 @@ async def get_rate_limit_status(request: Request):
     from app.middleware.rate_limit import RateLimiter, RateLimitType
 
     # Get identifier
-    if hasattr(request.state, 'user_id') and request.state.user_id:
+    if hasattr(request.state, "user_id") and request.state.user_id:
         identifier = f"user:{request.state.user_id}"
     else:
         forwarded = request.headers.get("X-Forwarded-For")
@@ -102,9 +106,15 @@ async def get_rate_limit_status(request: Request):
         identifier = f"ip:{ip}"
 
     # Get status for different limit types
-    search_status = await RateLimiter.get_rate_limit_status(identifier, RateLimitType.SEARCH)
-    auth_status = await RateLimiter.get_rate_limit_status(identifier, RateLimitType.AUTH)
-    upload_status = await RateLimiter.get_rate_limit_status(identifier, RateLimitType.UPLOAD)
+    search_status = await RateLimiter.get_rate_limit_status(
+        identifier, RateLimitType.SEARCH
+    )
+    auth_status = await RateLimiter.get_rate_limit_status(
+        identifier, RateLimitType.AUTH
+    )
+    upload_status = await RateLimiter.get_rate_limit_status(
+        identifier, RateLimitType.UPLOAD
+    )
 
     return {
         "identifier": identifier,
@@ -112,7 +122,7 @@ async def get_rate_limit_status(request: Request):
             "search": search_status,
             "auth": auth_status,
             "upload": upload_status,
-        }
+        },
     }
 
 
@@ -127,5 +137,5 @@ async def combined_with_other_deps(
     """Rate limiting works alongside other FastAPI dependencies"""
     return {
         "message": "Rate limiting combined with other dependencies",
-        "path": request.url.path
+        "path": request.url.path,
     }

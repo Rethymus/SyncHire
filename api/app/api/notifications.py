@@ -45,7 +45,7 @@ class NotificationsListResponse(BaseModel):
 
 @router.get("/preferences")
 async def get_notification_preferences(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Get current user's notification preferences."""
     try:
@@ -56,19 +56,19 @@ async def get_notification_preferences(
             "weekly_digest": False,
             "job_recommendations": True,
             "profile_views": True,
-            "notification_frequency": NotificationFrequency.IMMEDIATE.value
+            "notification_frequency": NotificationFrequency.IMMEDIATE.value,
         }
 
         return {
             "preferences": preferences,
             "email_unsubscribed": current_user.email_unsubscribed,
-            "email_bounced": current_user.email_bounced
+            "email_bounced": current_user.email_bounced,
         }
     except Exception as e:
         logger.error(LogCategory.API, f"Error getting notification preferences: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve notification preferences"
+            detail="Failed to retrieve notification preferences",
         )
 
 
@@ -76,7 +76,7 @@ async def get_notification_preferences(
 async def update_notification_preferences(
     preferences: Dict[str, Any],
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
     """Update user's notification preferences."""
     try:
@@ -86,7 +86,7 @@ async def update_notification_preferences(
             if preferences["notification_frequency"] not in valid_frequencies:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Invalid notification frequency. Must be one of: {valid_frequencies}"
+                    detail=f"Invalid notification frequency. Must be one of: {valid_frequencies}",
                 )
 
         # Merge with existing preferences
@@ -101,12 +101,12 @@ async def update_notification_preferences(
         logger.info(
             LogCategory.API,
             f"Updated notification preferences for user {current_user.id}",
-            {"preferences": updated_preferences}
+            {"preferences": updated_preferences},
         )
 
         return {
             "message": "Notification preferences updated successfully",
-            "preferences": updated_preferences
+            "preferences": updated_preferences,
         }
 
     except HTTPException:
@@ -116,14 +116,13 @@ async def update_notification_preferences(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update notification preferences"
+            detail="Failed to update notification preferences",
         )
 
 
 @router.post("/unsubscribe")
 async def unsubscribe_from_emails(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
     """Unsubscribe current user from all email notifications."""
     try:
@@ -142,7 +141,7 @@ async def unsubscribe_from_emails(
 
         return {
             "message": "You have been successfully unsubscribed from all email notifications",
-            "unsubscribed_at": current_user.email_unsubscribed_at.isoformat()
+            "unsubscribed_at": current_user.email_unsubscribed_at.isoformat(),
         }
 
     except Exception as e:
@@ -150,14 +149,13 @@ async def unsubscribe_from_emails(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to unsubscribe from emails"
+            detail="Failed to unsubscribe from emails",
         )
 
 
 @router.post("/resubscribe")
 async def resubscribe_to_emails(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
     """Resubscribe current user to email notifications."""
     try:
@@ -183,14 +181,13 @@ async def resubscribe_to_emails(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to resubscribe to emails"
+            detail="Failed to resubscribe to emails",
         )
 
 
 @router.get("/unsubscribe/token/{token}")
 async def unsubscribe_by_token(
-    token: str,
-    db: AsyncSession = Depends(get_db)
+    token: str, db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
     """Unsubscribe using email token (for email links)."""
     try:
@@ -198,15 +195,12 @@ async def unsubscribe_by_token(
         # For now, we'll use a simple UUID check
         # This should be improved with proper JWT tokens
 
-        result = await db.execute(
-            select(User).where(User.id == uuid.UUID(token))
-        )
+        result = await db.execute(select(User).where(User.id == uuid.UUID(token)))
         user = result.scalar_one_or_none()
 
         if not user:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Invalid unsubscribe link"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Invalid unsubscribe link"
             )
 
         user.email_unsubscribed = True
@@ -226,8 +220,7 @@ async def unsubscribe_by_token(
 
     except ValueError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid unsubscribe link"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid unsubscribe link"
         )
     except HTTPException:
         raise
@@ -236,14 +229,13 @@ async def unsubscribe_by_token(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to process unsubscribe request"
+            detail="Failed to process unsubscribe request",
         )
 
 
 @router.post("/test")
 async def test_notification(
-    notification_type: str,
-    current_user: User = Depends(get_current_user)
+    notification_type: str, current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Send a test notification to verify email settings."""
     try:
@@ -251,7 +243,7 @@ async def test_notification(
         if current_user.email_unsubscribed:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="You are unsubscribed from email notifications"
+                detail="You are unsubscribed from email notifications",
             )
 
         # Check if emails are enabled
@@ -259,7 +251,7 @@ async def test_notification(
         if not preferences.get("email_enabled", True):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email notifications are disabled in your preferences"
+                detail="Email notifications are disabled in your preferences",
             )
 
         # Send test notification based on type
@@ -271,7 +263,7 @@ async def test_notification(
                 status="applied",
                 status_text="Application Submitted",
                 message="This is a test notification to verify your email settings are working correctly.",
-                application_id=str(uuid.uuid4())
+                application_id=str(uuid.uuid4()),
             )
         elif notification_type == "interview_reminder":
             success = await email_service.send_interview_reminder(
@@ -282,10 +274,11 @@ async def test_notification(
                 interview_date="2026-05-25",
                 interview_time="10:00 AM",
                 interview_type="Video Call",
-                application_id=str(uuid.uuid4())
+                application_id=str(uuid.uuid4()),
             )
         elif notification_type == "weekly_digest":
             from datetime import timedelta
+
             week_end = datetime.utcnow()
             week_start = week_end - timedelta(days=7)
 
@@ -301,25 +294,25 @@ async def test_notification(
                     {
                         "company": "Tech Corp",
                         "position": "Senior Developer",
-                        "match_score": 95
+                        "match_score": 95,
                     }
-                ]
+                ],
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid notification type: {notification_type}"
+                detail=f"Invalid notification type: {notification_type}",
             )
 
         if success:
             return {
                 "message": f"Test {notification_type} notification sent successfully",
-                "sent_to": current_user.email
+                "sent_to": current_user.email,
             }
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to send test notification"
+                detail="Failed to send test notification",
             )
 
     except HTTPException:
@@ -328,13 +321,13 @@ async def test_notification(
         logger.error(LogCategory.API, f"Error sending test notification: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to send test notification"
+            detail="Failed to send test notification",
         )
 
 
 @router.get("/status")
 async def get_notification_status(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Get current notification system status."""
     try:
@@ -344,20 +337,24 @@ async def get_notification_status(
             "email_enabled": preferences.get("email_enabled", True),
             "email_unsubscribed": current_user.email_unsubscribed,
             "email_bounced": current_user.email_bounced,
-            "notification_frequency": preferences.get("notification_frequency", "immediate"),
-            "application_status_updates": preferences.get("application_status_updates", True),
+            "notification_frequency": preferences.get(
+                "notification_frequency", "immediate"
+            ),
+            "application_status_updates": preferences.get(
+                "application_status_updates", True
+            ),
             "interview_reminders": preferences.get("interview_reminders", True),
             "weekly_digest": preferences.get("weekly_digest", False),
             "job_recommendations": preferences.get("job_recommendations", True),
             "profile_views": preferences.get("profile_views", True),
-            "email_address": current_user.email
+            "email_address": current_user.email,
         }
 
     except Exception as e:
         logger.error(LogCategory.API, f"Error getting notification status: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve notification status"
+            detail="Failed to retrieve notification status",
         )
 
 
@@ -365,13 +362,18 @@ async def get_notification_status(
 # In-App Notification Endpoints
 # ============================================================================
 
+
 @router.get("", response_model=NotificationsListResponse)
 async def get_notifications(
-    unread_only: bool = Query(False, description="Filter to only show unread notifications"),
-    limit: int = Query(50, ge=1, le=100, description="Maximum number of notifications to return"),
+    unread_only: bool = Query(
+        False, description="Filter to only show unread notifications"
+    ),
+    limit: int = Query(
+        50, ge=1, le=100, description="Maximum number of notifications to return"
+    ),
     offset: int = Query(0, ge=0, description="Number of notifications to skip"),
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> NotificationsListResponse:
     """Get current user's notifications."""
     try:
@@ -382,18 +384,21 @@ async def get_notifications(
             query = query.where(not Notification.read)
 
         # Get total count
-        count_query = select(func.count(Notification.id)).where(Notification.user_id == current_user.id)
+        count_query = select(func.count(Notification.id)).where(
+            Notification.user_id == current_user.id
+        )
         if unread_only:
             count_query = count_query.where(not Notification.read)
 
         # Get unread count
         unread_query = select(func.count(Notification.id)).where(
-            Notification.user_id == current_user.id,
-            not Notification.read
+            Notification.user_id == current_user.id, not Notification.read
         )
 
         # Order by created_at descending
-        query = query.order_by(Notification.created_at.desc()).limit(limit).offset(offset)
+        query = (
+            query.order_by(Notification.created_at.desc()).limit(limit).offset(offset)
+        )
 
         # Execute queries
         result = await db.execute(query)
@@ -415,19 +420,19 @@ async def get_notifications(
                     read=n.read,
                     created_at=n.created_at.isoformat(),
                     action_url=n.action_url,
-                    metadata=n.metadata
+                    metadata=n.metadata,
                 )
                 for n in notifications
             ],
             total=total,
-            unread_count=unread_count
+            unread_count=unread_count,
         )
 
     except Exception as e:
         logger.error(LogCategory.API, f"Error getting notifications: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve notifications"
+            detail="Failed to retrieve notifications",
         )
 
 
@@ -435,7 +440,7 @@ async def get_notifications(
 async def mark_notification_as_read(
     notification_id: str,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
     """Mark a specific notification as read."""
     try:
@@ -445,22 +450,20 @@ async def mark_notification_as_read(
         except ValueError:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid notification ID"
+                detail="Invalid notification ID",
             )
 
         # Get notification
         result = await db.execute(
             select(Notification).where(
-                Notification.id == nid,
-                Notification.user_id == current_user.id
+                Notification.id == nid, Notification.user_id == current_user.id
             )
         )
         notification = result.scalar_one_or_none()
 
         if not notification:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Notification not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Notification not found"
             )
 
         # Mark as read if not already read
@@ -478,22 +481,20 @@ async def mark_notification_as_read(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to mark notification as read"
+            detail="Failed to mark notification as read",
         )
 
 
 @router.put("/read-all")
 async def mark_all_notifications_as_read(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
     """Mark all notifications for the current user as read."""
     try:
         # Get all unread notifications
         result = await db.execute(
             select(Notification).where(
-                Notification.user_id == current_user.id,
-                not Notification.read
+                Notification.user_id == current_user.id, not Notification.read
             )
         )
         notifications = result.scalars().all()
@@ -507,7 +508,7 @@ async def mark_all_notifications_as_read(
 
         logger.info(
             LogCategory.API,
-            f"Marked {len(notifications)} notifications as read for user {current_user.id}"
+            f"Marked {len(notifications)} notifications as read for user {current_user.id}",
         )
 
         return {"message": f"Marked {len(notifications)} notifications as read"}
@@ -517,7 +518,7 @@ async def mark_all_notifications_as_read(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to mark all notifications as read"
+            detail="Failed to mark all notifications as read",
         )
 
 
@@ -525,7 +526,7 @@ async def mark_all_notifications_as_read(
 async def delete_notification(
     notification_id: str,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
     """Delete a specific notification."""
     try:
@@ -535,21 +536,19 @@ async def delete_notification(
         except ValueError:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid notification ID"
+                detail="Invalid notification ID",
             )
 
         # Delete notification
         result = await db.execute(
             delete(Notification).where(
-                Notification.id == nid,
-                Notification.user_id == current_user.id
+                Notification.id == nid, Notification.user_id == current_user.id
             )
         )
 
         if result.rowcount == 0:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Notification not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Notification not found"
             )
 
         await db.commit()
@@ -563,14 +562,13 @@ async def delete_notification(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete notification"
+            detail="Failed to delete notification",
         )
 
 
 @router.delete("/clear-all")
 async def clear_all_notifications(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
     """Delete all notifications for the current user."""
     try:
@@ -583,8 +581,7 @@ async def clear_all_notifications(
 
         count = result.rowcount
         logger.info(
-            LogCategory.API,
-            f"Cleared {count} notifications for user {current_user.id}"
+            LogCategory.API, f"Cleared {count} notifications for user {current_user.id}"
         )
 
         return {"message": f"Cleared {count} notifications"}
@@ -594,7 +591,7 @@ async def clear_all_notifications(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to clear notifications"
+            detail="Failed to clear notifications",
         )
 
 
@@ -606,7 +603,7 @@ async def create_notification(
     message: str,
     action_url: Optional[str] = None,
     metadata: Optional[Dict[str, Any]] = None,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
     """Create a new notification (internal endpoint)."""
     try:
@@ -615,8 +612,7 @@ async def create_notification(
             uid = uuid.UUID(user_id)
         except ValueError:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid user ID"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid user ID"
             )
 
         # Create notification
@@ -626,7 +622,7 @@ async def create_notification(
             title=title,
             message=message,
             action_url=action_url,
-            metadata=metadata
+            metadata=metadata,
         )
 
         db.add(notification)
@@ -634,13 +630,12 @@ async def create_notification(
         await db.refresh(notification)
 
         logger.info(
-            LogCategory.API,
-            f"Created notification for user {user_id}: {title}"
+            LogCategory.API, f"Created notification for user {user_id}: {title}"
         )
 
         return {
             "message": "Notification created successfully",
-            "notification_id": str(notification.id)
+            "notification_id": str(notification.id),
         }
 
     except HTTPException:
@@ -650,5 +645,5 @@ async def create_notification(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create notification"
+            detail="Failed to create notification",
         )

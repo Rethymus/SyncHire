@@ -29,12 +29,14 @@ class Settings(BaseSettings):
 
     # Rate Limiting by Endpoint Type
     RATE_LIMIT_SEARCH: int = 100  # 100 requests/minute for search endpoints
-    RATE_LIMIT_AUTH: int = 10     # 10 requests/minute for auth endpoints
-    RATE_LIMIT_UPLOAD: int = 5    # 5 requests/minute for file uploads
+    RATE_LIMIT_AUTH: int = 10  # 10 requests/minute for auth endpoints
+    RATE_LIMIT_UPLOAD: int = 5  # 5 requests/minute for file uploads
     RATE_LIMIT_GENERAL: int = 60  # 60 requests/minute for general API
 
     # Rate Limiting Configuration
-    RATE_LIMIT_USE_IP_FALLBACK: bool = True  # Use IP-based limiting for unauthenticated requests
+    RATE_LIMIT_USE_IP_FALLBACK: bool = (
+        True  # Use IP-based limiting for unauthenticated requests
+    )
     RATE_LIMIT_WINDOW_SIZE: int = 60  # Time window in seconds
 
     # File Upload
@@ -64,9 +66,13 @@ class Settings(BaseSettings):
     FROM_NAME: str = os.getenv("FROM_NAME", "SyncHire")
 
     # Email Queue Configuration
-    EMAIL_QUEUE_ENABLED: bool = os.getenv("EMAIL_QUEUE_ENABLED", "true").lower() == "true"
+    EMAIL_QUEUE_ENABLED: bool = (
+        os.getenv("EMAIL_QUEUE_ENABLED", "true").lower() == "true"
+    )
     EMAIL_QUEUE_BATCH_SIZE: int = int(os.getenv("EMAIL_QUEUE_BATCH_SIZE", "10"))
-    EMAIL_QUEUE_PROCESS_INTERVAL: int = int(os.getenv("EMAIL_QUEUE_PROCESS_INTERVAL", "60"))  # seconds
+    EMAIL_QUEUE_PROCESS_INTERVAL: int = int(
+        os.getenv("EMAIL_QUEUE_PROCESS_INTERVAL", "60")
+    )  # seconds
 
     # Frontend URLs
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")

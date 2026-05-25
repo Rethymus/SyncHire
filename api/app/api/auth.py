@@ -46,16 +46,10 @@ async def register(
     try:
         # Validate input data
         if not user_data.email or not user_data.email.strip():
-            raise ValidationError(
-                message="Email is required",
-                field="email"
-            )
+            raise ValidationError(message="Email is required", field="email")
 
         if not user_data.password or not user_data.password.strip():
-            raise ValidationError(
-                message="Password is required",
-                field="password"
-            )
+            raise ValidationError(message="Password is required", field="password")
 
         # Register user
         user = await AuthService.register(db, user_data)
@@ -71,7 +65,7 @@ async def register(
         logger.error(f"Unexpected error during registration: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Registration failed. Please try again later."
+            detail="Registration failed. Please try again later.",
         )
 
 
@@ -100,32 +94,26 @@ async def login(
     try:
         # Validate input
         if not credentials.email or not credentials.email.strip():
-            raise ValidationError(
-                message="Email is required",
-                field="email"
-            )
+            raise ValidationError(message="Email is required", field="email")
 
         if not credentials.password or not credentials.password.strip():
-            raise ValidationError(
-                message="Password is required",
-                field="password"
-            )
+            raise ValidationError(message="Password is required", field="password")
 
         # Authenticate user
-        user = await AuthService.authenticate(db, credentials.email, credentials.password)
+        user = await AuthService.authenticate(
+            db, credentials.email, credentials.password
+        )
 
         if not user:
             # Generic error message for security (prevents email enumeration)
-            raise AuthenticationError(
-                message="Invalid email or password"
-            )
+            raise AuthenticationError(message="Invalid email or password")
 
         # Check if user is active
         if not user.is_active:
             logger.warning(f"Login attempt for disabled user: {user.id}")
             raise AuthenticationError(
                 message="User account is disabled. Please contact support.",
-                details={"user_id": str(user.id)}
+                details={"user_id": str(user.id)},
             )
 
         # Generate tokens
@@ -136,7 +124,7 @@ async def login(
             logger.error(f"Token generation failed for user {user.id}: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to generate authentication tokens"
+                detail="Failed to generate authentication tokens",
             )
 
         logger.info(f"Successful login for user: {user.id}")
@@ -152,7 +140,7 @@ async def login(
         logger.error(f"Unexpected error during login: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Login failed. Please try again later."
+            detail="Login failed. Please try again later.",
         )
 
 
@@ -174,8 +162,7 @@ async def refresh_token(token_data: TokenRefresh):
         # Validate input
         if not token_data.refresh_token or not token_data.refresh_token.strip():
             raise ValidationError(
-                message="Refresh token is required",
-                field="refresh_token"
+                message="Refresh token is required", field="refresh_token"
             )
 
         # Verify refresh token
@@ -183,14 +170,10 @@ async def refresh_token(token_data: TokenRefresh):
             user_id = verify_token(token_data.refresh_token)
         except Exception as e:
             logger.warning(f"Invalid refresh token attempt: {str(e)}")
-            raise AuthenticationError(
-                message="Invalid or expired refresh token"
-            )
+            raise AuthenticationError(message="Invalid or expired refresh token")
 
         if not user_id:
-            raise AuthenticationError(
-                message="Invalid or expired refresh token"
-            )
+            raise AuthenticationError(message="Invalid or expired refresh token")
 
         # Generate new tokens
         try:
@@ -200,7 +183,7 @@ async def refresh_token(token_data: TokenRefresh):
             logger.error(f"Token generation failed during refresh: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to generate authentication tokens"
+                detail="Failed to generate authentication tokens",
             )
 
         return Token(access_token=access_token, refresh_token=refresh_token)
@@ -213,7 +196,7 @@ async def refresh_token(token_data: TokenRefresh):
         logger.error(f"Unexpected error during token refresh: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Token refresh failed. Please try again later."
+            detail="Token refresh failed. Please try again later.",
         )
 
 
@@ -234,7 +217,7 @@ async def get_current_user_info(current_user=Depends(get_current_user)):
         logger.error(f"Error fetching current user info: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to fetch user information"
+            detail="Failed to fetch user information",
         )
 
 

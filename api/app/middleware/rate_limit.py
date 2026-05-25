@@ -24,6 +24,7 @@ settings = get_settings()
 
 class RateLimitType(Enum):
     """Rate limit categories for different endpoint types"""
+
     SEARCH = "search"
     AUTH = "auth"
     UPLOAD = "upload"
@@ -72,7 +73,7 @@ class RateLimiter:
         Uses user ID if authenticated, falls back to IP address.
         """
         # Try to get user ID from request state (set by auth middleware)
-        if hasattr(request.state, 'user_id') and request.state.user_id:
+        if hasattr(request.state, "user_id") and request.state.user_id:
             return f"user:{request.state.user_id}"
 
         # Fall back to IP address
@@ -93,7 +94,7 @@ class RateLimiter:
     async def check_rate_limit(
         identifier: str,
         limit_type: RateLimitType,
-        window_size: int = RateLimitConfig.WINDOW_SIZE
+        window_size: int = RateLimitConfig.WINDOW_SIZE,
     ) -> tuple[bool, Optional[int]]:
         """
         Check if the identifier has exceeded the rate limit.
@@ -113,7 +114,9 @@ class RateLimiter:
 
         try:
             key = RateLimiter._get_redis_key(identifier, limit_type)
-            max_requests = RateLimitConfig.LIMITS.get(limit_type, RateLimitConfig.LIMITS[RateLimitType.GENERAL])
+            max_requests = RateLimitConfig.LIMITS.get(
+                limit_type, RateLimitConfig.LIMITS[RateLimitType.GENERAL]
+            )
 
             # Get current count
             current = await redis_client.incr(key)
@@ -139,13 +142,14 @@ class RateLimiter:
 
         except Exception as e:
             # Fail open - allow request if Redis is unavailable
-            logger.error(f"Rate limiting error, allowing request: {str(e)}", exc_info=True)
+            logger.error(
+                f"Rate limiting error, allowing request: {str(e)}", exc_info=True
+            )
             return True, None
 
     @staticmethod
     async def get_rate_limit_status(
-        identifier: str,
-        limit_type: RateLimitType
+        identifier: str, limit_type: RateLimitType
     ) -> dict[str, Any]:
         """
         Get current rate limit status for an identifier.
@@ -158,15 +162,16 @@ class RateLimiter:
             current = await redis_client.get(key)
             ttl = await redis_client.redis.ttl(key) if current else 0
             max_requests = RateLimitConfig.LIMITS.get(
-                limit_type,
-                RateLimitConfig.LIMITS[RateLimitType.GENERAL]
+                limit_type, RateLimitConfig.LIMITS[RateLimitType.GENERAL]
             )
 
             return {
                 "limit_type": limit_type.value,
                 "current": int(current) if current else 0,
                 "max": max_requests,
-                "remaining": max(max_requests - int(current), 0) if current else max_requests,
+                "remaining": (
+                    max(max_requests - int(current), 0) if current else max_requests
+                ),
                 "reset_at": int(time.time()) + ttl if ttl > 0 else None,
             }
         except Exception as e:
@@ -175,8 +180,7 @@ class RateLimiter:
                 "limit_type": limit_type.value,
                 "current": 0,
                 "max": RateLimitConfig.LIMITS.get(
-                    limit_type,
-                    RateLimitConfig.LIMITS[RateLimitType.GENERAL]
+                    limit_type, RateLimitConfig.LIMITS[RateLimitType.GENERAL]
                 ),
                 "remaining": 0,
                 "reset_at": None,
@@ -224,12 +228,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                         "message": "Too many requests. Please try again later.",
                         "details": {
                             "retry_after": retry_after,
-                        }
+                        },
                     }
                 },
             )
             response.headers["Retry-After"] = str(retry_after)
-            response.headers["X-RateLimit-Limit"] = str(RateLimitConfig.LIMITS[RateLimitType.GENERAL])
+            response.headers["X-RateLimit-Limit"] = str(
+                RateLimitConfig.LIMITS[RateLimitType.GENERAL]
+            )
             response.headers["X-RateLimit-Reset"] = str(int(time.time()) + retry_after)
             return response
 
@@ -237,7 +243,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         # Add rate limit headers to response
-        status_info = await RateLimiter.get_rate_limit_status(identifier, RateLimitType.GENERAL)
+        status_info = await RateLimiter.get_rate_limit_status(
+            identifier, RateLimitType.GENERAL
+        )
         response.headers["X-RateLimit-Limit"] = str(status_info["max"])
         response.headers["X-RateLimit-Remaining"] = str(status_info["remaining"])
         if status_info["reset_at"]:
@@ -259,11 +267,12 @@ def rate_limit(limit_type: RateLimitType):
     Args:
         limit_type: Type of rate limit to apply
     """
+
     def decorator(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
         @wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Extract request from kwargs
-            request: Optional[Request] = kwargs.get('request')
+            request: Optional[Request] = kwargs.get("request")
 
             if not request:
                 # Try to get request from args
@@ -296,12 +305,18 @@ def rate_limit(limit_type: RateLimitType):
                 response = await func(*args, **kwargs)
 
                 # Add rate limit headers if response is a Response object
-                if hasattr(response, 'headers'):
-                    status_info = await RateLimiter.get_rate_limit_status(identifier, limit_type)
+                if hasattr(response, "headers"):
+                    status_info = await RateLimiter.get_rate_limit_status(
+                        identifier, limit_type
+                    )
                     response.headers["X-RateLimit-Limit"] = str(status_info["max"])
-                    response.headers["X-RateLimit-Remaining"] = str(status_info["remaining"])
+                    response.headers["X-RateLimit-Remaining"] = str(
+                        status_info["remaining"]
+                    )
                     if status_info["reset_at"]:
-                        response.headers["X-RateLimit-Reset"] = str(status_info["reset_at"])
+                        response.headers["X-RateLimit-Reset"] = str(
+                            status_info["reset_at"]
+                        )
 
                 return response
 
@@ -311,12 +326,12 @@ def rate_limit(limit_type: RateLimitType):
                 raise
 
         return wrapper
+
     return decorator
 
 
 async def check_rate_limit_middleware(
-    request: Request,
-    limit_type: RateLimitType = RateLimitType.GENERAL
+    request: Request, limit_type: RateLimitType = RateLimitType.GENERAL
 ) -> None:
     """
     Dependency function for rate limiting in endpoints.
@@ -357,6 +372,7 @@ def create_rate_limit_dependency(limit_type: RateLimitType):
         ):
             ...
     """
+
     async def rate_limit_dependency(request: Request) -> None:
         await check_rate_limit_middleware(request, limit_type)
 

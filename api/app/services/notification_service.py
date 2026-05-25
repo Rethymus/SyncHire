@@ -29,7 +29,7 @@ class NotificationService:
         title: str,
         message: str,
         action_url: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> Notification:
         """Create an in-app notification for a user."""
         try:
@@ -39,7 +39,7 @@ class NotificationService:
                 title=title,
                 message=message,
                 action_url=action_url,
-                metadata=metadata
+                metadata=metadata,
             )
 
             db.add(notification)
@@ -48,23 +48,19 @@ class NotificationService:
 
             logger.info(
                 LogCategory.API,
-                f"Created in-app notification for user {user_id}: {title}"
+                f"Created in-app notification for user {user_id}: {title}",
             )
 
             return notification
 
         except Exception as e:
-            logger.error(
-                LogCategory.API,
-                f"Error creating in-app notification: {e}"
-            )
+            logger.error(LogCategory.API, f"Error creating in-app notification: {e}")
             await db.rollback()
             return None
 
     @staticmethod
     async def get_user_notification_preferences(
-        db: AsyncSession,
-        user_id: uuid.UUID
+        db: AsyncSession, user_id: uuid.UUID
     ) -> Dict[str, Any]:
         """Get user's notification preferences."""
         result = await db.execute(select(User).where(User.id == user_id))
@@ -80,13 +76,12 @@ class NotificationService:
             "weekly_digest": False,
             "job_recommendations": True,
             "profile_views": True,
-            "notification_frequency": NotificationFrequency.IMMEDIATE.value
+            "notification_frequency": NotificationFrequency.IMMEDIATE.value,
         }
 
     @staticmethod
     def should_send_notification(
-        preferences: Dict[str, Any],
-        notification_type: str
+        preferences: Dict[str, Any], notification_type: str
     ) -> bool:
         """Check if notification should be sent based on preferences."""
         if not preferences.get("email_enabled", True):
@@ -111,7 +106,7 @@ class NotificationService:
         application: Application,
         old_status: Optional[str],
         new_status: str,
-        notes: Optional[str] = None
+        notes: Optional[str] = None,
     ):
         """Send notification when application status changes."""
         try:
@@ -123,8 +118,7 @@ class NotificationService:
 
             if not user:
                 logger.warning(
-                    LogCategory.API,
-                    f"User not found for application {application.id}"
+                    LogCategory.API, f"User not found for application {application.id}"
                 )
                 return
 
@@ -132,7 +126,7 @@ class NotificationService:
             if user.email_unsubscribed:
                 logger.info(
                     LogCategory.API,
-                    f"User {user.id} is unsubscribed, skipping notification"
+                    f"User {user.id} is unsubscribed, skipping notification",
                 )
                 return
 
@@ -141,19 +135,16 @@ class NotificationService:
 
             # Check if notification should be sent
             if not NotificationService.should_send_notification(
-                preferences,
-                "application_status"
+                preferences, "application_status"
             ):
                 logger.info(
                     LogCategory.API,
-                    f"Application status notifications disabled for user {user.id}"
+                    f"Application status notifications disabled for user {user.id}",
                 )
                 return
 
             # Get JD info
-            jd_result = await db.execute(
-                select(JD).where(JD.id == application.jd_id)
-            )
+            jd_result = await db.execute(select(JD).where(JD.id == application.jd_id))
             jd = jd_result.scalar_one_or_none()
 
             company_name = jd.company_name if jd else "Company"
@@ -167,8 +158,8 @@ class NotificationService:
                     "next_steps": [
                         "Review your resume and ensure it's tailored to the position",
                         "Consider using our AI optimization feature",
-                        "Prepare for the application process"
-                    ]
+                        "Prepare for the application process",
+                    ],
                 },
                 "optimized": {
                     "text": "Resume Optimized",
@@ -176,8 +167,8 @@ class NotificationService:
                     "next_steps": [
                         "Review the optimized resume",
                         "Make any additional edits if needed",
-                        "Submit your application when ready"
-                    ]
+                        "Submit your application when ready",
+                    ],
                 },
                 "applied": {
                     "text": "Application Submitted",
@@ -185,8 +176,8 @@ class NotificationService:
                     "next_steps": [
                         "Keep an eye on your email for updates",
                         "Prepare for potential interviews",
-                        "Continue searching for other opportunities"
-                    ]
+                        "Continue searching for other opportunities",
+                    ],
                 },
                 "interview": {
                     "text": "Interview Scheduled",
@@ -194,8 +185,8 @@ class NotificationService:
                     "next_steps": [
                         "Review the interview preparation materials",
                         "Research the company and position",
-                        "Practice common interview questions"
-                    ]
+                        "Practice common interview questions",
+                    ],
                 },
                 "offer": {
                     "text": "Offer Received",
@@ -203,8 +194,8 @@ class NotificationService:
                     "next_steps": [
                         "Review the offer details carefully",
                         "Consider negotiating if appropriate",
-                        "Respond to the offer within the given timeframe"
-                    ]
+                        "Respond to the offer within the given timeframe",
+                    ],
                 },
                 "rejected": {
                     "text": "Application Not Selected",
@@ -212,16 +203,19 @@ class NotificationService:
                     "next_steps": [
                         "Don't get discouraged - this is normal",
                         "Ask for feedback if possible",
-                        "Continue applying to other positions"
-                    ]
-                }
+                        "Continue applying to other positions",
+                    ],
+                },
             }
 
-            status_info = status_messages.get(new_status, {
-                "text": new_status.title(),
-                "message": notes or "Your application status has been updated.",
-                "next_steps": []
-            })
+            status_info = status_messages.get(
+                new_status,
+                {
+                    "text": new_status.title(),
+                    "message": notes or "Your application status has been updated.",
+                    "next_steps": [],
+                },
+            )
 
             # Send email
             success = await email_service.send_application_status_update(
@@ -231,25 +225,33 @@ class NotificationService:
                 status=new_status,
                 status_text=status_info["text"],
                 message=status_info["message"],
-                application_id=str(application.id)
+                application_id=str(application.id),
             )
 
             if success:
                 logger.info(
                     LogCategory.API,
-                    f"Application status notification sent for application {application.id}"
+                    f"Application status notification sent for application {application.id}",
                 )
             else:
                 logger.error(
                     LogCategory.API,
-                    f"Failed to send application status notification for {application.id}"
+                    f"Failed to send application status notification for {application.id}",
                 )
 
             # Create in-app notification
             await NotificationService.create_in_app_notification(
                 db=db,
                 user_id=application.user_id,
-                notification_type=NotificationType.SUCCESS if new_status in ["applied", "interview", "offer"] else NotificationType.INFO if new_status in ["pending", "optimized"] else NotificationType.WARNING,
+                notification_type=(
+                    NotificationType.SUCCESS
+                    if new_status in ["applied", "interview", "offer"]
+                    else (
+                        NotificationType.INFO
+                        if new_status in ["pending", "optimized"]
+                        else NotificationType.WARNING
+                    )
+                ),
                 title=f"{company_name}: {status_info['text']}",
                 message=status_info["message"],
                 action_url=f"/dashboard?application={application.id}",
@@ -257,14 +259,13 @@ class NotificationService:
                     "application_id": str(application.id),
                     "status": new_status,
                     "company": company_name,
-                    "position": position
-                }
+                    "position": position,
+                },
             )
 
         except Exception as e:
             logger.error(
-                LogCategory.API,
-                f"Error in notify_application_status_change: {e}"
+                LogCategory.API, f"Error in notify_application_status_change: {e}"
             )
 
     @staticmethod
@@ -274,7 +275,7 @@ class NotificationService:
         interview_date: str,
         interview_time: str,
         interview_location: Optional[str] = None,
-        interview_type: Optional[str] = None
+        interview_type: Optional[str] = None,
     ):
         """Send interview reminder notification."""
         try:
@@ -292,15 +293,12 @@ class NotificationService:
 
             # Check if notification should be sent
             if not NotificationService.should_send_notification(
-                preferences,
-                "interview_reminder"
+                preferences, "interview_reminder"
             ):
                 return
 
             # Get JD info
-            jd_result = await db.execute(
-                select(JD).where(JD.id == application.jd_id)
-            )
+            jd_result = await db.execute(select(JD).where(JD.id == application.jd_id))
             jd = jd_result.scalar_one_or_none()
 
             company_name = jd.company_name if jd else "Company"
@@ -316,13 +314,13 @@ class NotificationService:
                 interview_time=interview_time,
                 interview_location=interview_location,
                 interview_type=interview_type,
-                application_id=str(application.id)
+                application_id=str(application.id),
             )
 
             if success:
                 logger.info(
                     LogCategory.API,
-                    f"Interview reminder notification sent for application {application.id}"
+                    f"Interview reminder notification sent for application {application.id}",
                 )
 
             # Create in-app notification
@@ -338,29 +336,21 @@ class NotificationService:
                     "company": company_name,
                     "position": position,
                     "interview_date": interview_date,
-                    "interview_time": interview_time
-                }
+                    "interview_time": interview_time,
+                },
             )
 
         except Exception as e:
-            logger.error(
-                LogCategory.API,
-                f"Error in notify_interview_scheduled: {e}"
-            )
+            logger.error(LogCategory.API, f"Error in notify_interview_scheduled: {e}")
 
     @staticmethod
     async def send_weekly_digest(
-        db: AsyncSession,
-        user_id: uuid.UUID,
-        week_start: str,
-        week_end: str
+        db: AsyncSession, user_id: uuid.UUID, week_start: str, week_end: str
     ):
         """Send weekly digest email."""
         try:
             # Get user with notification preferences
-            result = await db.execute(
-                select(User).where(User.id == user_id)
-            )
+            result = await db.execute(select(User).where(User.id == user_id))
             user = result.scalar_one_or_none()
 
             if not user or user.email_unsubscribed:
@@ -371,8 +361,7 @@ class NotificationService:
 
             # Check if weekly digest is enabled
             if not NotificationService.should_send_notification(
-                preferences,
-                "weekly_digest"
+                preferences, "weekly_digest"
             ):
                 return
 
@@ -381,17 +370,16 @@ class NotificationService:
             from app.models.application import Application
 
             # Parse date strings to datetime objects
-            week_start_dt = datetime.fromisoformat(week_start.replace('Z', '+00:00'))
-            week_end_dt = datetime.fromisoformat(week_end.replace('Z', '+00:00'))
+            week_start_dt = datetime.fromisoformat(week_start.replace("Z", "+00:00"))
+            week_end_dt = datetime.fromisoformat(week_end.replace("Z", "+00:00"))
 
             # Get applications submitted this week
             applications_result = await db.execute(
-                select(func.count(Application.id))
-                .where(
+                select(func.count(Application.id)).where(
                     and_(
                         Application.user_id == user_id,
                         Application.created_at >= week_start_dt,
-                        Application.created_at < week_end_dt
+                        Application.created_at < week_end_dt,
                     )
                 )
             )
@@ -399,12 +387,11 @@ class NotificationService:
 
             # Get interviews scheduled (status = 'interview')
             interviews_result = await db.execute(
-                select(func.count(Application.id))
-                .where(
+                select(func.count(Application.id)).where(
                     and_(
                         Application.user_id == user_id,
-                        Application.status == 'interview',
-                        Application.updated_at >= week_start_dt
+                        Application.status == "interview",
+                        Application.updated_at >= week_start_dt,
                     )
                 )
             )
@@ -418,7 +405,7 @@ class NotificationService:
                         Application.user_id == user_id,
                         Application.match_score.isnot(None),
                         Application.match_score >= 70,
-                        Application.created_at >= week_start_dt
+                        Application.created_at >= week_start_dt,
                     )
                 )
                 .order_by(Application.match_score.desc())
@@ -428,7 +415,7 @@ class NotificationService:
                 {
                     "company": match.jd.company_name if match.jd else "Unknown",
                     "position": match.jd.position if match.jd else "Unknown",
-                    "match_score": match.match_score
+                    "match_score": match.match_score,
                 }
                 for match in matches_result.scalars().all()
             ]
@@ -439,8 +426,8 @@ class NotificationService:
                 .where(
                     and_(
                         Application.user_id == user_id,
-                        Application.status == 'interview',
-                        Application.updated_at >= datetime.utcnow()
+                        Application.status == "interview",
+                        Application.updated_at >= datetime.utcnow(),
                     )
                 )
                 .order_by(Application.updated_at)
@@ -450,7 +437,9 @@ class NotificationService:
                 {
                     "company": interview.jd.company_name if interview.jd else "Unknown",
                     "position": interview.jd.position if interview.jd else "Unknown",
-                    "date": (interview.updated_at + timedelta(days=7)).strftime("%Y-%m-%d")
+                    "date": (interview.updated_at + timedelta(days=7)).strftime(
+                        "%Y-%m-%d"
+                    ),
                 }
                 for interview in upcoming_interviews_result.scalars().all()
             ]
@@ -467,20 +456,14 @@ class NotificationService:
                 interviews_scheduled=interviews_scheduled,
                 profile_views=profile_views,
                 new_matches=new_matches,
-                upcoming_interviews=upcoming_interviews
+                upcoming_interviews=upcoming_interviews,
             )
 
             if success:
-                logger.info(
-                    LogCategory.API,
-                    f"Weekly digest sent for user {user_id}"
-                )
+                logger.info(LogCategory.API, f"Weekly digest sent for user {user_id}")
 
         except Exception as e:
-            logger.error(
-                LogCategory.API,
-                f"Error in send_weekly_digest: {e}"
-            )
+            logger.error(LogCategory.API, f"Error in send_weekly_digest: {e}")
 
 
 # Singleton instance

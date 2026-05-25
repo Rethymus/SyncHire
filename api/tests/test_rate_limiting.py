@@ -24,7 +24,7 @@ class TestRateLimiter:
         limit_type = RateLimitType.SEARCH
 
         # Mock Redis client
-        with patch('app.middleware.rate_limit.redis_client') as mock_redis:
+        with patch("app.middleware.rate_limit.redis_client") as mock_redis:
             mock_redis.incr = AsyncMock(return_value=1)
             mock_redis.expire = AsyncMock(return_value=True)
 
@@ -46,7 +46,7 @@ class TestRateLimiter:
         limit_type = RateLimitType.AUTH
 
         # Mock Redis client
-        with patch('app.middleware.rate_limit.redis_client') as mock_redis:
+        with patch("app.middleware.rate_limit.redis_client") as mock_redis:
             # Return count exceeding limit
             mock_redis.incr = AsyncMock(return_value=11)  # Exceeds AUTH limit of 10
             mock_redis.expire = AsyncMock(return_value=True)
@@ -68,7 +68,7 @@ class TestRateLimiter:
         limit_type = RateLimitType.GENERAL
 
         # Mock Redis client that raises exception
-        with patch('app.middleware.rate_limit.redis_client') as mock_redis:
+        with patch("app.middleware.rate_limit.redis_client") as mock_redis:
             mock_redis.incr = AsyncMock(side_effect=Exception("Redis connection error"))
 
             # Check rate limit - should fail open
@@ -139,7 +139,9 @@ class TestRateLimitDecorator:
         request.headers = {}
 
         # Mock rate limit check
-        with patch('app.middleware.rate_limit.RateLimiter.check_rate_limit') as mock_check:
+        with patch(
+            "app.middleware.rate_limit.RateLimiter.check_rate_limit"
+        ) as mock_check:
             mock_check.return_value = (True, None)
 
             # Create test function with decorator
@@ -163,8 +165,11 @@ class TestRateLimitDecorator:
         request.headers = {}
 
         # Mock rate limit check that fails
-        with patch('app.middleware.rate_limit.RateLimiter.check_rate_limit') as mock_check:
+        with patch(
+            "app.middleware.rate_limit.RateLimiter.check_rate_limit"
+        ) as mock_check:
             from app.core.errors import RateLimitError
+
             mock_check.return_value = (False, 45)
 
             # Create test function with decorator
@@ -212,7 +217,7 @@ class TestRateLimitIntegration:
         identifier = "integration_test_user"
         limit_type = RateLimitType.GENERAL
 
-        with patch('app.middleware.rate_limit.redis_client') as mock_redis:
+        with patch("app.middleware.rate_limit.redis_client") as mock_redis:
             # Simulate incrementing counter
             call_count = [0]
 
@@ -238,7 +243,7 @@ class TestRateLimitIntegration:
         """Test that different limit types maintain separate counters"""
         identifier = "multi_limit_test_user"
 
-        with patch('app.middleware.rate_limit.redis_client') as mock_redis:
+        with patch("app.middleware.rate_limit.redis_client") as mock_redis:
             # Track which keys were incremented
             incremented_keys = []
 

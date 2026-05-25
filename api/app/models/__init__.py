@@ -15,7 +15,7 @@ __all__ = [
     "Notification",
     "SearchHistory",
     "SavedSearch",
-    "SearchAnalytics"
+    "SearchAnalytics",
 ]
 
 # Import after all models to establish relationships

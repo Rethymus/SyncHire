@@ -3,7 +3,12 @@ from sqlalchemy import select
 from app.models.user import User
 from app.schemas.user import UserCreate
 from app.core.security import get_password_hash, verify_password
-from app.core.errors import ValidationError, ConflictError, DatabaseError, handle_database_error
+from app.core.errors import (
+    ValidationError,
+    ConflictError,
+    DatabaseError,
+    handle_database_error,
+)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -33,17 +38,19 @@ class AuthService:
             existing_user = result.scalar_one_or_none()
 
             if existing_user:
-                logger.warning(f"Registration attempt with existing email: {user_data.email}")
+                logger.warning(
+                    f"Registration attempt with existing email: {user_data.email}"
+                )
                 raise ConflictError(
                     message="Email already registered",
-                    details={"email": user_data.email}
+                    details={"email": user_data.email},
                 )
 
             # Validate password strength (basic validation)
             if len(user_data.password) < 8:
                 raise ValidationError(
                     message="Password must be at least 8 characters long",
-                    field="password"
+                    field="password",
                 )
 
             # Hash password
@@ -53,7 +60,7 @@ class AuthService:
                 logger.error(f"Password hashing failed: {str(e)}")
                 raise ValidationError(
                     message="Failed to process password",
-                    details={"error": "Password hashing failed"}
+                    details={"error": "Password hashing failed"},
                 )
 
             # Create user
@@ -79,10 +86,12 @@ class AuthService:
             # Re-raise our custom errors
             raise
         except Exception as e:
-            logger.error(f"Unexpected error during registration: {str(e)}", exc_info=True)
+            logger.error(
+                f"Unexpected error during registration: {str(e)}", exc_info=True
+            )
             raise DatabaseError(
                 message="Registration failed due to an unexpected error",
-                details={"error": str(e)}
+                details={"error": str(e)},
             )
 
     @staticmethod
@@ -109,14 +118,16 @@ class AuthService:
 
             # Check if user exists and password matches
             if not user:
-                logger.warning(f"Authentication attempt with non-existent email: {email}")
+                logger.warning(
+                    f"Authentication attempt with non-existent email: {email}"
+                )
                 return None
 
             if not user.is_active:
                 logger.warning(f"Authentication attempt for disabled user: {user.id}")
                 raise ValidationError(
                     message="User account is disabled",
-                    details={"user_id": str(user.id)}
+                    details={"user_id": str(user.id)},
                 )
 
             # Verify password
@@ -125,7 +136,9 @@ class AuthService:
                     logger.warning(f"Failed authentication attempt for user: {user.id}")
                     return None
             except Exception as e:
-                logger.error(f"Password verification error for user {user.id}: {str(e)}")
+                logger.error(
+                    f"Password verification error for user {user.id}: {str(e)}"
+                )
                 return None
 
             logger.info(f"Successful authentication for user: {user.id}")
@@ -134,6 +147,8 @@ class AuthService:
         except ValidationError:
             raise
         except Exception as e:
-            logger.error(f"Unexpected error during authentication: {str(e)}", exc_info=True)
+            logger.error(
+                f"Unexpected error during authentication: {str(e)}", exc_info=True
+            )
             # Return None instead of raising exception for security
             return None

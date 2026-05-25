@@ -56,17 +56,21 @@ class ApplicationService:
             if not app_data.resume_id or not app_data.jd_id:
                 raise ValidationError(
                     message="Resume ID and JD ID are required",
-                    details={"resume_id": str(app_data.resume_id), "jd_id": str(app_data.jd_id)}
+                    details={
+                        "resume_id": str(app_data.resume_id),
+                        "jd_id": str(app_data.jd_id),
+                    },
                 )
 
             # Verify resume exists and belongs to user
             try:
                 await ResumeService.get_resume(db, app_data.resume_id, user_id)
             except NotFoundError:
-                logger.warning(f"Resume {app_data.resume_id} not found for user {user_id}")
+                logger.warning(
+                    f"Resume {app_data.resume_id} not found for user {user_id}"
+                )
                 raise NotFoundError(
-                    resource="Resume",
-                    details={"resume_id": str(app_data.resume_id)}
+                    resource="Resume", details={"resume_id": str(app_data.resume_id)}
                 )
 
             # Verify JD exists and belongs to user
@@ -75,8 +79,7 @@ class ApplicationService:
             except NotFoundError:
                 logger.warning(f"JD {app_data.jd_id} not found for user {user_id}")
                 raise NotFoundError(
-                    resource="Job Description",
-                    details={"jd_id": str(app_data.jd_id)}
+                    resource="Job Description", details={"jd_id": str(app_data.jd_id)}
                 )
 
             # Create application with transaction handling
@@ -101,10 +104,12 @@ class ApplicationService:
         except (ValidationError, NotFoundError):
             raise
         except Exception as e:
-            logger.error(f"Unexpected error creating application: {str(e)}", exc_info=True)
+            logger.error(
+                f"Unexpected error creating application: {str(e)}", exc_info=True
+            )
             raise DatabaseError(
                 message="Failed to create application",
-                details={"user_id": str(user_id), "error": str(e)}
+                details={"user_id": str(user_id), "error": str(e)},
             )
 
     @staticmethod
@@ -124,7 +129,10 @@ class ApplicationService:
             history_result = await db.execute(
                 select(ApplicationStatusHistory)
                 .where(ApplicationStatusHistory.application_id.in_(app_ids))
-                .order_by(ApplicationStatusHistory.application_id, ApplicationStatusHistory.changed_at.desc())
+                .order_by(
+                    ApplicationStatusHistory.application_id,
+                    ApplicationStatusHistory.changed_at.desc(),
+                )
             )
             histories = list(history_result.scalars().all())
 
@@ -143,10 +151,7 @@ class ApplicationService:
 
     @staticmethod
     async def get_applications_paginated(
-        db: AsyncSession,
-        user_id: uuid.UUID,
-        page: int = 1,
-        page_size: int = 20
+        db: AsyncSession, user_id: uuid.UUID, page: int = 1, page_size: int = 20
     ) -> tuple[list[Application], int]:
         """
         Get paginated applications for a user with eager loading of status histories.
@@ -183,7 +188,10 @@ class ApplicationService:
             history_result = await db.execute(
                 select(ApplicationStatusHistory)
                 .where(ApplicationStatusHistory.application_id.in_(app_ids))
-                .order_by(ApplicationStatusHistory.application_id, ApplicationStatusHistory.changed_at.desc())
+                .order_by(
+                    ApplicationStatusHistory.application_id,
+                    ApplicationStatusHistory.changed_at.desc(),
+                )
             )
             histories = list(history_result.scalars().all())
 
@@ -310,7 +318,7 @@ class ApplicationService:
             application=application,
             old_status=old_status,
             new_status="optimized",
-            notes="Your resume has been optimized using AI."
+            notes="Your resume has been optimized using AI.",
         )
 
         return optimized
@@ -464,7 +472,7 @@ class ApplicationService:
             application=application,
             old_status=old_status,
             new_status=status_update.status,
-            notes=status_update.notes
+            notes=status_update.notes,
         )
 
         return application
@@ -506,14 +514,14 @@ class ApplicationService:
             if not application_ids:
                 raise ValidationError(
                     message="Application IDs list cannot be empty",
-                    field="application_ids"
+                    field="application_ids",
                 )
 
             if len(application_ids) > 100:
                 raise ValidationError(
                     message="Cannot delete more than 100 applications at once",
                     field="application_ids",
-                    details={"count": len(application_ids), "max": 100}
+                    details={"count": len(application_ids), "max": 100},
                 )
 
             # Validate all IDs are valid UUIDs
@@ -523,15 +531,14 @@ class ApplicationService:
                 raise ValidationError(
                     message="Invalid application ID format",
                     field="application_ids",
-                    details={"error": str(e)}
+                    details={"error": str(e)},
                 )
 
             # Fetch all applications that belong to the user
             try:
                 result = await db.execute(
                     select(Application).where(
-                        Application.id.in_(valid_ids),
-                        Application.user_id == user_id
+                        Application.id.in_(valid_ids), Application.user_id == user_id
                     )
                 )
                 applications = list(result.scalars().all())
@@ -540,13 +547,18 @@ class ApplicationService:
                 # Identify IDs that weren't found
                 missing_ids = set(valid_ids) - found_ids
 
-                logger.info(f"Found {len(applications)} out of {len(valid_ids)} applications for user {user_id}")
+                logger.info(
+                    f"Found {len(applications)} out of {len(valid_ids)} applications for user {user_id}"
+                )
 
             except Exception as e:
-                logger.error(f"Failed to fetch applications for bulk deletion: {str(e)}", exc_info=True)
+                logger.error(
+                    f"Failed to fetch applications for bulk deletion: {str(e)}",
+                    exc_info=True,
+                )
                 raise DatabaseError(
                     message="Failed to fetch applications for deletion",
-                    details={"user_id": str(user_id), "error": str(e)}
+                    details={"user_id": str(user_id), "error": str(e)},
                 )
 
             # Delete applications one by one to handle partial failures
@@ -564,44 +576,51 @@ class ApplicationService:
                 except Exception as e:
                     failed_count += 1
                     error_msg = str(e)
-                    errors.append({
-                        "id": str(application.id),
-                        "error": error_msg
-                    })
-                    logger.error(f"Failed to delete application {application.id}: {error_msg}")
+                    errors.append({"id": str(application.id), "error": error_msg})
+                    logger.error(
+                        f"Failed to delete application {application.id}: {error_msg}"
+                    )
 
             # Add missing IDs to errors
             for missing_id in missing_ids:
                 failed_count += 1
-                errors.append({
-                    "id": str(missing_id),
-                    "error": "Application not found or access denied"
-                })
+                errors.append(
+                    {
+                        "id": str(missing_id),
+                        "error": "Application not found or access denied",
+                    }
+                )
 
             # Commit transaction if at least one deletion succeeded
             if success_count > 0:
                 try:
                     await db.commit()
-                    logger.info(f"Bulk delete completed: {success_count} succeeded, {failed_count} failed")
+                    logger.info(
+                        f"Bulk delete completed: {success_count} succeeded, {failed_count} failed"
+                    )
                 except Exception as e:
                     await db.rollback()
-                    logger.error(f"Failed to commit bulk delete transaction: {str(e)}", exc_info=True)
+                    logger.error(
+                        f"Failed to commit bulk delete transaction: {str(e)}",
+                        exc_info=True,
+                    )
                     raise DatabaseError(
                         message="Failed to commit bulk delete operation",
-                        details={"error": str(e)}
+                        details={"error": str(e)},
                     )
 
             return BulkDeleteResponse(
-                success_count=success_count,
-                failed_count=failed_count,
-                errors=errors
+                success_count=success_count, failed_count=failed_count, errors=errors
             )
 
         except (ValidationError, DatabaseError):
             raise
         except Exception as e:
-            logger.error(f"Unexpected error during bulk application deletion: {str(e)}", exc_info=True)
+            logger.error(
+                f"Unexpected error during bulk application deletion: {str(e)}",
+                exc_info=True,
+            )
             raise DatabaseError(
                 message="Failed to perform bulk delete operation",
-                details={"user_id": str(user_id), "error": str(e)}
+                details={"user_id": str(user_id), "error": str(e)},
             )

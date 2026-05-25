@@ -322,7 +322,7 @@ def mock_mcp_error_response():
             "code": "MCP_SERVER_ERROR",
             "message": "Failed to process request",
             "details": "Internal server error in MCP server",
-        }
+        },
     }
 
 

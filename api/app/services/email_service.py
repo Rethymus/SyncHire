@@ -27,14 +27,16 @@ class EmailTemplate:
 
     def _load_template(self) -> Template:
         """Load template from file or use default."""
-        template_path = f"/home/re/code/SyncHire/api/app/templates/email/{self.template_name}.html"
+        template_path = (
+            f"/home/re/code/SyncHire/api/app/templates/email/{self.template_name}.html"
+        )
         try:
             with open(template_path, "r", encoding="utf-8") as f:
                 return Template(f.read())
         except FileNotFoundError:
             logger.warning(
                 LogCategory.API,
-                f"Template file not found: {template_path}, using default"
+                f"Template file not found: {template_path}, using default",
             )
             return self.get_default_template()
 
@@ -360,13 +362,13 @@ class EmailService:
         """Initialize Redis connection for email queue."""
         try:
             self.redis_client = await redis.from_url(
-                settings.REDIS_URL,
-                encoding="utf-8",
-                decode_responses=True
+                settings.REDIS_URL, encoding="utf-8", decode_responses=True
             )
             logger.info(LogCategory.API, "Email service Redis connection established")
         except Exception as e:
-            logger.error(LogCategory.API, f"Failed to connect to Redis for email queue: {e}")
+            logger.error(
+                LogCategory.API, f"Failed to connect to Redis for email queue: {e}"
+            )
 
     async def close_redis(self):
         """Close Redis connection."""
@@ -374,11 +376,7 @@ class EmailService:
             await self.redis_client.close()
             logger.info(LogCategory.API, "Email service Redis connection closed")
 
-    def _render_template(
-        self,
-        template_name: str,
-        context: Dict[str, Any]
-    ) -> str:
+    def _render_template(self, template_name: str, context: Dict[str, Any]) -> str:
         """Render email template with context."""
         template = self.templates.get(template_name)
         if not template:
@@ -399,7 +397,7 @@ class EmailService:
         to_email: str,
         subject: str,
         html_content: str,
-        plain_text: Optional[str] = None
+        plain_text: Optional[str] = None,
     ) -> MIMEMultipart:
         """Create email message."""
         msg = MIMEMultipart("alternative")
@@ -416,17 +414,11 @@ class EmailService:
 
         return msg
 
-    async def _send_async(
-        self,
-        to_email: str,
-        message: MIMEMultipart
-    ) -> bool:
+    async def _send_async(self, to_email: str, message: MIMEMultipart) -> bool:
         """Send email asynchronously via SMTP."""
         try:
             async with aiosmtplib.SMTP(
-                hostname=self.smtp_host,
-                port=self.smtp_port,
-                use_tls=self.smtp_use_tls
+                hostname=self.smtp_host, port=self.smtp_port, use_tls=self.smtp_use_tls
             ) as server:
                 if self.smtp_username and self.smtp_password:
                     await server.login(self.smtp_username, self.smtp_password)
@@ -447,7 +439,7 @@ class EmailService:
         template_name: str,
         context: Dict[str, Any],
         plain_text: Optional[str] = None,
-        queue: bool = True
+        queue: bool = True,
     ) -> bool:
         """Send email using template."""
         try:
@@ -473,11 +465,7 @@ class EmailService:
             return False
 
     async def _queue_email(
-        self,
-        to_email: str,
-        subject: str,
-        html_content: str,
-        plain_text: Optional[str]
+        self, to_email: str, subject: str, html_content: str, plain_text: Optional[str]
     ):
         """Queue email for async processing."""
         if not self.redis_client:
@@ -488,13 +476,10 @@ class EmailService:
             "subject": subject,
             "html": html_content,
             "plain_text": plain_text or "",
-            "queued_at": datetime.utcnow().isoformat()
+            "queued_at": datetime.utcnow().isoformat(),
         }
 
-        await self.redis_client.lpush(
-            "email_queue",
-            json.dumps(email_data)
-        )
+        await self.redis_client.lpush("email_queue", json.dumps(email_data))
 
     async def process_queue(self, batch_size: int = 10) -> int:
         """Process queued emails."""
@@ -512,10 +497,7 @@ class EmailService:
             try:
                 data = json.loads(email_data)
                 message = self._create_message(
-                    data["to"],
-                    data["subject"],
-                    data["html"],
-                    data.get("plain_text")
+                    data["to"], data["subject"], data["html"], data.get("plain_text")
                 )
 
                 success = await self._send_async(data["to"], message)
@@ -541,7 +523,7 @@ class EmailService:
         status: str,
         status_text: str,
         message: Optional[str] = None,
-        application_id: Optional[str] = None
+        application_id: Optional[str] = None,
     ) -> bool:
         """Send application status update email."""
         context = {
@@ -550,14 +532,18 @@ class EmailService:
             "status": status,
             "status_text": status_text,
             "message": message,
-            "application_url": f"https://synchire.com/applications/{application_id}" if application_id else "https://synchire.com/applications",
+            "application_url": (
+                f"https://synchire.com/applications/{application_id}"
+                if application_id
+                else "https://synchire.com/applications"
+            ),
         }
 
         return await self.send_email(
             to_email=to_email,
             subject=f"Application Status Update - {company_name}",
             template_name="application_status",
-            context=context
+            context=context,
         )
 
     async def send_interview_reminder(
@@ -570,7 +556,7 @@ class EmailService:
         interview_time: str,
         interview_location: Optional[str] = None,
         interview_type: Optional[str] = None,
-        application_id: Optional[str] = None
+        application_id: Optional[str] = None,
     ) -> bool:
         """Send interview reminder email."""
         context = {
@@ -581,14 +567,18 @@ class EmailService:
             "interview_time": interview_time,
             "interview_location": interview_location,
             "interview_type": interview_type,
-            "application_url": f"https://synchire.com/applications/{application_id}" if application_id else "https://synchire.com/applications",
+            "application_url": (
+                f"https://synchire.com/applications/{application_id}"
+                if application_id
+                else "https://synchire.com/applications"
+            ),
         }
 
         return await self.send_email(
             to_email=to_email,
             subject=f"Interview Reminder - {company_name}",
             template_name="interview_reminder",
-            context=context
+            context=context,
         )
 
     async def send_weekly_digest(
@@ -601,7 +591,7 @@ class EmailService:
         interviews_scheduled: int,
         profile_views: int,
         new_matches: Optional[List[Dict[str, Any]]] = None,
-        upcoming_interviews: Optional[List[Dict[str, Any]]] = None
+        upcoming_interviews: Optional[List[Dict[str, Any]]] = None,
     ) -> bool:
         """Send weekly digest email."""
         context = {
@@ -620,7 +610,7 @@ class EmailService:
             to_email=to_email,
             subject="Your Weekly Job Search Digest",
             template_name="weekly_digest",
-            context=context
+            context=context,
         )
 
 

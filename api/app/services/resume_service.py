@@ -65,16 +65,10 @@ class ResumeService:
         try:
             # Validate input
             if not title or not title.strip():
-                raise ValidationError(
-                    message="Resume title is required",
-                    field="title"
-                )
+                raise ValidationError(message="Resume title is required", field="title")
 
             if not file.filename:
-                raise ValidationError(
-                    message="Filename is required",
-                    field="file"
-                )
+                raise ValidationError(message="Filename is required", field="file")
 
             # Read file content
             try:
@@ -82,21 +76,16 @@ class ResumeService:
             except Exception as e:
                 logger.error(f"Failed to read file content: {str(e)}")
                 raise FileUploadError(
-                    message="Failed to read uploaded file",
-                    details={"error": str(e)}
+                    message="Failed to read uploaded file", details={"error": str(e)}
                 )
 
             # Validate file size
             if len(content) == 0:
-                raise ValidationError(
-                    message="Uploaded file is empty",
-                    field="file"
-                )
+                raise ValidationError(message="Uploaded file is empty", field="file")
 
             if len(content) > ResumeService.MAX_UPLOAD_SIZE:
                 raise FileSizeError(
-                    max_size=ResumeService.MAX_UPLOAD_SIZE,
-                    actual_size=len(content)
+                    max_size=ResumeService.MAX_UPLOAD_SIZE, actual_size=len(content)
                 )
 
             # Validate file extension
@@ -104,7 +93,7 @@ class ResumeService:
             if file_extension not in ResumeService.ALLOWED_EXTENSIONS:
                 raise FileTypeError(
                     allowed_types=list(ResumeService.ALLOWED_EXTENSIONS),
-                    actual_type=file_extension
+                    actual_type=file_extension,
                 )
 
             # Determine content type
@@ -128,7 +117,7 @@ class ResumeService:
                 logger.error(f"Storage upload failed: {str(e)}", exc_info=True)
                 raise FileUploadError(
                     message="Failed to upload file to storage",
-                    details={"error": str(e)}
+                    details={"error": str(e)},
                 )
 
             # Parse resume using file parser service
@@ -139,7 +128,9 @@ class ResumeService:
             try:
                 # Extract text from file using FileParserService
                 try:
-                    extracted_text = await FileParserService.parse_file(file.filename, content)
+                    extracted_text = await FileParserService.parse_file(
+                        file.filename, content
+                    )
                     resume_content = extracted_text
                 except Exception as e:
                     logger.warning(f"File parsing failed: {str(e)}")
@@ -155,13 +146,19 @@ class ResumeService:
                         tmp_file_path = tmp_file.name
 
                     try:
-                        parsed_data = await mcp_client.parse_resume(tmp_file_path, content)
+                        parsed_data = await mcp_client.parse_resume(
+                            tmp_file_path, content
+                        )
 
                         # Generate embedding for semantic search
-                        text_for_embedding = parsed_data.get("text_content") or extracted_text
+                        text_for_embedding = (
+                            parsed_data.get("text_content") or extracted_text
+                        )
                         if text_for_embedding:
                             try:
-                                embedding = await AIService.generate_embedding(text_for_embedding)
+                                embedding = await AIService.generate_embedding(
+                                    text_for_embedding
+                                )
                             except Exception as e:
                                 logger.warning(f"Embedding generation failed: {str(e)}")
 
@@ -177,9 +174,13 @@ class ResumeService:
                     # Still generate embedding from extracted text
                     if resume_content:
                         try:
-                            embedding = await AIService.generate_embedding(resume_content)
+                            embedding = await AIService.generate_embedding(
+                                resume_content
+                            )
                         except Exception as e:
-                            logger.warning(f"Embedding generation from extracted text failed: {str(e)}")
+                            logger.warning(
+                                f"Embedding generation from extracted text failed: {str(e)}"
+                            )
 
             except Exception as e:
                 logger.error(f"Resume parsing failed: {str(e)}", exc_info=True)
@@ -192,7 +193,11 @@ class ResumeService:
                     title=title,
                     file_path=s3_key,
                     content=resume_content,
-                    parsed_data=json.dumps(parsed_data, ensure_ascii=False) if parsed_data else None,
+                    parsed_data=(
+                        json.dumps(parsed_data, ensure_ascii=False)
+                        if parsed_data
+                        else None
+                    ),
                     embedding=embedding,
                 )
 
@@ -218,10 +223,12 @@ class ResumeService:
             # Re-raise our custom errors
             raise
         except Exception as e:
-            logger.error(f"Unexpected error during resume creation: {str(e)}", exc_info=True)
+            logger.error(
+                f"Unexpected error during resume creation: {str(e)}", exc_info=True
+            )
             raise FileUploadError(
                 message="Failed to create resume due to an unexpected error",
-                details={"error": str(e)}
+                details={"error": str(e)},
             )
         finally:
             # Ensure temporary file is cleaned up
@@ -257,18 +264,18 @@ class ResumeService:
             return resumes
 
         except Exception as e:
-            logger.error(f"Failed to retrieve resumes for user {user_id}: {str(e)}", exc_info=True)
+            logger.error(
+                f"Failed to retrieve resumes for user {user_id}: {str(e)}",
+                exc_info=True,
+            )
             raise DatabaseError(
                 message="Failed to retrieve resumes",
-                details={"user_id": str(user_id), "error": str(e)}
+                details={"user_id": str(user_id), "error": str(e)},
             )
 
     @staticmethod
     async def get_resumes_paginated(
-        db: AsyncSession,
-        user_id: uuid.UUID,
-        page: int = 1,
-        page_size: int = 20
+        db: AsyncSession, user_id: uuid.UUID, page: int = 1, page_size: int = 20
     ) -> tuple[list[Resume], int]:
         """
         Get paginated resumes for a user.
@@ -312,11 +319,11 @@ class ResumeService:
         except Exception as e:
             logger.error(
                 f"Failed to retrieve paginated resumes for user {user_id}: {str(e)}",
-                exc_info=True
+                exc_info=True,
             )
             raise DatabaseError(
                 message="Failed to retrieve resumes",
-                details={"user_id": str(user_id), "page": page, "error": str(e)}
+                details={"user_id": str(user_id), "page": page, "error": str(e)},
             )
 
     @staticmethod
@@ -348,7 +355,7 @@ class ResumeService:
                 logger.warning(f"Resume {resume_id} not found for user {user_id}")
                 raise NotFoundError(
                     resource="Resume",
-                    details={"resume_id": str(resume_id), "user_id": str(user_id)}
+                    details={"resume_id": str(resume_id), "user_id": str(user_id)},
                 )
 
             return resume
@@ -356,10 +363,12 @@ class ResumeService:
         except NotFoundError:
             raise
         except Exception as e:
-            logger.error(f"Failed to retrieve resume {resume_id}: {str(e)}", exc_info=True)
+            logger.error(
+                f"Failed to retrieve resume {resume_id}: {str(e)}", exc_info=True
+            )
             raise DatabaseError(
                 message="Failed to retrieve resume",
-                details={"resume_id": str(resume_id), "error": str(e)}
+                details={"resume_id": str(resume_id), "error": str(e)},
             )
 
     @staticmethod
@@ -393,8 +402,7 @@ class ResumeService:
             if update_data.title is not None:
                 if not update_data.title.strip():
                     raise ValidationError(
-                        message="Resume title cannot be empty",
-                        field="title"
+                        message="Resume title cannot be empty", field="title"
                     )
                 resume.title = update_data.title.strip()
 
@@ -412,10 +420,12 @@ class ResumeService:
         except (NotFoundError, ValidationError):
             raise
         except Exception as e:
-            logger.error(f"Unexpected error updating resume {resume_id}: {str(e)}", exc_info=True)
+            logger.error(
+                f"Unexpected error updating resume {resume_id}: {str(e)}", exc_info=True
+            )
             raise DatabaseError(
                 message="Failed to update resume",
-                details={"resume_id": str(resume_id), "error": str(e)}
+                details={"resume_id": str(resume_id), "error": str(e)},
             )
 
     @staticmethod
@@ -459,10 +469,12 @@ class ResumeService:
         except NotFoundError:
             raise
         except Exception as e:
-            logger.error(f"Unexpected error deleting resume {resume_id}: {str(e)}", exc_info=True)
+            logger.error(
+                f"Unexpected error deleting resume {resume_id}: {str(e)}", exc_info=True
+            )
             raise DatabaseError(
                 message="Failed to delete resume",
-                details={"resume_id": str(resume_id), "error": str(e)}
+                details={"resume_id": str(resume_id), "error": str(e)},
             )
 
     @staticmethod
@@ -497,8 +509,7 @@ class ResumeService:
                 content = await StorageService.download_file(resume.file_path)
                 if content is None:
                     raise NotFoundError(
-                        resource="Resume file",
-                        details={"file_path": resume.file_path}
+                        resource="Resume file", details={"file_path": resume.file_path}
                     )
             except NotFoundError:
                 raise
@@ -507,7 +518,7 @@ class ResumeService:
                 raise ExternalServiceError(
                     service="Storage Service",
                     message="Failed to download resume file",
-                    details={"file_path": resume.file_path, "error": str(e)}
+                    details={"file_path": resume.file_path, "error": str(e)},
                 )
 
             try:
@@ -522,13 +533,15 @@ class ResumeService:
                 try:
                     # Parse with MCP client
                     try:
-                        parsed_data = await mcp_client.parse_resume(tmp_file_path, content)
+                        parsed_data = await mcp_client.parse_resume(
+                            tmp_file_path, content
+                        )
                     except MCPError as e:
                         logger.error(f"MCP parsing failed: {str(e)}")
                         raise ExternalServiceError(
                             service="MCP Resume Parser",
                             message="Failed to parse resume",
-                            details={"error": str(e)}
+                            details={"error": str(e)},
                         )
 
                     # Update embedding
@@ -566,20 +579,26 @@ class ResumeService:
             except (ExternalServiceError, DatabaseError):
                 raise
             except Exception as e:
-                logger.error(f"Unexpected error during resume re-parsing: {str(e)}", exc_info=True)
+                logger.error(
+                    f"Unexpected error during resume re-parsing: {str(e)}",
+                    exc_info=True,
+                )
                 raise ExternalServiceError(
                     service="Resume Parser",
                     message="Failed to re-parse resume",
-                    details={"error": str(e)}
+                    details={"error": str(e)},
                 )
 
         except (NotFoundError, ExternalServiceError):
             raise
         except Exception as e:
-            logger.error(f"Unexpected error re-parsing resume {resume_id}: {str(e)}", exc_info=True)
+            logger.error(
+                f"Unexpected error re-parsing resume {resume_id}: {str(e)}",
+                exc_info=True,
+            )
             raise DatabaseError(
                 message="Failed to re-parse resume",
-                details={"resume_id": str(resume_id), "error": str(e)}
+                details={"resume_id": str(resume_id), "error": str(e)},
             )
         finally:
             # Ensure temporary file is cleaned up
@@ -613,15 +632,14 @@ class ResumeService:
             # Validate input
             if not resume_ids:
                 raise ValidationError(
-                    message="Resume IDs list cannot be empty",
-                    field="resume_ids"
+                    message="Resume IDs list cannot be empty", field="resume_ids"
                 )
 
             if len(resume_ids) > 100:
                 raise ValidationError(
                     message="Cannot delete more than 100 resumes at once",
                     field="resume_ids",
-                    details={"count": len(resume_ids), "max": 100}
+                    details={"count": len(resume_ids), "max": 100},
                 )
 
             # Validate all IDs are valid UUIDs
@@ -631,15 +649,14 @@ class ResumeService:
                 raise ValidationError(
                     message="Invalid resume ID format",
                     field="resume_ids",
-                    details={"error": str(e)}
+                    details={"error": str(e)},
                 )
 
             # Fetch all resumes that belong to the user
             try:
                 result = await db.execute(
                     select(Resume).where(
-                        Resume.id.in_(valid_ids),
-                        Resume.user_id == user_id
+                        Resume.id.in_(valid_ids), Resume.user_id == user_id
                     )
                 )
                 resumes = list(result.scalars().all())
@@ -648,13 +665,18 @@ class ResumeService:
                 # Identify IDs that weren't found
                 missing_ids = set(valid_ids) - found_ids
 
-                logger.info(f"Found {len(resumes)} out of {len(valid_ids)} resumes for user {user_id}")
+                logger.info(
+                    f"Found {len(resumes)} out of {len(valid_ids)} resumes for user {user_id}"
+                )
 
             except Exception as e:
-                logger.error(f"Failed to fetch resumes for bulk deletion: {str(e)}", exc_info=True)
+                logger.error(
+                    f"Failed to fetch resumes for bulk deletion: {str(e)}",
+                    exc_info=True,
+                )
                 raise DatabaseError(
                     message="Failed to fetch resumes for deletion",
-                    details={"user_id": str(user_id), "error": str(e)}
+                    details={"user_id": str(user_id), "error": str(e)},
                 )
 
             # Delete resumes one by one to handle partial failures
@@ -668,9 +690,13 @@ class ResumeService:
                     if resume.file_path:
                         try:
                             await StorageService.delete_file(resume.file_path)
-                            logger.debug(f"Deleted file from storage: {resume.file_path}")
+                            logger.debug(
+                                f"Deleted file from storage: {resume.file_path}"
+                            )
                         except Exception as e:
-                            logger.error(f"Failed to delete file {resume.file_path}: {str(e)}")
+                            logger.error(
+                                f"Failed to delete file {resume.file_path}: {str(e)}"
+                            )
                             # Continue with database deletion
 
                     # Delete database record
@@ -681,44 +707,48 @@ class ResumeService:
                 except Exception as e:
                     failed_count += 1
                     error_msg = str(e)
-                    errors.append({
-                        "id": str(resume.id),
-                        "error": error_msg
-                    })
+                    errors.append({"id": str(resume.id), "error": error_msg})
                     logger.error(f"Failed to delete resume {resume.id}: {error_msg}")
 
             # Add missing IDs to errors
             for missing_id in missing_ids:
                 failed_count += 1
-                errors.append({
-                    "id": str(missing_id),
-                    "error": "Resume not found or access denied"
-                })
+                errors.append(
+                    {
+                        "id": str(missing_id),
+                        "error": "Resume not found or access denied",
+                    }
+                )
 
             # Commit transaction if at least one deletion succeeded
             if success_count > 0:
                 try:
                     await db.commit()
-                    logger.info(f"Bulk delete completed: {success_count} succeeded, {failed_count} failed")
+                    logger.info(
+                        f"Bulk delete completed: {success_count} succeeded, {failed_count} failed"
+                    )
                 except Exception as e:
                     await db.rollback()
-                    logger.error(f"Failed to commit bulk delete transaction: {str(e)}", exc_info=True)
+                    logger.error(
+                        f"Failed to commit bulk delete transaction: {str(e)}",
+                        exc_info=True,
+                    )
                     raise DatabaseError(
                         message="Failed to commit bulk delete operation",
-                        details={"error": str(e)}
+                        details={"error": str(e)},
                     )
 
             return BulkDeleteResponse(
-                success_count=success_count,
-                failed_count=failed_count,
-                errors=errors
+                success_count=success_count, failed_count=failed_count, errors=errors
             )
 
         except (ValidationError, DatabaseError):
             raise
         except Exception as e:
-            logger.error(f"Unexpected error during bulk resume deletion: {str(e)}", exc_info=True)
+            logger.error(
+                f"Unexpected error during bulk resume deletion: {str(e)}", exc_info=True
+            )
             raise DatabaseError(
                 message="Failed to perform bulk delete operation",
-                details={"user_id": str(user_id), "error": str(e)}
+                details={"user_id": str(user_id), "error": str(e)},
             )

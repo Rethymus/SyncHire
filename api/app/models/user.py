@@ -9,6 +9,7 @@ import enum
 
 class NotificationFrequency(str, enum.Enum):
     """Email notification frequency options."""
+
     IMMEDIATE = "immediate"
     DAILY = "daily"
     WEEKLY = "weekly"
@@ -27,15 +28,19 @@ class User(Base):
     onboarding_completed_at = Column(DateTime, nullable=True)
 
     # Notification preferences
-    notification_preferences = Column(JSONB, nullable=True, default={
-        "email_enabled": True,
-        "application_status_updates": True,
-        "interview_reminders": True,
-        "weekly_digest": False,
-        "job_recommendations": True,
-        "profile_views": True,
-        "notification_frequency": NotificationFrequency.IMMEDIATE.value
-    })
+    notification_preferences = Column(
+        JSONB,
+        nullable=True,
+        default={
+            "email_enabled": True,
+            "application_status_updates": True,
+            "interview_reminders": True,
+            "weekly_digest": False,
+            "job_recommendations": True,
+            "profile_views": True,
+            "notification_frequency": NotificationFrequency.IMMEDIATE.value,
+        },
+    )
 
     # Email tracking
     email_unsubscribed = Column(Boolean, default=False)
@@ -53,18 +58,26 @@ class User(Base):
         "Resume", back_populates="user", order_by="Resume.created_at.desc()"
     )
     notifications = relationship(
-        "Notification", back_populates="user", order_by="Notification.created_at.desc()",
-        cascade="all, delete-orphan"
+        "Notification",
+        back_populates="user",
+        order_by="Notification.created_at.desc()",
+        cascade="all, delete-orphan",
     )
     search_history = relationship(
-        "SearchHistory", back_populates="user", order_by="SearchHistory.search_timestamp.desc()",
-        cascade="all, delete-orphan"
+        "SearchHistory",
+        back_populates="user",
+        order_by="SearchHistory.search_timestamp.desc()",
+        cascade="all, delete-orphan",
     )
     saved_searches = relationship(
-        "SavedSearch", back_populates="user", order_by="SavedSearch.created_at.desc()",
-        cascade="all, delete-orphan"
+        "SavedSearch",
+        back_populates="user",
+        order_by="SavedSearch.created_at.desc()",
+        cascade="all, delete-orphan",
     )
     search_analytics = relationship(
-        "SearchAnalytics", back_populates="user", order_by="SearchAnalytics.search_count.desc()",
-        cascade="all, delete-orphan"
+        "SearchAnalytics",
+        back_populates="user",
+        order_by="SearchAnalytics.search_count.desc()",
+        cascade="all, delete-orphan",
     )

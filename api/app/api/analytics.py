@@ -100,6 +100,7 @@ class ResumeStatistics(BaseModel):
 
 class DashboardResponse(BaseModel):
     """Consolidated dashboard data in a single response."""
+
     overview: StatsOverview
     success_rates: SuccessRateMetrics
     status_distribution: List[StatusDistribution]
@@ -486,7 +487,9 @@ async def get_dashboard_data(
         success_rates_data = calculate_success_rate(list(applications))
 
         success_rates = SuccessRateMetrics(
-            application_to_interview_rate=success_rates_data["application_to_interview_rate"],
+            application_to_interview_rate=success_rates_data[
+                "application_to_interview_rate"
+            ],
             interview_to_offer_rate=success_rates_data["interview_to_offer_rate"],
             overall_success_rate=success_rates_data["overall_success_rate"],
             average_match_score=success_rates_data["average_match_score"],
@@ -552,10 +555,16 @@ async def _get_overview_stats(db: AsyncSession, user_id: str) -> StatsOverview:
     stats_result = await db.execute(
         select(
             func.count(Application.id).label("total"),
-            func.sum(case((Application.status == "pending", 1), else_=0)).label("pending"),
-            func.sum(case((Application.status == "interview", 1), else_=0)).label("interviews"),
+            func.sum(case((Application.status == "pending", 1), else_=0)).label(
+                "pending"
+            ),
+            func.sum(case((Application.status == "interview", 1), else_=0)).label(
+                "interviews"
+            ),
             func.sum(case((Application.status == "offer", 1), else_=0)).label("offers"),
-            func.sum(case((Application.status == "rejected", 1), else_=0)).label("rejections"),
+            func.sum(case((Application.status == "rejected", 1), else_=0)).label(
+                "rejections"
+            ),
             func.sum(
                 case(
                     (Application.status.in_(["pending", "applied", "optimized"]), 1),
@@ -616,7 +625,10 @@ async def _get_recent_activity(
     search_result = await db.execute(
         select(SearchHistory)
         .where(
-            and_(SearchHistory.user_id == user_id, SearchHistory.created_at >= cutoff_date)
+            and_(
+                SearchHistory.user_id == user_id,
+                SearchHistory.created_at >= cutoff_date,
+            )
         )
         .order_by(SearchHistory.created_at.desc())
         .limit(5)
@@ -637,9 +649,7 @@ async def _get_recent_activity(
     return activities[:10]
 
 
-async def _get_search_statistics(
-    db: AsyncSession, user_id: str
-) -> SearchStatistics:
+async def _get_search_statistics(db: AsyncSession, user_id: str) -> SearchStatistics:
     """Get search-related statistics."""
     # Total searches
     total_searches = await db.execute(
@@ -655,7 +665,10 @@ async def _get_search_statistics(
     cutoff_date = datetime.utcnow() - timedelta(days=7)
     recent_searches = await db.execute(
         select(func.count(SearchHistory.id)).where(
-            and_(SearchHistory.user_id == user_id, SearchHistory.created_at >= cutoff_date)
+            and_(
+                SearchHistory.user_id == user_id,
+                SearchHistory.created_at >= cutoff_date,
+            )
         )
     )
 
@@ -668,9 +681,7 @@ async def _get_search_statistics(
     )
 
 
-async def _get_resume_statistics(
-    db: AsyncSession, user_id: str
-) -> ResumeStatistics:
+async def _get_resume_statistics(db: AsyncSession, user_id: str) -> ResumeStatistics:
     """Get resume-related statistics."""
     # Total resumes
     total_resumes = await db.execute(

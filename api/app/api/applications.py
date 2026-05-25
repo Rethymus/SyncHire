@@ -20,11 +20,13 @@ from pydantic import BaseModel
 
 class PaginatedApplicationResponse(BaseModel):
     """Paginated response for application list."""
+
     items: List[ApplicationResponse]
     total: int
     page: int
     page_size: int
     total_pages: int
+
 
 router = APIRouter(prefix="/applications", tags=["applications"])
 
@@ -170,5 +172,9 @@ async def bulk_delete_applications(
     - **failed_count**: Number of applications that failed to delete
     - **errors**: List of errors for failed deletions with ID and error message
     """
-    logger.info(f"Bulk delete request for {len(request.ids)} applications by user {current_user.id}")
-    return await ApplicationService.bulk_delete_applications(db, current_user.id, request.ids)
+    logger.info(
+        f"Bulk delete request for {len(request.ids)} applications by user {current_user.id}"
+    )
+    return await ApplicationService.bulk_delete_applications(
+        db, current_user.id, request.ids
+    )

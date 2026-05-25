@@ -266,9 +266,7 @@ class TestMCPClientWithDatabase:
         mock_database_operations,
     ):
         """Test saving parsed resume data to database."""
-        mock_httpx_client.post.return_value.json.return_value = (
-            mock_mcp_resume_response
-        )
+        mock_httpx_client.post.return_value.json.return_value = mock_mcp_resume_response
 
         with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             client = MCPClient()
@@ -294,9 +292,7 @@ class TestMCPClientWithDatabase:
         sample_jd_data,
     ):
         """Test saving match results to database."""
-        mock_httpx_client.post.return_value.json.return_value = (
-            mock_mcp_match_response
-        )
+        mock_httpx_client.post.return_value.json.return_value = mock_mcp_match_response
 
         with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             client = MCPClient()
@@ -327,9 +323,7 @@ class TestMCPClientRealWorldScenarios:
         mock_mcp_jd_response,
     ):
         """Test parsing multiple job descriptions in bulk."""
-        mock_httpx_client.post.return_value.json.return_value = (
-            mock_mcp_jd_response
-        )
+        mock_httpx_client.post.return_value.json.return_value = mock_mcp_jd_response
 
         jd_list = [f"Job description {i}" for i in range(10)]
 
@@ -381,9 +375,10 @@ class TestMCPClientRealWorldScenarios:
             )
 
             # Compare match scores
-            assert match_1_result["data"]["match_score"] != match_2_result[
-                "data"
-            ]["match_score"]
+            assert (
+                match_1_result["data"]["match_score"]
+                != match_2_result["data"]["match_score"]
+            )
 
     @pytest.mark.asyncio
     async def test_resume_optimization_iteration(
@@ -434,9 +429,7 @@ class TestMCPClientAPIIntegration:
         from fastapi.testclient import TestClient
         from app.main import app
 
-        mock_httpx_client.post.return_value.json.return_value = (
-            mock_mcp_resume_response
-        )
+        mock_httpx_client.post.return_value.json.return_value = mock_mcp_resume_response
 
         with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             with TestClient(app):
@@ -599,12 +592,14 @@ class TestMCPClientPerformanceIntegration:
         )
 
         # Verify all operations succeeded
-        assert all([
-            resume_result["success"],
-            jd_result["success"],
-            match_result["success"],
-            interview_result["success"],
-        ])
+        assert all(
+            [
+                resume_result["success"],
+                jd_result["success"],
+                match_result["success"],
+                interview_result["success"],
+            ]
+        )
 
     @pytest.mark.asyncio
     async def test_concurrent_workflow_performance(
@@ -616,9 +611,7 @@ class TestMCPClientPerformanceIntegration:
         import asyncio
         import time
 
-        mock_httpx_client.post.return_value.json.return_value = (
-            mock_mcp_jd_response
-        )
+        mock_httpx_client.post.return_value.json.return_value = mock_mcp_jd_response
 
         jd_list = [f"Job description {i}" for i in range(20)]
 
@@ -650,9 +643,7 @@ class TestMCPClientSecurity:
         mock_mcp_resume_response,
     ):
         """Test that sensitive data is handled properly."""
-        mock_httpx_client.post.return_value.json.return_value = (
-            mock_mcp_resume_response
-        )
+        mock_httpx_client.post.return_value.json.return_value = mock_mcp_resume_response
 
         with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             client = MCPClient()
@@ -670,9 +661,7 @@ class TestMCPClientSecurity:
         """Test that injection attacks are prevented."""
         malicious_content = "<script>alert('xss')</script>"
 
-        mock_httpx_client.post.return_value.json.return_value = (
-            mock_mcp_jd_response
-        )
+        mock_httpx_client.post.return_value.json.return_value = mock_mcp_jd_response
 
         with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             client = MCPClient()
@@ -688,9 +677,7 @@ class TestMCPClientSecurity:
         mock_mcp_jd_response,
     ):
         """Test rate limiting behavior."""
-        mock_httpx_client.post.return_value.json.return_value = (
-            mock_mcp_jd_response
-        )
+        mock_httpx_client.post.return_value.json.return_value = mock_mcp_jd_response
 
         with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             client = MCPClient()
