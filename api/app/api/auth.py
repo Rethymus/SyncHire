@@ -7,7 +7,6 @@ from app.core.errors import (
     AuthenticationError,
     ValidationError,
     RateLimitError,
-    handle_database_error,
 )
 from app.schemas.user import UserCreate, UserLogin, UserResponse, Token, TokenRefresh
 from app.services.auth_service import AuthService

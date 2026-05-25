@@ -1,12 +1,16 @@
 import uuid
 import json
+from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, status
 from app.models.jd import JD
-from app.schemas.jd import JDCreate, JDUpdate
+from app.schemas.jd import JDCreate, JDUpdate, BulkDeleteResponse
 from app.services.ai_service import AIService
 from app.services.mcp_client import mcp_client, MCPError
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class JDService:
@@ -111,3 +115,99 @@ class JDService:
         jd = await JDService.get_jd(db, jd_id, user_id)
         await db.delete(jd)
         await db.commit()
+
+    @staticmethod
+    async def bulk_delete_jds(
+        db: AsyncSession,
+        user_id: uuid.UUID,
+        jd_ids: List[uuid.UUID],
+    ) -> BulkDeleteResponse:
+        """
+        Bulk delete job descriptions with comprehensive error handling and partial failure support
+
+        Args:
+            db: Database session
+            user_id: User ID
+            jd_ids: List of JD IDs to delete
+
+        Returns:
+            BulkDeleteResponse with success/failure counts and error details
+
+        Raises:
+            ValidationError: If input data is invalid
+        """
+        try:
+            # Validate input
+            if not jd_ids:
+                raise ValueError("JD IDs list cannot be empty")
+
+            if len(jd_ids) > 100:
+                raise ValueError("Cannot delete more than 100 JDs at once")
+
+            # Validate all IDs are valid UUIDs
+            try:
+                valid_ids = [uuid.UUID(str(jd_id)) for jd_id in jd_ids]
+            except ValueError as e:
+                raise ValueError(f"Invalid JD ID format: {e}")
+
+            # Fetch all JDs that belong to the user
+            result = await db.execute(
+                select(JD).where(
+                    JD.id.in_(valid_ids),
+                    JD.user_id == user_id
+                )
+            )
+            jds = list(result.scalars().all())
+            found_ids = {jd.id for jd in jds}
+
+            # Identify IDs that weren't found
+            missing_ids = set(valid_ids) - found_ids
+
+            logger.info(f"Found {len(jds)} out of {len(valid_ids)} JDs for user {user_id}")
+
+            # Delete JDs one by one to handle partial failures
+            success_count = 0
+            failed_count = 0
+            errors = []
+
+            for jd in jds:
+                try:
+                    await db.delete(jd)
+                    success_count += 1
+                    logger.debug(f"Successfully deleted JD {jd.id}")
+                except Exception as e:
+                    failed_count += 1
+                    error_msg = str(e)
+                    errors.append({
+                        "id": str(jd.id),
+                        "error": error_msg
+                    })
+                    logger.error(f"Failed to delete JD {jd.id}: {error_msg}")
+
+            # Add missing IDs to errors
+            for missing_id in missing_ids:
+                failed_count += 1
+                errors.append({
+                    "id": str(missing_id),
+                    "error": "JD not found or access denied"
+                })
+
+            # Commit transaction if at least one deletion succeeded
+            if success_count > 0:
+                try:
+                    await db.commit()
+                    logger.info(f"Bulk delete completed: {success_count} succeeded, {failed_count} failed")
+                except Exception as e:
+                    await db.rollback()
+                    logger.error(f"Failed to commit bulk delete transaction: {e}")
+                    raise
+
+            return BulkDeleteResponse(
+                success_count=success_count,
+                failed_count=failed_count,
+                errors=errors
+            )
+
+        except Exception as e:
+            logger.error(f"Unexpected error during bulk JD deletion: {e}")
+            raise

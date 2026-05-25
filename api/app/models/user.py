@@ -56,3 +56,15 @@ class User(Base):
         "Notification", back_populates="user", order_by="Notification.created_at.desc()",
         cascade="all, delete-orphan"
     )
+    search_history = relationship(
+        "SearchHistory", back_populates="user", order_by="SearchHistory.search_timestamp.desc()",
+        cascade="all, delete-orphan"
+    )
+    saved_searches = relationship(
+        "SavedSearch", back_populates="user", order_by="SavedSearch.created_at.desc()",
+        cascade="all, delete-orphan"
+    )
+    search_analytics = relationship(
+        "SearchAnalytics", back_populates="user", order_by="SearchAnalytics.search_count.desc()",
+        cascade="all, delete-orphan"
+    )

@@ -5,11 +5,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
+from app.core.logger import logger, LogCategory
 from app.schemas.application import (
     ApplicationCreate,
     ApplicationUpdate,
     ApplicationResponse,
     ApplicationStatusUpdate,
+    BulkDeleteRequest,
+    BulkDeleteResponse,
 )
 from app.services.application_service import ApplicationService
 
@@ -119,3 +122,24 @@ async def delete_application(
 ):
     await ApplicationService.delete_application(db, application_id, current_user.id)
     return None
+
+
+@router.post("/bulk-delete", response_model=BulkDeleteResponse)
+async def bulk_delete_applications(
+    request: BulkDeleteRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Bulk delete multiple applications
+
+    Deletes multiple applications by IDs with partial failure support.
+    Returns detailed information about successful and failed deletions.
+
+    - **ids**: List of application IDs to delete (max 100 at once)
+    - **success_count**: Number of successfully deleted applications
+    - **failed_count**: Number of applications that failed to delete
+    - **errors**: List of errors for failed deletions with ID and error message
+    """
+    logger.info(f"Bulk delete request for {len(request.ids)} applications by user {current_user.id}")
+    return await ApplicationService.bulk_delete_applications(db, current_user.id, request.ids)

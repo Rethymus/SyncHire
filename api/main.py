@@ -13,7 +13,7 @@ from app.core.errors import (
     http_error_handler,
     general_error_handler,
 )
-from app.api import auth, resumes, jds, applications, search, notifications, analytics
+from app.api import auth, resumes, jds, applications, search, notifications, analytics, search_history
 from app.services.storage_service import StorageService
 from app.services.email_service import email_service
 from app.middleware.rate_limit import RateLimitMiddleware
@@ -74,6 +74,7 @@ app.include_router(resumes.router, prefix="/api")
 app.include_router(jds.router, prefix="/api")
 app.include_router(applications.router, prefix="/api")
 app.include_router(search.router, prefix="/api")
+app.include_router(search_history.router, prefix="/api")
 app.include_router(notifications.router)
 app.include_router(analytics.router, prefix="/api")
 

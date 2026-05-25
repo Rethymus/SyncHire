@@ -3,11 +3,12 @@ import uuid
 import tempfile
 import os
 from pathlib import Path
+from typing import List, Dict
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from fastapi import HTTPException, status, UploadFile
 from app.models.resume import Resume
-from app.schemas.resume import ResumeUpdate
+from app.schemas.resume import ResumeUpdate, BulkDeleteResponse
 from app.core.config import get_settings
 from app.core.errors import (
     ValidationError,
@@ -531,3 +532,137 @@ class ResumeService:
                     os.remove(tmp_file_path)
                 except Exception as e:
                     logger.error(f"Failed to cleanup temporary file: {e}")
+
+    @staticmethod
+    async def bulk_delete_resumes(
+        db: AsyncSession,
+        user_id: uuid.UUID,
+        resume_ids: List[uuid.UUID],
+    ) -> BulkDeleteResponse:
+        """
+        Bulk delete resumes with comprehensive error handling and partial failure support
+
+        Args:
+            db: Database session
+            user_id: User ID
+            resume_ids: List of resume IDs to delete
+
+        Returns:
+            BulkDeleteResponse with success/failure counts and error details
+
+        Raises:
+            ValidationError: If input data is invalid
+        """
+        try:
+            # Validate input
+            if not resume_ids:
+                raise ValidationError(
+                    message="Resume IDs list cannot be empty",
+                    field="resume_ids"
+                )
+
+            if len(resume_ids) > 100:
+                raise ValidationError(
+                    message="Cannot delete more than 100 resumes at once",
+                    field="resume_ids",
+                    details={"count": len(resume_ids), "max": 100}
+                )
+
+            # Validate all IDs are valid UUIDs
+            try:
+                valid_ids = [uuid.UUID(str(resume_id)) for resume_id in resume_ids]
+            except ValueError as e:
+                raise ValidationError(
+                    message="Invalid resume ID format",
+                    field="resume_ids",
+                    details={"error": str(e)}
+                )
+
+            # Fetch all resumes that belong to the user
+            try:
+                result = await db.execute(
+                    select(Resume).where(
+                        Resume.id.in_(valid_ids),
+                        Resume.user_id == user_id
+                    )
+                )
+                resumes = list(result.scalars().all())
+                found_ids = {resume.id for resume in resumes}
+
+                # Identify IDs that weren't found
+                missing_ids = set(valid_ids) - found_ids
+
+                logger.info(f"Found {len(resumes)} out of {len(valid_ids)} resumes for user {user_id}")
+
+            except Exception as e:
+                logger.error(f"Failed to fetch resumes for bulk deletion: {str(e)}", exc_info=True)
+                raise DatabaseError(
+                    message="Failed to fetch resumes for deletion",
+                    details={"user_id": str(user_id), "error": str(e)}
+                )
+
+            # Delete resumes one by one to handle partial failures
+            success_count = 0
+            failed_count = 0
+            errors = []
+
+            for resume in resumes:
+                try:
+                    # Delete file from storage
+                    if resume.file_path:
+                        try:
+                            await StorageService.delete_file(resume.file_path)
+                            logger.debug(f"Deleted file from storage: {resume.file_path}")
+                        except Exception as e:
+                            logger.error(f"Failed to delete file {resume.file_path}: {str(e)}")
+                            # Continue with database deletion
+
+                    # Delete database record
+                    await db.delete(resume)
+                    success_count += 1
+                    logger.debug(f"Successfully deleted resume {resume.id}")
+
+                except Exception as e:
+                    failed_count += 1
+                    error_msg = str(e)
+                    errors.append({
+                        "id": str(resume.id),
+                        "error": error_msg
+                    })
+                    logger.error(f"Failed to delete resume {resume.id}: {error_msg}")
+
+            # Add missing IDs to errors
+            for missing_id in missing_ids:
+                failed_count += 1
+                errors.append({
+                    "id": str(missing_id),
+                    "error": "Resume not found or access denied"
+                })
+
+            # Commit transaction if at least one deletion succeeded
+            if success_count > 0:
+                try:
+                    await db.commit()
+                    logger.info(f"Bulk delete completed: {success_count} succeeded, {failed_count} failed")
+                except Exception as e:
+                    await db.rollback()
+                    logger.error(f"Failed to commit bulk delete transaction: {str(e)}", exc_info=True)
+                    raise DatabaseError(
+                        message="Failed to commit bulk delete operation",
+                        details={"error": str(e)}
+                    )
+
+            return BulkDeleteResponse(
+                success_count=success_count,
+                failed_count=failed_count,
+                errors=errors
+            )
+
+        except (ValidationError, DatabaseError):
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during bulk resume deletion: {str(e)}", exc_info=True)
+            raise DatabaseError(
+                message="Failed to perform bulk delete operation",
+                details={"user_id": str(user_id), "error": str(e)}
+            )

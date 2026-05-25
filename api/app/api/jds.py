@@ -12,6 +12,8 @@ from app.schemas.jd import (
     JDParse,
     JDParseResponse,
     JDFileUploadResponse,
+    BulkDeleteRequest,
+    BulkDeleteResponse,
 )
 from app.services.jd_service import JDService
 from app.services.file_parser import FileParserService
@@ -115,6 +117,27 @@ async def delete_jd(
 ):
     await JDService.delete_jd(db, jd_id, current_user.id)
     return None
+
+
+@router.post("/bulk-delete", response_model=BulkDeleteResponse)
+async def bulk_delete_jds(
+    request: BulkDeleteRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Bulk delete multiple job descriptions
+
+    Deletes multiple JDs by IDs with partial failure support.
+    Returns detailed information about successful and failed deletions.
+
+    - **ids**: List of JD IDs to delete (max 100 at once)
+    - **success_count**: Number of successfully deleted JDs
+    - **failed_count**: Number of JDs that failed to delete
+    - **errors**: List of errors for failed deletions with ID and error message
+    """
+    logger.info(f"Bulk delete request for {len(request.ids)} JDs by user {current_user.id}")
+    return await JDService.bulk_delete_jds(db, current_user.id, request.ids)
 
 
 @router.post("/import-url", response_model=JDFileUploadResponse, status_code=status.HTTP_201_CREATED)

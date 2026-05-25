@@ -226,6 +226,13 @@ export const resumeAPI = {
       keywords_added: string[];
       sections_improved: string[];
     }>(`/resumes/${id}/optimize`, { jd_content: jdContent }),
+
+  bulkDelete: (ids: string[]) =>
+    apiClient.post<{
+      success_count: number;
+      failed_count: number;
+      errors: Array<{ id: string; error: string }>;
+    }>('/resumes/bulk-delete', { ids }),
 };
 
 // Job Description API endpoints
@@ -280,6 +287,13 @@ export const jdAPI = {
       body: formData,
     });
   },
+
+  bulkDelete: (ids: string[]) =>
+    apiClient.post<{
+      success_count: number;
+      failed_count: number;
+      errors: Array<{ id: string; error: string }>;
+    }>('/jds/bulk-delete', { ids }),
 };
 
 // Application API endpoints
@@ -380,6 +394,13 @@ export const applicationAPI = {
     }>(`/applications/${id}/status`, data),
 
   delete: (id: string) => apiClient.delete<void>(`/applications/${id}`),
+
+  bulkDelete: (ids: string[]) =>
+    apiClient.post<{
+      success_count: number;
+      failed_count: number;
+      errors: Array<{ id: string; error: string }>;
+    }>('/applications/bulk-delete', { ids }),
 
   getMatchScore: (id: string) =>
     apiClient.get<{

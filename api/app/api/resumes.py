@@ -11,6 +11,8 @@ from app.schemas.resume import (
     ResumeResponse,
     ResumeUpdate,
     ResumeExportRequest,
+    BulkDeleteRequest,
+    BulkDeleteResponse,
 )
 from app.services.resume_service import ResumeService
 from app.services.ai_service import AIService
@@ -68,6 +70,27 @@ async def delete_resume(
     current_user: User = Depends(get_current_user),
 ):
     await ResumeService.delete_resume(db, resume_id, current_user.id)
+
+
+@router.post("/bulk-delete", response_model=BulkDeleteResponse)
+async def bulk_delete_resumes(
+    request: BulkDeleteRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Bulk delete multiple resumes
+
+    Deletes multiple resumes by IDs with partial failure support.
+    Returns detailed information about successful and failed deletions.
+
+    - **ids**: List of resume IDs to delete (max 100 at once)
+    - **success_count**: Number of successfully deleted resumes
+    - **failed_count**: Number of resumes that failed to delete
+    - **errors**: List of errors for failed deletions with ID and error message
+    """
+    logger.info(f"Bulk delete request for {len(request.ids)} resumes by user {current_user.id}")
+    return await ResumeService.bulk_delete_resumes(db, current_user.id, request.ids)
 
 
 @router.post("/{resume_id}/reparse", response_model=ResumeResponse)

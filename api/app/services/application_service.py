@@ -1,5 +1,6 @@
 import json
 import uuid
+from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, status
@@ -9,6 +10,7 @@ from app.schemas.application import (
     ApplicationCreate,
     ApplicationUpdate,
     ApplicationStatusUpdate,
+    BulkDeleteResponse,
 )
 from app.services.resume_service import ResumeService
 from app.services.jd_service import JDService
@@ -416,3 +418,128 @@ class ApplicationService:
         )
         await db.delete(application)
         await db.commit()
+
+    @staticmethod
+    async def bulk_delete_applications(
+        db: AsyncSession,
+        user_id: uuid.UUID,
+        application_ids: List[uuid.UUID],
+    ) -> BulkDeleteResponse:
+        """
+        Bulk delete applications with comprehensive error handling and partial failure support
+
+        Args:
+            db: Database session
+            user_id: User ID
+            application_ids: List of application IDs to delete
+
+        Returns:
+            BulkDeleteResponse with success/failure counts and error details
+
+        Raises:
+            ValidationError: If input data is invalid
+        """
+        try:
+            # Validate input
+            if not application_ids:
+                raise ValidationError(
+                    message="Application IDs list cannot be empty",
+                    field="application_ids"
+                )
+
+            if len(application_ids) > 100:
+                raise ValidationError(
+                    message="Cannot delete more than 100 applications at once",
+                    field="application_ids",
+                    details={"count": len(application_ids), "max": 100}
+                )
+
+            # Validate all IDs are valid UUIDs
+            try:
+                valid_ids = [uuid.UUID(str(app_id)) for app_id in application_ids]
+            except ValueError as e:
+                raise ValidationError(
+                    message="Invalid application ID format",
+                    field="application_ids",
+                    details={"error": str(e)}
+                )
+
+            # Fetch all applications that belong to the user
+            try:
+                result = await db.execute(
+                    select(Application).where(
+                        Application.id.in_(valid_ids),
+                        Application.user_id == user_id
+                    )
+                )
+                applications = list(result.scalars().all())
+                found_ids = {app.id for app in applications}
+
+                # Identify IDs that weren't found
+                missing_ids = set(valid_ids) - found_ids
+
+                logger.info(f"Found {len(applications)} out of {len(valid_ids)} applications for user {user_id}")
+
+            except Exception as e:
+                logger.error(f"Failed to fetch applications for bulk deletion: {str(e)}", exc_info=True)
+                raise DatabaseError(
+                    message="Failed to fetch applications for deletion",
+                    details={"user_id": str(user_id), "error": str(e)}
+                )
+
+            # Delete applications one by one to handle partial failures
+            success_count = 0
+            failed_count = 0
+            errors = []
+
+            for application in applications:
+                try:
+                    # Delete database record
+                    await db.delete(application)
+                    success_count += 1
+                    logger.debug(f"Successfully deleted application {application.id}")
+
+                except Exception as e:
+                    failed_count += 1
+                    error_msg = str(e)
+                    errors.append({
+                        "id": str(application.id),
+                        "error": error_msg
+                    })
+                    logger.error(f"Failed to delete application {application.id}: {error_msg}")
+
+            # Add missing IDs to errors
+            for missing_id in missing_ids:
+                failed_count += 1
+                errors.append({
+                    "id": str(missing_id),
+                    "error": "Application not found or access denied"
+                })
+
+            # Commit transaction if at least one deletion succeeded
+            if success_count > 0:
+                try:
+                    await db.commit()
+                    logger.info(f"Bulk delete completed: {success_count} succeeded, {failed_count} failed")
+                except Exception as e:
+                    await db.rollback()
+                    logger.error(f"Failed to commit bulk delete transaction: {str(e)}", exc_info=True)
+                    raise DatabaseError(
+                        message="Failed to commit bulk delete operation",
+                        details={"error": str(e)}
+                    )
+
+            return BulkDeleteResponse(
+                success_count=success_count,
+                failed_count=failed_count,
+                errors=errors
+            )
+
+        except (ValidationError, DatabaseError):
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during bulk application deletion: {str(e)}", exc_info=True)
+            raise DatabaseError(
+                message="Failed to perform bulk delete operation",
+                details={"user_id": str(user_id), "error": str(e)}
+            )
