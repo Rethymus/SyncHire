@@ -2,7 +2,7 @@ import json
 import uuid
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from fastapi import HTTPException, status
 from app.models.application import Application
 from app.models.application_status_history import ApplicationStatusHistory
@@ -140,6 +140,69 @@ class ApplicationService:
                 app.status_history = history_map.get(app.id, [])
 
         return applications
+
+    @staticmethod
+    async def get_applications_paginated(
+        db: AsyncSession,
+        user_id: uuid.UUID,
+        page: int = 1,
+        page_size: int = 20
+    ) -> tuple[list[Application], int]:
+        """
+        Get paginated applications for a user with eager loading of status histories.
+
+        Args:
+            db: Database session
+            user_id: User ID
+            page: Page number (1-indexed)
+            page_size: Number of items per page
+
+        Returns:
+            Tuple of (applications list, total count)
+        """
+        # Get total count
+        count_result = await db.execute(
+            select(func.count(Application.id)).where(Application.user_id == user_id)
+        )
+        total = count_result.scalar() or 0
+
+        # Get paginated results
+        offset = (page - 1) * page_size
+        result = await db.execute(
+            select(Application)
+            .where(Application.user_id == user_id)
+            .order_by(Application.created_at.desc())
+            .offset(offset)
+            .limit(page_size)
+        )
+        applications = list(result.scalars().all())
+
+        # Eager load status histories in single query to avoid N+1 problem
+        if applications:
+            app_ids = [app.id for app in applications]
+            history_result = await db.execute(
+                select(ApplicationStatusHistory)
+                .where(ApplicationStatusHistory.application_id.in_(app_ids))
+                .order_by(ApplicationStatusHistory.application_id, ApplicationStatusHistory.changed_at.desc())
+            )
+            histories = list(history_result.scalars().all())
+
+            # Group histories by application
+            history_map: dict[uuid.UUID, list[ApplicationStatusHistory]] = {}
+            for history in histories:
+                if history.application_id not in history_map:
+                    history_map[history.application_id] = []
+                history_map[history.application_id].append(history)
+
+            # Assign histories to applications
+            for app in applications:
+                app.status_history = history_map.get(app.id, [])
+
+        logger.info(
+            f"Retrieved {len(applications)} applications for user {user_id} "
+            f"(page {page}, page_size {page_size}, total {total})"
+        )
+        return applications, total
 
     @staticmethod
     async def get_application(

@@ -2,7 +2,7 @@ import uuid
 import json
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from fastapi import HTTPException, status
 from app.models.jd import JD
 from app.schemas.jd import JDCreate, JDUpdate, BulkDeleteResponse
@@ -59,6 +59,48 @@ class JDService:
             select(JD).where(JD.user_id == user_id).order_by(JD.created_at.desc())
         )
         return list(result.scalars().all())
+
+    @staticmethod
+    async def get_jds_paginated(
+        db: AsyncSession,
+        user_id: uuid.UUID,
+        page: int = 1,
+        page_size: int = 20
+    ) -> tuple[list[JD], int]:
+        """
+        Get paginated JDs for a user.
+
+        Args:
+            db: Database session
+            user_id: User ID
+            page: Page number (1-indexed)
+            page_size: Number of items per page
+
+        Returns:
+            Tuple of (JDs list, total count)
+        """
+        # Get total count
+        count_result = await db.execute(
+            select(func.count(JD.id)).where(JD.user_id == user_id)
+        )
+        total = count_result.scalar() or 0
+
+        # Get paginated results
+        offset = (page - 1) * page_size
+        result = await db.execute(
+            select(JD)
+            .where(JD.user_id == user_id)
+            .order_by(JD.created_at.desc())
+            .offset(offset)
+            .limit(page_size)
+        )
+        jds = list(result.scalars().all())
+
+        logger.info(
+            f"Retrieved {len(jds)} JDs for user {user_id} "
+            f"(page {page}, page_size {page_size}, total {total})"
+        )
+        return jds, total
 
     @staticmethod
     async def get_jd(db: AsyncSession, jd_id: uuid.UUID, user_id: uuid.UUID) -> JD:

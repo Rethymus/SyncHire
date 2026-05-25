@@ -1,6 +1,6 @@
 import uuid
 from typing import List
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.deps import get_current_user
@@ -15,6 +15,16 @@ from app.schemas.application import (
     BulkDeleteResponse,
 )
 from app.services.application_service import ApplicationService
+from pydantic import BaseModel
+
+
+class PaginatedApplicationResponse(BaseModel):
+    """Paginated response for application list."""
+    items: List[ApplicationResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
 
 router = APIRouter(prefix="/applications", tags=["applications"])
 
@@ -30,12 +40,31 @@ async def create_application(
     return await ApplicationService.create_application(db, current_user.id, app_data)
 
 
-@router.get("/", response_model=List[ApplicationResponse])
+@router.get("/", response_model=PaginatedApplicationResponse)
 async def list_applications(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(20, ge=1, le=100, description="Results per page"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return await ApplicationService.get_applications(db, current_user.id)
+    """
+    List applications with pagination.
+
+    Returns paginated list of applications with metadata for navigation.
+    """
+    applications, total = await ApplicationService.get_applications_paginated(
+        db, current_user.id, page, page_size
+    )
+
+    total_pages = (total + page_size - 1) // page_size
+
+    return PaginatedApplicationResponse(
+        items=applications,
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+    )
 
 
 @router.get("/{application_id}/match")

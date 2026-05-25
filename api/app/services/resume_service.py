@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from fastapi import UploadFile
 from app.models.resume import Resume
 from app.schemas.resume import ResumeUpdate, BulkDeleteResponse
@@ -261,6 +261,62 @@ class ResumeService:
             raise DatabaseError(
                 message="Failed to retrieve resumes",
                 details={"user_id": str(user_id), "error": str(e)}
+            )
+
+    @staticmethod
+    async def get_resumes_paginated(
+        db: AsyncSession,
+        user_id: uuid.UUID,
+        page: int = 1,
+        page_size: int = 20
+    ) -> tuple[list[Resume], int]:
+        """
+        Get paginated resumes for a user.
+
+        Args:
+            db: Database session
+            user_id: User ID
+            page: Page number (1-indexed)
+            page_size: Number of items per page
+
+        Returns:
+            Tuple of (resumes list, total count)
+
+        Raises:
+            DatabaseError: If database operation fails
+        """
+        try:
+            # Get total count
+            count_result = await db.execute(
+                select(func.count(Resume.id)).where(Resume.user_id == user_id)
+            )
+            total = count_result.scalar() or 0
+
+            # Get paginated results
+            offset = (page - 1) * page_size
+            result = await db.execute(
+                select(Resume)
+                .where(Resume.user_id == user_id)
+                .order_by(Resume.created_at.desc())
+                .offset(offset)
+                .limit(page_size)
+            )
+            resumes = list(result.scalars().all())
+
+            logger.info(
+                f"Retrieved {len(resumes)} resumes for user {user_id} "
+                f"(page {page}, page_size {page_size}, total {total})"
+            )
+            return resumes, total
+
+        except Exception as e:
+            logger.error(
+                f"Failed to retrieve paginated resumes for user {user_id}: {str(e)}",
+                exc_info=True
+            )
+            raise DatabaseError(
+                message="Failed to retrieve resumes",
+                details={"user_id": str(user_id), "page": page, "error": str(e)}
             )
 
     @staticmethod

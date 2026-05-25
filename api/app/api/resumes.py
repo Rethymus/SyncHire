@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 import tempfile
 from typing import List
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, status
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, status, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
@@ -20,8 +20,18 @@ from app.services.resume_service import ResumeService
 from app.services.ai_service import AIService
 from app.services.pdf_generator import get_pdf_generator, PDFGenerationOptions
 from app.middleware.rate_limit import rate_limit, RateLimitType
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
+
+
+class PaginatedResumeResponse(BaseModel):
+    """Paginated response for resume list."""
+    items: List[ResumeResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
 
 router = APIRouter(prefix="/resumes", tags=["resumes"])
 
@@ -37,12 +47,31 @@ async def upload_resume(
     return await ResumeService.create_resume(db, current_user.id, file, title)
 
 
-@router.get("/", response_model=List[ResumeResponse])
+@router.get("/", response_model=PaginatedResumeResponse)
 async def list_resumes(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(20, ge=1, le=100, description="Results per page"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return await ResumeService.get_resumes(db, current_user.id)
+    """
+    List resumes with pagination.
+
+    Returns paginated list of resumes with metadata for navigation.
+    """
+    resumes, total = await ResumeService.get_resumes_paginated(
+        db, current_user.id, page, page_size
+    )
+
+    total_pages = (total + page_size - 1) // page_size  # Ceiling division
+
+    return PaginatedResumeResponse(
+        items=resumes,
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+    )
 
 
 @router.get("/{resume_id}", response_model=ResumeResponse)

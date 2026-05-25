@@ -1,7 +1,7 @@
 import uuid
 import logging
 from typing import List
-from fastapi import APIRouter, Depends, status, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, status, UploadFile, File, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.deps import get_current_user
@@ -19,8 +19,18 @@ from app.schemas.jd import (
 from app.services.jd_service import JDService
 from app.services.file_parser import FileParserService
 from app.middleware.rate_limit import rate_limit, RateLimitType
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
+
+
+class PaginatedJDResponse(BaseModel):
+    """Paginated response for JD list."""
+    items: List[JDResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
 
 router = APIRouter(prefix="/jds", tags=["jds"])
 
@@ -85,12 +95,31 @@ async def create_jd(
     return await JDService.create_jd(db, current_user.id, jd_data)
 
 
-@router.get("/", response_model=List[JDResponse])
+@router.get("/", response_model=PaginatedJDResponse)
 async def list_jds(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(20, ge=1, le=100, description="Results per page"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return await JDService.get_jds(db, current_user.id)
+    """
+    List job descriptions with pagination.
+
+    Returns paginated list of JDs with metadata for navigation.
+    """
+    jds, total = await JDService.get_jds_paginated(
+        db, current_user.id, page, page_size
+    )
+
+    total_pages = (total + page_size - 1) // page_size
+
+    return PaginatedJDResponse(
+        items=jds,
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+    )
 
 
 @router.get("/{jd_id}", response_model=JDResponse)
