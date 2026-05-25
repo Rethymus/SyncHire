@@ -26,6 +26,7 @@ function JDFileUploadComponent({
 }: JDFileUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
@@ -61,10 +62,16 @@ function JDFileUploadComponent({
     }
 
     setIsUploading(true);
+    setUploadProgress(0);
 
     try {
       const formData = new FormData();
       formData.append("file", file);
+
+      // Simulate progress for small files (actual progress tracking requires backend support)
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 10, 90));
+      }, 200);
 
       const response = await fetch("/api/jds/upload", {
         method: "POST",
@@ -73,6 +80,9 @@ function JDFileUploadComponent({
         },
         body: formData,
       });
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ detail: "Upload failed" }));

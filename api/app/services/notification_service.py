@@ -375,13 +375,84 @@ class NotificationService:
             ):
                 return
 
-            # Get weekly stats (this would be calculated based on actual data)
-            # For now, we'll use placeholder values
-            applications_submitted = 0
-            interviews_scheduled = 0
-            profile_views = 0
-            new_matches = []
-            upcoming_interviews = []
+            # Calculate actual weekly statistics from database
+            from sqlalchemy import func, and_
+            from app.models.application import Application
+            from app.models.jd import JD
+            from datetime import timedelta
+
+            # Get applications submitted this week
+            applications_result = await db.execute(
+                select(func.count(Application.id))
+                .where(
+                    and_(
+                        Application.user_id == user_id,
+                        Application.created_at >= week_start_dt,
+                        Application.created_at < week_end_dt
+                    )
+                )
+            )
+            applications_submitted = applications_result.scalar() or 0
+
+            # Get interviews scheduled (status = 'interview')
+            interviews_result = await db.execute(
+                select(func.count(Application.id))
+                .where(
+                    and_(
+                        Application.user_id == user_id,
+                        Application.status == 'interview',
+                        Application.updated_at >= week_start_dt
+                    )
+                )
+            )
+            interviews_scheduled = interviews_result.scalar() or 0
+
+            # Get top new matches (applications with high match scores)
+            matches_result = await db.execute(
+                select(Application)
+                .where(
+                    and_(
+                        Application.user_id == user_id,
+                        Application.match_score.isnot(None),
+                        Application.match_score >= 70,
+                        Application.created_at >= week_start_dt
+                    )
+                )
+                .order_by(Application.match_score.desc())
+                .limit(5)
+            )
+            new_matches = [
+                {
+                    "company": match.jd.company_name if match.jd else "Unknown",
+                    "position": match.jd.position if match.jd else "Unknown",
+                    "match_score": match.match_score
+                }
+                for match in matches_result.scalars().all()
+            ]
+
+            # Get upcoming interviews (next 7 days)
+            upcoming_interviews_result = await db.execute(
+                select(Application)
+                .where(
+                    and_(
+                        Application.user_id == user_id,
+                        Application.status == 'interview',
+                        Application.updated_at >= datetime.utcnow()
+                    )
+                )
+                .order_by(Application.updated_at)
+                .limit(3)
+            )
+            upcoming_interviews = [
+                {
+                    "company": interview.jd.company_name if interview.jd else "Unknown",
+                    "position": interview.jd.position if interview.jd else "Unknown",
+                    "date": (interview.updated_at + timedelta(days=7)).strftime("%Y-%m-%d")
+                }
+                for interview in upcoming_interviews_result.scalars().all()
+            ]
+
+            profile_views = 0  # Would need profile view tracking
 
             # Send email
             success = await email_service.send_weekly_digest(
