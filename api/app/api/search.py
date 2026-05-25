@@ -1,7 +1,7 @@
 import uuid
 from typing import List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, text, and_, or_
 from app.core.database import get_db
@@ -11,6 +11,7 @@ from app.models.resume import Resume
 from app.models.jd import JD
 from app.models.application import Application
 from app.services.ai_service import AIService
+from app.middleware.rate_limit import rate_limit, RateLimitType
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/search", tags=["search"])
@@ -55,6 +56,7 @@ class ApplicationSearchResponse(BaseModel):
 
 
 @router.get("/resumes", response_model=SearchResponse)
+@rate_limit(RateLimitType.SEARCH)
 async def search_resumes(
     q: str = Query(..., min_length=1, description="Search query"),
     page: int = Query(1, ge=1, description="Page number"),
@@ -242,6 +244,7 @@ async def search_resumes(
 
 
 @router.get("/jds", response_model=SearchResponse)
+@rate_limit(RateLimitType.SEARCH)
 async def search_jds(
     q: str = Query(..., min_length=1, description="Search query"),
     page: int = Query(1, ge=1, description="Page number"),
@@ -421,6 +424,7 @@ async def search_jds(
 
 
 @router.get("/applications", response_model=ApplicationSearchResponse)
+@rate_limit(RateLimitType.SEARCH)
 async def search_applications(
     q: Optional[str] = Query(None, description="Search query for company or position"),
     page: int = Query(1, ge=1, description="Page number"),
@@ -572,6 +576,7 @@ async def search_applications(
 
 
 @router.get("/match/{resume_id}/{jd_id}", response_model=dict)
+@rate_limit(RateLimitType.SEARCH)
 async def get_match_score(
     resume_id: uuid.UUID,
     jd_id: uuid.UUID,
@@ -644,6 +649,7 @@ def highlight_search_terms(text: str, query: str) -> str:
 
 
 @router.get("/suggestions")
+@rate_limit(RateLimitType.SEARCH)
 async def get_search_suggestions(
     q: str = Query(..., min_length=2, description="Partial search query"),
     db: AsyncSession = Depends(get_db),

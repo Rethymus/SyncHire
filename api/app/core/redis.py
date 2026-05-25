@@ -7,6 +7,7 @@ settings = get_settings()
 class RedisClient:
     def __init__(self):
         self.redis = None
+        self._connected = False
 
     async def connect(self):
         self.redis = await aioredis.from_url(
@@ -14,10 +15,16 @@ class RedisClient:
             encoding="utf-8",
             decode_responses=True,
         )
+        self._connected = True
 
     async def disconnect(self):
         if self.redis:
             await self.redis.close()
+            self._connected = False
+
+    def is_connected(self) -> bool:
+        """Check if Redis client is connected"""
+        return self._connected and self.redis is not None
 
     async def get(self, key: str) -> str | None:
         if self.redis:

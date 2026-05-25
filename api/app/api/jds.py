@@ -15,6 +15,7 @@ from app.schemas.jd import (
 )
 from app.services.jd_service import JDService
 from app.services.file_parser import FileParserService
+from app.middleware.rate_limit import rate_limit, RateLimitType
 
 router = APIRouter(prefix="/jds", tags=["jds"])
 
@@ -31,6 +32,7 @@ async def parse_jd(
 @router.post(
     "/upload", response_model=JDFileUploadResponse, status_code=status.HTTP_201_CREATED
 )
+@rate_limit(RateLimitType.UPLOAD)
 async def upload_jd_file(
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),

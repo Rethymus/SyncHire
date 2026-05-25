@@ -15,12 +15,14 @@ from app.schemas.resume import (
 from app.services.resume_service import ResumeService
 from app.services.ai_service import AIService
 from app.services.pdf_generator import get_pdf_generator, PDFGenerationOptions
+from app.middleware.rate_limit import rate_limit, RateLimitType
 from typing import List
 
 router = APIRouter(prefix="/resumes", tags=["resumes"])
 
 
 @router.post("/", response_model=ResumeResponse, status_code=status.HTTP_201_CREATED)
+@rate_limit(RateLimitType.UPLOAD)
 async def upload_resume(
     file: UploadFile = File(...),
     title: str = Form(...),

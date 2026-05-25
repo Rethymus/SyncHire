@@ -15,6 +15,16 @@ from app.services.jd_service import JDService
 from app.services.ai_service import AIService
 from app.services.mcp_client import mcp_client, MCPError
 from app.services.notification_service import notification_service
+from app.core.errors import (
+    ValidationError,
+    NotFoundError,
+    DatabaseError,
+    handle_database_error,
+    ExternalServiceError,
+)
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class ApplicationService:
@@ -24,20 +34,77 @@ class ApplicationService:
         user_id: uuid.UUID,
         app_data: ApplicationCreate,
     ) -> Application:
-        await ResumeService.get_resume(db, app_data.resume_id, user_id)
-        await JDService.get_jd(db, app_data.jd_id, user_id)
+        """
+        Create a new application with comprehensive error handling
 
-        db_application = Application(
-            user_id=user_id,
-            resume_id=app_data.resume_id,
-            jd_id=app_data.jd_id,
-        )
+        Args:
+            db: Database session
+            user_id: User ID
+            app_data: Application creation data
 
-        db.add(db_application)
-        await db.commit()
-        await db.refresh(db_application)
+        Returns:
+            Created application object
 
-        return db_application
+        Raises:
+            ValidationError: If input data is invalid
+            NotFoundError: If resume or JD not found
+            DatabaseError: If database operation fails
+        """
+        try:
+            # Validate input
+            if not app_data.resume_id or not app_data.jd_id:
+                raise ValidationError(
+                    message="Resume ID and JD ID are required",
+                    details={"resume_id": str(app_data.resume_id), "jd_id": str(app_data.jd_id)}
+                )
+
+            # Verify resume exists and belongs to user
+            try:
+                await ResumeService.get_resume(db, app_data.resume_id, user_id)
+            except NotFoundError:
+                logger.warning(f"Resume {app_data.resume_id} not found for user {user_id}")
+                raise NotFoundError(
+                    resource="Resume",
+                    details={"resume_id": str(app_data.resume_id)}
+                )
+
+            # Verify JD exists and belongs to user
+            try:
+                await JDService.get_jd(db, app_data.jd_id, user_id)
+            except NotFoundError:
+                logger.warning(f"JD {app_data.jd_id} not found for user {user_id}")
+                raise NotFoundError(
+                    resource="Job Description",
+                    details={"jd_id": str(app_data.jd_id)}
+                )
+
+            # Create application with transaction handling
+            try:
+                db_application = Application(
+                    user_id=user_id,
+                    resume_id=app_data.resume_id,
+                    jd_id=app_data.jd_id,
+                )
+
+                db.add(db_application)
+                await db.commit()
+                await db.refresh(db_application)
+                logger.info(f"Application created: {db_application.id}")
+
+                return db_application
+
+            except Exception as e:
+                await db.rollback()
+                handle_database_error(e, "application creation")
+
+        except (ValidationError, NotFoundError):
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error creating application: {str(e)}", exc_info=True)
+            raise DatabaseError(
+                message="Failed to create application",
+                details={"user_id": str(user_id), "error": str(e)}
+            )
 
     @staticmethod
     async def get_applications(

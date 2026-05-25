@@ -23,8 +23,19 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["http://localhost:3000"]
 
     # Rate Limiting
+    RATE_LIMIT_ENABLED: bool = True
     RATE_LIMIT_PERIOD: int = 60  # 1 minute
-    RATE_LIMIT_REQUESTS: int = 100  # 100 requests per period
+    RATE_LIMIT_REQUESTS: int = 100  # 100 requests per period (default)
+
+    # Rate Limiting by Endpoint Type
+    RATE_LIMIT_SEARCH: int = 100  # 100 requests/minute for search endpoints
+    RATE_LIMIT_AUTH: int = 10     # 10 requests/minute for auth endpoints
+    RATE_LIMIT_UPLOAD: int = 5    # 5 requests/minute for file uploads
+    RATE_LIMIT_GENERAL: int = 60  # 60 requests/minute for general API
+
+    # Rate Limiting Configuration
+    RATE_LIMIT_USE_IP_FALLBACK: bool = True  # Use IP-based limiting for unauthenticated requests
+    RATE_LIMIT_WINDOW_SIZE: int = 60  # Time window in seconds
 
     # File Upload
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
