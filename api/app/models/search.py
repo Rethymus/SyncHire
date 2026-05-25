@@ -117,8 +117,10 @@ class SavedSearch(Base):
     __table_args__ = (
         Index("ix_saved_searches_user_favorite", "user_id", "is_favorite"),
         Index(
-            "ix_saved_searches_user_usage", "user_id", "usage_count",
-            postgresql_ops={"usage_count": "DESC"}
+            "ix_saved_searches_user_usage",
+            "user_id",
+            "usage_count",
+            postgresql_ops={"usage_count": "DESC"},
         ),
     )
 
