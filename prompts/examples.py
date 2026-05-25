@@ -44,7 +44,7 @@ def validate_user_input(input_text: str, max_length: int = 10000) -> str:
 
     for pattern in dangerous_patterns:
         if re.search(pattern, input_text, re.IGNORECASE):
-            raise ValueError(f"Input contains potentially dangerous pattern")
+            raise ValueError("Input contains potentially dangerous pattern")
 
     # Remove control characters
     sanitized = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]', '', input_text)

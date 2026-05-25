@@ -5,9 +5,7 @@ Tests for the Redis-based rate limiting middleware.
 """
 
 import pytest
-import time
 from unittest.mock import AsyncMock, Mock, patch
-from fastapi import Request
 from app.middleware.rate_limit import (
     RateLimiter,
     RateLimitType,

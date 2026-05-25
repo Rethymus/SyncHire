@@ -134,8 +134,8 @@ export const SearchHistoryDropdown = memo(function SearchHistoryDropdown({
     }
   }, [searchType]);
 
-  const handleRemoveItem = useCallback(async (itemId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
+  const handleRemoveItem = useCallback(async (itemId: string, event?: React.MouseEvent) => {
+    event?.stopPropagation();
     try {
       await searchHistoryAPI.deleteSearchHistory(itemId);
       setHistory(prev => prev.filter(item => item.id !== itemId));
@@ -312,7 +312,7 @@ export const SearchHistoryDropdown = memo(function SearchHistoryDropdown({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={(e: React.MouseEvent) => handleRemoveItem(item.id, e)}
+                        onClick={(e) => handleRemoveItem(item.id, e)}
                         className="opacity-0 group-hover:opacity-100 transition-opacity"
                         aria-label={`Remove "${item.query}" from history`}
                       >

@@ -4,11 +4,11 @@ Provides comprehensive search tracking, management, and analytics.
 """
 
 import uuid
-from typing import List, Optional, Dict, Any
+from typing import Optional, Dict
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, Query, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, desc, text
+from sqlalchemy import select, func, and_, desc
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
@@ -29,7 +29,6 @@ from app.schemas.search import (
     SearchImport,
 )
 from app.middleware.rate_limit import rate_limit, RateLimitType
-import json
 
 router = APIRouter(prefix="/search/history", tags=["search-history"])
 
@@ -297,7 +296,7 @@ async def get_saved_searches(
     if search_type:
         conditions.append(SavedSearch.search_type == search_type)
     if favorite_only:
-        conditions.append(SavedSearch.is_favorite == True)
+        conditions.append(SavedSearch.is_favorite is True)
     if tag:
         conditions.append(SavedSearch.tags.contains([tag]))
 

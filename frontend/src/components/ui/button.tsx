@@ -46,7 +46,7 @@ export interface ButtonProps extends VariantProps<typeof buttonVariants> {
   className?: string
   children: React.ReactNode
   href?: string
-  onClick?: () => void
+  onClick?: (e?: React.MouseEvent) => void
   disabled?: boolean
   type?: "button" | "submit" | "reset"
 }

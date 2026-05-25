@@ -1,6 +1,7 @@
 import uuid
+import logging
 from typing import List
-from fastapi import APIRouter, Depends, status, UploadFile, File
+from fastapi import APIRouter, Depends, status, UploadFile, File, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.deps import get_current_user
@@ -18,6 +19,8 @@ from app.schemas.jd import (
 from app.services.jd_service import JDService
 from app.services.file_parser import FileParserService
 from app.middleware.rate_limit import rate_limit, RateLimitType
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/jds", tags=["jds"])
 

@@ -5,7 +5,7 @@ Contains realistic Chinese and English JDs, resumes, and edge cases.
 """
 
 import re
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 
 def validate_test_data(data: Dict[str, Any], data_type: str = "generic") -> Dict[str, Any]:

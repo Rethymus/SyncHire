@@ -9,9 +9,8 @@ Test the status tracking workflow including:
 """
 
 import pytest
-from datetime import datetime
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.application import Application
 from app.models.application_status_history import ApplicationStatusHistory
 from app.models.user import User
 from app.models.resume import Resume
@@ -230,6 +229,3 @@ async def test_status_workflow_progression(
     # Verify history progression
     assert final_app.status_history[0].notes == "Received offer letter"
     assert final_app.status_history[-1].notes == "Resume optimized for the position"
-
-
-from sqlalchemy import select

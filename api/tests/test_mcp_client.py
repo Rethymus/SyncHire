@@ -10,8 +10,7 @@ This module contains comprehensive unit tests for the MCP client, including:
 """
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch, Mock
-import httpx
+from unittest.mock import AsyncMock, patch, Mock
 from app.services.mcp_client import MCPClient, MCPError
 
 

@@ -106,15 +106,10 @@ export const SearchAnalytics = memo(function SearchAnalytics({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Select value={selectedDays.toString()} onValueChange={(value) => setSelectedDays(parseInt(value))}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7">Last 7 days</SelectItem>
-              <SelectItem value="30">Last 30 days</SelectItem>
-              <SelectItem value="90">Last 90 days</SelectItem>
-            </SelectContent>
+          <Select value={selectedDays.toString()} onChange={(e) => setSelectedDays(parseInt(e.target.value))}>
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
           </Select>
           <Button
             variant="outline"

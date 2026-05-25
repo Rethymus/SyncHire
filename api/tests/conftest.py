@@ -10,7 +10,7 @@ This file demonstrates:
 
 import pytest
 from faker import Faker
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 from typing import Dict, Any
 import httpx
 

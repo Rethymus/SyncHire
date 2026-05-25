@@ -61,7 +61,7 @@ async def register(
         user = await AuthService.register(db, user_data)
         return user
 
-    except (ValidationError, RateLimitError) as e:
+    except (ValidationError, RateLimitError):
         # Re-raise our custom errors
         raise
     except HTTPException:
@@ -142,7 +142,7 @@ async def login(
         logger.info(f"Successful login for user: {user.id}")
         return Token(access_token=access_token, refresh_token=refresh_token)
 
-    except (ValidationError, AuthenticationError, RateLimitError) as e:
+    except (ValidationError, AuthenticationError, RateLimitError):
         # Re-raise our custom errors
         raise
     except HTTPException:
@@ -205,7 +205,7 @@ async def refresh_token(token_data: TokenRefresh):
 
         return Token(access_token=access_token, refresh_token=refresh_token)
 
-    except (ValidationError, AuthenticationError) as e:
+    except (ValidationError, AuthenticationError):
         raise
     except HTTPException:
         raise

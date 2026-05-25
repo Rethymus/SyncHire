@@ -5,6 +5,7 @@ Coordinates sending notifications based on user events and preferences.
 """
 
 import uuid
+from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional, Dict, Any
@@ -378,8 +379,10 @@ class NotificationService:
             # Calculate actual weekly statistics from database
             from sqlalchemy import func, and_
             from app.models.application import Application
-            from app.models.jd import JD
-            from datetime import timedelta
+
+            # Parse date strings to datetime objects
+            week_start_dt = datetime.fromisoformat(week_start.replace('Z', '+00:00'))
+            week_end_dt = datetime.fromisoformat(week_end.replace('Z', '+00:00'))
 
             # Get applications submitted this week
             applications_result = await db.execute(

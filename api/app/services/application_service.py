@@ -22,7 +22,6 @@ from app.core.errors import (
     NotFoundError,
     DatabaseError,
     handle_database_error,
-    ExternalServiceError,
 )
 import logging
 

@@ -101,17 +101,13 @@ export class SearchHistoryAPI {
     result_count: number;
     is_sensitive?: boolean;
   }): Promise<SearchHistoryItem> {
-    const response = await this.client.request<SearchHistoryItem>({
-      endpoint: '/search/history',
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    const response = await this.client.post<SearchHistoryItem>('/search/history', data);
 
     if (response.success && response.data) {
       return response.data;
     }
 
-    throw new Error(response.error || 'Failed to create search history');
+    throw new Error(typeof response.error === 'string' ? response.error : 'Failed to create search history');
   }
 
   /**
@@ -127,29 +123,23 @@ export class SearchHistoryAPI {
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.page_size) queryParams.append('page_size', params.page_size.toString());
 
-    const response = await this.client.request<SearchHistoryResponse>({
-      endpoint: `/search/history?${queryParams.toString()}`,
-      method: 'GET',
-    });
+    const response = await this.client.get<SearchHistoryResponse>(`/search/history?${queryParams.toString()}`);
 
     if (response.success && response.data) {
       return response.data;
     }
 
-    throw new Error(response.error || 'Failed to fetch search history');
+    throw new Error(typeof response.error === 'string' ? response.error : 'Failed to fetch search history');
   }
 
   /**
    * Delete a specific search history entry
    */
   async deleteSearchHistory(historyId: string): Promise<void> {
-    const response = await this.client.request<void>({
-      endpoint: `/search/history/${historyId}`,
-      method: 'DELETE',
-    });
+    const response = await this.client.delete<void>(`/search/history/${historyId}`);
 
     if (!response.success) {
-      throw new Error(response.error || 'Failed to delete search history');
+      throw new Error(typeof response.error === 'string' ? response.error : 'Failed to delete search history');
     }
   }
 
@@ -159,13 +149,10 @@ export class SearchHistoryAPI {
   async clearSearchHistory(searchType?: 'resume' | 'jd' | 'application'): Promise<void> {
     const queryParams = searchType ? `?search_type=${searchType}` : '';
 
-    const response = await this.client.request<void>({
-      endpoint: `/search/history${queryParams}`,
-      method: 'DELETE',
-    });
+    const response = await this.client.delete<void>(`/search/history${queryParams}`);
 
     if (!response.success) {
-      throw new Error(response.error || 'Failed to clear search history');
+      throw new Error(typeof response.error === 'string' ? response.error : 'Failed to clear search history');
     }
   }
 
@@ -181,17 +168,13 @@ export class SearchHistoryAPI {
     tags?: string[];
     is_favorite?: boolean;
   }): Promise<SavedSearch> {
-    const response = await this.client.request<SavedSearch>({
-      endpoint: '/search/history/saved',
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    const response = await this.client.post<SavedSearch>('/search/history/saved', data);
 
     if (response.success && response.data) {
       return response.data;
     }
 
-    throw new Error(response.error || 'Failed to create saved search');
+    throw new Error(typeof response.error === 'string' ? response.error : 'Failed to create saved search');
   }
 
   /**
@@ -212,32 +195,26 @@ export class SearchHistoryAPI {
       }
     });
 
-    const response = await this.client.request<SavedSearchResponse>({
-      endpoint: `/search/history/saved?${queryParams.toString()}`,
-      method: 'GET',
-    });
+    const response = await this.client.get<SavedSearchResponse>(`/search/history/saved?${queryParams.toString()}`);
 
     if (response.success && response.data) {
       return response.data;
     }
 
-    throw new Error(response.error || 'Failed to fetch saved searches');
+    throw new Error(typeof response.error === 'string' ? response.error : 'Failed to fetch saved searches');
   }
 
   /**
    * Get a specific saved search
    */
   async getSavedSearch(savedId: string): Promise<SavedSearch> {
-    const response = await this.client.request<SavedSearch>({
-      endpoint: `/search/history/saved/${savedId}`,
-      method: 'GET',
-    });
+    const response = await this.client.get<SavedSearch>(`/search/history/saved/${savedId}`);
 
     if (response.success && response.data) {
       return response.data;
     }
 
-    throw new Error(response.error || 'Failed to fetch saved search');
+    throw new Error(typeof response.error === 'string' ? response.error : 'Failed to fetch saved search');
   }
 
   /**
@@ -254,30 +231,23 @@ export class SearchHistoryAPI {
       is_favorite?: boolean;
     }
   ): Promise<SavedSearch> {
-    const response = await this.client.request<SavedSearch>({
-      endpoint: `/search/history/saved/${savedId}`,
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
+    const response = await this.client.put<SavedSearch>(`/search/history/saved/${savedId}`, data);
 
     if (response.success && response.data) {
       return response.data;
     }
 
-    throw new Error(response.error || 'Failed to update saved search');
+    throw new Error(typeof response.error === 'string' ? response.error : 'Failed to update saved search');
   }
 
   /**
    * Delete a saved search
    */
   async deleteSavedSearch(savedId: string): Promise<void> {
-    const response = await this.client.request<void>({
-      endpoint: `/search/history/saved/${savedId}`,
-      method: 'DELETE',
-    });
+    const response = await this.client.delete<void>(`/search/history/saved/${savedId}`);
 
     if (!response.success) {
-      throw new Error(response.error || 'Failed to delete saved search');
+      throw new Error(typeof response.error === 'string' ? response.error : 'Failed to delete saved search');
     }
   }
 
@@ -285,64 +255,52 @@ export class SearchHistoryAPI {
    * Re-run a saved search and track usage
    */
   async runSavedSearch(savedId: string): Promise<SearchHistoryItem> {
-    const response = await this.client.request<SearchHistoryItem>({
-      endpoint: `/search/history/saved/${savedId}/run`,
-      method: 'POST',
-    });
+    const response = await this.client.post<SearchHistoryItem>(`/search/history/saved/${savedId}/run`, {});
 
     if (response.success && response.data) {
       return response.data;
     }
 
-    throw new Error(response.error || 'Failed to run saved search');
+    throw new Error(typeof response.error === 'string' ? response.error : 'Failed to run saved search');
   }
 
   /**
    * Get comprehensive search analytics
    */
   async getSearchAnalytics(days: number = 30): Promise<SearchAnalyticsSummary> {
-    const response = await this.client.request<SearchAnalyticsSummary>({
-      endpoint: `/search/history/analytics?days=${days}`,
-      method: 'GET',
-    });
+    const response = await this.client.get<SearchAnalyticsSummary>(`/search/history/analytics?days=${days}`);
 
     if (response.success && response.data) {
       return response.data;
     }
 
-    throw new Error(response.error || 'Failed to fetch search analytics');
+    throw new Error(typeof response.error === 'string' ? response.error : 'Failed to fetch search analytics');
   }
 
   /**
    * Get search suggestions for autocomplete
    */
   async getSearchSuggestions(query: string, limit: number = 10): Promise<SearchSuggestionsResponse> {
-    const response = await this.client.request<SearchSuggestionsResponse>({
-      endpoint: `/search/history/suggestions?q=${encodeURIComponent(query)}&limit=${limit}`,
-      method: 'GET',
-    });
+    const response = await this.client.get<SearchSuggestionsResponse>(`/search/history/suggestions?q=${encodeURIComponent(query)}&limit=${limit}`);
 
     if (response.success && response.data) {
       return response.data;
     }
 
-    throw new Error(response.error || 'Failed to fetch search suggestions');
+    throw new Error(typeof response.error === 'string' ? response.error : 'Failed to fetch search suggestions');
   }
 
   /**
    * Export all saved searches
    */
   async exportSavedSearches(): Promise<SearchExport> {
-    const response = await this.client.request<SearchExport>({
-      endpoint: '/search/history/saved/export',
-      method: 'GET',
-    });
+    const response = await this.client.get<SearchExport>('/search/history/saved/export');
 
     if (response.success && response.data) {
       return response.data;
     }
 
-    throw new Error(response.error || 'Failed to export saved searches');
+    throw new Error(typeof response.error === 'string' ? response.error : 'Failed to export saved searches');
   }
 
   /**
@@ -354,17 +312,13 @@ export class SearchHistoryAPI {
       merge_strategy: 'replace' | 'merge' | 'skip_existing';
     }
   ): Promise<SearchImportResult> {
-    const response = await this.client.request<SearchImportResult>({
-      endpoint: '/search/history/saved/import',
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    const response = await this.client.post<SearchImportResult>('/search/history/saved/import', data);
 
     if (response.success && response.data) {
       return response.data;
     }
 
-    throw new Error(response.error || 'Failed to import saved searches');
+    throw new Error(typeof response.error === 'string' ? response.error : 'Failed to import saved searches');
   }
 }
 

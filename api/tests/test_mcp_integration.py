@@ -13,7 +13,6 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch, Mock
 import httpx
 from app.services.mcp_client import MCPClient, MCPError
-from typing import Dict, Any
 
 
 # Helper function to create mock HTTP client
@@ -440,7 +439,7 @@ class TestMCPClientAPIIntegration:
         )
 
         with patch("httpx.AsyncClient", return_value=mock_httpx_client):
-            with TestClient(app) as client:
+            with TestClient(app):
                 # This would test the actual API endpoint
                 # For now, we test the MCP client directly
                 mcp_client = MCPClient()
@@ -473,6 +472,8 @@ class TestMCPClientDataConsistency:
         self,
         mock_httpx_client,
         mock_mcp_resume_response,
+        mock_mcp_match_response,
+        mock_mcp_interview_prep_response,
         sample_resume_data,
     ):
         """Test that resume data remains consistent across operations."""
@@ -630,7 +631,7 @@ class TestMCPClientPerformanceIntegration:
             tasks = [client.parse_jd(jd) for jd in jd_list]
             results = await asyncio.gather(*tasks)
 
-            duration = time.time() - start_time
+            time.time() - start_time
 
         assert len(results) == 20
         assert all(r["success"] for r in results)
@@ -655,7 +656,7 @@ class TestMCPClientSecurity:
 
         with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             client = MCPClient()
-            result = await client.parse_resume("/path/to/resume.pdf")
+            await client.parse_resume("/path/to/resume.pdf")
 
         # Verify no sensitive data is exposed in error messages
         # (This would be more comprehensive with actual sensitive data)
@@ -675,7 +676,7 @@ class TestMCPClientSecurity:
 
         with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             client = MCPClient()
-            result = await client.parse_jd(malicious_content)
+            await client.parse_jd(malicious_content)
 
         # Verify the content is sanitized
         # (Implementation would depend on security measures)

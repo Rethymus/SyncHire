@@ -7,7 +7,6 @@ Create Date: 2026-05-25
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 # revision identifiers
 revision = '20250525_add_performance_indexes'

@@ -18,6 +18,7 @@ import { logger } from "@/lib/logger";
 import { LogCategory } from "@/lib/logger";
 import { resumeTemplates, getTemplateById, type ResumeTemplate } from "@/lib/templates/resume-templates";
 import { TemplateGallery } from "@/components/template-gallery";
+import { ResumePreviewSkeleton } from "@/components/skeleton";
 
 function renderMarkdownToHTML(markdown: string): string {
   const lines = markdown.split("\n");
@@ -286,13 +287,8 @@ export function ResumePreview() {
 
       {/* Preview Area */}
       <div className="flex-1 overflow-auto p-8">
-        {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <FileText className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-700">加载模板中...</p>
-            </div>
-          </div>
+        {loading || pdfGenerating ? (
+          <ResumePreviewSkeleton />
         ) : (
           <div className="flex justify-center">
             <div

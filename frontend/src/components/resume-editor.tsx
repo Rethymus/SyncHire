@@ -13,6 +13,7 @@ import { resumeAPI } from "@/lib/api-client-consolidated";
 import { useRouter } from "next/navigation";
 import { TemplateGallery } from "@/components/template-gallery";
 import { SavedTemplatesManager } from "@/components/saved-templates-manager";
+import { ResumeEditorSkeleton } from "@/components/skeleton";
 import { logger, LogCategory } from "@/lib/logger";
 
 const defaultResumeTemplate = `# 张三
@@ -112,6 +113,7 @@ function ResumeEditorComponent() {
   const [appliedOptimization, setAppliedOptimization] = useState(false);
   const [showTemplateGallery, setShowTemplateGallery] = useState(false);
   const [showSavedTemplates, setShowSavedTemplates] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   // Auto-save states
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle" as SaveStatus);
@@ -131,12 +133,16 @@ function ResumeEditorComponent() {
 
   useEffect(() => {
     if (currentResume?.id !== prevResumeIdRef.current && currentResume?.content) {
+      setInitialLoading(true);
       setContent(currentResume.content);
       setLastSavedContent(currentResume.content);
       INITIAL_CONTENT_REF.current = currentResume.content;
       setSaveStatus("idle");
       setSaveError(null);
       prevResumeIdRef.current = currentResume.id;
+
+      // Simulate minimum loading time for smooth UX
+      setTimeout(() => setInitialLoading(false), 300);
     }
   }, [currentResume?.id, currentResume?.content]);
 
@@ -385,6 +391,11 @@ function ResumeEditorComponent() {
   const handleManageTemplates = useCallback(() => {
     setShowSavedTemplates(true);
   }, []);
+
+  // Show skeleton during initial load
+  if (initialLoading) {
+    return <ResumeEditorSkeleton />;
+  }
 
   return (
     <div className="flex flex-col h-full bg-white">

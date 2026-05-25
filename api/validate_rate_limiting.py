@@ -16,7 +16,6 @@ sys.path.insert(0, str(Path(__file__).parent))
 from app.middleware.rate_limit import (
     RateLimiter,
     RateLimitType,
-    RateLimitConfig,
     rate_limit,
 )
 from app.core.config import get_settings
@@ -188,7 +187,7 @@ async def run_validation():
     # Clean up Redis connection
     try:
         await redis_client.disconnect()
-    except:
+    except Exception:
         pass
 
     # Summary

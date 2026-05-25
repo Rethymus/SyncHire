@@ -288,6 +288,8 @@ export const jdAPI = {
     });
   },
 
+  delete: (id: string) => apiClient.delete<void>(`/jds/${id}`),
+
   bulkDelete: (ids: string[]) =>
     apiClient.post<{
       success_count: number;

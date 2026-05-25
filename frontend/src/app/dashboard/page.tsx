@@ -10,6 +10,7 @@ import OnboardingWorkflow from "@/components/onboarding-workflow";
 import OnboardingProgress from "@/components/onboarding-progress";
 import WelcomeBanner from "@/components/welcome-banner";
 import { ApplicationCreateDialog } from "@/components/application-create-dialog";
+import { DashboardStatsSkeleton } from "@/components/skeleton";
 import { useAppStore, type Resume } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { resumeAPI, jdAPI } from "@/lib/api-client-consolidated";
@@ -45,12 +46,14 @@ function DashboardPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [loadingResumes, setLoadingResumes] = useState(false);
+  const [loadingStats, setLoadingStats] = useState(true);
   const [applicationDialogOpen, setApplicationDialogOpen] = useState(false);
 
   // Load resumes on mount
   useEffect(() => {
     const loadResumes = async () => {
       setLoadingResumes(true);
+      setLoadingStats(true);
       try {
         const response = await resumeAPI.list();
         if (response.success && response.data) {
@@ -67,6 +70,8 @@ function DashboardPage() {
         logger.error(LogCategory.API, "Failed to load resumes", error as Error);
       } finally {
         setLoadingResumes(false);
+        // Ensure stats are visible for at least 500ms for smoother UX
+        setTimeout(() => setLoadingStats(false), 500);
       }
     };
 
@@ -300,26 +305,30 @@ function DashboardPage() {
             )}
 
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {stats.map((stat) => (
-                <div
-                  key={stat.name}
-                  className="bg-white rounded-lg p-6 border border-gray-200"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-700">{stat.name}</p>
-                      <p className="text-2xl font-bold text-gray-900 mt-1">
-                        {stat.value}
-                      </p>
-                    </div>
-                    <div className={`${stat.color} p-3 rounded-lg`}>
-                      <stat.icon className="h-6 w-6 text-white" />
+            {loadingStats ? (
+              <DashboardStatsSkeleton />
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {stats.map((stat) => (
+                  <div
+                    key={stat.name}
+                    className="bg-white rounded-lg p-6 border border-gray-200"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-700">{stat.name}</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-1">
+                          {stat.value}
+                        </p>
+                      </div>
+                      <div className={`${stat.color} p-3 rounded-lg`}>
+                        <stat.icon className="h-6 w-6 text-white" />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             {/* Steps */}
             <div className="bg-white rounded-lg p-6 border border-gray-200">

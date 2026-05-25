@@ -190,7 +190,7 @@ export const BulkDeleteActions = memo<BulkDeleteActionsProps>(function BulkDelet
             <AlertDialogFooter>
               <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent) => {
                   e.preventDefault();
                   handleBulkDelete();
                 }}

@@ -27,8 +27,9 @@ export function SelectableList<T extends Record<string, any>>({
   const allSelected = items.length > 0 && selectedIds.size === items.length;
   const someSelected = selectedIds.size > 0 && !allSelected;
 
-  const handleSelectAll = useCallback((checked: boolean) => {
-    const newSelectedIds = checked
+  const handleSelectAll = useCallback((checked: boolean | string) => {
+    const isChecked = typeof checked === 'boolean' ? checked : checked === 'true';
+    const newSelectedIds = isChecked
       ? new Set(items.map((item) => String(item[itemIdKey])))
       : new Set<string>();
 
@@ -36,10 +37,11 @@ export function SelectableList<T extends Record<string, any>>({
     onSelectChange?.(Array.from(newSelectedIds));
   }, [items, itemIdKey, onSelectChange]);
 
-  const handleSelectItem = useCallback((id: string, checked: boolean) => {
+  const handleSelectItem = useCallback((id: string, checked: boolean | string) => {
     setSelectedIds((prev) => {
       const newSelected = new Set(prev);
-      if (checked) {
+      const isChecked = typeof checked === 'boolean' ? checked : checked === 'true';
+      if (isChecked) {
         newSelected.add(id);
       } else {
         newSelected.delete(id);

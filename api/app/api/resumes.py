@@ -1,6 +1,8 @@
 import uuid
+import logging
 from pathlib import Path
 import tempfile
+from typing import List
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, status
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +20,8 @@ from app.services.resume_service import ResumeService
 from app.services.ai_service import AIService
 from app.services.pdf_generator import get_pdf_generator, PDFGenerationOptions
 from app.middleware.rate_limit import rate_limit, RateLimitType
-from typing import List
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/resumes", tags=["resumes"])
 

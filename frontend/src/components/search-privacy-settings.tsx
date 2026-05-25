@@ -275,7 +275,7 @@ export const SearchPrivacySettings = memo(function SearchPrivacySettings({
         <AlertTitle>Privacy Information</AlertTitle>
         <AlertDescription className="space-y-2">
           <p>
-            Your search history is stored securely and is only accessible to you. Here's what you should know:
+            Your search history is stored securely and is only accessible to you. Here&apos;s what you should know:
           </p>
           <ul className="list-disc list-inside space-y-1 text-sm">
             <li>Search history is never shared with third parties</li>

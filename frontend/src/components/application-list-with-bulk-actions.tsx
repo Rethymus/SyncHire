@@ -99,13 +99,31 @@ const getStatusIcon = (status: string) => {
 
 export const ApplicationListWithBulkActions = memo<ApplicationListWithBulkActionsProps>(
   function ApplicationListWithBulkActions({ applications, onRefresh, className }) {
-    const { applications: storedApplications, setApplications } = useAppStore();
+    const { applications: storedApplications, deleteApplication } = useAppStore();
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [applicationToDelete, setApplicationToDelete] = useState<Application | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
     // Use provided applications or fall back to store
-    const displayApplications = applications || storedApplications;
+    // Convert stored applications to match the expected Application interface
+    const displayApplications = applications || storedApplications.map(app => ({
+      id: app.id,
+      resume_id: app.resumeId,
+      jd_id: app.jobId,
+      status: app.status,
+      match_score: app.matchScore,
+      created_at: app.createdAt,
+      updated_at: app.updatedAt,
+      resume: {
+        id: app.resumeId,
+        title: `Resume ${app.resumeId}`
+      },
+      jd: {
+        id: app.jobId,
+        title: `Job ${app.jobId}`,
+        company: ''
+      }
+    }));
 
     const {
       selectedIds,
@@ -128,7 +146,7 @@ export const ApplicationListWithBulkActions = memo<ApplicationListWithBulkAction
         const response = await applicationAPI.delete(applicationToDelete.id);
         if (response.success) {
           // Update store to remove deleted application
-          setApplications(storedApplications.filter((a) => a.id !== applicationToDelete.id));
+          deleteApplication(applicationToDelete.id);
           logger.info(LogCategory.USER_ACTION, `Deleted application: ${applicationToDelete.id}`);
           onRefresh?.();
         }
@@ -139,7 +157,7 @@ export const ApplicationListWithBulkActions = memo<ApplicationListWithBulkAction
         setDeleteDialogOpen(false);
         setApplicationToDelete(null);
       }
-    }, [applicationToDelete, storedApplications, setApplications, onRefresh]);
+    }, [applicationToDelete, deleteApplication, onRefresh]);
 
     const handleBulkDelete = useCallback(async (ids: string[]) => {
       const response = await applicationAPI.bulkDelete(ids);
@@ -154,7 +172,7 @@ export const ApplicationListWithBulkActions = memo<ApplicationListWithBulkAction
               !errors.some((error) => error.id === id)
             )
           );
-          setApplications(storedApplications.filter((a) => !deletedIds.has(a.id)));
+          // Note: Store will be updated via onRefresh callback
         }
 
         if (failed_count > 0) {
@@ -174,7 +192,7 @@ export const ApplicationListWithBulkActions = memo<ApplicationListWithBulkAction
         failed_count: ids.length,
         errors: ids.map((id) => ({ id, error: "Unknown error" }))
       };
-    }, [storedApplications, setApplications, clearSelection, onRefresh]);
+    }, [clearSelection, onRefresh]);
 
     const renderApplicationItem = useCallback(
       (application: Application, isItemSelected: boolean) => {

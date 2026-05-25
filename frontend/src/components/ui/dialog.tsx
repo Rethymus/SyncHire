@@ -1,6 +1,21 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
+const DialogTrigger = ({
+  children,
+  onClick,
+  asChild = false,
+}: {
+  children: React.ReactNode
+  onClick?: () => void
+  asChild?: boolean
+}) => {
+  if (asChild) {
+    return <>{children}</>
+  }
+  return <>{children}</>
+}
+
 const Dialog = ({
   open,
   onOpenChange,
@@ -105,6 +120,7 @@ DialogDescription.displayName = "DialogDescription"
 
 export {
   Dialog,
+  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogFooter,

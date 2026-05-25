@@ -3,10 +3,10 @@ import uuid
 import tempfile
 import os
 from pathlib import Path
-from typing import List, Dict
+from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
-from fastapi import HTTPException, status, UploadFile
+from sqlalchemy import select
+from fastapi import UploadFile
 from app.models.resume import Resume
 from app.schemas.resume import ResumeUpdate, BulkDeleteResponse
 from app.core.config import get_settings
