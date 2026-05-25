@@ -49,7 +49,7 @@ class Notification(Base):
     message = Column(Text, nullable=False)
     read = Column(Boolean, default=False, index=True)
     action_url = Column(String(500), nullable=True)
-    metadata = Column(JSONB, nullable=True)
+    meta = Column(JSONB, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     read_at = Column(DateTime, nullable=True)

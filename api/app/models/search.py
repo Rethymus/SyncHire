@@ -70,7 +70,7 @@ class SearchHistory(Base):
             "ix_search_history_user_timestamp",
             "user_id",
             "search_timestamp",
-            desc="search_timestamp",
+            postgresql_ops={"search_timestamp": "DESC"},
         ),
         Index("ix_search_history_user_type", "user_id", "search_type"),
     )
@@ -117,7 +117,8 @@ class SavedSearch(Base):
     __table_args__ = (
         Index("ix_saved_searches_user_favorite", "user_id", "is_favorite"),
         Index(
-            "ix_saved_searches_user_usage", "user_id", "usage_count", desc="usage_count"
+            "ix_saved_searches_user_usage", "user_id", "usage_count",
+            postgresql_ops={"usage_count": "DESC"}
         ),
     )
 
@@ -163,6 +164,6 @@ class SearchAnalytics(Base):
             "ix_search_analytics_user_frequency",
             "user_id",
             "search_count",
-            desc="search_count",
+            postgresql_ops={"search_count": "DESC"},
         ),
     )

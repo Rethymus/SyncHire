@@ -39,7 +39,7 @@ class NotificationService:
                 title=title,
                 message=message,
                 action_url=action_url,
-                metadata=metadata,
+                meta=metadata,
             )
 
             db.add(notification)

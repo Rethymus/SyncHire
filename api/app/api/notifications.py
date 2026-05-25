@@ -420,7 +420,7 @@ async def get_notifications(
                     read=n.read,
                     created_at=n.created_at.isoformat(),
                     action_url=n.action_url,
-                    metadata=n.metadata,
+                    metadata=n.meta,
                 )
                 for n in notifications
             ],
@@ -622,7 +622,7 @@ async def create_notification(
             title=title,
             message=message,
             action_url=action_url,
-            metadata=metadata,
+            meta=metadata,
         )
 
         db.add(notification)

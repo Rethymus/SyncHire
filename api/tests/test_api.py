@@ -8,12 +8,15 @@ These tests demonstrate 2026 best practices for FastAPI testing:
 - Testing without real API keys
 """
 
+import os
+import sys
 import pytest
 from unittest.mock import AsyncMock, patch
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # Import the app directly
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from main import app
 
 

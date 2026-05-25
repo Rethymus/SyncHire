@@ -42,7 +42,7 @@ def upgrade():
         sa.Column("message", sa.Text(), nullable=False),
         sa.Column("read", sa.Boolean(), default=False, nullable=False),
         sa.Column("action_url", sa.String(500), nullable=True),
-        sa.Column("metadata", JSONB(), nullable=True),
+        sa.Column("meta", JSONB(), nullable=True),
         sa.Column(
             "created_at", sa.DateTime(), nullable=False, server_default=sa.text("now()")
         ),
