@@ -15,6 +15,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SearchResult as APISearchResult } from "@/lib/api/search";
 
 interface SearchResultItem {
   id: string;
@@ -22,7 +23,7 @@ interface SearchResultItem {
   content: string;
   similarity?: number;
   type: "resume" | "jd" | "application";
-  created_at: Date;
+  created_at: Date | string;
   highlighted_content?: string;
   company_name?: string;
   position?: string;
@@ -30,7 +31,7 @@ interface SearchResultItem {
   match_score?: number;
   resume_title?: string;
   jd_title?: string;
-  updated_at?: Date;
+  updated_at?: Date | string;
 }
 
 interface SearchResultsProps {

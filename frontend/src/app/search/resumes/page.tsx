@@ -4,11 +4,11 @@ import { useState, useCallback } from "react";
 import { Navigation } from "@/components/navigation";
 import { UniversalSearch } from "@/components/universal-search";
 import { SearchResults } from "@/components/search-results";
-import { searchApi, SearchFilters as APISearchFilters } from "@/lib/api/search";
+import { searchApi, SearchFilters as APISearchFilters, SearchResult } from "@/lib/api/search";
 import { FileText } from "lucide-react";
 
 export default function ResumeSearchPage() {
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -38,7 +38,7 @@ export default function ResumeSearchPage() {
         pageSize: filters.pageSize || 10,
       });
 
-      setResults(response.results);
+      setResults(response.results as SearchResult[]);
       setTotal(response.total);
       setPage(response.page);
     } catch (error) {

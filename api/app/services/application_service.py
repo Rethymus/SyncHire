@@ -50,14 +50,26 @@ class ApplicationService:
         )
         applications = list(result.scalars().all())
 
-        # Load status history for each application
-        for app in applications:
+        # Eager load status histories in single query to avoid N+1 problem
+        if applications:
+            app_ids = [app.id for app in applications]
             history_result = await db.execute(
                 select(ApplicationStatusHistory)
-                .where(ApplicationStatusHistory.application_id == app.id)
-                .order_by(ApplicationStatusHistory.changed_at.desc())
+                .where(ApplicationStatusHistory.application_id.in_(app_ids))
+                .order_by(ApplicationStatusHistory.application_id, ApplicationStatusHistory.changed_at.desc())
             )
-            app.status_history = list(history_result.scalars().all())
+            histories = list(history_result.scalars().all())
+
+            # Group histories by application
+            history_map: dict[uuid.UUID, list[ApplicationStatusHistory]] = {}
+            for history in histories:
+                if history.application_id not in history_map:
+                    history_map[history.application_id] = []
+                history_map[history.application_id].append(history)
+
+            # Assign histories to applications
+            for app in applications:
+                app.status_history = history_map.get(app.id, [])
 
         return applications
 
