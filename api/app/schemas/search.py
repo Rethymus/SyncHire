@@ -12,7 +12,7 @@ class SearchHistoryCreate(BaseModel):
     """Schema for creating a search history entry."""
 
     query: str = Field(..., min_length=1, max_length=1000)
-    search_type: str = Field(..., regex="^(resume|jd|application)$")
+    search_type: str = Field(..., pattern="^(resume|jd|application)$")
     filters: Optional[Dict[str, Any]] = None
     result_count: int = Field(0, ge=0)
     is_sensitive: bool = False
@@ -48,7 +48,7 @@ class SavedSearchCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
     query: str = Field(..., min_length=1, max_length=1000)
-    search_type: str = Field(..., regex="^(resume|jd|application)$")
+    search_type: str = Field(..., pattern="^(resume|jd|application)$")
     filters: Optional[Dict[str, Any]] = None
     tags: Optional[List[str]] = None
     is_favorite: bool = False
@@ -144,4 +144,4 @@ class SearchImport(BaseModel):
     """Schema for importing saved searches."""
 
     searches: List[SavedSearchCreate]
-    merge_strategy: str = Field("replace", regex="^(replace|merge|skip_existing)$")
+    merge_strategy: str = Field("replace", pattern="^(replace|merge|skip_existing)$")

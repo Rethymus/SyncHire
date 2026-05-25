@@ -10,8 +10,7 @@ from app.models.user import User
 from app.models.application import Application
 from app.models.resume import Resume
 from app.models.jd import JD
-from app.models.search_history import SearchHistory
-from app.models.saved_search import SavedSearch
+from app.models.search import SearchHistory, SavedSearch
 from pydantic import BaseModel
 
 router = APIRouter()

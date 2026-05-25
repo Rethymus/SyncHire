@@ -11,8 +11,136 @@ This file demonstrates:
 import pytest
 from faker import Faker
 from unittest.mock import AsyncMock, MagicMock
-from typing import Dict, Any
+from typing import Dict, Any, Generator
 import httpx
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.orm import sessionmaker
+from app.core.database import Base, get_db
+from app.models.user import User
+from app.models.resume import Resume
+from app.models.jd import JD
+
+
+# Test database URL
+TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/synchire_test"
+
+
+# Async database fixture
+@pytest.fixture
+async def db_engine():
+    """Create test database engine"""
+    engine = create_async_engine(
+        TEST_DATABASE_URL,
+        echo=False,
+        pool_pre_ping=True,
+    )
+
+    # Create all tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+
+    yield engine
+
+    # Cleanup
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+    await engine.dispose()
+
+
+@pytest.fixture
+async def db_session(db_engine) -> AsyncSession:
+    """Create test database session"""
+    async_session = async_sessionmaker(
+        db_engine, class_=AsyncSession, expire_on_commit=False
+    )
+
+    async with async_session() as session:
+        yield session
+
+
+# Fixture for tests that expect 'db' parameter
+@pytest.fixture
+def db(db_session) -> AsyncSession:
+    """Alias for db_session for backward compatibility"""
+    return db_session
+
+
+# HTTP Client fixture
+@pytest.fixture
+async def client(db_session: AsyncSession):
+    """Create test HTTP client"""
+    import sys
+    import os
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+    from httpx import AsyncClient, ASGITransport
+    from main import app
+
+    # Dependency override
+    async def override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        yield ac
+
+    app.dependency_overrides.clear()
+
+
+# Test user fixture
+@pytest.fixture
+async def test_user(db: AsyncSession) -> User:
+    """Create test user"""
+    import uuid
+
+    user = User(
+        id=uuid.uuid4(),
+        email="test@example.com",
+        username="testuser",
+        full_name="Test User",
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+# Test resume fixture
+@pytest.fixture
+async def test_resume(db: AsyncSession, test_user: User) -> Resume:
+    """Create test resume"""
+    import uuid
+
+    resume = Resume(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        title="Software Engineer Resume",
+        content="Experienced software engineer with skills in Python, JavaScript, and React.",
+    )
+    db.add(resume)
+    await db.commit()
+    await db.refresh(resume)
+    return resume
+
+
+# Test JD fixture
+@pytest.fixture
+async def test_jd(db: AsyncSession, test_user: User) -> JD:
+    """Create test job description"""
+    import uuid
+
+    jd = JD(
+        id=uuid.uuid4(),
+        user_id=test_user.id,
+        title="Senior Software Engineer",
+        company_name="Tech Corp",
+        content="We are looking for a senior software engineer with experience in Python and JavaScript.",
+    )
+    db.add(jd)
+    await db.commit()
+    await db.refresh(jd)
+    return jd
 
 
 # Test data fixtures

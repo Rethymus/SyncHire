@@ -171,3 +171,26 @@ def cached(prefix: str, ttl: int = CacheService.TTL_MEDIUM):
         return wrapper
 
     return decorator
+
+
+# Convenience functions for simple key-value caching
+async def cache_get(key: str) -> Optional[Any]:
+    """Get value from cache by simple key"""
+    try:
+        value = await redis_client.get(f"synchire:{key}")
+        if value:
+            return json.loads(value)
+    except Exception as e:
+        print(f"Cache get error: {e}")
+    return None
+
+
+async def cache_set(key: str, value: Any, ttl: int = 300) -> bool:
+    """Set value in cache by simple key with TTL"""
+    try:
+        serialized = json.dumps(value, ensure_ascii=False)
+        await redis_client.setex(f"synchire:{key}", ttl, serialized)
+        return True
+    except Exception as e:
+        print(f"Cache set error: {e}")
+        return False

@@ -115,7 +115,7 @@ async def create_search_history(
 @router.get("", response_model=SearchHistoryListResponse)
 @rate_limit(RateLimitType.SEARCH)
 async def get_search_history(
-    search_type: Optional[str] = Query(None, regex="^(resume|jd|application)$"),
+    search_type: Optional[str] = Query(None, pattern="^(resume|jd|application)$"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
@@ -191,7 +191,7 @@ async def delete_search_history(
 @router.delete("", status_code=204)
 @rate_limit(RateLimitType.SEARCH)
 async def clear_search_history(
-    search_type: Optional[str] = Query(None, regex="^(resume|jd|application)$"),
+    search_type: Optional[str] = Query(None, pattern="^(resume|jd|application)$"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -279,11 +279,11 @@ async def create_saved_search(
 @router.get("/saved", response_model=SavedSearchListResponse)
 @rate_limit(RateLimitType.SEARCH)
 async def get_saved_searches(
-    search_type: Optional[str] = Query(None, regex="^(resume|jd|application)$"),
+    search_type: Optional[str] = Query(None, pattern="^(resume|jd|application)$"),
     favorite_only: bool = Query(False),
     tag: Optional[str] = Query(None),
     sort_by: str = Query(
-        "created_at", regex="^(created_at|usage_count|name|last_used_at)$"
+        "created_at", pattern="^(created_at|usage_count|name|last_used_at)$"
     ),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
