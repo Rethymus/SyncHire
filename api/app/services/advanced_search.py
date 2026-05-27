@@ -14,8 +14,8 @@ This service provides comprehensive search capabilities including:
 import uuid
 import re
 import time
-from typing import List, Optional, Dict, Any, Tuple
-from datetime import datetime, date as date_type, timedelta
+from typing import List, Optional, Dict, Any
+from datetime import datetime, date as date_type
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import (
     select,
@@ -26,14 +26,10 @@ from sqlalchemy import (
     desc,
     asc,
     cast,
-    Integer,
-    Boolean,
 )
 from sqlalchemy.sql import Select
-from sqlalchemy.orm import selectinload
 import json
 
-from app.models.user import User
 from app.models.resume import Resume
 from app.models.jd import JD
 from app.models.application import Application
@@ -42,7 +38,6 @@ from app.models.search import (
     SearchHistory,
     SearchAnalytics,
 )
-from app.services.ai_service import AIService
 
 
 class SearchFilters:

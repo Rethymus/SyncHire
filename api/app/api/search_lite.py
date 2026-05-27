@@ -5,18 +5,15 @@ Local-first search functionality without authentication.
 Uses SQLite FTS5 for full-text search.
 """
 
-from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, and_, func
-from sqlalchemy.orm import selectinload
+from sqlalchemy import select, or_, func
 
 from app.core.database_lite import get_db
 from app.models.resume_lite import Resume
 from app.models.jd_lite import JobDescription
 from app.models.application_lite import Application
 from app.schemas.schemas_lite import (
-    SearchRequest,
     SearchResponse,
     MatchRequest,
     MatchResponse,

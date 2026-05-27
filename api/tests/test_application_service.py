@@ -13,22 +13,18 @@ import pytest
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from fastapi import HTTPException, status
 
 from app.services.application_service import ApplicationService
 from app.services.resume_service import ResumeService
 from app.services.jd_service import JDService
 from app.models.application import Application
-from app.models.application_status_history import ApplicationStatusHistory
 from app.schemas.application import (
     ApplicationCreate,
-    ApplicationUpdate,
     ApplicationStatusUpdate,
     BulkTagRequest,
 )
 from app.core.errors import ValidationError, NotFoundError, DatabaseError
-from app.services.mcp_client import MCPError
 
 
 @pytest.mark.unit

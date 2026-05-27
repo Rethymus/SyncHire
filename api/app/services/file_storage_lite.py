@@ -4,13 +4,10 @@ Local File Storage Service
 Handles file storage on local filesystem instead of cloud storage (Minio/S3).
 """
 
-import os
-import shutil
 import aiofiles
 from pathlib import Path
-from typing import Optional
 from fastapi import UploadFile, HTTPException
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse
 
 from app.core.config_lite import get_lite_settings
 from app.core.logger import logger, LogCategory

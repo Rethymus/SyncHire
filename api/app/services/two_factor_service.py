@@ -14,7 +14,6 @@ import string
 from datetime import datetime
 from typing import Tuple, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from app.models.user import User
 from app.core.errors import ValidationError, DatabaseError
 import logging

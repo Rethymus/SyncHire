@@ -7,13 +7,12 @@ Provides endpoints for audit reports, data exports, and compliance documentation
 import uuid
 from datetime import datetime, timedelta
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.logger import get_logger
 from app.services.audit_service import (
-    AuditService,
     get_audit_logs,
     export_audit_log,
     get_audit_statistics,

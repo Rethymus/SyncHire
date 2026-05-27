@@ -13,10 +13,10 @@ Implements comprehensive data protection measures:
 import hashlib
 import secrets
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select
 import logging
 
 from app.models.user import User

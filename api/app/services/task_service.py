@@ -4,14 +4,12 @@ import asyncio
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, or_, update
-from sqlalchemy.orm import selectinload
+from sqlalchemy import select, and_
 from app.models.task import Task, TaskType, TaskStatus
 from app.services.ai_service import AIService
 from app.services.mcp_client import mcp_client, MCPError
 from app.core.redis import redis_client
 from app.core.logger import setup_logger
-import logging
 
 logger = setup_logger(__name__)
 

@@ -5,12 +5,11 @@ Export and import functionality for local data backup and migration.
 """
 
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
-from pathlib import Path
 import json
 import csv
 import zipfile

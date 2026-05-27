@@ -11,8 +11,6 @@ This script demonstrates the complete 2FA implementation for SyncHire:
 
 import pyotp
 import qrcode
-import io
-import base64
 from app.services.two_factor_service import TwoFactorService
 
 

@@ -5,13 +5,11 @@ Tests authentication, file upload, application management, and search
 
 import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.models.resume import Resume
 from app.models.jd import JD
 from app.models.application import Application
 from datetime import datetime, timedelta
-from tests.test_api_helpers import APITestHelpers
 
 
 @pytest.mark.auth

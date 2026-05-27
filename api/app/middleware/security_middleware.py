@@ -12,23 +12,18 @@ Provides comprehensive security measures:
 
 import time
 import re
-from typing import Callable, Awaitable, Any, Optional
-from fastapi import Request, Response, status, HTTPException
+from typing import Callable
+from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
-from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 
-from app.core.redis import redis_client
 from app.core.config import get_settings
 from app.core.security_enhanced import (
     SecurityAuditor,
     CSRFProtection,
-    SessionManager,
-    AccountLockout,
 )
-from app.core.errors import SecurityViolationError
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

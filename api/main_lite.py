@@ -8,7 +8,6 @@ Preserves AI functionality while removing authentication and cloud services.
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 from app.core.config_lite import get_lite_settings
 from app.core.database_lite import init_db, close_db

@@ -5,7 +5,6 @@ Stores user preferences and settings for local operation.
 No authentication required - this is for local tool preferences only.
 """
 
-from datetime import datetime
 from sqlalchemy import Column, DateTime, Text, String, UUID
 from sqlalchemy.sql import func
 

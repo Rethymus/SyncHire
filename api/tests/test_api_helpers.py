@@ -12,7 +12,6 @@ from app.models.resume import Resume
 from app.models.jd import JD
 from app.models.application import Application
 from datetime import datetime, timedelta
-import json
 
 
 class APITestHelpers:

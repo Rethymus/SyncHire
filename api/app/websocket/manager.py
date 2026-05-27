@@ -4,13 +4,11 @@ WebSocket Connection Manager
 Manages WebSocket connections, broadcasting, and message routing for real-time features.
 """
 
-import json
 import asyncio
-from typing import Dict, Set, Optional, List, Any
+from typing import Dict, Set, Optional, List
 from datetime import datetime, timedelta
-from fastapi import WebSocket, WebSocketDisconnect, status
+from fastapi import WebSocket
 from collections import defaultdict
-import logging
 
 from app.core.redis import redis_client
 from app.core.logger import logger, LogCategory
@@ -18,8 +16,6 @@ from app.websocket.types import (
     WebSocketMessage,
     MessageType,
     ConnectionInfo,
-    HeartbeatMessage,
-    ErrorMessage,
 )
 
 

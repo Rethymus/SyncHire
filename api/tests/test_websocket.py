@@ -6,14 +6,12 @@ Tests for WebSocket connection management, message delivery, and subscriptions.
 
 import pytest
 import asyncio
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
-from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, patch
 
 from app.websocket.manager import ConnectionManager
 from app.websocket.types import (
     WebSocketMessage,
     MessageType,
-    ConnectionInfo,
     NotificationData,
 )
 

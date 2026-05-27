@@ -4,10 +4,8 @@ AI Service - Lightweight Version
 Wrapper for AI APIs (OpenAI, Anthropic) with caching and error handling.
 """
 
-import asyncio
 import json
 from typing import Optional
-from functools import lru_cache
 from openai import AsyncOpenAI
 from anthropic import AsyncAnthropic
 

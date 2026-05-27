@@ -6,17 +6,14 @@ import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import IntegrityError, OperationalError
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 from app.core.errors import (
-    SyncHireError,
     AuthenticationError,
     ValidationError,
     NotFoundError,
     DatabaseError,
     handle_database_error,
 )
-from app.main import app
-from conftest import client, db_session
 
 
 class TestCustomErrors:

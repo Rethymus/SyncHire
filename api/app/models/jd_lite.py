@@ -4,8 +4,7 @@ Lightweight Job Description Model
 Simplified JD model without user dependencies for local-first operation.
 """
 
-from datetime import datetime
-from sqlalchemy import Column, DateTime, Text, String, UUID, Float, ForeignKey
+from sqlalchemy import Column, DateTime, Text, String, UUID, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 

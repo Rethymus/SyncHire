@@ -2,18 +2,15 @@ import csv
 import uuid
 import json
 from datetime import datetime
-from typing import List, Dict, Optional, AsyncGenerator
+from typing import List, Dict, AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from fastapi import HTTPException, status
 from io import StringIO
 import logging
 
 from app.models.application import Application
 from app.models.resume import Resume
 from app.models.jd import JD
-from app.models.user import User
-from app.core.errors import DatabaseError, ValidationError
 
 logger = logging.getLogger(__name__)
 

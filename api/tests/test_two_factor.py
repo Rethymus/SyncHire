@@ -6,12 +6,12 @@ Comprehensive tests for TOTP generation, verification, and backup codes.
 
 import pytest
 from datetime import datetime
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.two_factor_service import TwoFactorService
 from app.models.user import User
-from app.core.errors import ValidationError, DatabaseError
+from app.core.errors import ValidationError
 
 
 class TestTwoFactorService:

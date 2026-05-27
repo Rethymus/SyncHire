@@ -11,23 +11,19 @@ These tests follow 2026 best practices:
 
 import pytest
 import uuid
-import json
-import tempfile
-import os
-from unittest.mock import AsyncMock, MagicMock, patch, mock_open
+from unittest.mock import AsyncMock, MagicMock, patch
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import UploadFile
 
 from app.services.resume_service import ResumeService
 from app.models.resume import Resume
-from app.schemas.resume import ResumeUpdate, BulkDeleteResponse
+from app.schemas.resume import ResumeUpdate
 from app.core.errors import (
     ValidationError,
     NotFoundError,
     FileUploadError,
     FileSizeError,
     FileTypeError,
-    DatabaseError,
 )
 from app.services.mcp_client import MCPError
 

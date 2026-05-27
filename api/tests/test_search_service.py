@@ -11,7 +11,7 @@ These tests follow 2026 best practices:
 
 import pytest
 import uuid
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import date, datetime
 

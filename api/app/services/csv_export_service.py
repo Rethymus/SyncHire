@@ -3,7 +3,7 @@ import io
 import uuid
 import json
 from datetime import datetime
-from typing import List, Dict, Optional, Set, AsyncGenerator
+from typing import List, Optional, AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from fastapi import HTTPException, status
@@ -12,7 +12,6 @@ import logging
 from app.models.application import Application
 from app.models.resume import Resume
 from app.models.jd import JD
-from app.models.user import User
 from app.core.errors import DatabaseError
 
 logger = logging.getLogger(__name__)

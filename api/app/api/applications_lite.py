@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.core.database_lite import get_db, AsyncSessionLocal
+from app.core.database_lite import get_db
 from app.models.application_lite import Application, ApplicationStatus
 from app.models.resume_lite import Resume
 from app.models.jd_lite import JobDescription

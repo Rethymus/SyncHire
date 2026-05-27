@@ -6,7 +6,6 @@ Pydantic models for 2FA requests and responses
 
 from pydantic import BaseModel, Field
 from typing import List, Optional
-import uuid
 
 
 class TwoFactorSetupInitiate(BaseModel):

@@ -8,14 +8,12 @@ Tracks all data access, modifications, and user actions.
 import uuid
 import csv
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional, List, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, or_, desc
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import select, and_, desc
 from fastapi import HTTPException, Response
 from io import StringIO
-import logging
 
 from app.models.audit_log import (
     AuditLog,
@@ -24,7 +22,6 @@ from app.models.audit_log import (
     DataRetentionLog,
     ConsentLog,
 )
-from app.models.user import User
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

@@ -3,7 +3,6 @@
 from typing import Dict, Any
 from pathlib import Path
 import json
-from functools import lru_cache
 
 # Supported languages
 SUPPORTED_LANGUAGES = ["en-US", "zh-CN"]

@@ -11,15 +11,12 @@ These tests follow 2026 best practices:
 
 import pytest
 import uuid
-from unittest.mock import AsyncMock, MagicMock, patch
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timedelta, date
-from sqlalchemy import select, func
+from datetime import datetime, timedelta
 
 from app.models.application import Application
 from app.models.resume import Resume
 from app.models.jd import JD
-from app.models.user import User
 
 
 @pytest.mark.unit

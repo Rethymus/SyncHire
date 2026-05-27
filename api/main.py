@@ -35,7 +35,6 @@ from app.api import (
 )
 from app.websocket import manager
 from app.websocket.routes import router as websocket_router
-from app.websocket.server import ws_server
 from app.services.storage_service import StorageService
 from app.services.email_service import email_service
 from app.middleware.rate_limit import RateLimitMiddleware

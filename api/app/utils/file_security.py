@@ -12,10 +12,9 @@ Implements comprehensive file upload security:
 import os
 import magic
 import hashlib
-import tempfile
 from typing import Optional, Tuple, List
 from pathlib import Path
-from fastapi import UploadFile, HTTPException, status
+from fastapi import UploadFile
 import logging
 
 from app.core.config import get_settings

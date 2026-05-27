@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.core.database import get_db
-from app.core.security import verify_token
 from app.core.errors import ValidationError, RateLimitError
 from app.models.user import User
 from app.models.password_reset_token import PasswordResetToken

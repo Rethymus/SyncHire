@@ -1,6 +1,6 @@
 """Internationalization API endpoints."""
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Request
 from pydantic import BaseModel
 from app.i18n import (
     get_supported_languages,

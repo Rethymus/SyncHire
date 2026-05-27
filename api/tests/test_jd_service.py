@@ -11,15 +11,13 @@ These tests follow 2026 best practices:
 
 import pytest
 import uuid
-import json
 from unittest.mock import AsyncMock, MagicMock, patch
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 
 from app.services.jd_service import JDService
 from app.models.jd import JD
-from app.schemas.jd import JDCreate, JDUpdate, BulkDeleteResponse
-from app.core.errors import ValidationError, DatabaseError
+from app.schemas.jd import JDCreate, JDUpdate
 from app.services.mcp_client import MCPError
 
 

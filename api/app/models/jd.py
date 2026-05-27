@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, date
+from datetime import datetime
 from sqlalchemy import (
     Column,
     String,
@@ -9,9 +9,8 @@ from sqlalchemy import (
     ForeignKey,
     Boolean,
     Numeric,
-    Integer,
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import UUID
 from pgvector.sqlalchemy import Vector
 from sqlalchemy.orm import relationship
 from app.core.database import Base

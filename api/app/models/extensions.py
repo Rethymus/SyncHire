@@ -5,7 +5,6 @@ Provides interfaces for future cloud platform integrations and third-party servi
 These are designed to be optional extensions that users can enable if needed.
 """
 
-from datetime import datetime
 from sqlalchemy import Column, DateTime, Text, String, UUID, Boolean
 from sqlalchemy.sql import func
 

@@ -5,7 +5,6 @@ Handles large file uploads by accepting chunks, storing them temporarily,
 and recombining them into complete files when all chunks are received.
 """
 
-import os
 import uuid
 import shutil
 import logging

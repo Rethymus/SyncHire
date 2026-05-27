@@ -12,9 +12,8 @@ This file provides:
 
 import pytest
 from faker import Faker
-from unittest.mock import AsyncMock, MagicMock
-from typing import Dict, Any, Generator, Optional
-import httpx
+from unittest.mock import AsyncMock
+from typing import Dict, Any
 import tempfile
 import os
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
@@ -25,9 +24,7 @@ from app.models.resume import Resume
 from app.models.jd import JD
 from app.models.application import Application
 from app.models.interview import Interview
-import asyncio
 from datetime import datetime, timedelta
-import json
 
 
 # Test database URL (use in-memory SQLite for faster tests)
@@ -710,7 +707,6 @@ def benchmark_thresholds():
 @pytest.fixture
 def query_counter(db_session):
     """Counter for tracking database queries"""
-    from unittest.mock import wrap
 
     class QueryCounter:
         def __init__(self, session):

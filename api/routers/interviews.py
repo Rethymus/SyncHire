@@ -3,11 +3,11 @@ Interview router with scheduling and calendar integration.
 """
 
 from datetime import datetime, timedelta
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func, and_, or_
+from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.models.interview import (
@@ -27,7 +27,6 @@ from app.models import (
     Application,
     Interview,
     InterviewReminder,
-    InterviewEvent,
     Resume,
     JD,
 )

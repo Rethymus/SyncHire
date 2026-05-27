@@ -6,15 +6,12 @@ This script analyzes database queries to identify performance bottlenecks
 and validates the impact of performance optimizations.
 """
 import asyncio
-import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text, func
-from app.core.database import get_db, engine
+from app.core.database import get_db
 from app.models.application import Application
 from app.models.application_status_history import ApplicationStatusHistory
-from app.models.resume import Resume
 from app.models.user import User
-from datetime import datetime, timedelta
 import time
 import logging
 

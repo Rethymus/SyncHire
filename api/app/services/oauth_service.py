@@ -7,9 +7,9 @@ import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.user import User, OAuthAccount
-from app.core.errors import ValidationError, DatabaseError, AuthenticationError
+from app.core.errors import ValidationError, DatabaseError
 from app.core.config import get_settings
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 import logging
 import uuid
 

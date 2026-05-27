@@ -8,12 +8,12 @@ import uuid
 import json
 from datetime import datetime
 from typing import Callable, Optional
-from fastapi import Request, Response, HTTPException
+from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.audit_service import AuditService, AuditAction, ResourceType
+from app.services.audit_service import AuditAction, ResourceType
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

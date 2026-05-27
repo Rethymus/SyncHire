@@ -4,8 +4,7 @@ Password Reset Token Model
 Stores password reset tokens for user authentication recovery.
 """
 
-from datetime import datetime
-from sqlalchemy import Column, DateTime, Boolean, String, UUID, Index
+from sqlalchemy import Column, DateTime, Boolean, String, UUID
 from sqlalchemy.sql import func
 
 from app.core.database import Base

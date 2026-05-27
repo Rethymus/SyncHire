@@ -19,11 +19,9 @@ The worker will:
 import asyncio
 import signal
 import sys
-from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from app.core.config import get_settings
-from app.core.database import get_db, Base
 from app.core.redis import redis_client
 from app.core.logger import setup_logger
 from app.services.task_service import TaskService

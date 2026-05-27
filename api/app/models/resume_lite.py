@@ -4,8 +4,7 @@ Lightweight Resume Model
 Simplified resume model without user dependencies for local-first operation.
 """
 
-from datetime import datetime
-from sqlalchemy import Column, DateTime, Text, String, UUID, ForeignKey
+from sqlalchemy import Column, DateTime, Text, String, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 

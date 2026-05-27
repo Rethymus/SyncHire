@@ -660,7 +660,6 @@ def highlight_search_terms(text: str, query: str) -> str:
             continue
 
         # Find and highlight matches (case-insensitive)
-        import re
 
         try:
             # Security: Use literal string matching instead of regex for safety

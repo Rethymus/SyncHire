@@ -16,11 +16,6 @@ from httpx import AsyncClient
 
 from app.models.application import Application
 from app.models.user import User
-from app.schemas.application import (
-    BulkStatusUpdateRequest,
-    BulkTagRequest,
-    BulkTagResponse,
-)
 
 
 @pytest.mark.asyncio

@@ -18,7 +18,7 @@ from app.core.deps import get_current_user
 from app.models.user import User
 from app.core.logger import logger, LogCategory
 from app.websocket.manager import manager
-from app.websocket.types import WebSocketMessage, MessageType, ErrorMessage
+from app.websocket.types import WebSocketMessage, MessageType
 
 settings = get_settings()
 security = HTTPBearer()

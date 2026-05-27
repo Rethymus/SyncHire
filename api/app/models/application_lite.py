@@ -4,8 +4,7 @@ Lightweight Application Model
 Simplified application model without user dependencies for local-first operation.
 """
 
-from datetime import datetime
-from sqlalchemy import Column, DateTime, Text, String, UUID, ForeignKey, Enum
+from sqlalchemy import Column, DateTime, Text, UUID, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum

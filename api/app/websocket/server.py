@@ -8,8 +8,8 @@ and connection lifecycle handling.
 import asyncio
 import uuid
 from typing import Optional, Dict, Any, Set, List
-from datetime import datetime, timedelta
-from fastapi import WebSocket, WebSocketDisconnect, status
+from datetime import datetime
+from fastapi import WebSocket
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -21,8 +21,6 @@ from app.websocket.manager import manager
 from app.websocket.types import (
     WebSocketMessage,
     MessageType,
-    ErrorMessage,
-    ConnectionInfo,
 )
 
 settings = get_settings()

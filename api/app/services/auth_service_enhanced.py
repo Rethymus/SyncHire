@@ -11,8 +11,8 @@ Implements secure authentication with:
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from typing import Optional, Dict, Any
-from datetime import datetime, timedelta
+from typing import Optional
+from datetime import datetime
 import logging
 
 from app.models.user import User
@@ -23,13 +23,11 @@ from app.core.security_enhanced import (
     AccountLockout,
     SessionManager,
     SecurityAuditor,
-    DataEncryption,
 )
 from app.core.errors import (
     ValidationError,
     ConflictError,
     AuthenticationError,
-    RateLimitError,
 )
 from app.core.email_service import email_service
 

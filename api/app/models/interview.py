@@ -2,7 +2,6 @@
 Interview database models for scheduling and calendar integration.
 """
 
-from datetime import datetime
 from sqlalchemy import (
     Column,
     String,
@@ -12,7 +11,6 @@ from sqlalchemy import (
     Boolean,
     ForeignKey,
     Numeric,
-    JSON,
     CheckConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB
