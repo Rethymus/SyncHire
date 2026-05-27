@@ -20,11 +20,12 @@ jobs:
         with:
           node-version: '22.x'
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache: 'npm'
 
       - name: Install dependencies
-        working-directory: ./frontend
-        run: npm ci
+        run: |
+          cd .. && npm ci
+          cd frontend
 
       - name: Run linter
         working-directory: ./frontend
@@ -146,11 +147,12 @@ jobs:
         with:
           node-version: '22.x'
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache: 'npm'
 
       - name: Install dependencies
-        working-directory: ./frontend
-        run: npm ci
+        run: |
+          cd .. && npm ci
+          cd frontend
 
       - name: Install Playwright browsers
         working-directory: ./frontend

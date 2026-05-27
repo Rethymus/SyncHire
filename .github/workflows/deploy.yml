@@ -38,11 +38,11 @@ jobs:
         with:
           node-version: '22.x'
           cache: 'npm'
-          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        working-directory: ./frontend
-        run: npm ci
+        run: |
+          cd .. && npm ci
+          cd frontend
 
       - name: Run type check
         working-directory: ./frontend
