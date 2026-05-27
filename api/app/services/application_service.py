@@ -328,7 +328,7 @@ class ApplicationService:
             return {
                 "task_id": str(task.id),
                 "message": "Resume optimization is being processed in background. "
-                          "Use the task_id to check status and retrieve results.",
+                "Use the task_id to check status and retrieve results.",
             }
 
         # Synchronous processing (original behavior)
@@ -629,7 +629,9 @@ class ApplicationService:
                     try:
                         await db.delete(application)
                         success_count += 1
-                        logger.debug(f"Successfully deleted application {application.id}")
+                        logger.debug(
+                            f"Successfully deleted application {application.id}"
+                        )
                     except Exception as individual_error:
                         failed_count += 1
                         error_msg = str(individual_error)
@@ -1126,7 +1128,9 @@ class ApplicationService:
                                 "error": "Application not found or access denied",
                             }
                         )
-                        logger.warning(f"Application {app_id} not found for user {user_id}")
+                        logger.warning(
+                            f"Application {app_id} not found for user {user_id}"
+                        )
                         continue
 
                     # Get current tags (ensure it's a list)
@@ -1144,7 +1148,9 @@ class ApplicationService:
 
                     elif request.operation == "remove":
                         # Remove specified tags
-                        new_tags = [tag for tag in current_tags if tag not in valid_tags]
+                        new_tags = [
+                            tag for tag in current_tags if tag not in valid_tags
+                        ]
                         application.tags = new_tags
                         logger.info(
                             f"Removed tags {valid_tags} from application {app_id}. "

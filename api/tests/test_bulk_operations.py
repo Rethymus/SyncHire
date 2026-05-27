@@ -28,7 +28,10 @@ class TestBulkStatusUpdates:
     """Test bulk status update operations"""
 
     async def test_bulk_status_update_success(
-        self, async_client: AsyncClient, test_user: User, test_applications: list[Application]
+        self,
+        async_client: AsyncClient,
+        test_user: User,
+        test_applications: list[Application],
     ):
         """Test successful bulk status update"""
         application_ids = [app.id for app in test_applications[:3]]
@@ -49,7 +52,10 @@ class TestBulkStatusUpdates:
         assert len(data["errors"]) == 0
 
     async def test_bulk_status_update_partial_failure(
-        self, async_client: AsyncClient, test_user: User, test_applications: list[Application]
+        self,
+        async_client: AsyncClient,
+        test_user: User,
+        test_applications: list[Application],
     ):
         """Test bulk status update with some invalid IDs"""
         valid_ids = [app.id for app in test_applications[:2]]
@@ -71,7 +77,10 @@ class TestBulkStatusUpdates:
         assert str(invalid_id) in data["errors"][0]["id"]
 
     async def test_bulk_status_update_invalid_status(
-        self, async_client: AsyncClient, test_user: User, test_applications: list[Application]
+        self,
+        async_client: AsyncClient,
+        test_user: User,
+        test_applications: list[Application],
     ):
         """Test bulk status update with invalid status value"""
         application_ids = [app.id for app in test_applications[:1]]
@@ -108,7 +117,10 @@ class TestBulkTagging:
     """Test bulk tagging operations"""
 
     async def test_bulk_tag_add_operation(
-        self, async_client: AsyncClient, test_user: User, test_applications: list[Application]
+        self,
+        async_client: AsyncClient,
+        test_user: User,
+        test_applications: list[Application],
     ):
         """Test bulk tag add operation"""
         application_ids = [app.id for app in test_applications[:3]]
@@ -129,7 +141,10 @@ class TestBulkTagging:
         assert len(data["errors"]) == 0
 
     async def test_bulk_tag_remove_operation(
-        self, async_client: AsyncClient, test_user: User, test_applications: list[Application]
+        self,
+        async_client: AsyncClient,
+        test_user: User,
+        test_applications: list[Application],
     ):
         """Test bulk tag remove operation"""
         application_ids = [app.id for app in test_applications[:2]]
@@ -159,7 +174,10 @@ class TestBulkTagging:
         assert data["success_count"] == 2
 
     async def test_bulk_tag_replace_operation(
-        self, async_client: AsyncClient, test_user: User, test_applications: list[Application]
+        self,
+        async_client: AsyncClient,
+        test_user: User,
+        test_applications: list[Application],
     ):
         """Test bulk tag replace operation"""
         application_ids = [app.id for app in test_applications[:2]]
@@ -189,7 +207,10 @@ class TestBulkTagging:
         assert data["success_count"] == 2
 
     async def test_bulk_tag_no_duplicates(
-        self, async_client: AsyncClient, test_user: User, test_applications: list[Application]
+        self,
+        async_client: AsyncClient,
+        test_user: User,
+        test_applications: list[Application],
     ):
         """Test that adding duplicate tags doesn't create duplicates"""
         application_ids = [app.id for app in test_applications[:1]]
@@ -224,7 +245,10 @@ class TestBulkTagging:
         assert tag_count == 1, "Duplicate tags should not exist"
 
     async def test_bulk_tag_invalid_operation(
-        self, async_client: AsyncClient, test_user: User, test_applications: list[Application]
+        self,
+        async_client: AsyncClient,
+        test_user: User,
+        test_applications: list[Application],
     ):
         """Test bulk tag with invalid operation type"""
         application_ids = [app.id for app in test_applications[:1]]
@@ -241,7 +265,10 @@ class TestBulkTagging:
         assert response.status_code == 422  # Validation error
 
     async def test_bulk_tag_empty_tags(
-        self, async_client: AsyncClient, test_user: User, test_applications: list[Application]
+        self,
+        async_client: AsyncClient,
+        test_user: User,
+        test_applications: list[Application],
     ):
         """Test bulk tag with empty tags list"""
         application_ids = [app.id for app in test_applications[:1]]
@@ -258,7 +285,10 @@ class TestBulkTagging:
         assert response.status_code == 422  # Validation error
 
     async def test_bulk_tag_sanitization(
-        self, async_client: AsyncClient, test_user: User, test_applications: list[Application]
+        self,
+        async_client: AsyncClient,
+        test_user: User,
+        test_applications: list[Application],
     ):
         """Test that tags are properly sanitized"""
         application_ids = [app.id for app in test_applications[:1]]
@@ -267,7 +297,12 @@ class TestBulkTagging:
             "/api/applications/bulk-tag",
             json={
                 "ids": [str(app_id) for app_id in application_ids],
-                "tags": ["  test-tag  ", "another-tag  ", "", "  "],  # Include whitespace and empty tags
+                "tags": [
+                    "  test-tag  ",
+                    "another-tag  ",
+                    "",
+                    "  ",
+                ],  # Include whitespace and empty tags
                 "operation": "add",
             },
         )
@@ -277,7 +312,10 @@ class TestBulkTagging:
         assert data["success_count"] == 1
 
     async def test_bulk_tag_too_long(
-        self, async_client: AsyncClient, test_user: User, test_applications: list[Application]
+        self,
+        async_client: AsyncClient,
+        test_user: User,
+        test_applications: list[Application],
     ):
         """Test bulk tag with tag exceeding maximum length"""
         application_ids = [app.id for app in test_applications[:1]]
@@ -300,7 +338,10 @@ class TestBulkOperationIntegration:
     """Integration tests for bulk operations"""
 
     async def test_bulk_status_and_tag_combined(
-        self, async_client: AsyncClient, test_user: User, test_applications: list[Application]
+        self,
+        async_client: AsyncClient,
+        test_user: User,
+        test_applications: list[Application],
     ):
         """Test combining bulk status update with bulk tagging"""
         application_ids = [app.id for app in test_applications[:3]]
@@ -335,7 +376,10 @@ class TestBulkOperationIntegration:
             assert "high-priority" in app_data["tags"]
 
     async def test_bulk_operations_transaction_rollback(
-        self, async_client: AsyncClient, test_user: User, test_applications: list[Application]
+        self,
+        async_client: AsyncClient,
+        test_user: User,
+        test_applications: list[Application],
     ):
         """Test that partial failures don't affect successful operations"""
         application_ids = [app.id for app in test_applications[:2]]

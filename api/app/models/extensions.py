@@ -25,8 +25,15 @@ class Extension(Base):
     enabled = Column(Boolean, default=False, nullable=False)
     config = Column(Text)  # JSON-encoded configuration
     last_sync = Column(DateTime(timezone=True))
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     def __repr__(self):
         return f"<Extension(id={self.id}, name={self.name}, enabled={self.enabled})>"
@@ -42,7 +49,9 @@ class IntegrationLog(Base):
     action = Column(String(100), nullable=False)  # sync, backup, export, etc.
     status = Column(String(50), nullable=False)  # success, failure, pending
     details = Column(Text)  # JSON-encoded details
-    timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    timestamp = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     def __repr__(self):
         return f"<IntegrationLog(id={self.id}, action={self.action}, status={self.status})>"

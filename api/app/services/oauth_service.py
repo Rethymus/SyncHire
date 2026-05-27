@@ -38,17 +38,17 @@ class OAuthService:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
                     "https://www.googleapis.com/oauth2/v2/userinfo",
-                    headers={
-                        "Authorization": f"Bearer {access_token}"
-                    },
-                    timeout=10.0
+                    headers={"Authorization": f"Bearer {access_token}"},
+                    timeout=10.0,
                 )
 
                 if response.status_code != 200:
-                    logger.error(f"Google API error: {response.status_code} - {response.text}")
+                    logger.error(
+                        f"Google API error: {response.status_code} - {response.text}"
+                    )
                     raise ValidationError(
                         message="Failed to fetch user information from Google",
-                        details={"status": response.status_code}
+                        details={"status": response.status_code},
                     )
 
                 data = response.json()
@@ -57,20 +57,18 @@ class OAuthService:
                     "email": data.get("email"),
                     "name": data.get("name"),
                     "picture": data.get("picture"),
-                    "verified_email": data.get("verified_email", False)
+                    "verified_email": data.get("verified_email", False),
                 }
 
         except httpx.TimeoutException:
             logger.error("Google API timeout")
             raise ValidationError(
-                message="Request to Google API timed out",
-                details={"service": "google"}
+                message="Request to Google API timed out", details={"service": "google"}
             )
         except httpx.RequestError as e:
             logger.error(f"Google API request error: {str(e)}")
             raise ValidationError(
-                message="Failed to connect to Google API",
-                details={"error": str(e)}
+                message="Failed to connect to Google API", details={"error": str(e)}
             )
 
     @staticmethod
@@ -94,16 +92,18 @@ class OAuthService:
                     "https://api.github.com/user",
                     headers={
                         "Authorization": f"Bearer {access_token}",
-                        "Accept": "application/json"
+                        "Accept": "application/json",
                     },
-                    timeout=10.0
+                    timeout=10.0,
                 )
 
                 if user_response.status_code != 200:
-                    logger.error(f"GitHub API error: {user_response.status_code} - {user_response.text}")
+                    logger.error(
+                        f"GitHub API error: {user_response.status_code} - {user_response.text}"
+                    )
                     raise ValidationError(
                         message="Failed to fetch user information from GitHub",
-                        details={"status": user_response.status_code}
+                        details={"status": user_response.status_code},
                     )
 
                 user_data = user_response.json()
@@ -113,9 +113,9 @@ class OAuthService:
                     "https://api.github.com/user/emails",
                     headers={
                         "Authorization": f"Bearer {access_token}",
-                        "Accept": "application/json"
+                        "Accept": "application/json",
                     },
-                    timeout=10.0
+                    timeout=10.0,
                 )
 
                 email = None
@@ -146,27 +146,23 @@ class OAuthService:
                     "verified_email": verified_email,
                     "login": user_data.get("login"),
                     "bio": user_data.get("bio"),
-                    "location": user_data.get("location")
+                    "location": user_data.get("location"),
                 }
 
         except httpx.TimeoutException:
             logger.error("GitHub API timeout")
             raise ValidationError(
-                message="Request to GitHub API timed out",
-                details={"service": "github"}
+                message="Request to GitHub API timed out", details={"service": "github"}
             )
         except httpx.RequestError as e:
             logger.error(f"GitHub API request error: {str(e)}")
             raise ValidationError(
-                message="Failed to connect to GitHub API",
-                details={"error": str(e)}
+                message="Failed to connect to GitHub API", details={"error": str(e)}
             )
 
     @staticmethod
     async def find_or_create_user_by_oauth(
-        db: AsyncSession,
-        provider: str,
-        oauth_user_info: Dict[str, Any]
+        db: AsyncSession, provider: str, oauth_user_info: Dict[str, Any]
     ) -> User:
         """
         Find existing user or create new user using OAuth information
@@ -190,21 +186,21 @@ class OAuthService:
             if not oauth_id or not email:
                 raise ValidationError(
                     message="Missing required OAuth user information",
-                    details={"oauth_id": oauth_id, "email": email}
+                    details={"oauth_id": oauth_id, "email": email},
                 )
 
             # Check if email is verified
             if not oauth_user_info.get("verified_email", False):
                 raise ValidationError(
                     message="Email address must be verified to use OAuth login",
-                    details={"email": email}
+                    details={"email": email},
                 )
 
             # Check if OAuth account already exists
             result = await db.execute(
                 select(OAuthAccount).where(
                     OAuthAccount.provider == provider,
-                    OAuthAccount.provider_user_id == oauth_id
+                    OAuthAccount.provider_user_id == oauth_id,
                 )
             )
             oauth_account = result.scalar_one_or_none()
@@ -219,7 +215,7 @@ class OAuthService:
                 if user and not user.is_active:
                     raise ValidationError(
                         message="User account is disabled",
-                        details={"user_id": str(user.id)}
+                        details={"user_id": str(user.id)},
                     )
 
                 if user:
@@ -227,9 +223,7 @@ class OAuthService:
                     return user
 
             # Check if user with same email exists
-            result = await db.execute(
-                select(User).where(User.email == email)
-            )
+            result = await db.execute(select(User).where(User.email == email))
             existing_user = result.scalar_one_or_none()
 
             if existing_user:
@@ -240,20 +234,22 @@ class OAuthService:
                     provider_user_id=oauth_id,
                     access_token=str(uuid.uuid4()),  # Store a reference token
                     refresh_token=None,
-                    account_info=oauth_user_info
+                    account_info=oauth_user_info,
                 )
 
                 try:
                     db.add(new_oauth_account)
                     await db.commit()
                     await db.refresh(new_oauth_account)
-                    logger.info(f"Linked {provider} account to existing user: {existing_user.id}")
+                    logger.info(
+                        f"Linked {provider} account to existing user: {existing_user.id}"
+                    )
                 except Exception as e:
                     await db.rollback()
                     logger.error(f"Failed to link OAuth account: {str(e)}")
                     raise DatabaseError(
                         message="Failed to link OAuth account",
-                        details={"error": str(e)}
+                        details={"error": str(e)},
                     )
 
                 return existing_user
@@ -268,7 +264,7 @@ class OAuthService:
                 email=email,
                 full_name=name,
                 hashed_password="",  # No password for OAuth users
-                is_active=True
+                is_active=True,
             )
 
             try:
@@ -283,7 +279,7 @@ class OAuthService:
                     provider_user_id=oauth_id,
                     access_token=str(uuid.uuid4()),
                     refresh_token=None,
-                    account_info=oauth_user_info
+                    account_info=oauth_user_info,
                 )
 
                 db.add(oauth_account)
@@ -297,17 +293,17 @@ class OAuthService:
                 await db.rollback()
                 logger.error(f"Failed to create OAuth user: {str(e)}")
                 raise DatabaseError(
-                    message="Failed to create user account",
-                    details={"error": str(e)}
+                    message="Failed to create user account", details={"error": str(e)}
                 )
 
         except ValidationError:
             raise
         except Exception as e:
-            logger.error(f"Unexpected error in OAuth user creation: {str(e)}", exc_info=True)
+            logger.error(
+                f"Unexpected error in OAuth user creation: {str(e)}", exc_info=True
+            )
             raise DatabaseError(
-                message="OAuth authentication failed",
-                details={"error": str(e)}
+                message="OAuth authentication failed", details={"error": str(e)}
             )
 
     @staticmethod
@@ -326,13 +322,13 @@ class OAuthService:
             ValidationError: If code exchange fails
         """
         # Check if Google OAuth credentials are configured
-        client_id = getattr(settings, 'GOOGLE_OAUTH_CLIENT_ID', None)
-        client_secret = getattr(settings, 'GOOGLE_OAUTH_CLIENT_SECRET', None)
+        client_id = getattr(settings, "GOOGLE_OAUTH_CLIENT_ID", None)
+        client_secret = getattr(settings, "GOOGLE_OAUTH_CLIENT_SECRET", None)
 
         if not client_id or not client_secret:
             raise ValidationError(
                 message="Google OAuth is not configured",
-                details={"setting": "GOOGLE_OAUTH_CLIENT_ID/SECRET not set"}
+                details={"setting": "GOOGLE_OAUTH_CLIENT_ID/SECRET not set"},
             )
 
         try:
@@ -344,19 +340,19 @@ class OAuthService:
                         "client_id": client_id,
                         "client_secret": client_secret,
                         "redirect_uri": redirect_uri,
-                        "grant_type": "authorization_code"
+                        "grant_type": "authorization_code",
                     },
-                    headers={
-                        "Content-Type": "application/x-www-form-urlencoded"
-                    },
-                    timeout=10.0
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                    timeout=10.0,
                 )
 
                 if response.status_code != 200:
-                    logger.error(f"Google token exchange error: {response.status_code} - {response.text}")
+                    logger.error(
+                        f"Google token exchange error: {response.status_code} - {response.text}"
+                    )
                     raise ValidationError(
                         message="Failed to exchange authorization code for access token",
-                        details={"status": response.status_code}
+                        details={"status": response.status_code},
                     )
 
                 token_data = response.json()
@@ -365,7 +361,7 @@ class OAuthService:
                 if not access_token:
                     raise ValidationError(
                         message="No access token in response",
-                        details={"response": token_data}
+                        details={"response": token_data},
                     )
 
                 return access_token
@@ -374,7 +370,7 @@ class OAuthService:
             logger.error(f"Google token exchange request error: {str(e)}")
             raise ValidationError(
                 message="Failed to connect to Google OAuth service",
-                details={"error": str(e)}
+                details={"error": str(e)},
             )
 
     @staticmethod
@@ -393,13 +389,13 @@ class OAuthService:
             ValidationError: If code exchange fails
         """
         # Check if GitHub OAuth credentials are configured
-        client_id = getattr(settings, 'GITHUB_OAUTH_CLIENT_ID', None)
-        client_secret = getattr(settings, 'GITHUB_OAUTH_CLIENT_SECRET', None)
+        client_id = getattr(settings, "GITHUB_OAUTH_CLIENT_ID", None)
+        client_secret = getattr(settings, "GITHUB_OAUTH_CLIENT_SECRET", None)
 
         if not client_id or not client_secret:
             raise ValidationError(
                 message="GitHub OAuth is not configured",
-                details={"setting": "GITHUB_OAUTH_CLIENT_ID/SECRET not set"}
+                details={"setting": "GITHUB_OAUTH_CLIENT_ID/SECRET not set"},
             )
 
         try:
@@ -411,19 +407,19 @@ class OAuthService:
                         "code": code,
                         "client_id": client_id,
                         "client_secret": client_secret,
-                        "redirect_uri": redirect_uri
+                        "redirect_uri": redirect_uri,
                     },
-                    headers={
-                        "Accept": "application/json"
-                    },
-                    timeout=10.0
+                    headers={"Accept": "application/json"},
+                    timeout=10.0,
                 )
 
                 if response.status_code != 200:
-                    logger.error(f"GitHub token exchange error: {response.status_code} - {response.text}")
+                    logger.error(
+                        f"GitHub token exchange error: {response.status_code} - {response.text}"
+                    )
                     raise ValidationError(
                         message="Failed to exchange authorization code for access token",
-                        details={"status": response.status_code}
+                        details={"status": response.status_code},
                     )
 
                 token_data = response.json()
@@ -431,8 +427,10 @@ class OAuthService:
                 if "error" in token_data:
                     logger.error(f"GitHub OAuth error: {token_data}")
                     raise ValidationError(
-                        message=token_data.get("error_description", "GitHub OAuth failed"),
-                        details={"error": token_data.get("error")}
+                        message=token_data.get(
+                            "error_description", "GitHub OAuth failed"
+                        ),
+                        details={"error": token_data.get("error")},
                     )
 
                 access_token = token_data.get("access_token")
@@ -440,7 +438,7 @@ class OAuthService:
                 if not access_token:
                     raise ValidationError(
                         message="No access token in response",
-                        details={"response": token_data}
+                        details={"response": token_data},
                     )
 
                 return access_token
@@ -449,5 +447,5 @@ class OAuthService:
             logger.error(f"GitHub token exchange request error: {str(e)}")
             raise ValidationError(
                 message="Failed to connect to GitHub OAuth service",
-                details={"error": str(e)}
+                details={"error": str(e)},
             )

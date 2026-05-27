@@ -27,7 +27,7 @@ class APITestHelpers:
         email: str = "test@example.com",
         username: str = "testuser",
         password: str = "testpass123",
-        **kwargs
+        **kwargs,
     ) -> User:
         """Create a test user"""
         import uuid
@@ -39,7 +39,7 @@ class APITestHelpers:
             username=username,
             full_name=kwargs.get("full_name", "Test User"),
             hashed_password=get_password_hash(password),
-            **kwargs
+            **kwargs,
         )
         self.db.add(user)
         await self.db.commit()
@@ -49,8 +49,7 @@ class APITestHelpers:
     async def login_user(self, email: str, password: str) -> Dict[str, Any]:
         """Login user and return response"""
         response = await self.client.post(
-            "/auth/login",
-            json={"email": email, "password": password}
+            "/auth/login", json={"email": email, "password": password}
         )
         return response.json()
 
@@ -61,7 +60,7 @@ class APITestHelpers:
         token = jwt.encode(
             {"sub": str(user.id), "exp": datetime.utcnow() + timedelta(hours=1)},
             "test_secret_key",
-            algorithm="HS256"
+            algorithm="HS256",
         )
         return {"Authorization": f"Bearer {token}"}
 
@@ -75,7 +74,7 @@ class APITestHelpers:
             title=kwargs.get("title", "Software Engineer Resume"),
             content=kwargs.get("content", "Experienced software engineer"),
             file_url=kwargs.get("file_url", "https://example.com/resume.pdf"),
-            **kwargs
+            **kwargs,
         )
         self.db.add(resume)
         await self.db.commit()
@@ -93,7 +92,7 @@ class APITestHelpers:
             company_name=kwargs.get("company_name", "Tech Corp"),
             content=kwargs.get("content", "We are looking for a senior engineer"),
             location=kwargs.get("location", "San Francisco, CA"),
-            **kwargs
+            **kwargs,
         )
         self.db.add(jd)
         await self.db.commit()
@@ -101,11 +100,7 @@ class APITestHelpers:
         return jd
 
     async def create_test_application(
-        self,
-        user: User,
-        resume: Resume,
-        jd: JD,
-        **kwargs
+        self, user: User, resume: Resume, jd: JD, **kwargs
     ) -> Application:
         """Create a test application"""
         import uuid
@@ -117,7 +112,7 @@ class APITestHelpers:
             jd_id=jd.id,
             status=kwargs.get("status", "applied"),
             match_score=kwargs.get("match_score", 0.85),
-            **kwargs
+            **kwargs,
         )
         self.db.add(application)
         await self.db.commit()
@@ -125,9 +120,7 @@ class APITestHelpers:
         return application
 
     async def assert_success_response(
-        self,
-        response: Dict[str, Any],
-        expected_data: Optional[Dict[str, Any]] = None
+        self, response: Dict[str, Any], expected_data: Optional[Dict[str, Any]] = None
     ):
         """Assert API response is successful"""
         assert response["success"] is True
@@ -135,20 +128,14 @@ class APITestHelpers:
             assert response["data"] == expected_data
 
     async def assert_error_response(
-        self,
-        response: Dict[str, Any],
-        expected_error_code: str,
-        expected_status: int
+        self, response: Dict[str, Any], expected_error_code: str, expected_status: int
     ):
         """Assert API response is an error"""
         assert response["success"] is False
         assert response["error"]["code"] == expected_error_code
 
     async def assert_validation_error(
-        self,
-        response: Dict[str, Any],
-        field: str,
-        message: str
+        self, response: Dict[str, Any], field: str, message: str
     ):
         """Assert validation error in response"""
         assert response["success"] is False
@@ -178,10 +165,7 @@ class APITestHelpers:
         assert response["error"]["code"] == "RATE_LIMIT_EXCEEDED"
 
     async def wait_for_condition(
-        self,
-        condition,
-        timeout: float = 5.0,
-        interval: float = 0.1
+        self, condition, timeout: float = 5.0, interval: float = 0.1
     ):
         """Wait for a condition to be true"""
         start_time = asyncio.get_event_loop().time()
@@ -193,7 +177,9 @@ class APITestHelpers:
 
         raise TimeoutError(f"Condition not met within {timeout} seconds")
 
-    async def measure_response_time(self, endpoint: str, method: str = "GET", **kwargs) -> float:
+    async def measure_response_time(
+        self, endpoint: str, method: str = "GET", **kwargs
+    ) -> float:
         """Measure API response time"""
         import time
 
@@ -213,22 +199,16 @@ class APITestHelpers:
         return time.time() - start_time
 
     async def assert_performance_threshold(
-        self,
-        endpoint: str,
-        max_time: float,
-        method: str = "GET",
-        **kwargs
+        self, endpoint: str, max_time: float, method: str = "GET", **kwargs
     ):
         """Assert API response time is within threshold"""
         response_time = await self.measure_response_time(endpoint, method, **kwargs)
-        assert response_time <= max_time, f"Response time {response_time}s exceeded threshold {max_time}s"
+        assert (
+            response_time <= max_time
+        ), f"Response time {response_time}s exceeded threshold {max_time}s"
 
     async def bulk_create_resources(
-        self,
-        resource_type: str,
-        count: int,
-        user: User,
-        **kwargs
+        self, resource_type: str, count: int, user: User, **kwargs
     ) -> List:
         """Bulk create test resources"""
         resources = []
@@ -236,24 +216,17 @@ class APITestHelpers:
         for i in range(count):
             if resource_type == "resume":
                 resource = await self.create_test_resume(
-                    user,
-                    title=f"Resume {i+1}",
-                    **kwargs
+                    user, title=f"Resume {i+1}", **kwargs
                 )
             elif resource_type == "jd":
                 resource = await self.create_test_jd(
-                    user,
-                    title=f"Job Description {i+1}",
-                    **kwargs
+                    user, title=f"Job Description {i+1}", **kwargs
                 )
             elif resource_type == "application":
                 resume = await self.create_test_resume(user)
                 jd = await self.create_test_jd(user)
                 resource = await self.create_test_application(
-                    user,
-                    resume,
-                    jd,
-                    **kwargs
+                    user, resume, jd, **kwargs
                 )
             else:
                 raise ValueError(f"Unknown resource type: {resource_type}")
@@ -267,7 +240,7 @@ class APITestHelpers:
         endpoint: str,
         total_items: int,
         per_page: int = 10,
-        headers: Optional[Dict[str, str]] = None
+        headers: Optional[Dict[str, str]] = None,
     ):
         """Test pagination functionality"""
         # Test first page
@@ -296,7 +269,7 @@ class APITestHelpers:
         filter_param: str,
         filter_value: Any,
         expected_count: int,
-        headers: Optional[Dict[str, str]] = None
+        headers: Optional[Dict[str, str]] = None,
     ):
         """Test filtering functionality"""
         params = {filter_param: filter_value}
@@ -311,7 +284,7 @@ class APITestHelpers:
         endpoint: str,
         sort_param: str,
         sort_order: str,
-        headers: Optional[Dict[str, str]] = None
+        headers: Optional[Dict[str, str]] = None,
     ):
         """Test sorting functionality"""
         params = {"sort": sort_param, "order": sort_order}
@@ -332,7 +305,7 @@ class APITestHelpers:
         endpoint: str,
         search_query: str,
         expected_results: int,
-        headers: Optional[Dict[str, str]] = None
+        headers: Optional[Dict[str, str]] = None,
     ):
         """Test search functionality"""
         params = {"q": search_query}
@@ -345,24 +318,16 @@ class APITestHelpers:
     async def cleanup_test_data(self, user: User):
         """Clean up test data for user"""
         # Delete applications
-        await self.db.execute(
-            f"DELETE FROM applications WHERE user_id = '{user.id}'"
-        )
+        await self.db.execute(f"DELETE FROM applications WHERE user_id = '{user.id}'")
 
         # Delete resumes
-        await self.db.execute(
-            f"DELETE FROM resumes WHERE user_id = '{user.id}'"
-        )
+        await self.db.execute(f"DELETE FROM resumes WHERE user_id = '{user.id}'")
 
         # Delete JDs
-        await self.db.execute(
-            f"DELETE FROM jds WHERE user_id = '{user.id}'"
-        )
+        await self.db.execute(f"DELETE FROM jds WHERE user_id = '{user.id}'")
 
         # Delete user
-        await self.db.execute(
-            f"DELETE FROM users WHERE id = '{user.id}'"
-        )
+        await self.db.execute(f"DELETE FROM users WHERE id = '{user.id}'")
 
         await self.db.commit()
 

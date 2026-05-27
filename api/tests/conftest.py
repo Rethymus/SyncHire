@@ -202,7 +202,9 @@ async def test_jd(db: AsyncSession, test_user: User) -> JD:
 
 # Test application fixture
 @pytest.fixture
-async def test_application(db: AsyncSession, test_user: User, test_resume: Resume, test_jd: JD) -> Application:
+async def test_application(
+    db: AsyncSession, test_user: User, test_resume: Resume, test_jd: JD
+) -> Application:
     """Create test application"""
     import uuid
 
@@ -369,7 +371,7 @@ def measure_performance():
 @pytest.fixture
 def temp_file():
     """Create temporary file for testing"""
-    temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.pdf')
+    temp_file = tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".pdf")
     temp_file.write("Mock PDF content")
     temp_file.close()
 
@@ -382,7 +384,7 @@ def temp_file():
 @pytest.fixture
 def temp_image_file():
     """Create temporary image file for testing"""
-    temp_file = tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix='.png')
+    temp_file = tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=".png")
     temp_file.write(b"Mock image content")
     temp_file.close()
 
@@ -401,7 +403,7 @@ def auth_headers(test_user: User) -> dict:
     token = jwt.encode(
         {"sub": str(test_user.id), "exp": datetime.utcnow() + timedelta(hours=1)},
         "test_secret_key",
-        algorithm="HS256"
+        algorithm="HS256",
     )
     return {"Authorization": f"Bearer {token}"}
 
@@ -415,7 +417,7 @@ def create_auth_headers():
         token = jwt.encode(
             {"sub": str(user_id), "exp": datetime.utcnow() + timedelta(hours=1)},
             "test_secret_key",
-            algorithm="HS256"
+            algorithm="HS256",
         )
         return {"Authorization": f"Bearer {token}"}
 
@@ -480,7 +482,7 @@ def mock_mcp_responses():
                 "skills": ["Python", "JavaScript", "React"],
                 "experience_years": 5,
                 "education_level": "Bachelor's",
-            }
+            },
         },
         "jd_parsing": {
             "success": True,
@@ -488,7 +490,7 @@ def mock_mcp_responses():
                 "requirements": ["Python", "JavaScript", "React"],
                 "nice_to_have": ["AWS", "Docker"],
                 "salary_range": "$120,000 - $180,000",
-            }
+            },
         },
         "job_matching": {
             "success": True,
@@ -496,7 +498,7 @@ def mock_mcp_responses():
                 "match_score": 0.85,
                 "strengths": ["Strong technical skills", "Relevant experience"],
                 "gaps": ["Missing some nice-to-have skills"],
-            }
+            },
         },
         "interview_prep": {
             "success": True,
@@ -508,7 +510,7 @@ def mock_mcp_responses():
                 "behavioral_questions": [
                     "Tell me about a challenging project",
                 ],
-            }
+            },
         },
     }
 
@@ -539,6 +541,7 @@ async def rate_limit_client(db: AsyncSession):
 @pytest.fixture
 def async_test():
     """Context manager for running async tests"""
+
     class AsyncTestRunner:
         async def run(self, coro):
             return await coro
@@ -776,6 +779,7 @@ def time_travel():
 @pytest.fixture
 def coverage_tracker():
     """Track test coverage for service methods"""
+
     class CoverageTracker:
         def __init__(self):
             self.covered_methods = set()
@@ -802,6 +806,7 @@ def coverage_tracker():
 @pytest.fixture
 def async_result_setter():
     """Utility for setting async results in tests"""
+
     class AsyncResultSetter:
         def __init__(self):
             self.results = {}
@@ -825,6 +830,7 @@ def async_result_setter():
 @pytest.fixture
 def batch_operation_tester():
     """Utility for testing batch operations"""
+
     class BatchOperationTester:
         def __init__(self):
             self.results = []
@@ -840,7 +846,9 @@ def batch_operation_tester():
                 try:
                     result = await operation(batch)
                     success_count += len(batch)
-                    self.results.extend(result if isinstance(result, list) else [result])
+                    self.results.extend(
+                        result if isinstance(result, list) else [result]
+                    )
                 except Exception as e:
                     failed_count += len(batch)
                     self.errors.append({"batch": i // batch_size, "error": str(e)})
@@ -858,6 +866,7 @@ def batch_operation_tester():
 @pytest.fixture
 def mock_response_builder():
     """Builder for creating mock API responses"""
+
     class MockResponseBuilder:
         def __init__(self):
             self.data = {}

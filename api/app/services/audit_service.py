@@ -4,6 +4,7 @@ Audit Service for GDPR Compliance
 This service provides comprehensive audit trail functionality for compliance requirements.
 Tracks all data access, modifications, and user actions.
 """
+
 import uuid
 import csv
 import json
@@ -16,7 +17,13 @@ from fastapi import HTTPException, Response
 from io import StringIO
 import logging
 
-from app.models.audit_log import AuditLog, AuditAction, ResourceType, DataRetentionLog, ConsentLog
+from app.models.audit_log import (
+    AuditLog,
+    AuditAction,
+    ResourceType,
+    DataRetentionLog,
+    ConsentLog,
+)
 from app.models.user import User
 from app.core.logger import get_logger
 
@@ -145,7 +152,9 @@ class AuditService:
 
         except Exception as e:
             logger.error(f"Failed to retrieve audit history: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to retrieve audit history")
+            raise HTTPException(
+                status_code=500, detail="Failed to retrieve audit history"
+            )
 
     @staticmethod
     async def get_audit_logs(
@@ -261,35 +270,39 @@ class AuditService:
         writer = csv.writer(output)
 
         # Write header
-        writer.writerow([
-            "Timestamp",
-            "User ID",
-            "Action",
-            "Resource Type",
-            "Resource ID",
-            "Description",
-            "IP Address",
-            "Request ID",
-            "Old Values",
-            "New Values",
-            "Metadata",
-        ])
+        writer.writerow(
+            [
+                "Timestamp",
+                "User ID",
+                "Action",
+                "Resource Type",
+                "Resource ID",
+                "Description",
+                "IP Address",
+                "Request ID",
+                "Old Values",
+                "New Values",
+                "Metadata",
+            ]
+        )
 
         # Write data rows
         for log in audit_logs:
-            writer.writerow([
-                log.timestamp.isoformat(),
-                str(log.user_id) if log.user_id else "",
-                log.action,
-                log.resource_type,
-                str(log.resource_id) if log.resource_id else "",
-                log.description or "",
-                log.ip_address or "",
-                log.request_id or "",
-                json.dumps(log.old_values) if log.old_values else "",
-                json.dumps(log.new_values) if log.new_values else "",
-                json.dumps(log.metadata) if log.metadata else "",
-            ])
+            writer.writerow(
+                [
+                    log.timestamp.isoformat(),
+                    str(log.user_id) if log.user_id else "",
+                    log.action,
+                    log.resource_type,
+                    str(log.resource_id) if log.resource_id else "",
+                    log.description or "",
+                    log.ip_address or "",
+                    log.request_id or "",
+                    json.dumps(log.old_values) if log.old_values else "",
+                    json.dumps(log.new_values) if log.new_values else "",
+                    json.dumps(log.metadata) if log.metadata else "",
+                ]
+            )
 
         # Create response
         output.seek(0)
@@ -298,7 +311,7 @@ class AuditService:
             media_type="text/csv",
             headers={
                 "Content-Disposition": f"attachment; filename=audit_log_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
-            }
+            },
         )
 
     @staticmethod
@@ -306,19 +319,21 @@ class AuditService:
         """Export audit logs as JSON file."""
         data = []
         for log in audit_logs:
-            data.append({
-                "timestamp": log.timestamp.isoformat(),
-                "user_id": str(log.user_id) if log.user_id else None,
-                "action": log.action,
-                "resource_type": log.resource_type,
-                "resource_id": str(log.resource_id) if log.resource_id else None,
-                "description": log.description,
-                "ip_address": log.ip_address,
-                "request_id": log.request_id,
-                "old_values": log.old_values,
-                "new_values": log.new_values,
-                "metadata": log.metadata,
-            })
+            data.append(
+                {
+                    "timestamp": log.timestamp.isoformat(),
+                    "user_id": str(log.user_id) if log.user_id else None,
+                    "action": log.action,
+                    "resource_type": log.resource_type,
+                    "resource_id": str(log.resource_id) if log.resource_id else None,
+                    "description": log.description,
+                    "ip_address": log.ip_address,
+                    "request_id": log.request_id,
+                    "old_values": log.old_values,
+                    "new_values": log.new_values,
+                    "metadata": log.metadata,
+                }
+            )
 
         json_data = json.dumps(data, indent=2, default=str)
         return Response(
@@ -326,7 +341,7 @@ class AuditService:
             media_type="application/json",
             headers={
                 "Content-Disposition": f"attachment; filename=audit_log_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
-            }
+            },
         )
 
     @staticmethod
@@ -465,12 +480,16 @@ class AuditService:
             result = await db.execute(query)
             consent_logs = result.scalars().all()
 
-            logger.info(f"Retrieved {len(consent_logs)} consent logs for user {user_id}")
+            logger.info(
+                f"Retrieved {len(consent_logs)} consent logs for user {user_id}"
+            )
             return consent_logs
 
         except Exception as e:
             logger.error(f"Failed to retrieve consent history: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to retrieve consent history")
+            raise HTTPException(
+                status_code=500, detail="Failed to retrieve consent history"
+            )
 
     @staticmethod
     async def get_audit_statistics(
@@ -514,7 +533,9 @@ class AuditService:
 
             for log in audit_logs:
                 # Count by action
-                stats["by_action"][log.action] = stats["by_action"].get(log.action, 0) + 1
+                stats["by_action"][log.action] = (
+                    stats["by_action"].get(log.action, 0) + 1
+                )
 
                 # Count by resource type
                 stats["by_resource_type"][log.resource_type] = (
@@ -531,7 +552,9 @@ class AuditService:
 
         except Exception as e:
             logger.error(f"Failed to generate audit statistics: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to generate audit statistics")
+            raise HTTPException(
+                status_code=500, detail="Failed to generate audit statistics"
+            )
 
 
 # Convenience functions for common audit operations

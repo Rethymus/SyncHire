@@ -341,9 +341,7 @@ class WebSocketNotificationService:
 
         await self.manager.broadcast(ws_message)
 
-        logger.info(
-            LogCategory.WEBSOCKET, f"Broadcasted system message: {title}"
-        )
+        logger.info(LogCategory.WEBSOCKET, f"Broadcasted system message: {title}")
 
     async def send_to_users(
         self, user_ids: List[str], notification_type: str, title: str, message: str

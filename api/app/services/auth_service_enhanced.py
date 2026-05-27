@@ -43,9 +43,7 @@ class AuthServiceEnhanced:
 
     @staticmethod
     async def register(
-        db: AsyncSession,
-        user_data: UserCreate,
-        ip_address: str = "unknown"
+        db: AsyncSession, user_data: UserCreate, ip_address: str = "unknown"
     ) -> UserResponse:
         """
         Register a new user with enhanced security validation
@@ -72,7 +70,7 @@ class AuthServiceEnhanced:
                     "duplicate_registration_attempt",
                     None,
                     {"email": user_data.email, "ip": ip_address},
-                    "warning"
+                    "warning",
                 )
                 raise ConflictError(
                     message="Email already registered",
@@ -89,7 +87,7 @@ class AuthServiceEnhanced:
                     "weak_password_attempt",
                     None,
                     {"email": user_data.email, "ip": ip_address, "errors": errors},
-                    "info"
+                    "info",
                 )
                 raise ValidationError(
                     message="Password does not meet security requirements",
@@ -126,7 +124,7 @@ class AuthServiceEnhanced:
                     "user_registered",
                     str(db_user.id),
                     {"email": user_data.email, "ip": ip_address},
-                    "info"
+                    "info",
                 )
 
                 logger.info(f"New user registered: {db_user.id}")
@@ -146,7 +144,9 @@ class AuthServiceEnhanced:
         except (ConflictError, ValidationError):
             raise
         except Exception as e:
-            logger.error(f"Unexpected error during registration: {str(e)}", exc_info=True)
+            logger.error(
+                f"Unexpected error during registration: {str(e)}", exc_info=True
+            )
             raise ValidationError(
                 message="Registration failed due to an unexpected error",
                 details={"error": str(e)},
@@ -154,9 +154,7 @@ class AuthServiceEnhanced:
 
     @staticmethod
     async def authenticate(
-        db: AsyncSession,
-        credentials: UserLogin,
-        ip_address: str = "unknown"
+        db: AsyncSession, credentials: UserLogin, ip_address: str = "unknown"
     ) -> Optional[User]:
         """
         Authenticate user with account lockout protection
@@ -174,14 +172,16 @@ class AuthServiceEnhanced:
         """
         try:
             # Check account lockout status
-            is_locked, retry_after = await AccountLockout.is_locked_out(credentials.email)
+            is_locked, retry_after = await AccountLockout.is_locked_out(
+                credentials.email
+            )
 
             if is_locked:
                 await SecurityAuditor.log_security_event(
                     "locked_account_login_attempt",
                     None,
                     {"email": credentials.email, "ip": ip_address},
-                    "warning"
+                    "warning",
                 )
                 raise AuthenticationError(
                     message="Account temporarily locked due to multiple failed attempts. Please try again later.",
@@ -193,10 +193,7 @@ class AuthServiceEnhanced:
 
             if ip_locked:
                 await SecurityAuditor.log_security_event(
-                    "ip_locked_login_attempt",
-                    None,
-                    {"ip": ip_address},
-                    "warning"
+                    "ip_locked_login_attempt", None, {"ip": ip_address}, "warning"
                 )
                 raise AuthenticationError(
                     message="Too many login attempts from your location. Please try again later.",
@@ -204,7 +201,9 @@ class AuthServiceEnhanced:
                 )
 
             # Query user by email
-            result = await db.execute(select(User).where(User.email == credentials.email))
+            result = await db.execute(
+                select(User).where(User.email == credentials.email)
+            )
             user = result.scalar_one_or_none()
 
             # Check if user exists
@@ -218,7 +217,7 @@ class AuthServiceEnhanced:
                     "failed_login_nonexistent_user",
                     None,
                     {"email": credentials.email, "ip": ip_address},
-                    "warning"
+                    "warning",
                 )
 
                 return None
@@ -229,7 +228,7 @@ class AuthServiceEnhanced:
                     "disabled_account_login_attempt",
                     str(user.id),
                     {"email": credentials.email, "ip": ip_address},
-                    "warning"
+                    "warning",
                 )
                 raise AuthenticationError(
                     message="User account is disabled. Please contact support.",
@@ -240,7 +239,9 @@ class AuthServiceEnhanced:
             try:
                 if not verify_password(credentials.password, user.hashed_password):
                     # Record failed attempts
-                    email_attempts = await AccountLockout.record_failed_attempt(credentials.email)
+                    email_attempts = await AccountLockout.record_failed_attempt(
+                        credentials.email
+                    )
                     ip_attempts = await AccountLockout.record_failed_attempt(ip_address)
 
                     await SecurityAuditor.log_security_event(
@@ -252,11 +253,13 @@ class AuthServiceEnhanced:
                             "email_attempts": email_attempts,
                             "ip_attempts": ip_attempts,
                         },
-                        "warning"
+                        "warning",
                     )
 
                     # Get remaining attempts
-                    remaining = await AccountLockout.get_remaining_attempts(credentials.email)
+                    remaining = await AccountLockout.get_remaining_attempts(
+                        credentials.email
+                    )
 
                     if remaining > 0:
                         raise AuthenticationError(
@@ -271,7 +274,9 @@ class AuthServiceEnhanced:
             except Exception as e:
                 if isinstance(e, AuthenticationError):
                     raise
-                logger.error(f"Password verification error for user {user.id}: {str(e)}")
+                logger.error(
+                    f"Password verification error for user {user.id}: {str(e)}"
+                )
                 return None
 
             # Successful authentication - reset failed attempts
@@ -287,7 +292,7 @@ class AuthServiceEnhanced:
                 "successful_login",
                 str(user.id),
                 {"email": credentials.email, "ip": ip_address},
-                "info"
+                "info",
             )
 
             logger.info(f"Successful authentication for user: {user.id}")
@@ -296,14 +301,14 @@ class AuthServiceEnhanced:
         except AuthenticationError:
             raise
         except Exception as e:
-            logger.error(f"Unexpected error during authentication: {str(e)}", exc_info=True)
+            logger.error(
+                f"Unexpected error during authentication: {str(e)}", exc_info=True
+            )
             return None
 
     @staticmethod
     async def create_user_session(
-        user_id: str,
-        user_agent: str = "unknown",
-        ip_address: str = "unknown"
+        user_id: str, user_agent: str = "unknown", ip_address: str = "unknown"
     ) -> str:
         """
         Create a secure user session
@@ -331,7 +336,7 @@ class AuthServiceEnhanced:
                 "session_created",
                 user_id,
                 {"session_id": session_id, "ip": ip_address},
-                "info"
+                "info",
             )
 
             return session_id
@@ -360,7 +365,7 @@ class AuthServiceEnhanced:
                     "invalid_session_attempt",
                     user_id,
                     {"session_id": session_id},
-                    "warning"
+                    "warning",
                 )
                 return False
 
@@ -389,10 +394,7 @@ class AuthServiceEnhanced:
 
             if result:
                 await SecurityAuditor.log_security_event(
-                    "session_revoked",
-                    user_id,
-                    {"session_id": session_id},
-                    "info"
+                    "session_revoked", user_id, {"session_id": session_id}, "info"
                 )
 
             return result
@@ -416,10 +418,7 @@ class AuthServiceEnhanced:
             count = await SessionManager.destroy_all_sessions(user_id)
 
             await SecurityAuditor.log_security_event(
-                "all_sessions_revoked",
-                user_id,
-                {"session_count": count},
-                "info"
+                "all_sessions_revoked", user_id, {"session_count": count}, "info"
             )
 
             return count
@@ -434,7 +433,7 @@ class AuthServiceEnhanced:
         user_id: str,
         current_password: str,
         new_password: str,
-        ip_address: str = "unknown"
+        ip_address: str = "unknown",
     ) -> bool:
         """
         Change user password with security validation
@@ -467,12 +466,14 @@ class AuthServiceEnhanced:
                     "failed_password_change_wrong_password",
                     user_id,
                     {"ip": ip_address},
-                    "warning"
+                    "warning",
                 )
                 raise AuthenticationError(message="Current password is incorrect")
 
             # Validate new password
-            is_valid, errors = PasswordPolicy.validate_password(new_password, user.email)
+            is_valid, errors = PasswordPolicy.validate_password(
+                new_password, user.email
+            )
 
             if not is_valid:
                 raise ValidationError(
@@ -500,10 +501,7 @@ class AuthServiceEnhanced:
             await AuthServiceEnhanced.revoke_all_sessions(user_id)
 
             await SecurityAuditor.log_security_event(
-                "password_changed",
-                user_id,
-                {"ip": ip_address},
-                "info"
+                "password_changed", user_id, {"ip": ip_address}, "info"
             )
 
             logger.info(f"Password changed for user: {user_id}")
@@ -538,7 +536,7 @@ class AuthServiceEnhanced:
                 template_data={
                     "full_name": user.full_name,
                     "verification_link": f"{settings.FRONTEND_URL}/verify-email?token={verification_token}",
-                }
+                },
             )
 
             logger.info(f"Verification email sent to user: {user.id}")

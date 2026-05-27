@@ -86,6 +86,7 @@ class TestTwoFactorService:
 
         # Should be valid base64
         import base64
+
         try:
             decoded = base64.b64decode(qr_base64)
             assert len(decoded) > 0
@@ -98,6 +99,7 @@ class TestTwoFactorService:
 
         # Generate a valid TOTP code
         import pyotp
+
         totp = pyotp.TOTP(secret)
         valid_code = totp.now()
 
@@ -118,6 +120,7 @@ class TestTwoFactorService:
 
         # Generate a valid TOTP code
         import pyotp
+
         totp = pyotp.TOTP(secret)
         valid_code = totp.now()
 
@@ -185,6 +188,7 @@ class TestTwoFactorService:
 
         # Generate a valid TOTP code
         import pyotp
+
         totp = pyotp.TOTP(user.two_factor_secret)
         valid_code = totp.now()
 
@@ -213,9 +217,7 @@ class TestTwoFactorService:
 
         # Should raise ValidationError
         with pytest.raises(ValidationError):
-            await TwoFactorService.setup_two_factor(
-                db_session, user, "000000"
-            )
+            await TwoFactorService.setup_two_factor(db_session, user, "000000")
 
     @pytest.mark.asyncio
     async def test_setup_two_factor_no_secret(self, db_session):
@@ -226,9 +228,7 @@ class TestTwoFactorService:
 
         # Should raise ValidationError
         with pytest.raises(ValidationError) as exc_info:
-            await TwoFactorService.setup_two_factor(
-                db_session, user, "123456"
-            )
+            await TwoFactorService.setup_two_factor(db_session, user, "123456")
 
         assert "not initiated" in str(exc_info.value).lower()
 
@@ -267,13 +267,12 @@ class TestTwoFactorService:
 
         # Generate a valid TOTP code
         import pyotp
+
         totp = pyotp.TOTP(user.two_factor_secret)
         valid_code = totp.now()
 
         # Disable 2FA
-        result = await TwoFactorService.disable_two_factor(
-            db_session, user, valid_code
-        )
+        result = await TwoFactorService.disable_two_factor(db_session, user, valid_code)
 
         # Should succeed
         assert result is True
@@ -294,9 +293,7 @@ class TestTwoFactorService:
 
         # Should raise ValidationError
         with pytest.raises(ValidationError):
-            await TwoFactorService.disable_two_factor(
-                db_session, user, "000000"
-            )
+            await TwoFactorService.disable_two_factor(db_session, user, "000000")
 
     @pytest.mark.asyncio
     async def test_verify_two_factor_totp_success(self, db_session):
@@ -309,13 +306,12 @@ class TestTwoFactorService:
 
         # Generate a valid TOTP code
         import pyotp
+
         totp = pyotp.TOTP(user.two_factor_secret)
         valid_code = totp.now()
 
         # Should succeed
-        result = await TwoFactorService.verify_two_factor(
-            db_session, user, valid_code
-        )
+        result = await TwoFactorService.verify_two_factor(db_session, user, valid_code)
         assert result is True
 
     @pytest.mark.asyncio
@@ -328,9 +324,7 @@ class TestTwoFactorService:
         user.backup_codes = ["ABCD-1234", "EFGH-5678"]
 
         # Should succeed
-        result = await TwoFactorService.verify_two_factor(
-            db_session, user, "ABCD-1234"
-        )
+        result = await TwoFactorService.verify_two_factor(db_session, user, "ABCD-1234")
         assert result is True
 
         # Backup code should be removed
@@ -346,9 +340,7 @@ class TestTwoFactorService:
 
         # Should raise ValidationError
         with pytest.raises(ValidationError) as exc_info:
-            await TwoFactorService.verify_two_factor(
-                db_session, user, "123456"
-            )
+            await TwoFactorService.verify_two_factor(db_session, user, "123456")
 
         assert "not enabled" in str(exc_info.value).lower()
 
@@ -363,9 +355,7 @@ class TestTwoFactorService:
 
         # Should raise ValidationError
         with pytest.raises(ValidationError):
-            await TwoFactorService.verify_two_factor(
-                db_session, user, "000000"
-            )
+            await TwoFactorService.verify_two_factor(db_session, user, "000000")
 
 
 @pytest.fixture

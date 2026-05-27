@@ -24,11 +24,20 @@ class Resume(Base):
     file_name = Column(String(255))  # Original filename
     embedding = Column(Text)  # JSON-encoded vector for semantic search
     parsed_data = Column(Text)  # JSON-encoded parsed resume data
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     # Relationships
-    applications = relationship("Application", back_populates="resume", cascade="all, delete-orphan")
+    applications = relationship(
+        "Application", back_populates="resume", cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<Resume(id={self.id}, title={self.title})>"

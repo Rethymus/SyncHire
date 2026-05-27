@@ -105,4 +105,6 @@ def get_db_path() -> str:
 
 def get_db_size() -> int:
     """Get database file size in bytes."""
-    return settings.DATABASE_PATH.stat().st_size if settings.DATABASE_PATH.exists() else 0
+    return (
+        settings.DATABASE_PATH.stat().st_size if settings.DATABASE_PATH.exists() else 0
+    )

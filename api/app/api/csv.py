@@ -1,7 +1,16 @@
 import uuid
 import io
 from typing import Optional, List, Dict
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, File, UploadFile, Form
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+    BackgroundTasks,
+    File,
+    UploadFile,
+    Form,
+)
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field
@@ -22,14 +31,24 @@ router = APIRouter(prefix="/api/csv", tags=["csv"])
 
 # Schemas for request/response
 class ExportRequest(BaseModel):
-    entity_type: str = Field(..., description="Type of entity to export: applications, resumes, or jds")
-    fields: Optional[List[str]] = Field(None, description="List of fields to include in export")
-    batch_size: int = Field(100, ge=1, le=1000, description="Number of records per batch")
+    entity_type: str = Field(
+        ..., description="Type of entity to export: applications, resumes, or jds"
+    )
+    fields: Optional[List[str]] = Field(
+        None, description="List of fields to include in export"
+    )
+    batch_size: int = Field(
+        100, ge=1, le=1000, description="Number of records per batch"
+    )
 
 
 class ImportRequest(BaseModel):
-    entity_type: str = Field(..., description="Type of entity to import: applications, resumes, or jds")
-    on_duplicate: str = Field("skip", description="Strategy for duplicates: skip, update, or error")
+    entity_type: str = Field(
+        ..., description="Type of entity to import: applications, resumes, or jds"
+    )
+    on_duplicate: str = Field(
+        "skip", description="Strategy for duplicates: skip, update, or error"
+    )
     batch_size: int = Field(50, ge=1, le=500, description="Number of records per batch")
 
 
@@ -55,11 +74,12 @@ class ExportProgressTracker:
         try:
             # Try to use Redis if available
             import redis
+
             redis_client = redis.from_url(settings.REDIS_URL)
             await redis_client.setex(
                 f"export_progress:{job_id}",
                 3600,  # 1 hour expiry
-                json.dumps(progress_data)
+                json.dumps(progress_data),
             )
             await redis_client.close()
         except Exception as e:
@@ -75,6 +95,7 @@ class ExportProgressTracker:
 
         try:
             import redis
+
             redis_client = redis.from_url(settings.REDIS_URL)
             data = await redis_client.get(f"export_progress:{job_id}")
             await redis_client.close()
@@ -107,11 +128,12 @@ class ImportProgressTracker:
 
         try:
             import redis
+
             redis_client = redis.from_url(settings.REDIS_URL)
             await redis_client.setex(
                 f"import_progress:{job_id}",
                 3600,  # 1 hour expiry
-                json.dumps(progress_data)
+                json.dumps(progress_data),
             )
             await redis_client.close()
         except Exception as e:
@@ -127,6 +149,7 @@ class ImportProgressTracker:
 
         try:
             import redis
+
             redis_client = redis.from_url(settings.REDIS_URL)
             data = await redis_client.get(f"import_progress:{job_id}")
             await redis_client.close()
@@ -156,7 +179,7 @@ async def run_export_job(
     entity_type: str,
     fields: Optional[List[str]],
     batch_size: int,
-    db: AsyncSession
+    db: AsyncSession,
 ):
     """Background task to run export and store result"""
     try:
@@ -188,21 +211,27 @@ async def run_export_job(
 
         # Store result in Redis/temp storage
         result_data = csv_data.getvalue()
-        await ExportProgressTracker.update_progress(job_id, {
-            "status": "completed",
-            "progress": 100,
-            "data": result_data,
-            "size": len(result_data),
-        })
+        await ExportProgressTracker.update_progress(
+            job_id,
+            {
+                "status": "completed",
+                "progress": 100,
+                "data": result_data,
+                "size": len(result_data),
+            },
+        )
 
         logger.info(f"Export job {job_id} completed successfully")
 
     except Exception as e:
         logger.error(f"Export job {job_id} failed: {str(e)}")
-        await ExportProgressTracker.update_progress(job_id, {
-            "status": "error",
-            "error": str(e),
-        })
+        await ExportProgressTracker.update_progress(
+            job_id,
+            {
+                "status": "error",
+                "error": str(e),
+            },
+        )
 
 
 async def run_import_job(
@@ -212,7 +241,7 @@ async def run_import_job(
     csv_data: str,
     on_duplicate: str,
     batch_size: int,
-    db: AsyncSession
+    db: AsyncSession,
 ):
     """Background task to run import with progress tracking"""
     try:
@@ -247,10 +276,13 @@ async def run_import_job(
 
     except Exception as e:
         logger.error(f"Import job {job_id} failed: {str(e)}")
-        await ImportProgressTracker.update_progress(job_id, {
-            "status": "error",
-            "error": str(e),
-        })
+        await ImportProgressTracker.update_progress(
+            job_id,
+            {
+                "status": "error",
+                "error": str(e),
+            },
+        )
 
 
 @router.post("/export", response_model=Dict[str, str])
@@ -276,12 +308,15 @@ async def start_export(
         job_id = str(uuid.uuid4())
 
         # Initialize progress
-        await ExportProgressTracker.update_progress(job_id, {
-            "status": "pending",
-            "progress": 0,
-            "processed": 0,
-            "total": 0,
-        })
+        await ExportProgressTracker.update_progress(
+            job_id,
+            {
+                "status": "pending",
+                "progress": 0,
+                "processed": 0,
+                "total": 0,
+            },
+        )
 
         # Start background task
         background_tasks.add_task(
@@ -324,7 +359,7 @@ async def get_export_status(
         if not progress_data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Export job {job_id} not found"
+                detail=f"Export job {job_id} not found",
             )
 
         return JobStatusResponse(
@@ -334,7 +369,9 @@ async def get_export_status(
             processed=progress_data.get("processed", 0),
             total=progress_data.get("total", 0),
             message=progress_data.get("message"),
-            result=progress_data if progress_data.get("status") == "completed" else None,
+            result=(
+                progress_data if progress_data.get("status") == "completed" else None
+            ),
         )
 
     except HTTPException:
@@ -363,20 +400,20 @@ async def download_export(
         if not progress_data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Export job {job_id} not found"
+                detail=f"Export job {job_id} not found",
             )
 
         if progress_data.get("status") != "completed":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Export job {job_id} is not completed yet"
+                detail=f"Export job {job_id} is not completed yet",
             )
 
         csv_data = progress_data.get("data")
         if not csv_data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"No data found for export job {job_id}"
+                detail=f"No data found for export job {job_id}",
             )
 
         # Create streaming response
@@ -385,7 +422,7 @@ async def download_export(
             media_type="text/csv",
             headers={
                 "Content-Disposition": f"attachment; filename=export_{job_id}.csv"
-            }
+            },
         )
 
     except HTTPException:
@@ -436,12 +473,15 @@ async def start_import(
         job_id = str(uuid.uuid4())
 
         # Initialize progress
-        await ImportProgressTracker.update_progress(job_id, {
-            "status": "pending",
-            "progress": 0,
-            "processed": 0,
-            "total": 0,
-        })
+        await ImportProgressTracker.update_progress(
+            job_id,
+            {
+                "status": "pending",
+                "progress": 0,
+                "processed": 0,
+                "total": 0,
+            },
+        )
 
         # Start background task
         background_tasks.add_task(
@@ -485,7 +525,7 @@ async def get_import_status(
         if not progress_data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Import job {job_id} not found"
+                detail=f"Import job {job_id} not found",
             )
 
         return JobStatusResponse(
@@ -495,7 +535,9 @@ async def get_import_status(
             processed=progress_data.get("processed", 0),
             total=progress_data.get("total", 0),
             message=progress_data.get("message"),
-            result=progress_data if progress_data.get("status") == "completed" else None,
+            result=(
+                progress_data if progress_data.get("status") == "completed" else None
+            ),
         )
 
     except HTTPException:

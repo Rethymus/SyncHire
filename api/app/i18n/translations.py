@@ -25,13 +25,15 @@ class TranslationManager:
         for lang in SUPPORTED_LANGUAGES:
             lang_file = self.translations_dir / f"{lang}.json"
             if lang_file.exists():
-                with open(lang_file, 'r', encoding='utf-8') as f:
+                with open(lang_file, "r", encoding="utf-8") as f:
                     self._translations[lang] = json.load(f)
             else:
                 # Create empty translation dict if file doesn't exist
                 self._translations[lang] = {}
 
-    def get_translation(self, key: str, language: str = DEFAULT_LANGUAGE, **kwargs) -> str:
+    def get_translation(
+        self, key: str, language: str = DEFAULT_LANGUAGE, **kwargs
+    ) -> str:
         """
         Get a translation string.
 
@@ -47,7 +49,7 @@ class TranslationManager:
             language = DEFAULT_LANGUAGE
 
         # Navigate through the nested structure
-        keys = key.split('.')
+        keys = key.split(".")
         value = self._translations.get(language, {})
 
         for k in keys:

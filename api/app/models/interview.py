@@ -3,7 +3,18 @@ Interview database models for scheduling and calendar integration.
 """
 
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Text, Integer, Boolean, ForeignKey, Numeric, JSON, CheckConstraint
+from sqlalchemy import (
+    Column,
+    String,
+    DateTime,
+    Text,
+    Integer,
+    Boolean,
+    ForeignKey,
+    Numeric,
+    JSON,
+    CheckConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -18,8 +29,14 @@ class Interview(Base):
     __tablename__ = "interviews"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    application_id = Column(UUID(as_uuid=True), ForeignKey("applications.id", ondelete="CASCADE"), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    application_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("applications.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
 
     # Interview details
     title = Column(String(255), nullable=False)
@@ -58,20 +75,33 @@ class Interview(Base):
     last_reminder_sent_at = Column(DateTime(timezone=True), nullable=True)
 
     # Metadata
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     # Constraints
     __table_args__ = (
-        CheckConstraint("duration_minutes > 0 AND duration_minutes <= 480", name="valid_duration"),
+        CheckConstraint(
+            "duration_minutes > 0 AND duration_minutes <= 480", name="valid_duration"
+        ),
         CheckConstraint("rating >= 1 AND rating <= 5", name="valid_rating"),
     )
 
     # Relationships
     application = relationship("Application", back_populates="interviews")
     user = relationship("User", back_populates="interviews")
-    reminders = relationship("InterviewReminder", back_populates="interview", cascade="all, delete-orphan")
-    events = relationship("InterviewEvent", back_populates="interview", cascade="all, delete-orphan")
+    reminders = relationship(
+        "InterviewReminder", back_populates="interview", cascade="all, delete-orphan"
+    )
+    events = relationship(
+        "InterviewEvent", back_populates="interview", cascade="all, delete-orphan"
+    )
 
 
 class InterviewReminder(Base):
@@ -80,8 +110,14 @@ class InterviewReminder(Base):
     __tablename__ = "interview_reminders"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    interview_id = Column(UUID(as_uuid=True), ForeignKey("interviews.id", ondelete="CASCADE"), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    interview_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("interviews.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
 
     reminder_timing = Column(Numeric(5, 2), nullable=False)  # Hours before interview
     scheduled_for = Column(DateTime(timezone=True), nullable=False)
@@ -90,7 +126,9 @@ class InterviewReminder(Base):
     delivery_method = Column(String(50), default="in_app")
     error_message = Column(Text, nullable=True)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     # Relationships
     interview = relationship("Interview", back_populates="reminders")
@@ -103,8 +141,14 @@ class InterviewEvent(Base):
     __tablename__ = "interview_events"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    interview_id = Column(UUID(as_uuid=True), ForeignKey("interviews.id", ondelete="CASCADE"), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    interview_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("interviews.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
 
     # Calendar integration
     external_calendar_id = Column(String(255), nullable=True)
@@ -116,8 +160,15 @@ class InterviewEvent(Base):
     # Event metadata
     event_data = Column(JSONB, nullable=True)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     # Relationships
     interview = relationship("Interview", back_populates="events")

@@ -30,9 +30,7 @@ class PerformanceValidator:
 
     async def get_test_user(self):
         """Get or create a test user for validation."""
-        result = await self.db.execute(
-            select(User).limit(1)
-        )
+        result = await self.db.execute(select(User).limit(1))
         user = result.scalar_one_or_none()
 
         if not user:
@@ -71,17 +69,20 @@ class PerformanceValidator:
             "avg_time_ms": avg_time * 1000,
             "min_time_ms": min_time * 1000,
             "max_time_ms": max_time * 1000,
-            "result_count": len(result) if isinstance(result, list) else 1
+            "result_count": len(result) if isinstance(result, list) else 1,
         }
 
-        logger.info(f"  ⏱️  Avg: {metrics['avg_time_ms']:.2f}ms, "
-                   f"Min: {metrics['min_time_ms']:.2f}ms, "
-                   f"Max: {metrics['max_time_ms']:.2f}ms")
+        logger.info(
+            f"  ⏱️  Avg: {metrics['avg_time_ms']:.2f}ms, "
+            f"Min: {metrics['min_time_ms']:.2f}ms, "
+            f"Max: {metrics['max_time_ms']:.2f}ms"
+        )
 
         return metrics
 
     async def test_applications_list(self, user_id: uuid.UUID):
         """Test the most common query: user's applications list."""
+
         async def query():
             result = await self.db.execute(
                 select(Application)
@@ -92,16 +93,13 @@ class PerformanceValidator:
             return list(result.scalars().all())
 
         return await self.measure_query_performance(
-            "Applications List (user_id + ORDER BY created_at)",
-            query
+            "Applications List (user_id + ORDER BY created_at)", query
         )
 
     async def test_status_history(self):
         """Test status history query with composite index."""
         # Get first application
-        result = await self.db.execute(
-            select(Application).limit(1)
-        )
+        result = await self.db.execute(select(Application).limit(1))
         app = result.scalar_one_or_none()
 
         if not app:
@@ -117,22 +115,19 @@ class PerformanceValidator:
             return list(result.scalars().all())
 
         return await self.measure_query_performance(
-            "Status History (application_id + ORDER BY changed_at)",
-            query
+            "Status History (application_id + ORDER BY changed_at)", query
         )
 
     async def test_count_query(self, user_id: uuid.UUID):
         """Test count query for pagination."""
+
         async def query():
             result = await self.db.execute(
                 select(func.count(Application.id)).where(Application.user_id == user_id)
             )
             return result.scalar() or 0
 
-        return await self.measure_query_performance(
-            "Count Query (pagination)",
-            query
-        )
+        return await self.measure_query_performance("Count Query (pagination)", query)
 
     async def test_bulk_delete(self):
         """Test bulk delete performance improvement."""
@@ -141,9 +136,7 @@ class PerformanceValidator:
 
         async def old_method():
             # Simulate old method (individual deletes)
-            result = await self.db.execute(
-                select(Application).limit(5)
-            )
+            result = await self.db.execute(select(Application).limit(5))
             apps = list(result.scalars().all())
 
             start = time.time()
@@ -156,9 +149,7 @@ class PerformanceValidator:
 
         async def new_method():
             # New method (bulk delete)
-            result = await self.db.execute(
-                select(Application).limit(5)
-            )
+            result = await self.db.execute(select(Application).limit(5))
             apps = list(result.scalars().all())
             app_ids = [app.id for app in apps]
 
@@ -183,7 +174,7 @@ class PerformanceValidator:
             return {
                 "old_time_ms": old_time * 1000,
                 "new_time_ms": new_time * 1000,
-                "improvement_percent": improvement
+                "improvement_percent": improvement,
             }
         except Exception as e:
             return {"error": str(e)}
@@ -196,15 +187,20 @@ class PerformanceValidator:
             "idx_applications_user_created",
             "idx_applications_resume_id",
             "idx_applications_jd_id",
-            "idx_status_history_app_changed"
+            "idx_status_history_app_changed",
         ]
 
-        result = await self.db.execute(text("""
+        result = await self.db.execute(
+            text(
+                """
             SELECT indexname
             FROM pg_indexes
             WHERE schemaname = 'public'
             AND indexname = ANY(:indexes)
-        """), {"indexes": indexes_to_check})
+        """
+            ),
+            {"indexes": indexes_to_check},
+        )
 
         existing_indexes = {row[0] for row in result.fetchall()}
 
@@ -238,9 +234,9 @@ class PerformanceValidator:
         results = {}
 
         if user:
-            results['applications_list'] = await self.test_applications_list(user.id)
-            results['status_history'] = await self.test_status_history()
-            results['count_query'] = await self.test_count_query(user.id)
+            results["applications_list"] = await self.test_applications_list(user.id)
+            results["status_history"] = await self.test_status_history()
+            results["count_query"] = await self.test_count_query(user.id)
 
         # Generate report
         logger.info("\n📋 VALIDATION REPORT")
@@ -256,8 +252,11 @@ class PerformanceValidator:
             logger.info("   Run migration 002_add_performance_indexes.sql to install")
 
         # Performance assessment
-        if results.get('applications_list') and 'error' not in results['applications_list']:
-            avg_time = results['applications_list']['avg_time_ms']
+        if (
+            results.get("applications_list")
+            and "error" not in results["applications_list"]
+        ):
+            avg_time = results["applications_list"]["avg_time_ms"]
             if avg_time < 50:
                 logger.info(f"✅ Applications list: EXCELLENT ({avg_time:.2f}ms)")
             elif avg_time < 100:
@@ -265,8 +264,8 @@ class PerformanceValidator:
             else:
                 logger.warning(f"⚠️  Applications list: SLOW ({avg_time:.2f}ms)")
 
-        if results.get('status_history') and 'error' not in results['status_history']:
-            avg_time = results['status_history']['avg_time_ms']
+        if results.get("status_history") and "error" not in results["status_history"]:
+            avg_time = results["status_history"]["avg_time_ms"]
             if avg_time < 20:
                 logger.info(f"✅ Status history: EXCELLENT ({avg_time:.2f}ms)")
             elif avg_time < 50:
@@ -277,7 +276,7 @@ class PerformanceValidator:
         return {
             "index_status": index_status,
             "performance_results": results,
-            "all_indexes_exist": all_indexes_exist
+            "all_indexes_exist": all_indexes_exist,
         }
 
 
@@ -291,11 +290,13 @@ async def main():
             logger.info("\n✅ Validation complete!")
 
             # Exit with appropriate code
-            if results['all_indexes_exist']:
+            if results["all_indexes_exist"]:
                 logger.info("🎉 All optimizations are in place!")
                 return 0
             else:
-                logger.info("📝 Next steps: Apply migration 002_add_performance_indexes.sql")
+                logger.info(
+                    "📝 Next steps: Apply migration 002_add_performance_indexes.sql"
+                )
                 return 1
 
     except Exception as e:

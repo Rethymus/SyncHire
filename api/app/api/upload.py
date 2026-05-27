@@ -46,6 +46,7 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 class ChunkUploadResponse(BaseModel):
     """Response for chunk upload."""
+
     chunkIndex: int
     etag: str
     received: int
@@ -53,6 +54,7 @@ class ChunkUploadResponse(BaseModel):
 
 class CompleteUploadRequest(BaseModel):
     """Request to complete chunked upload."""
+
     fileId: str
     fileName: str
     totalChunks: int
@@ -62,6 +64,7 @@ class CompleteUploadRequest(BaseModel):
 
 class CompleteUploadResponse(BaseModel):
     """Response for completed upload."""
+
     id: str
     title: str
     content: str
@@ -91,19 +94,19 @@ async def upload_chunk(
         if totalChunks <= 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="totalChunks must be greater than 0"
+                detail="totalChunks must be greater than 0",
             )
 
         if chunkIndex < 0 or chunkIndex >= totalChunks:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"chunkIndex must be between 0 and {totalChunks - 1}"
+                detail=f"chunkIndex must be between 0 and {totalChunks - 1}",
             )
 
         if fileSize > MAX_FILE_SIZE:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"File size exceeds maximum allowed size of {MAX_FILE_SIZE} bytes"
+                detail=f"File size exceeds maximum allowed size of {MAX_FILE_SIZE} bytes",
             )
 
         # Create user-specific chunk directory
@@ -118,7 +121,7 @@ async def upload_chunk(
         if len(chunk_content) > MAX_CHUNK_SIZE:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"Chunk size exceeds maximum allowed size of {MAX_CHUNK_SIZE} bytes"
+                detail=f"Chunk size exceeds maximum allowed size of {MAX_CHUNK_SIZE} bytes",
             )
 
         # Write chunk to disk
@@ -134,9 +137,7 @@ async def upload_chunk(
         etag = f"{chunkIndex}-{uuid.uuid4().hex[:8]}"
 
         return ChunkUploadResponse(
-            chunkIndex=chunkIndex,
-            etag=etag,
-            received=len(chunk_content)
+            chunkIndex=chunkIndex, etag=etag, received=len(chunk_content)
         )
 
     except HTTPException:
@@ -145,7 +146,7 @@ async def upload_chunk(
         logger.error(f"Error uploading chunk: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to upload chunk"
+            detail="Failed to upload chunk",
         )
 
 
@@ -170,7 +171,7 @@ async def complete_upload(
         if totalChunks <= 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="totalChunks must be greater than 0"
+                detail="totalChunks must be greater than 0",
             )
 
         # Locate chunk directory
@@ -178,7 +179,7 @@ async def complete_upload(
         if not user_chunk_dir.exists():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="No chunks found for this file ID"
+                detail="No chunks found for this file ID",
             )
 
         # Verify all chunks are present
@@ -191,7 +192,7 @@ async def complete_upload(
         if missing_chunks:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Missing chunks: {missing_chunks}"
+                detail=f"Missing chunks: {missing_chunks}",
             )
 
         # Recombine chunks into final file
@@ -234,7 +235,7 @@ async def complete_upload(
         logger.error(f"Error completing upload: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to complete upload"
+            detail="Failed to complete upload",
         )
 
 
@@ -243,7 +244,7 @@ async def _process_resume_upload(
     user_id: uuid.UUID,
     file_path: Path,
     filename: str,
-    title: Optional[str]
+    title: Optional[str],
 ) -> CompleteUploadResponse:
     """Process uploaded resume file."""
     # Create a mock UploadFile for the resume service
@@ -254,21 +255,17 @@ async def _process_resume_upload(
 
     # Create a file-like object
     from io import BytesIO
+
     file_obj = BytesIO(file_content)
 
     # Create UploadFile
     upload_file = FastAPIUploadFile(
-        filename=filename,
-        file=file_obj,
-        content_type="application/octet-stream"
+        filename=filename, file=file_obj, content_type="application/octet-stream"
     )
 
     # Use resume service to create resume
     result = await ResumeService.create_resume(
-        db,
-        user_id,
-        upload_file,
-        title or filename.replace(r"\.[^/.]+$", "")
+        db, user_id, upload_file, title or filename.replace(r"\.[^/.]+$", "")
     )
 
     return CompleteUploadResponse(
@@ -276,7 +273,7 @@ async def _process_resume_upload(
         title=result.title,
         content=result.content or "",
         file_path=result.file_path,
-        created_at=result.created_at.isoformat()
+        created_at=result.created_at.isoformat(),
     )
 
 
@@ -285,7 +282,7 @@ async def _process_jd_upload(
     user_id: uuid.UUID,
     file_path: Path,
     filename: str,
-    title: Optional[str]
+    title: Optional[str],
 ) -> CompleteUploadResponse:
     """Process uploaded JD file."""
     # Create a mock UploadFile for the JD service
@@ -296,21 +293,17 @@ async def _process_jd_upload(
 
     # Create a file-like object
     from io import BytesIO
+
     file_obj = BytesIO(file_content)
 
     # Create UploadFile
     upload_file = FastAPIUploadFile(
-        filename=filename,
-        file=file_obj,
-        content_type="application/pdf"
+        filename=filename, file=file_obj, content_type="application/pdf"
     )
 
     # Use JD service to create JD
     result = await JDService.create_jd_from_file(
-        db,
-        user_id,
-        upload_file,
-        title or filename.replace(r"\.[^/.]+$", "")
+        db, user_id, upload_file, title or filename.replace(r"\.[^/.]+$", "")
     )
 
     return CompleteUploadResponse(
@@ -318,7 +311,7 @@ async def _process_jd_upload(
         title=result.title,
         content=result.content or "",
         file_path=result.file_path,
-        created_at=result.created_at.isoformat()
+        created_at=result.created_at.isoformat(),
     )
 
 
@@ -338,7 +331,7 @@ async def cleanup_chunks(
         if not user_chunk_dir.exists():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="No chunks found for this file ID"
+                detail="No chunks found for this file ID",
             )
 
         # Remove chunk directory
@@ -354,7 +347,7 @@ async def cleanup_chunks(
         logger.error(f"Error cleaning up chunks: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to clean up chunks"
+            detail="Failed to clean up chunks",
         )
 
 
@@ -367,6 +360,7 @@ async def cleanup_old_chunks(max_age_hours: int = 24):
     """
     try:
         import time
+
         current_time = time.time()
         max_age_seconds = max_age_hours * 3600
 

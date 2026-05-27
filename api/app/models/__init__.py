@@ -60,6 +60,4 @@ User.interview_reminders = relationship(
 User.interview_events = relationship(
     "InterviewEvent", back_populates="user", cascade="all, delete-orphan"
 )
-User.tasks = relationship(
-    "Task", back_populates="user", cascade="all, delete-orphan"
-)
+User.tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")

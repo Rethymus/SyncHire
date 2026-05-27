@@ -190,9 +190,7 @@ class TestAnalyticsTimeline:
 
         from app.api.analytics import get_application_timeline
 
-        result = await get_application_timeline(
-            user_id=user_id, db=db_session, days=30
-        )
+        result = await get_application_timeline(user_id=user_id, db=db_session, days=30)
 
         assert len(result) > 0
         assert "date" in result[0]

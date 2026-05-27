@@ -32,7 +32,13 @@ class CSVImportService:
                 return json.loads(value)
             except json.JSONDecodeError:
                 return value.split(",") if value else []
-        elif field_type in ["match_score", "experience_years", "experience_required", "salary_min", "salary_max"]:
+        elif field_type in [
+            "match_score",
+            "experience_years",
+            "experience_required",
+            "salary_min",
+            "salary_max",
+        ]:
             try:
                 return float(value)
             except ValueError:
@@ -118,7 +124,9 @@ class CSVImportService:
                             validation_errors.extend(
                                 [f"Row {row_num}: {error}" for error in errors]
                             )
-                            batch_results.append({"row": row_num, "status": "error", "errors": errors})
+                            batch_results.append(
+                                {"row": row_num, "status": "error", "errors": errors}
+                            )
                             continue
 
                         # Find related resume and JD
@@ -135,7 +143,13 @@ class CSVImportService:
                             error_count += 1
                             error_msg = f"Row {row_num}: Resume not found: {row['resume_title']}"
                             validation_errors.append(error_msg)
-                            batch_results.append({"row": row_num, "status": "error", "errors": [error_msg]})
+                            batch_results.append(
+                                {
+                                    "row": row_num,
+                                    "status": "error",
+                                    "errors": [error_msg],
+                                }
+                            )
                             continue
 
                         jd_query = (
@@ -149,9 +163,17 @@ class CSVImportService:
 
                         if not jd:
                             error_count += 1
-                            error_msg = f"Row {row_num}: JD not found: {row['jd_title']}"
+                            error_msg = (
+                                f"Row {row_num}: JD not found: {row['jd_title']}"
+                            )
                             validation_errors.append(error_msg)
-                            batch_results.append({"row": row_num, "status": "error", "errors": [error_msg]})
+                            batch_results.append(
+                                {
+                                    "row": row_num,
+                                    "status": "error",
+                                    "errors": [error_msg],
+                                }
+                            )
                             continue
 
                         # Check for existing application
@@ -167,27 +189,53 @@ class CSVImportService:
 
                         if existing:
                             if on_duplicate == "skip":
-                                batch_results.append({"row": row_num, "status": "skipped", "reason": "duplicate"})
+                                batch_results.append(
+                                    {
+                                        "row": row_num,
+                                        "status": "skipped",
+                                        "reason": "duplicate",
+                                    }
+                                )
                                 continue
                             elif on_duplicate == "error":
                                 error_count += 1
                                 error_msg = f"Row {row_num}: Application already exists"
                                 validation_errors.append(error_msg)
-                                batch_results.append({"row": row_num, "status": "error", "errors": [error_msg]})
+                                batch_results.append(
+                                    {
+                                        "row": row_num,
+                                        "status": "error",
+                                        "errors": [error_msg],
+                                    }
+                                )
                                 continue
                             elif on_duplicate == "update":
                                 # Update existing application
                                 if "status" in row and row["status"]:
                                     existing.status = row["status"]
                                 if "notes" in row:
-                                    existing.notes = row["notes"] if row["notes"] else None
+                                    existing.notes = (
+                                        row["notes"] if row["notes"] else None
+                                    )
                                 if "tags" in row and row["tags"]:
-                                    existing.tags = CSVImportService._parse_csv_value(row["tags"], "tags")
+                                    existing.tags = CSVImportService._parse_csv_value(
+                                        row["tags"], "tags"
+                                    )
                                 if "match_score" in row and row["match_score"]:
-                                    existing.match_score = CSVImportService._parse_csv_value(row["match_score"], "match_score")
+                                    existing.match_score = (
+                                        CSVImportService._parse_csv_value(
+                                            row["match_score"], "match_score"
+                                        )
+                                    )
 
                                 existing.updated_at = datetime.utcnow()
-                                batch_results.append({"row": row_num, "status": "updated", "id": str(existing.id)})
+                                batch_results.append(
+                                    {
+                                        "row": row_num,
+                                        "status": "updated",
+                                        "id": str(existing.id),
+                                    }
+                                )
                                 success_count += 1
                                 continue
 
@@ -197,22 +245,34 @@ class CSVImportService:
                             resume_id=resume.id,
                             jd_id=jd.id,
                             status=row.get("status", "pending"),
-                            match_score=CSVImportService._parse_csv_value(row.get("match_score", ""), "match_score"),
+                            match_score=CSVImportService._parse_csv_value(
+                                row.get("match_score", ""), "match_score"
+                            ),
                             notes=row.get("notes") if row.get("notes") else None,
-                            tags=CSVImportService._parse_csv_value(row.get("tags", "[]"), "tags"),
+                            tags=CSVImportService._parse_csv_value(
+                                row.get("tags", "[]"), "tags"
+                            ),
                         )
 
                         db.add(application)
                         await db.flush()
 
                         success_count += 1
-                        batch_results.append({"row": row_num, "status": "created", "id": str(application.id)})
+                        batch_results.append(
+                            {
+                                "row": row_num,
+                                "status": "created",
+                                "id": str(application.id),
+                            }
+                        )
 
                     except Exception as e:
                         error_count += 1
                         error_msg = f"Row {row_num}: {str(e)}"
                         validation_errors.append(error_msg)
-                        batch_results.append({"row": row_num, "status": "error", "errors": [str(e)]})
+                        batch_results.append(
+                            {"row": row_num, "status": "error", "errors": [str(e)]}
+                        )
 
                 # Commit batch
                 await db.commit()
@@ -328,7 +388,9 @@ class CSVImportService:
                             validation_errors.extend(
                                 [f"Row {row_num}: {error}" for error in errors]
                             )
-                            batch_results.append({"row": row_num, "status": "error", "errors": errors})
+                            batch_results.append(
+                                {"row": row_num, "status": "error", "errors": errors}
+                            )
                             continue
 
                         # Check for existing resume
@@ -343,27 +405,54 @@ class CSVImportService:
 
                         if existing:
                             if on_duplicate == "skip":
-                                batch_results.append({"row": row_num, "status": "skipped", "reason": "duplicate"})
+                                batch_results.append(
+                                    {
+                                        "row": row_num,
+                                        "status": "skipped",
+                                        "reason": "duplicate",
+                                    }
+                                )
                                 continue
                             elif on_duplicate == "error":
                                 error_count += 1
                                 error_msg = f"Row {row_num}: Resume already exists"
                                 validation_errors.append(error_msg)
-                                batch_results.append({"row": row_num, "status": "error", "errors": [error_msg]})
+                                batch_results.append(
+                                    {
+                                        "row": row_num,
+                                        "status": "error",
+                                        "errors": [error_msg],
+                                    }
+                                )
                                 continue
                             elif on_duplicate == "update":
                                 # Update existing resume
                                 if "file_name" in row and row["file_name"]:
                                     existing.file_name = row["file_name"]
                                 if "skills" in row and row["skills"]:
-                                    existing.skills = CSVImportService._parse_csv_value(row["skills"], "skills")
-                                if "experience_years" in row and row["experience_years"]:
-                                    existing.experience_years = CSVImportService._parse_csv_value(row["experience_years"], "experience_years")
+                                    existing.skills = CSVImportService._parse_csv_value(
+                                        row["skills"], "skills"
+                                    )
+                                if (
+                                    "experience_years" in row
+                                    and row["experience_years"]
+                                ):
+                                    existing.experience_years = (
+                                        CSVImportService._parse_csv_value(
+                                            row["experience_years"], "experience_years"
+                                        )
+                                    )
                                 if "education_level" in row and row["education_level"]:
                                     existing.education_level = row["education_level"]
 
                                 existing.updated_at = datetime.utcnow()
-                                batch_results.append({"row": row_num, "status": "updated", "id": str(existing.id)})
+                                batch_results.append(
+                                    {
+                                        "row": row_num,
+                                        "status": "updated",
+                                        "id": str(existing.id),
+                                    }
+                                )
                                 success_count += 1
                                 continue
 
@@ -372,8 +461,12 @@ class CSVImportService:
                             user_id=user_id,
                             title=row["title"],
                             file_name=row.get("file_name", "imported_resume.pdf"),
-                            skills=CSVImportService._parse_csv_value(row.get("skills", "[]"), "skills"),
-                            experience_years=CSVImportService._parse_csv_value(row.get("experience_years", ""), "experience_years"),
+                            skills=CSVImportService._parse_csv_value(
+                                row.get("skills", "[]"), "skills"
+                            ),
+                            experience_years=CSVImportService._parse_csv_value(
+                                row.get("experience_years", ""), "experience_years"
+                            ),
                             education_level=row.get("education_level"),
                         )
 
@@ -381,13 +474,17 @@ class CSVImportService:
                         await db.flush()
 
                         success_count += 1
-                        batch_results.append({"row": row_num, "status": "created", "id": str(resume.id)})
+                        batch_results.append(
+                            {"row": row_num, "status": "created", "id": str(resume.id)}
+                        )
 
                     except Exception as e:
                         error_count += 1
                         error_msg = f"Row {row_num}: {str(e)}"
                         validation_errors.append(error_msg)
-                        batch_results.append({"row": row_num, "status": "error", "errors": [str(e)]})
+                        batch_results.append(
+                            {"row": row_num, "status": "error", "errors": [str(e)]}
+                        )
 
                 # Commit batch
                 await db.commit()
@@ -503,7 +600,9 @@ class CSVImportService:
                             validation_errors.extend(
                                 [f"Row {row_num}: {error}" for error in errors]
                             )
-                            batch_results.append({"row": row_num, "status": "error", "errors": errors})
+                            batch_results.append(
+                                {"row": row_num, "status": "error", "errors": errors}
+                            )
                             continue
 
                         # Check for existing JD
@@ -519,13 +618,25 @@ class CSVImportService:
 
                         if existing:
                             if on_duplicate == "skip":
-                                batch_results.append({"row": row_num, "status": "skipped", "reason": "duplicate"})
+                                batch_results.append(
+                                    {
+                                        "row": row_num,
+                                        "status": "skipped",
+                                        "reason": "duplicate",
+                                    }
+                                )
                                 continue
                             elif on_duplicate == "error":
                                 error_count += 1
                                 error_msg = f"Row {row_num}: JD already exists"
                                 validation_errors.append(error_msg)
-                                batch_results.append({"row": row_num, "status": "error", "errors": [error_msg]})
+                                batch_results.append(
+                                    {
+                                        "row": row_num,
+                                        "status": "error",
+                                        "errors": [error_msg],
+                                    }
+                                )
                                 continue
                             elif on_duplicate == "update":
                                 # Update existing JD
@@ -534,16 +645,42 @@ class CSVImportService:
                                 if "employment_type" in row and row["employment_type"]:
                                     existing.employment_type = row["employment_type"]
                                 if "skills_required" in row and row["skills_required"]:
-                                    existing.skills_required = CSVImportService._parse_csv_value(row["skills_required"], "skills_required")
-                                if "experience_required" in row and row["experience_required"]:
-                                    existing.experience_required = CSVImportService._parse_csv_value(row["experience_required"], "experience_required")
+                                    existing.skills_required = (
+                                        CSVImportService._parse_csv_value(
+                                            row["skills_required"], "skills_required"
+                                        )
+                                    )
+                                if (
+                                    "experience_required" in row
+                                    and row["experience_required"]
+                                ):
+                                    existing.experience_required = (
+                                        CSVImportService._parse_csv_value(
+                                            row["experience_required"],
+                                            "experience_required",
+                                        )
+                                    )
                                 if "salary_min" in row and row["salary_min"]:
-                                    existing.salary_min = CSVImportService._parse_csv_value(row["salary_min"], "salary_min")
+                                    existing.salary_min = (
+                                        CSVImportService._parse_csv_value(
+                                            row["salary_min"], "salary_min"
+                                        )
+                                    )
                                 if "salary_max" in row and row["salary_max"]:
-                                    existing.salary_max = CSVImportService._parse_csv_value(row["salary_max"], "salary_max")
+                                    existing.salary_max = (
+                                        CSVImportService._parse_csv_value(
+                                            row["salary_max"], "salary_max"
+                                        )
+                                    )
 
                                 existing.updated_at = datetime.utcnow()
-                                batch_results.append({"row": row_num, "status": "updated", "id": str(existing.id)})
+                                batch_results.append(
+                                    {
+                                        "row": row_num,
+                                        "status": "updated",
+                                        "id": str(existing.id),
+                                    }
+                                )
                                 success_count += 1
                                 continue
 
@@ -554,23 +691,36 @@ class CSVImportService:
                             company_name=row["company_name"],
                             location=row.get("location"),
                             employment_type=row.get("employment_type"),
-                            skills_required=CSVImportService._parse_csv_value(row.get("skills_required", "[]"), "skills_required"),
-                            experience_required=CSVImportService._parse_csv_value(row.get("experience_required", ""), "experience_required"),
-                            salary_min=CSVImportService._parse_csv_value(row.get("salary_min", ""), "salary_min"),
-                            salary_max=CSVImportService._parse_csv_value(row.get("salary_max", ""), "salary_max"),
+                            skills_required=CSVImportService._parse_csv_value(
+                                row.get("skills_required", "[]"), "skills_required"
+                            ),
+                            experience_required=CSVImportService._parse_csv_value(
+                                row.get("experience_required", ""),
+                                "experience_required",
+                            ),
+                            salary_min=CSVImportService._parse_csv_value(
+                                row.get("salary_min", ""), "salary_min"
+                            ),
+                            salary_max=CSVImportService._parse_csv_value(
+                                row.get("salary_max", ""), "salary_max"
+                            ),
                         )
 
                         db.add(jd)
                         await db.flush()
 
                         success_count += 1
-                        batch_results.append({"row": row_num, "status": "created", "id": str(jd.id)})
+                        batch_results.append(
+                            {"row": row_num, "status": "created", "id": str(jd.id)}
+                        )
 
                     except Exception as e:
                         error_count += 1
                         error_msg = f"Row {row_num}: {str(e)}"
                         validation_errors.append(error_msg)
-                        batch_results.append({"row": row_num, "status": "error", "errors": [str(e)]})
+                        batch_results.append(
+                            {"row": row_num, "status": "error", "errors": [str(e)]}
+                        )
 
                 # Commit batch
                 await db.commit()

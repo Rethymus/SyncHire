@@ -365,9 +365,7 @@ class ConnectionManager:
         # Also store in Redis for persistence across server restarts
         try:
             queue_key = f"ws:queue:{user_id}"
-            await redis_client.client.lpush(
-                queue_key, message.model_dump_json()
-            )
+            await redis_client.client.lpush(queue_key, message.model_dump_json())
             # Keep only last 50 messages in Redis
             await redis_client.client.ltrim(queue_key, 0, 49)
             # Set expiry to 7 days
@@ -422,9 +420,7 @@ class ConnectionManager:
                 stale_connections = []
 
                 async with self._lock:
-                    for conn_id, last_heartbeat in list(
-                        self._last_heartbeat.items()
-                    ):
+                    for conn_id, last_heartbeat in list(self._last_heartbeat.items()):
                         # Mark as stale if no heartbeat for 2 minutes
                         if current_time - last_heartbeat > timedelta(minutes=2):
                             stale_connections.append(conn_id)
@@ -469,9 +465,7 @@ class ConnectionManager:
                 connections_to_close = []
 
                 async with self._lock:
-                    for conn_id, last_heartbeat in list(
-                        self._last_heartbeat.items()
-                    ):
+                    for conn_id, last_heartbeat in list(self._last_heartbeat.items()):
                         # Close if no heartbeat for 5 minutes
                         if current_time - last_heartbeat > timedelta(minutes=5):
                             connections_to_close.append(conn_id)

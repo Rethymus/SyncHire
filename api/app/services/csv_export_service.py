@@ -165,9 +165,7 @@ class CSVExportService:
                         "match_score": application.match_score,
                         "notes": application.notes,
                         "tags": (
-                            json.dumps(application.tags)
-                            if application.tags
-                            else "[]"
+                            json.dumps(application.tags) if application.tags else "[]"
                         ),
                         "created_at": application.created_at.isoformat(),
                         "updated_at": application.updated_at.isoformat(),
@@ -207,9 +205,7 @@ class CSVExportService:
 
                 offset += batch_size
 
-            logger.info(
-                f"Exported {processed_count} applications for user {user_id}"
-            )
+            logger.info(f"Exported {processed_count} applications for user {user_id}")
 
         except Exception as e:
             logger.error(f"Error exporting applications: {str(e)}")

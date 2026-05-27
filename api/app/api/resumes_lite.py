@@ -25,7 +25,7 @@ router = APIRouter(prefix="/resumes", tags=["resumes"])
 async def create_resume(
     resume: ResumeCreate,
     file: UploadFile = File(None),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Create a new resume.
@@ -50,7 +50,7 @@ async def create_resume(
             if not file_storage.is_allowed_type(file.filename):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Invalid file type. Allowed: {file_storage.allowed_extensions}"
+                    detail=f"Invalid file type. Allowed: {file_storage.allowed_extensions}",
                 )
 
             # Save file
@@ -88,18 +88,18 @@ async def create_resume(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to create resume: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA, f"Failed to create resume: {str(e)}", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create resume"
+            detail="Failed to create resume",
         )
 
 
 @router.get("", response_model=List[ResumeResponse])
 async def list_resumes(
-    skip: int = 0,
-    limit: int = 100,
-    db: AsyncSession = Depends(get_db)
+    skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)
 ):
     """
     List all resumes.
@@ -114,10 +114,7 @@ async def list_resumes(
     """
     try:
         result = await db.execute(
-            select(Resume)
-            .offset(skip)
-            .limit(limit)
-            .order_by(Resume.updated_at.desc())
+            select(Resume).offset(skip).limit(limit).order_by(Resume.updated_at.desc())
         )
         resumes = result.scalars().all()
 
@@ -134,18 +131,17 @@ async def list_resumes(
         ]
 
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to list resumes: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA, f"Failed to list resumes: {str(e)}", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to list resumes"
+            detail="Failed to list resumes",
         )
 
 
 @router.get("/{resume_id}", response_model=ResumeResponse)
-async def get_resume(
-    resume_id: str,
-    db: AsyncSession = Depends(get_db)
-):
+async def get_resume(resume_id: str, db: AsyncSession = Depends(get_db)):
     """
     Get a specific resume.
 
@@ -157,16 +153,12 @@ async def get_resume(
         Resume details
     """
     try:
-        result = await db.execute(
-            select(Resume)
-            .where(Resume.id == resume_id)
-        )
+        result = await db.execute(select(Resume).where(Resume.id == resume_id))
         resume = result.scalar_one_or_none()
 
         if not resume:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Resume not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Resume not found"
             )
 
         return ResumeResponse(
@@ -181,18 +173,20 @@ async def get_resume(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to get resume {resume_id}: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA,
+            f"Failed to get resume {resume_id}: {str(e)}",
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get resume"
+            detail="Failed to get resume",
         )
 
 
 @router.put("/{resume_id}", response_model=ResumeResponse)
 async def update_resume(
-    resume_id: str,
-    resume: ResumeUpdate,
-    db: AsyncSession = Depends(get_db)
+    resume_id: str, resume: ResumeUpdate, db: AsyncSession = Depends(get_db)
 ):
     """
     Update a resume.
@@ -206,16 +200,12 @@ async def update_resume(
         Updated resume
     """
     try:
-        result = await db.execute(
-            select(Resume)
-            .where(Resume.id == resume_id)
-        )
+        result = await db.execute(select(Resume).where(Resume.id == resume_id))
         db_resume = result.scalar_one_or_none()
 
         if not db_resume:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Resume not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Resume not found"
             )
 
         # Update fields
@@ -241,18 +231,19 @@ async def update_resume(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to update resume {resume_id}: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA,
+            f"Failed to update resume {resume_id}: {str(e)}",
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update resume"
+            detail="Failed to update resume",
         )
 
 
 @router.delete("/{resume_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_resume(
-    resume_id: str,
-    db: AsyncSession = Depends(get_db)
-):
+async def delete_resume(resume_id: str, db: AsyncSession = Depends(get_db)):
     """
     Delete a resume.
 
@@ -264,16 +255,12 @@ async def delete_resume(
         No content on success
     """
     try:
-        result = await db.execute(
-            select(Resume)
-            .where(Resume.id == resume_id)
-        )
+        result = await db.execute(select(Resume).where(Resume.id == resume_id))
         resume = result.scalar_one_or_none()
 
         if not resume:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Resume not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Resume not found"
             )
 
         # Delete associated file
@@ -291,18 +278,19 @@ async def delete_resume(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to delete resume {resume_id}: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA,
+            f"Failed to delete resume {resume_id}: {str(e)}",
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete resume"
+            detail="Failed to delete resume",
         )
 
 
 @router.post("/{resume_id}/optimize", response_model=ResumeResponse)
-async def optimize_resume(
-    resume_id: str,
-    db: AsyncSession = Depends(get_db)
-):
+async def optimize_resume(resume_id: str, db: AsyncSession = Depends(get_db)):
     """
     Optimize a resume using AI.
 
@@ -314,16 +302,12 @@ async def optimize_resume(
         Optimized resume
     """
     try:
-        result = await db.execute(
-            select(Resume)
-            .where(Resume.id == resume_id)
-        )
+        result = await db.execute(select(Resume).where(Resume.id == resume_id))
         resume = result.scalar_one_or_none()
 
         if not resume:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Resume not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Resume not found"
             )
 
         # Optimize with AI
@@ -348,18 +332,19 @@ async def optimize_resume(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.AI, f"Failed to optimize resume {resume_id}: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.AI,
+            f"Failed to optimize resume {resume_id}: {str(e)}",
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to optimize resume"
+            detail="Failed to optimize resume",
         )
 
 
 @router.get("/{resume_id}/file")
-async def download_resume_file(
-    resume_id: str,
-    db: AsyncSession = Depends(get_db)
-):
+async def download_resume_file(resume_id: str, db: AsyncSession = Depends(get_db)):
     """
     Download a resume file.
 
@@ -371,22 +356,18 @@ async def download_resume_file(
         Resume file
     """
     try:
-        result = await db.execute(
-            select(Resume)
-            .where(Resume.id == resume_id)
-        )
+        result = await db.execute(select(Resume).where(Resume.id == resume_id))
         resume = result.scalar_one_or_none()
 
         if not resume:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Resume not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Resume not found"
             )
 
         if not resume.file_path:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="No file associated with this resume"
+                detail="No file associated with this resume",
             )
 
         return await file_storage.get_file(resume.file_path, resume.file_name)
@@ -394,8 +375,12 @@ async def download_resume_file(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to download resume file {resume_id}: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA,
+            f"Failed to download resume file {resume_id}: {str(e)}",
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to download resume file"
+            detail="Failed to download resume file",
         )

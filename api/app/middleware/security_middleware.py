@@ -46,9 +46,13 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains"
+        )
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        response.headers["Permissions-Policy"] = (
+            "geolocation=(), microphone=(), camera=()"
+        )
         response.headers["X-DNS-Prefetch-Control"] = "off"
 
         # Remove server information
@@ -104,44 +108,58 @@ class InputValidationMiddleware(BaseHTTPMiddleware):
 
                     # Check for SQL injection
                     if self._detect_sql_injection(body_str):
-                        logger.warning(f"SQL injection attempt detected from {request.client.host}")
+                        logger.warning(
+                            f"SQL injection attempt detected from {request.client.host}"
+                        )
                         await SecurityAuditor.log_security_event(
                             "sql_injection_attempt",
                             None,
-                            {"ip": request.client.host, "path": request.url.path, "body_preview": body_str[:200]},
-                            "warning"
+                            {
+                                "ip": request.client.host,
+                                "path": request.url.path,
+                                "body_preview": body_str[:200],
+                            },
+                            "warning",
                         )
                         return JSONResponse(
                             status_code=status.HTTP_400_BAD_REQUEST,
-                            content={"error": "Invalid request detected"}
+                            content={"error": "Invalid request detected"},
                         )
 
                     # Check for XSS
                     if self._detect_xss(body_str):
-                        logger.warning(f"XSS attempt detected from {request.client.host}")
+                        logger.warning(
+                            f"XSS attempt detected from {request.client.host}"
+                        )
                         await SecurityAuditor.log_security_event(
                             "xss_attempt",
                             None,
-                            {"ip": request.client.host, "path": request.url.path, "body_preview": body_str[:200]},
-                            "warning"
+                            {
+                                "ip": request.client.host,
+                                "path": request.url.path,
+                                "body_preview": body_str[:200],
+                            },
+                            "warning",
                         )
                         return JSONResponse(
                             status_code=status.HTTP_400_BAD_REQUEST,
-                            content={"error": "Invalid request detected"}
+                            content={"error": "Invalid request detected"},
                         )
 
                     # Check for path traversal
                     if self._detect_path_traversal(body_str):
-                        logger.warning(f"Path traversal attempt detected from {request.client.host}")
+                        logger.warning(
+                            f"Path traversal attempt detected from {request.client.host}"
+                        )
                         await SecurityAuditor.log_security_event(
                             "path_traversal_attempt",
                             None,
                             {"ip": request.client.host, "path": request.url.path},
-                            "warning"
+                            "warning",
                         )
                         return JSONResponse(
                             status_code=status.HTTP_400_BAD_REQUEST,
-                            content={"error": "Invalid request detected"}
+                            content={"error": "Invalid request detected"},
                         )
 
             except Exception as e:
@@ -207,25 +225,27 @@ class CSRFMiddleware(BaseHTTPMiddleware):
                         "csrf_missing",
                         None,
                         {"ip": request.client.host, "path": request.url.path},
-                        "warning"
+                        "warning",
                     )
                     return JSONResponse(
                         status_code=status.HTTP_403_FORBIDDEN,
-                        content={"error": "CSRF token required"}
+                        content={"error": "CSRF token required"},
                     )
 
                 # Validate token
-                is_valid = await CSRFProtection.validate_csrf_token(csrf_token, session_id)
+                is_valid = await CSRFProtection.validate_csrf_token(
+                    csrf_token, session_id
+                )
                 if not is_valid:
                     await SecurityAuditor.log_security_event(
                         "csrf_invalid",
                         None,
                         {"ip": request.client.host, "path": request.url.path},
-                        "warning"
+                        "warning",
                     )
                     return JSONResponse(
                         status_code=status.HTTP_403_FORBIDDEN,
-                        content={"error": "Invalid CSRF token"}
+                        content={"error": "Invalid CSRF token"},
                     )
 
         response = await call_next(request)
@@ -265,12 +285,14 @@ class SecurityMonitoringMiddleware(BaseHTTPMiddleware):
         ]
 
         # Check for rapid requests (potential DoS)
-        if len(self.request_times[client_ip]) > 100:  # More than 100 requests per minute
+        if (
+            len(self.request_times[client_ip]) > 100
+        ):  # More than 100 requests per minute
             await SecurityAuditor.log_security_event(
                 "rapid_requests_detected",
                 None,
                 {"ip": client_ip, "request_count": len(self.request_times[client_ip])},
-                "warning"
+                "warning",
             )
 
         # Process request
@@ -286,9 +308,9 @@ class SecurityMonitoringMiddleware(BaseHTTPMiddleware):
                     {
                         "ip": client_ip,
                         "path": request.url.path,
-                        "process_time": process_time
+                        "process_time": process_time,
                     },
-                    "info"
+                    "info",
                 )
 
             # Add timing header
@@ -302,7 +324,7 @@ class SecurityMonitoringMiddleware(BaseHTTPMiddleware):
                 "request_exception",
                 None,
                 {"ip": client_ip, "path": request.url.path, "error": str(e)},
-                "error"
+                "error",
             )
             raise
 
@@ -326,11 +348,11 @@ class IPWhitelistMiddleware(BaseHTTPMiddleware):
                 "blacklisted_ip_access_attempt",
                 None,
                 {"ip": client_ip, "path": request.url.path},
-                "warning"
+                "warning",
             )
             return JSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,
-                content={"error": "Access denied"}
+                content={"error": "Access denied"},
             )
 
         # For admin endpoints, check whitelist
@@ -340,11 +362,11 @@ class IPWhitelistMiddleware(BaseHTTPMiddleware):
                     "unauthorized_admin_access",
                     None,
                     {"ip": client_ip, "path": request.url.path},
-                    "warning"
+                    "warning",
                 )
                 return JSONResponse(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    content={"error": "Unauthorized access"}
+                    content={"error": "Unauthorized access"},
                 )
 
         return await call_next(request)
@@ -382,13 +404,13 @@ class ContentLengthMiddleware(BaseHTTPMiddleware):
                             {
                                 "ip": request.client.host,
                                 "content_length": content_length_int,
-                                "path": request.url.path
+                                "path": request.url.path,
                             },
-                            "warning"
+                            "warning",
                         )
                         return JSONResponse(
                             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                            content={"error": "Payload too large"}
+                            content={"error": "Payload too large"},
                         )
                 except ValueError:
                     pass

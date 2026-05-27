@@ -155,7 +155,16 @@ async def websocket_endpoint(
                     # Handle custom messages
                     elif message_type == "ping":
                         await websocket.send_text(
-                            json.dumps({"type": "pong", "data": {"timestamp": message_data_payload.get("timestamp")}})
+                            json.dumps(
+                                {
+                                    "type": "pong",
+                                    "data": {
+                                        "timestamp": message_data_payload.get(
+                                            "timestamp"
+                                        )
+                                    },
+                                }
+                            )
                         )
 
                     else:

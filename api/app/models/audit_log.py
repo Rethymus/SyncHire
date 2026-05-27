@@ -3,6 +3,7 @@ Audit Log Model for GDPR Compliance
 
 This model tracks all data access and modifications for compliance requirements.
 """
+
 import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, Text, ForeignKey, Boolean
@@ -14,6 +15,7 @@ import enum
 
 class AuditAction(str, enum.Enum):
     """Types of auditable actions."""
+
     CREATE = "CREATE"
     READ = "READ"
     UPDATE = "UPDATE"
@@ -32,6 +34,7 @@ class AuditAction(str, enum.Enum):
 
 class ResourceType(str, enum.Enum):
     """Types of resources that can be audited."""
+
     USER = "user"
     RESUME = "resume"
     JD = "jd"
@@ -54,10 +57,13 @@ class AuditLog(Base):
     - What changed (old_values, new_values)
     - When and where (timestamp, ip_address, user_agent)
     """
+
     __tablename__ = "audit_logs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), nullable=True, index=True)  # nullable for system actions
+    user_id = Column(
+        UUID(as_uuid=True), nullable=True, index=True
+    )  # nullable for system actions
     action = Column(String, nullable=False, index=True)  # AuditAction enum
     resource_type = Column(String, nullable=False, index=True)  # ResourceType enum
     resource_id = Column(UUID(as_uuid=True), nullable=True, index=True)
@@ -73,7 +79,9 @@ class AuditLog(Base):
 
     # Additional context
     description = Column(Text, nullable=True)  # Human-readable description
-    request_metadata = Column(JSONB, nullable=True)  # Additional context (renamed from metadata to avoid SQLAlchemy conflict)
+    request_metadata = Column(
+        JSONB, nullable=True
+    )  # Additional context (renamed from metadata to avoid SQLAlchemy conflict)
 
     # Timestamp
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
@@ -86,6 +94,7 @@ class DataRetentionLog(Base):
     """
     Track data retention and deletion activities for GDPR Article 7(3) compliance.
     """
+
     __tablename__ = "data_retention_logs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -94,8 +103,12 @@ class DataRetentionLog(Base):
     resource_id = Column(UUID(as_uuid=True), nullable=False)
 
     # Retention policy
-    retention_period_days = Column(String, nullable=False)  # e.g., "30", "365", "indefinite"
-    deletion_reason = Column(String, nullable=False)  # "gdpr_request", "policy_expiry", "user_request"
+    retention_period_days = Column(
+        String, nullable=False
+    )  # e.g., "30", "365", "indefinite"
+    deletion_reason = Column(
+        String, nullable=False
+    )  # "gdpr_request", "policy_expiry", "user_request"
 
     # Deletion tracking
     deleted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -112,13 +125,16 @@ class ConsentLog(Base):
     """
     Track user consent for GDPR Article 7 compliance.
     """
+
     __tablename__ = "consent_logs"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
 
     # Consent details
-    consent_type = Column(String, nullable=False)  # "marketing", "analytics", "data_processing"
+    consent_type = Column(
+        String, nullable=False
+    )  # "marketing", "analytics", "data_processing"
     granted = Column(Boolean, nullable=False)
 
     # Timestamps
@@ -126,8 +142,12 @@ class ConsentLog(Base):
     revoked_at = Column(DateTime, nullable=True)
 
     # Legal basis
-    legal_basis = Column(String, nullable=False)  # "consent", "contract", "legal_obligation"
-    privacy_policy_version = Column(String, nullable=False)  # Version of policy accepted
+    legal_basis = Column(
+        String, nullable=False
+    )  # "consent", "contract", "legal_obligation"
+    privacy_policy_version = Column(
+        String, nullable=False
+    )  # Version of policy accepted
 
     # Request metadata
     ip_address = Column(String, nullable=True)

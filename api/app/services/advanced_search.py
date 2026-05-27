@@ -122,10 +122,22 @@ class SearchFilters:
             "employment_type": self.employment_type,
             "industry": self.industry,
             "company_size": self.company_size,
-            "posted_date_from": self.posted_date_from.isoformat() if self.posted_date_from else None,
-            "posted_date_to": self.posted_date_to.isoformat() if self.posted_date_to else None,
-            "application_deadline_from": self.application_deadline_from.isoformat() if self.application_deadline_from else None,
-            "application_deadline_to": self.application_deadline_to.isoformat() if self.application_deadline_to else None,
+            "posted_date_from": (
+                self.posted_date_from.isoformat() if self.posted_date_from else None
+            ),
+            "posted_date_to": (
+                self.posted_date_to.isoformat() if self.posted_date_to else None
+            ),
+            "application_deadline_from": (
+                self.application_deadline_from.isoformat()
+                if self.application_deadline_from
+                else None
+            ),
+            "application_deadline_to": (
+                self.application_deadline_to.isoformat()
+                if self.application_deadline_to
+                else None
+            ),
             "status": self.status,
             "min_match_score": self.min_match_score,
             "max_match_score": self.max_match_score,
@@ -135,7 +147,12 @@ class SearchFilters:
     def from_dict(cls, data: Dict[str, Any]) -> "SearchFilters":
         """Create filters from dictionary"""
         # Convert date strings back to date objects
-        for key in ["posted_date_from", "posted_date_to", "application_deadline_from", "application_deadline_to"]:
+        for key in [
+            "posted_date_from",
+            "posted_date_to",
+            "application_deadline_from",
+            "application_deadline_to",
+        ]:
             if data.get(key) and isinstance(data[key], str):
                 data[key] = date.fromisoformat(data[key])
         return cls(**data)
@@ -400,7 +417,7 @@ class AdvancedSearchService:
 
         # Extract phrases in quotes
         phrases = re.findall(r'"([^"]*)"', query)
-        query_without_phrases = re.sub(r'"[^"]*"', '', query)
+        query_without_phrases = re.sub(r'"[^"]*"', "", query)
 
         # Extract boolean operators
         has_and = " AND " in query.upper()
@@ -408,8 +425,8 @@ class AdvancedSearchService:
         has_not = " NOT " in query.upper()
 
         # Extract fuzzy search terms (word~)
-        fuzzy_terms = re.findall(r'(\w+)~', query)
-        query_without_fuzzy = re.sub(r'\w+~', '', query)
+        fuzzy_terms = re.findall(r"(\w+)~", query)
+        query_without_fuzzy = re.sub(r"\w+~", "", query)
 
         # Get remaining terms
         terms = query_without_phrases.lower().split()
@@ -539,19 +556,22 @@ class AdvancedSearchService:
     ) -> Select:
         """Build application search query with filters"""
         # Build query with joins
-        query_builder = select(
-            Application.id,
-            Application.status,
-            Application.match_score,
-            Application.created_at,
-            Application.updated_at,
-            Resume.title.label("resume_title"),
-            JD.title.label("jd_title"),
-            JD.company_name.label("company_name"),
-            JD.position.label("position"),
-        ).join(Resume, Application.resume_id == Resume.id).join(
-            JD, Application.jd_id == JD.id
-        ).where(Application.user_id == user_id)
+        query_builder = (
+            select(
+                Application.id,
+                Application.status,
+                Application.match_score,
+                Application.created_at,
+                Application.updated_at,
+                Resume.title.label("resume_title"),
+                JD.title.label("jd_title"),
+                JD.company_name.label("company_name"),
+                JD.position.label("position"),
+            )
+            .join(Resume, Application.resume_id == Resume.id)
+            .join(JD, Application.jd_id == JD.id)
+            .where(Application.user_id == user_id)
+        )
 
         # Apply search query if provided
         if search_query:
@@ -595,7 +615,9 @@ class AdvancedSearchService:
             positive_terms = [t for t in query_parts if not t.startswith("-")]
             negative_terms = [t for t in query_parts if t.startswith("-")]
             if positive_terms and negative_terms:
-                return f"({' & '.join(positive_terms)}) & !({' | '.join(negative_terms)})"
+                return (
+                    f"({' & '.join(positive_terms)}) & !({' | '.join(negative_terms)})"
+                )
             else:
                 return " & ".join(query_parts) if query_parts else None
         else:
@@ -645,7 +667,8 @@ class AdvancedSearchService:
         # Salary filters
         if filters.salary_min:
             conditions.append(
-                (JD.salary_max >= filters.salary_min) | (JD.salary_min >= filters.salary_min)
+                (JD.salary_max >= filters.salary_min)
+                | (JD.salary_min >= filters.salary_min)
             )
         if filters.salary_max:
             conditions.append(JD.salary_min <= filters.salary_max)
@@ -674,9 +697,13 @@ class AdvancedSearchService:
         if filters.posted_date_to:
             conditions.append(JD.posted_date <= filters.posted_date_to)
         if filters.application_deadline_from:
-            conditions.append(JD.application_deadline >= filters.application_deadline_from)
+            conditions.append(
+                JD.application_deadline >= filters.application_deadline_from
+            )
         if filters.application_deadline_to:
-            conditions.append(JD.application_deadline <= filters.application_deadline_to)
+            conditions.append(
+                JD.application_deadline <= filters.application_deadline_to
+            )
 
         if conditions:
             query_builder = query_builder.where(and_(*conditions))
@@ -751,21 +778,33 @@ class AdvancedSearchService:
         result = await self.db.execute(count_stmt)
         return result.scalar() or 0
 
-    async def _execute_resume_search(self, query_builder: Select) -> List[Dict[str, Any]]:
+    async def _execute_resume_search(
+        self, query_builder: Select
+    ) -> List[Dict[str, Any]]:
         """Execute resume search and format results"""
         result = await self.db.execute(query_builder)
         rows = result.all()
 
         results = []
         for row in rows:
-            results.append({
-                "id": str(row.id),
-                "title": row.title,
-                "content": row.content[:500] + "..." if len(row.content or "") > 500 else row.content,
-                "created_at": row.created_at.isoformat(),
-                "relevance_score": float(row.relevance_score) if hasattr(row, "relevance_score") else 0.0,
-                "type": "resume",
-            })
+            results.append(
+                {
+                    "id": str(row.id),
+                    "title": row.title,
+                    "content": (
+                        row.content[:500] + "..."
+                        if len(row.content or "") > 500
+                        else row.content
+                    ),
+                    "created_at": row.created_at.isoformat(),
+                    "relevance_score": (
+                        float(row.relevance_score)
+                        if hasattr(row, "relevance_score")
+                        else 0.0
+                    ),
+                    "type": "resume",
+                }
+            )
 
         return results
 
@@ -776,57 +815,77 @@ class AdvancedSearchService:
 
         results = []
         for row in rows:
-            results.append({
-                "id": str(row.id),
-                "title": row.title,
-                "company": row.company,
-                "content": row.content[:500] + "..." if len(row.content or "") > 500 else row.content,
-                "created_at": row.created_at.isoformat(),
-                "salary": {
-                    "min": float(row.salary_min) if row.salary_min else None,
-                    "max": float(row.salary_max) if row.salary_max else None,
-                    "currency": row.salary_currency,
-                    "period": row.salary_period,
-                },
-                "location": {
-                    "city": row.location_city,
-                    "state": row.location_state,
-                    "country": row.location_country,
-                    "remote": row.location_remote,
-                    "hybrid": row.location_hybrid,
-                    "onsite": row.location_onsite,
-                },
-                "experience_level": row.experience_level,
-                "employment_type": row.employment_type,
-                "industry": row.industry,
-                "company_size": row.company_size,
-                "posted_date": row.posted_date.isoformat() if row.posted_date else None,
-                "application_deadline": row.application_deadline.isoformat() if row.application_deadline else None,
-                "relevance_score": float(row.relevance_score) if hasattr(row, "relevance_score") else 0.0,
-                "type": "jd",
-            })
+            results.append(
+                {
+                    "id": str(row.id),
+                    "title": row.title,
+                    "company": row.company,
+                    "content": (
+                        row.content[:500] + "..."
+                        if len(row.content or "") > 500
+                        else row.content
+                    ),
+                    "created_at": row.created_at.isoformat(),
+                    "salary": {
+                        "min": float(row.salary_min) if row.salary_min else None,
+                        "max": float(row.salary_max) if row.salary_max else None,
+                        "currency": row.salary_currency,
+                        "period": row.salary_period,
+                    },
+                    "location": {
+                        "city": row.location_city,
+                        "state": row.location_state,
+                        "country": row.location_country,
+                        "remote": row.location_remote,
+                        "hybrid": row.location_hybrid,
+                        "onsite": row.location_onsite,
+                    },
+                    "experience_level": row.experience_level,
+                    "employment_type": row.employment_type,
+                    "industry": row.industry,
+                    "company_size": row.company_size,
+                    "posted_date": (
+                        row.posted_date.isoformat() if row.posted_date else None
+                    ),
+                    "application_deadline": (
+                        row.application_deadline.isoformat()
+                        if row.application_deadline
+                        else None
+                    ),
+                    "relevance_score": (
+                        float(row.relevance_score)
+                        if hasattr(row, "relevance_score")
+                        else 0.0
+                    ),
+                    "type": "jd",
+                }
+            )
 
         return results
 
-    async def _execute_application_search(self, query_builder: Select) -> List[Dict[str, Any]]:
+    async def _execute_application_search(
+        self, query_builder: Select
+    ) -> List[Dict[str, Any]]:
         """Execute application search and format results"""
         result = await self.db.execute(query_builder)
         rows = result.all()
 
         results = []
         for row in rows:
-            results.append({
-                "id": str(row.id),
-                "company_name": row.company_name,
-                "position": row.position,
-                "status": row.status,
-                "match_score": float(row.match_score) if row.match_score else None,
-                "created_at": row.created_at.isoformat(),
-                "updated_at": row.updated_at.isoformat(),
-                "resume_title": row.resume_title,
-                "jd_title": row.jd_title,
-                "type": "application",
-            })
+            results.append(
+                {
+                    "id": str(row.id),
+                    "company_name": row.company_name,
+                    "position": row.position,
+                    "status": row.status,
+                    "match_score": float(row.match_score) if row.match_score else None,
+                    "created_at": row.created_at.isoformat(),
+                    "updated_at": row.updated_at.isoformat(),
+                    "resume_title": row.resume_title,
+                    "jd_title": row.jd_title,
+                    "type": "application",
+                }
+            )
 
         return results
 
@@ -869,7 +928,9 @@ class AdvancedSearchService:
                 analytics.total_results += results_count
                 if results_count == 0:
                     analytics.zero_result_searches += 1
-                analytics.avg_results_per_search = analytics.total_results / analytics.total_searches
+                analytics.avg_results_per_search = (
+                    analytics.total_results / analytics.total_searches
+                )
                 analytics.last_searched_at = datetime.utcnow()
             else:
                 # Create new analytics entry
@@ -1005,7 +1066,11 @@ class AdvancedSearchService:
                 "search_term": a.search_term,
                 "total_searches": a.total_searches,
                 "avg_results": a.avg_results_per_search,
-                "zero_result_rate": a.zero_result_searches / a.total_searches if a.total_searches > 0 else 0,
+                "zero_result_rate": (
+                    a.zero_result_searches / a.total_searches
+                    if a.total_searches > 0
+                    else 0
+                ),
             }
             for a in analytics
         ]

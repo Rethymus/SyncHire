@@ -23,7 +23,14 @@ from api.models.interview import (
 from api.models.auth import User
 from api.database import get_db
 from api.dependencies import get_current_user
-from app.models import Application, Interview, InterviewReminder, InterviewEvent, Resume, JD
+from app.models import (
+    Application,
+    Interview,
+    InterviewReminder,
+    InterviewEvent,
+    Resume,
+    JD,
+)
 from api.logger import logger
 
 router = APIRouter(prefix="/interviews", tags=["interviews"])
@@ -72,7 +79,9 @@ async def create_interview(
             meeting_platform=interview_data.meeting_platform,
             meeting_id=interview_data.meeting_id,
             meeting_password=interview_data.meeting_password,
-            interviewers=[interviewer.model_dump() for interviewer in interview_data.interviewers],
+            interviewers=[
+                interviewer.model_dump() for interviewer in interview_data.interviewers
+            ],
             preparation_notes=interview_data.preparation_notes,
             resume_version_id=interview_data.resume_version_id,
             reminder_enabled=interview_data.reminder_enabled,
@@ -109,7 +118,9 @@ async def create_interview(
         raise
     except Exception as e:
         await db.rollback()
-        logger.error("create_interview_failed", user_id=str(current_user.id), error=str(e))
+        logger.error(
+            "create_interview_failed", user_id=str(current_user.id), error=str(e)
+        )
         raise HTTPException(status_code=500, detail="Failed to create interview")
 
 
@@ -117,8 +128,12 @@ async def create_interview(
 async def list_interviews(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    status: Optional[str] = Query(None, pattern="^(scheduled|confirmed|completed|cancelled|rescheduled)$"),
-    interview_type: Optional[str] = Query(None, pattern="^(screening|technical|behavioral|panel|onsite|final)$"),
+    status: Optional[str] = Query(
+        None, pattern="^(scheduled|confirmed|completed|cancelled|rescheduled)$"
+    ),
+    interview_type: Optional[str] = Query(
+        None, pattern="^(screening|technical|behavioral|panel|onsite|final)$"
+    ),
     from_date: Optional[datetime] = None,
     to_date: Optional[datetime] = None,
     current_user: User = Depends(get_current_user),
@@ -172,7 +187,9 @@ async def list_interviews(
         )
 
     except Exception as e:
-        logger.error("list_interviews_failed", user_id=str(current_user.id), error=str(e))
+        logger.error(
+            "list_interviews_failed", user_id=str(current_user.id), error=str(e)
+        )
         raise HTTPException(status_code=500, detail="Failed to list interviews")
 
 
@@ -210,7 +227,7 @@ async def get_calendar_events(
                     Interview.user_id == current_user.id,
                     Interview.scheduled_date >= start_date,
                     Interview.scheduled_date <= end_date,
-                    Interview.status.in_(['scheduled', 'confirmed', 'rescheduled']),
+                    Interview.status.in_(["scheduled", "confirmed", "rescheduled"]),
                 )
             )
             .order_by(Interview.scheduled_date)
@@ -221,7 +238,9 @@ async def get_calendar_events(
         # Build calendar events
         events = []
         for interview, company_name, job_title in interviews_data:
-            end_time = interview.scheduled_date + timedelta(minutes=interview.duration_minutes)
+            end_time = interview.scheduled_date + timedelta(
+                minutes=interview.duration_minutes
+            )
             event = InterviewCalendarEvent(
                 id=interview.id,
                 title=interview.title,
@@ -310,7 +329,7 @@ async def get_interview_stats(
                 and_(
                     Interview.user_id == current_user.id,
                     Interview.scheduled_date > datetime.now(),
-                    Interview.status.in_(['scheduled', 'confirmed']),
+                    Interview.status.in_(["scheduled", "confirmed"]),
                 )
             )
             .order_by(Interview.scheduled_date.asc())
@@ -320,13 +339,20 @@ async def get_interview_stats(
 
         next_interview_response = None
         if next_interview:
-            next_interview_response = await _get_interview_response(db, next_interview.id, current_user.id)
+            next_interview_response = await _get_interview_response(
+                db, next_interview.id, current_user.id
+            )
 
         return InterviewStats(
-            total_interviews=status_data.get('scheduled', 0) + status_data.get('confirmed', 0) + status_data.get('completed', 0) + status_data.get('cancelled', 0) + status_data.get('rescheduled', 0),
-            upcoming_interviews=status_data.get('scheduled', 0) + status_data.get('confirmed', 0),
-            completed_interviews=status_data.get('completed', 0),
-            cancelled_interviews=status_data.get('cancelled', 0),
+            total_interviews=status_data.get("scheduled", 0)
+            + status_data.get("confirmed", 0)
+            + status_data.get("completed", 0)
+            + status_data.get("cancelled", 0)
+            + status_data.get("rescheduled", 0),
+            upcoming_interviews=status_data.get("scheduled", 0)
+            + status_data.get("confirmed", 0),
+            completed_interviews=status_data.get("completed", 0),
+            cancelled_interviews=status_data.get("cancelled", 0),
             average_rating=average_rating,
             interviews_by_type=interviews_by_type,
             interviews_this_month=interviews_this_month,
@@ -334,8 +360,12 @@ async def get_interview_stats(
         )
 
     except Exception as e:
-        logger.error("get_interview_stats_failed", user_id=str(current_user.id), error=str(e))
-        raise HTTPException(status_code=500, detail="Failed to load interview statistics")
+        logger.error(
+            "get_interview_stats_failed", user_id=str(current_user.id), error=str(e)
+        )
+        raise HTTPException(
+            status_code=500, detail="Failed to load interview statistics"
+        )
 
 
 @router.get("/{interview_id}", response_model=InterviewResponse)
@@ -367,7 +397,12 @@ async def get_interview(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error("get_interview_failed", user_id=str(current_user.id), interview_id=str(interview_id), error=str(e))
+        logger.error(
+            "get_interview_failed",
+            user_id=str(current_user.id),
+            interview_id=str(interview_id),
+            error=str(e),
+        )
         raise HTTPException(status_code=500, detail="Failed to load interview")
 
 
@@ -404,7 +439,7 @@ async def update_interview(
             setattr(interview, field, value)
 
         # Handle reminder rescheduling if date changed
-        if 'scheduled_date' in update_data and interview.reminder_enabled:
+        if "scheduled_date" in update_data and interview.reminder_enabled:
             # Delete existing reminders
             await db.execute(
                 select(InterviewReminder).where(
@@ -437,7 +472,12 @@ async def update_interview(
         raise
     except Exception as e:
         await db.rollback()
-        logger.error("update_interview_failed", user_id=str(current_user.id), interview_id=str(interview_id), error=str(e))
+        logger.error(
+            "update_interview_failed",
+            user_id=str(current_user.id),
+            interview_id=str(interview_id),
+            error=str(e),
+        )
         raise HTTPException(status_code=500, detail="Failed to update interview")
 
 
@@ -483,7 +523,12 @@ async def delete_interview(
         raise
     except Exception as e:
         await db.rollback()
-        logger.error("delete_interview_failed", user_id=str(current_user.id), interview_id=str(interview_id), error=str(e))
+        logger.error(
+            "delete_interview_failed",
+            user_id=str(current_user.id),
+            interview_id=str(interview_id),
+            error=str(e),
+        )
         raise HTTPException(status_code=500, detail="Failed to delete interview")
 
 
@@ -518,7 +563,7 @@ async def submit_interview_feedback(
         interview.feedback = feedback_data.feedback
         interview.rating = feedback_data.rating
         interview.next_steps = feedback_data.next_steps
-        interview.status = 'completed'
+        interview.status = "completed"
 
         await db.commit()
 
@@ -535,11 +580,18 @@ async def submit_interview_feedback(
         raise
     except Exception as e:
         await db.rollback()
-        logger.error("submit_feedback_failed", user_id=str(current_user.id), interview_id=str(interview_id), error=str(e))
+        logger.error(
+            "submit_feedback_failed",
+            user_id=str(current_user.id),
+            interview_id=str(interview_id),
+            error=str(e),
+        )
         raise HTTPException(status_code=500, detail="Failed to submit feedback")
 
 
-async def _get_interview_response(db: AsyncSession, interview_id: UUID, user_id: UUID) -> InterviewResponse:
+async def _get_interview_response(
+    db: AsyncSession, interview_id: UUID, user_id: UUID
+) -> InterviewResponse:
     """
     Helper function to build complete interview response with related data.
     """
@@ -582,7 +634,11 @@ async def _get_interview_response(db: AsyncSession, interview_id: UUID, user_id:
         meeting_platform=interview.meeting_platform,
         meeting_id=interview.meeting_id,
         meeting_password=interview.meeting_password,
-        interviewers=[Interviewer(**i) for i in interview.interviewers] if interview.interviewers else [],
+        interviewers=(
+            [Interviewer(**i) for i in interview.interviewers]
+            if interview.interviewers
+            else []
+        ),
         preparation_notes=interview.preparation_notes,
         resume_version_id=interview.resume_version_id,
         feedback=interview.feedback,

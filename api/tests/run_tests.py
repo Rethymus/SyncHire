@@ -176,9 +176,7 @@ class TestRunner:
             print(f"\nOverall Coverage: {total_coverage:.1f}%")
 
             if total_coverage < self.coverage_threshold:
-                print(
-                    f"⚠️  Coverage below threshold of {self.coverage_threshold}%"
-                )
+                print(f"⚠️  Coverage below threshold of {self.coverage_threshold}%")
                 return False
             else:
                 print(f"✅ Coverage meets threshold of {self.coverage_threshold}%")
@@ -225,12 +223,16 @@ class TestRunner:
         print("=" * 60)
         print(f"Unit Tests:        {'✅ PASSED' if unit_passed else '❌ FAILED'}")
         print(f"Service Tests:     {'✅ PASSED' if service_passed else '❌ FAILED'}")
-        print(f"Integration Tests: {'✅ PASSED' if integration_passed else '❌ FAILED'}")
+        print(
+            f"Integration Tests: {'✅ PASSED' if integration_passed else '❌ FAILED'}"
+        )
         print(f"Coverage:          {'✅ PASSED' if coverage_passed else '❌ FAILED'}")
         print(f"Duration:          {duration:.2f}s")
         print("=" * 60)
 
-        all_passed = unit_passed and service_passed and integration_passed and coverage_passed
+        all_passed = (
+            unit_passed and service_passed and integration_passed and coverage_passed
+        )
 
         if all_passed:
             print("\n✅ All tests passed!")
@@ -250,11 +252,13 @@ def main():
         default="all",
         help="Type of tests to run",
     )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     parser.add_argument(
-        "-v", "--verbose", action="store_true", help="Verbose output"
-    )
-    parser.add_argument(
-        "-c", "--coverage", action="store_true", default=True, help="Generate coverage report"
+        "-c",
+        "--coverage",
+        action="store_true",
+        default=True,
+        help="Generate coverage report",
     )
     parser.add_argument(
         "--no-coverage", action="store_true", help="Skip coverage report"
@@ -262,12 +266,8 @@ def main():
     parser.add_argument(
         "-p", "--parallel", action="store_true", help="Run tests in parallel"
     )
-    parser.add_argument(
-        "-m", "--markers", help="Run tests with specific markers"
-    )
-    parser.add_argument(
-        "-k", "--pattern", help="Run tests matching pattern"
-    )
+    parser.add_argument("-m", "--markers", help="Run tests with specific markers")
+    parser.add_argument("-k", "--pattern", help="Run tests matching pattern")
     parser.add_argument(
         "--cov-threshold",
         type=int,

@@ -23,8 +23,15 @@ class LocalProfile(Base):
     phone = Column(String(50))  # User's phone (optional)
     preferences = Column(Text)  # JSON-encoded preferences
     default_resume_id = Column(UUID)  # Default resume for applications
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     def __repr__(self):
         return f"<LocalProfile(id={self.id}, name={self.name})>"

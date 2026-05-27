@@ -296,7 +296,9 @@ async def bulk_update_application_notes(
             updates.append({"id": str(app_id), "notes": new_notes})
     else:
         # Replace mode - set the same notes for all
-        updates = [{"id": str(app_id), "notes": request.notes} for app_id in request.ids]
+        updates = [
+            {"id": str(app_id), "notes": request.notes} for app_id in request.ids
+        ]
 
     return await ApplicationService.bulk_update_applications(
         db, current_user.id, updates
@@ -330,6 +332,4 @@ async def bulk_tag_applications(
         f"with tags {request.tags} by user {current_user.id}"
     )
 
-    return await ApplicationService.bulk_tag_applications(
-        db, current_user.id, request
-    )
+    return await ApplicationService.bulk_tag_applications(db, current_user.id, request)

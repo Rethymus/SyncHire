@@ -15,6 +15,7 @@ from app.core.database_lite import Base
 
 class ApplicationStatus(str, enum.Enum):
     """Application status enumeration."""
+
     SAVED = "saved"
     APPLIED = "applied"
     SCREENING = "screening"
@@ -34,13 +35,22 @@ class Application(Base):
     id = Column(UUID, primary_key=True)
     resume_id = Column(UUID, ForeignKey("resumes.id"), nullable=False)
     jd_id = Column(UUID, ForeignKey("job_descriptions.id"), nullable=False)
-    status = Column(Enum(ApplicationStatus), default=ApplicationStatus.SAVED, nullable=False)
+    status = Column(
+        Enum(ApplicationStatus), default=ApplicationStatus.SAVED, nullable=False
+    )
     notes = Column(Text)  # User notes about this application
     match_score = Column(Float)  # AI-calculated match score (0-100)
     applied_date = Column(DateTime(timezone=True))
     last_updated = Column(DateTime(timezone=True))
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     # Relationships
     resume = relationship("Resume", back_populates="applications")

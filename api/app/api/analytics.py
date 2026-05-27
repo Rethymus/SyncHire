@@ -327,9 +327,15 @@ async def get_analytics(
             select(
                 func.date(Application.created_at).label("date"),
                 func.count(Application.id).label("applications"),
-                func.sum(case((Application.status == "interview", 1), else_=0)).label("interviews"),
-                func.sum(case((Application.status == "offer", 1), else_=0)).label("offers"),
-                func.sum(case((Application.status == "rejected", 1), else_=0)).label("rejections"),
+                func.sum(case((Application.status == "interview", 1), else_=0)).label(
+                    "interviews"
+                ),
+                func.sum(case((Application.status == "offer", 1), else_=0)).label(
+                    "offers"
+                ),
+                func.sum(case((Application.status == "rejected", 1), else_=0)).label(
+                    "rejections"
+                ),
             )
             .where(
                 and_(
@@ -390,10 +396,13 @@ async def get_analytics(
                 select(
                     func.count(Application.id).label("applications"),
                     func.avg(Application.match_score).label("avg_match_score"),
-                    func.sum(case((Application.status == "interview", 1), else_=0)).label("interviews"),
-                    func.sum(case((Application.status == "offer", 1), else_=0)).label("offers"),
-                )
-                .where(
+                    func.sum(
+                        case((Application.status == "interview", 1), else_=0)
+                    ).label("interviews"),
+                    func.sum(case((Application.status == "offer", 1), else_=0)).label(
+                        "offers"
+                    ),
+                ).where(
                     and_(
                         Application.user_id == current_user.id,
                         Application.created_at >= week_start,
@@ -407,7 +416,9 @@ async def get_analytics(
             interviews = row.interviews or 0
             offers = row.offers or 0
 
-            application_to_interview = (interviews / total_apps) * 100 if total_apps > 0 else 0.0
+            application_to_interview = (
+                (interviews / total_apps) * 100 if total_apps > 0 else 0.0
+            )
 
             trends.append(
                 TrendData(
@@ -810,9 +821,15 @@ async def get_activity_timeline(
             select(
                 func.date(Application.created_at).label("date"),
                 func.count(Application.id).label("applications"),
-                func.sum(case((Application.status == "interview", 1), else_=0)).label("interviews"),
-                func.sum(case((Application.status == "offer", 1), else_=0)).label("offers"),
-                func.sum(case((Application.status == "rejected", 1), else_=0)).label("rejections"),
+                func.sum(case((Application.status == "interview", 1), else_=0)).label(
+                    "interviews"
+                ),
+                func.sum(case((Application.status == "offer", 1), else_=0)).label(
+                    "offers"
+                ),
+                func.sum(case((Application.status == "rejected", 1), else_=0)).label(
+                    "rejections"
+                ),
             )
             .where(
                 and_(

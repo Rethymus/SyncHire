@@ -21,7 +21,9 @@ class PasswordResetToken(Base):
     token = Column(String, unique=True, nullable=False, index=True)
     expires_at = Column(DateTime(timezone=True), nullable=False, index=True)
     used = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     def __repr__(self):
         return f"<PasswordResetToken(id={self.id}, user_id={self.user_id}, token={self.token[:8]}...)>"

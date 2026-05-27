@@ -656,7 +656,7 @@ def highlight_search_terms(text: str, query: str) -> str:
 
         # Security: Skip terms with special characters that could cause ReDoS
         # Only allow alphanumeric, spaces, and common punctuation
-        if not all(c.isalnum() or c in ' .-_' for c in term):
+        if not all(c.isalnum() or c in " .-_" for c in term):
             continue
 
         # Find and highlight matches (case-insensitive)

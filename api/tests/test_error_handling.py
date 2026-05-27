@@ -25,8 +25,7 @@ class TestCustomErrors:
     def test_authentication_error(self):
         """Test AuthenticationError exception"""
         error = AuthenticationError(
-            message="Invalid credentials",
-            details={"user_id": "test123"}
+            message="Invalid credentials", details={"user_id": "test123"}
         )
 
         assert error.message == "Invalid credentials"
@@ -37,10 +36,7 @@ class TestCustomErrors:
 
     def test_validation_error(self):
         """Test ValidationError exception"""
-        error = ValidationError(
-            message="Email is required",
-            field="email"
-        )
+        error = ValidationError(message="Email is required", field="email")
 
         assert error.message == "Email is required"
         assert error.status_code == status.HTTP_400_BAD_REQUEST
@@ -49,10 +45,7 @@ class TestCustomErrors:
 
     def test_not_found_error(self):
         """Test NotFoundError exception"""
-        error = NotFoundError(
-            resource="User",
-            details={"user_id": "nonexistent"}
-        )
+        error = NotFoundError(resource="User", details={"user_id": "nonexistent"})
 
         assert error.message == "User not found"
         assert error.status_code == status.HTTP_404_NOT_FOUND
@@ -60,10 +53,7 @@ class TestCustomErrors:
 
     def test_database_error(self):
         """Test DatabaseError exception"""
-        error = DatabaseError(
-            message="Connection failed",
-            details={"retry_after": 5}
-        )
+        error = DatabaseError(message="Connection failed", details={"retry_after": 5})
 
         assert error.message == "Connection failed"
         assert error.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -96,10 +86,7 @@ class TestErrorHandlers:
         """Test validation error response"""
         response = client.post(
             "/api/auth/register",
-            json={
-                "email": "",  # Invalid email
-                "password": "test"
-            }
+            json={"email": "", "password": "test"},  # Invalid email
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -158,10 +145,7 @@ class TestAPIErrorScenarios:
         """Test login with invalid credentials"""
         response = client.post(
             "/api/auth/login",
-            json={
-                "email": "test@example.com",
-                "password": "wrongpassword"
-            }
+            json={"email": "test@example.com", "password": "wrongpassword"},
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -178,8 +162,8 @@ class TestAPIErrorScenarios:
             json={
                 "email": "test@example.com",
                 "password": "password123",
-                "full_name": "Test User"
-            }
+                "full_name": "Test User",
+            },
         )
 
         # Duplicate registration
@@ -188,8 +172,8 @@ class TestAPIErrorScenarios:
             json={
                 "email": "test@example.com",
                 "password": "password123",
-                "full_name": "Test User"
-            }
+                "full_name": "Test User",
+            },
         )
 
         assert response.status_code == status.HTTP_409_CONFLICT
@@ -203,7 +187,7 @@ class TestAPIErrorScenarios:
             json={
                 "email": "test@example.com"
                 # Missing password
-            }
+            },
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -215,7 +199,7 @@ class TestAPIErrorScenarios:
         response = client.post(
             "/api/auth/login",
             data="invalid json",
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -233,17 +217,13 @@ class TestAPIErrorScenarios:
         for _ in range(10):
             response = client.post(
                 "/api/auth/login",
-                json={
-                    "email": "test@example.com",
-                    "password": "wrongpassword"
-                }
+                json={"email": "test@example.com", "password": "wrongpassword"},
             )
             responses.append(response)
 
         # At least one should be rate limited
         rate_limited = any(
-            r.status_code == status.HTTP_429_TOO_MANY_REQUESTS
-            for r in responses
+            r.status_code == status.HTTP_429_TOO_MANY_REQUESTS for r in responses
         )
         assert rate_limited
 
@@ -282,17 +262,11 @@ class TestErrorLogging:
         with caplog.at_level("ERROR"):
             response = client.post(
                 "/api/auth/login",
-                json={
-                    "email": "test@example.com",
-                    "password": "wrongpassword"
-                }
+                json={"email": "test@example.com", "password": "wrongpassword"},
             )
 
             # Check that error was logged
-            assert any(
-                "Authentication" in record.message
-                for record in caplog.records
-            )
+            assert any("Authentication" in record.message for record in caplog.records)
 
 
 class TestErrorMessageSecurity:
@@ -302,7 +276,7 @@ class TestErrorMessageSecurity:
         """Test that stack traces aren't exposed in client errors"""
         response = client.post(
             "/api/auth/register",
-            json={"email": "invalid-email"}  # Missing required fields
+            json={"email": "invalid-email"},  # Missing required fields
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -327,10 +301,7 @@ class TestErrorMessageSecurity:
         """Test that generic error messages are used for security"""
         response = client.post(
             "/api/auth/login",
-            json={
-                "email": "nonexistent@example.com",
-                "password": "password123"
-            }
+            json={"email": "nonexistent@example.com", "password": "password123"},
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -374,10 +345,7 @@ class TestErrorHandlingIntegration:
         # Make a request that will fail
         response = client.post(
             "/api/auth/login",
-            json={
-                "email": "test@example.com",
-                "password": "wrongpassword"
-            }
+            json={"email": "test@example.com", "password": "wrongpassword"},
         )
 
         # Verify response structure
@@ -399,10 +367,7 @@ class TestErrorHandlingIntegration:
         # First, make a failing request
         response = client.post(
             "/api/auth/login",
-            json={
-                "email": "test@example.com",
-                "password": "wrongpassword"
-            }
+            json={"email": "test@example.com", "password": "wrongpassword"},
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -412,7 +377,7 @@ class TestErrorHandlingIntegration:
             json={
                 "email": "newuser@example.com",
                 "password": "password123",
-                "full_name": "New User"
-            }
+                "full_name": "New User",
+            },
         )
         assert response.status_code == status.HTTP_201_CREATED

@@ -1,6 +1,16 @@
 import uuid
 from datetime import datetime, date
-from sqlalchemy import Column, String, DateTime, Date, Text, ForeignKey, Boolean, Numeric, Integer
+from sqlalchemy import (
+    Column,
+    String,
+    DateTime,
+    Date,
+    Text,
+    ForeignKey,
+    Boolean,
+    Numeric,
+    Integer,
+)
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from pgvector.sqlalchemy import Vector
 from sqlalchemy.orm import relationship

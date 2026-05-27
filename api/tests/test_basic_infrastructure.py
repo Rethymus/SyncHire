@@ -70,10 +70,10 @@ async def test_import_statements():
 def test_pytest_markers():
     """Test that pytest markers are configured"""
     # This test verifies the markers are registered
-    assert hasattr(pytest.mark, 'unit')
-    assert hasattr(pytest.mark, 'integration')
-    assert hasattr(pytest.mark, 'e2e')
-    assert hasattr(pytest.mark, 'performance')
+    assert hasattr(pytest.mark, "unit")
+    assert hasattr(pytest.mark, "integration")
+    assert hasattr(pytest.mark, "e2e")
+    assert hasattr(pytest.mark, "performance")
 
 
 if __name__ == "__main__":

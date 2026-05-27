@@ -60,7 +60,10 @@ class TestApplicationServiceCreate:
             from app.models.jd import JD
 
             mock_resume = Resume(
-                id=resume_id, user_id=user_id, title="Test Resume", content="Resume content"
+                id=resume_id,
+                user_id=user_id,
+                title="Test Resume",
+                content="Resume content",
             )
             mock_jd = JD(
                 id=jd_id,
@@ -217,7 +220,9 @@ class TestApplicationServiceGet:
         """Test getting applications when none exist"""
         user_id = uuid.uuid4()
 
-        result = await ApplicationService.get_applications(db=db_session, user_id=user_id)
+        result = await ApplicationService.get_applications(
+            db=db_session, user_id=user_id
+        )
 
         assert result == []
 
@@ -240,7 +245,9 @@ class TestApplicationServiceGet:
         db_session.add(application2)
         await db_session.commit()
 
-        result = await ApplicationService.get_applications(db=db_session, user_id=user_id)
+        result = await ApplicationService.get_applications(
+            db=db_session, user_id=user_id
+        )
 
         assert len(result) == 2
         assert all(app.user_id == user_id for app in result)
@@ -450,7 +457,9 @@ class TestApplicationServiceBulkDelete:
         assert "Cannot delete more than 100 applications" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_bulk_delete_applications_partial_failure(self, db_session: AsyncSession):
+    async def test_bulk_delete_applications_partial_failure(
+        self, db_session: AsyncSession
+    ):
         """Test bulk delete with partial failures"""
         user_id = uuid.uuid4()
         resume_id = uuid.uuid4()
@@ -522,7 +531,9 @@ class TestApplicationServiceBulkUpdate:
         assert len(result["errors"]) == 0
 
     @pytest.mark.asyncio
-    async def test_bulk_update_applications_invalid_status(self, db_session: AsyncSession):
+    async def test_bulk_update_applications_invalid_status(
+        self, db_session: AsyncSession
+    ):
         """Test bulk update with invalid status"""
         user_id = uuid.uuid4()
 
@@ -657,7 +668,9 @@ class TestApplicationServiceBulkTag:
         assert result.failed_count == 0
 
     @pytest.mark.asyncio
-    async def test_bulk_tag_applications_invalid_operation(self, db_session: AsyncSession):
+    async def test_bulk_tag_applications_invalid_operation(
+        self, db_session: AsyncSession
+    ):
         """Test bulk tagging with invalid operation"""
         user_id = uuid.uuid4()
 
@@ -721,9 +734,7 @@ class TestApplicationServiceMatchScore:
         db_session.add(application)
         await db_session.commit()
 
-        with patch(
-            "app.services.application_service.mcp_client"
-        ) as mock_mcp:
+        with patch("app.services.application_service.mcp_client") as mock_mcp:
             mock_mcp.match_resume_to_jd.return_value = {
                 "match_score": 0.85,
                 "strengths": ["Strong Python skills"],
@@ -832,9 +843,7 @@ class TestApplicationServiceOptimize:
         db_session.add(application)
         await db_session.commit()
 
-        with patch(
-            "app.services.application_service.mcp_client"
-        ) as mock_mcp, patch(
+        with patch("app.services.application_service.mcp_client") as mock_mcp, patch(
             "app.services.application_service.notification_service"
         ) as mock_notification:
             mock_mcp.optimize_resume.return_value = {

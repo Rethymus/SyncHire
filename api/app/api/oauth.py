@@ -22,6 +22,7 @@ router = APIRouter(prefix="/oauth", tags=["oauth"])
 
 class OAuthCodeRequest(BaseModel):
     """Request model for OAuth code exchange"""
+
     code: str
     redirect_uri: str
     provider: Literal["google", "github"]
@@ -29,6 +30,7 @@ class OAuthCodeRequest(BaseModel):
 
 class OAuthTokenResponse(BaseModel):
     """Response model for OAuth token exchange"""
+
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
@@ -48,11 +50,11 @@ async def get_oauth_authorization_url(provider: str):
     """
     try:
         if provider == "google":
-            client_id = getattr(settings, 'GOOGLE_OAUTH_CLIENT_ID', None)
+            client_id = getattr(settings, "GOOGLE_OAUTH_CLIENT_ID", None)
             if not client_id:
                 raise HTTPException(
                     status_code=status.HTTP_501_NOT_IMPLEMENTED,
-                    detail="Google OAuth is not configured"
+                    detail="Google OAuth is not configured",
                 )
 
             # Google OAuth 2.0 authorization URL
@@ -64,17 +66,14 @@ async def get_oauth_authorization_url(provider: str):
                 f"&scope=openid%20email%20profile"
             )
 
-            return {
-                "authorization_url": auth_url,
-                "provider": "google"
-            }
+            return {"authorization_url": auth_url, "provider": "google"}
 
         elif provider == "github":
-            client_id = getattr(settings, 'GITHUB_OAUTH_CLIENT_ID', None)
+            client_id = getattr(settings, "GITHUB_OAUTH_CLIENT_ID", None)
             if not client_id:
                 raise HTTPException(
                     status_code=status.HTTP_501_NOT_IMPLEMENTED,
-                    detail="GitHub OAuth is not configured"
+                    detail="GitHub OAuth is not configured",
                 )
 
             # GitHub OAuth authorization URL
@@ -85,33 +84,30 @@ async def get_oauth_authorization_url(provider: str):
                 f"&scope=user:email"
             )
 
-            return {
-                "authorization_url": auth_url,
-                "provider": "github"
-            }
+            return {"authorization_url": auth_url, "provider": "github"}
 
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Unsupported OAuth provider: {provider}"
+                detail=f"Unsupported OAuth provider: {provider}",
             )
 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error generating OAuth authorization URL: {str(e)}", exc_info=True)
+        logger.error(
+            f"Error generating OAuth authorization URL: {str(e)}", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to generate authorization URL"
+            detail="Failed to generate authorization URL",
         )
 
 
 @router.post("/callback", response_model=OAuthTokenResponse)
 @rate_limit(RateLimitType.AUTH)
 async def oauth_callback(
-    request: Request,
-    oauth_data: OAuthCodeRequest,
-    db: AsyncSession = Depends(get_db)
+    request: Request, oauth_data: OAuthCodeRequest, db: AsyncSession = Depends(get_db)
 ):
     """
     Handle OAuth callback and exchange authorization code for tokens
@@ -131,15 +127,19 @@ async def oauth_callback(
 
         # Exchange code for access token
         if provider == "google":
-            access_token = await OAuthService.exchange_code_for_token_google(code, redirect_uri)
+            access_token = await OAuthService.exchange_code_for_token_google(
+                code, redirect_uri
+            )
             user_info = await OAuthService.get_google_user_info(access_token)
         elif provider == "github":
-            access_token = await OAuthService.exchange_code_for_token_github(code, redirect_uri)
+            access_token = await OAuthService.exchange_code_for_token_github(
+                code, redirect_uri
+            )
             user_info = await OAuthService.get_github_user_info(access_token)
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Unsupported OAuth provider: {provider}"
+                detail=f"Unsupported OAuth provider: {provider}",
             )
 
         # Find or create user
@@ -147,8 +147,7 @@ async def oauth_callback(
 
         if not user.is_active:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="User account is disabled"
+                status_code=status.HTTP_403_FORBIDDEN, detail="User account is disabled"
             )
 
         # Generate JWT tokens
@@ -159,7 +158,7 @@ async def oauth_callback(
             logger.error(f"Token generation failed for user {user.id}: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to generate authentication tokens"
+                detail="Failed to generate authentication tokens",
             )
 
         logger.info(f"Successful OAuth login via {provider} for user: {user.id}")
@@ -172,16 +171,13 @@ async def oauth_callback(
                 "email": user.email,
                 "full_name": user.full_name,
                 "is_active": user.is_active,
-                "provider": provider
-            }
+                "provider": provider,
+            },
         )
 
     except ValidationError as e:
         logger.warning(f"OAuth validation error: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=e.message
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
     except RateLimitError:
         raise
     except HTTPException:
@@ -190,7 +186,7 @@ async def oauth_callback(
         logger.error(f"Unexpected error during OAuth callback: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="OAuth authentication failed"
+            detail="OAuth authentication failed",
         )
 
 
@@ -204,25 +200,19 @@ async def get_available_providers():
     """
     try:
         google_configured = bool(
-            getattr(settings, 'GOOGLE_OAUTH_CLIENT_ID', None) and
-            getattr(settings, 'GOOGLE_OAUTH_CLIENT_SECRET', None)
+            getattr(settings, "GOOGLE_OAUTH_CLIENT_ID", None)
+            and getattr(settings, "GOOGLE_OAUTH_CLIENT_SECRET", None)
         )
 
         github_configured = bool(
-            getattr(settings, 'GITHUB_OAUTH_CLIENT_ID', None) and
-            getattr(settings, 'GITHUB_OAUTH_CLIENT_SECRET', None)
+            getattr(settings, "GITHUB_OAUTH_CLIENT_ID", None)
+            and getattr(settings, "GITHUB_OAUTH_CLIENT_SECRET", None)
         )
 
         return {
             "providers": {
-                "google": {
-                    "available": google_configured,
-                    "display_name": "Google"
-                },
-                "github": {
-                    "available": github_configured,
-                    "display_name": "GitHub"
-                }
+                "google": {"available": google_configured, "display_name": "Google"},
+                "github": {"available": github_configured, "display_name": "GitHub"},
             }
         }
 
@@ -230,7 +220,7 @@ async def get_available_providers():
         logger.error(f"Error fetching OAuth providers: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to fetch available providers"
+            detail="Failed to fetch available providers",
         )
 
 
@@ -238,7 +228,7 @@ async def get_available_providers():
 async def unlink_oauth_account(
     provider: str,
     current_user_id: str = Depends(...),  # This would use get_current_user dependency
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Unlink an OAuth account from the current user
@@ -255,7 +245,7 @@ async def unlink_oauth_account(
         if provider not in ["google", "github"]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Unsupported OAuth provider: {provider}"
+                detail=f"Unsupported OAuth provider: {provider}",
             )
 
         # Import here to avoid circular dependency
@@ -264,17 +254,14 @@ async def unlink_oauth_account(
 
         # Delete the OAuth account
         stmt = delete(OAuthAccount).where(
-            OAuthAccount.user_id == current_user_id,
-            OAuthAccount.provider == provider
+            OAuthAccount.user_id == current_user_id, OAuthAccount.provider == provider
         )
         await db.execute(stmt)
         await db.commit()
 
         logger.info(f"Unlinked {provider} account from user: {current_user_id}")
 
-        return {
-            "message": f"Successfully unlinked {provider} account"
-        }
+        return {"message": f"Successfully unlinked {provider} account"}
 
     except HTTPException:
         raise
@@ -283,5 +270,5 @@ async def unlink_oauth_account(
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to unlink OAuth account"
+            detail="Failed to unlink OAuth account",
         )

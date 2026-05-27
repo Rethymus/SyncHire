@@ -65,15 +65,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():
     """Health check endpoint for monitoring."""
-    return {
-        "status": "healthy",
-        "version": settings.VERSION,
-        "mode": "lite"
-    }
+    return {"status": "healthy", "version": settings.VERSION, "mode": "lite"}
 
 
 # Include simplified API routers
@@ -85,9 +82,12 @@ from app.api.portability import router as portability_router
 
 app.include_router(resumes_router, prefix="/api/resumes", tags=["resumes"])
 app.include_router(jds_router, prefix="/api/jds", tags=["job-descriptions"])
-app.include_router(applications_router, prefix="/api/applications", tags=["applications"])
+app.include_router(
+    applications_router, prefix="/api/applications", tags=["applications"]
+)
 app.include_router(search_router, prefix="/api/search", tags=["search"])
 app.include_router(portability_router, prefix="/api/portability", tags=["portability"])
+
 
 # Root endpoint
 @app.get("/")
@@ -98,7 +98,7 @@ async def root():
         "version": settings.VERSION,
         "description": "Local-first job application tool",
         "docs": "/docs",
-        "mode": "lite"
+        "mode": "lite",
     }
 
 

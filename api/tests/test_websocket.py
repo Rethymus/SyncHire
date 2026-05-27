@@ -21,7 +21,7 @@ from app.websocket.types import (
 @pytest.fixture
 def mock_redis():
     """Mock Redis client."""
-    with patch('app.websocket.manager.redis_client') as mock:
+    with patch("app.websocket.manager.redis_client") as mock:
         mock.client = AsyncMock()
         mock.client.lpush = AsyncMock()
         mock.client.ltrim = AsyncMock()
@@ -76,9 +76,7 @@ async def test_connect_websocket(manager, mock_websocket):
 async def test_disconnect_websocket(manager, mock_websocket):
     """Test WebSocket disconnection."""
     user_id = "test-user-123"
-    connection_id = await manager.connect(
-        websocket=mock_websocket, user_id=user_id
-    )
+    connection_id = await manager.connect(websocket=mock_websocket, user_id=user_id)
 
     await manager.disconnect(user_id, connection_id)
 
@@ -203,9 +201,7 @@ async def test_send_to_multiple_users(manager):
 async def test_user_subscriptions(manager, mock_websocket):
     """Test user subscription management."""
     user_id = "test-user-123"
-    connection_id = await manager.connect(
-        websocket=mock_websocket, user_id=user_id
-    )
+    connection_id = await manager.connect(websocket=mock_websocket, user_id=user_id)
 
     # Subscribe to channel
     await manager.subscribe(user_id, "notifications")
@@ -257,9 +253,15 @@ async def test_broadcast_to_subscription(manager):
 
     # Verify only subscribers received the broadcast message
     # All connections get 1 welcome message, subscribers get 1 additional broadcast message
-    assert ws1.send_text.call_count == 2, f"ws1 should have 2 messages (welcome + broadcast), got {ws1.send_text.call_count}"
-    assert ws2.send_text.call_count == 2, f"ws2 should have 2 messages (welcome + broadcast), got {ws2.send_text.call_count}"
-    assert ws3.send_text.call_count == 1, f"ws3 should have 1 message (welcome only), got {ws3.send_text.call_count}"  # Not subscribed
+    assert (
+        ws1.send_text.call_count == 2
+    ), f"ws1 should have 2 messages (welcome + broadcast), got {ws1.send_text.call_count}"
+    assert (
+        ws2.send_text.call_count == 2
+    ), f"ws2 should have 2 messages (welcome + broadcast), got {ws2.send_text.call_count}"
+    assert (
+        ws3.send_text.call_count == 1
+    ), f"ws3 should have 1 message (welcome only), got {ws3.send_text.call_count}"  # Not subscribed
 
     # Cleanup
     await manager.disconnect(user1_id, list(manager._connections[user1_id].keys())[0])
@@ -271,9 +273,7 @@ async def test_broadcast_to_subscription(manager):
 async def test_heartbeat_update(manager, mock_websocket):
     """Test heartbeat timestamp update."""
     user_id = "test-user-123"
-    connection_id = await manager.connect(
-        websocket=mock_websocket, user_id=user_id
-    )
+    connection_id = await manager.connect(websocket=mock_websocket, user_id=user_id)
 
     initial_heartbeat = manager._last_heartbeat[connection_id]
 
@@ -453,6 +453,10 @@ async def test_shutdown(manager):
     await manager.shutdown()
 
     # Verify connections are closed (shutdown calls close on all websockets)
-    assert ws.close.call_count >= 1, f"WebSocket should be closed at least once, got {ws.close.call_count}"
+    assert (
+        ws.close.call_count >= 1
+    ), f"WebSocket should be closed at least once, got {ws.close.call_count}"
     assert len(manager._connections) == 0, "All connections should be removed"
-    assert connection_id not in manager._connection_info, "Connection info should be removed"
+    assert (
+        connection_id not in manager._connection_info
+    ), "Connection info should be removed"

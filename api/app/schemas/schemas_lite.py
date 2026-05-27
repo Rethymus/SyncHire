@@ -11,25 +11,30 @@ from typing import Optional, List
 
 # Resume Schemas
 
+
 class ResumeBase(BaseModel):
     """Base resume schema."""
+
     title: str = Field(..., min_length=1, max_length=255)
     content: Optional[str] = None
 
 
 class ResumeCreate(ResumeBase):
     """Schema for creating a resume."""
+
     pass
 
 
 class ResumeUpdate(BaseModel):
     """Schema for updating a resume."""
+
     title: Optional[str] = Field(None, min_length=1, max_length=255)
     content: Optional[str] = None
 
 
 class ResumeResponse(BaseModel):
     """Schema for resume response."""
+
     id: str
     title: str
     content: str
@@ -43,8 +48,10 @@ class ResumeResponse(BaseModel):
 
 # Job Description Schemas
 
+
 class JobDescriptionBase(BaseModel):
     """Base job description schema."""
+
     company: str = Field(..., min_length=1, max_length=255)
     title: str = Field(..., min_length=1, max_length=255)
     description: str = Field(..., min_length=1)
@@ -59,11 +66,13 @@ class JobDescriptionBase(BaseModel):
 
 class JobDescriptionCreate(JobDescriptionBase):
     """Schema for creating a job description."""
+
     pass
 
 
 class JobDescriptionUpdate(BaseModel):
     """Schema for updating a job description."""
+
     company: Optional[str] = Field(None, min_length=1, max_length=255)
     title: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
@@ -78,6 +87,7 @@ class JobDescriptionUpdate(BaseModel):
 
 class JobDescriptionResponse(BaseModel):
     """Schema for job description response."""
+
     id: str
     company: str
     title: str
@@ -98,8 +108,10 @@ class JobDescriptionResponse(BaseModel):
 
 # Application Schemas
 
+
 class ApplicationStatus(str):
     """Application status enum."""
+
     SAVED = "saved"
     APPLIED = "applied"
     SCREENING = "screening"
@@ -113,6 +125,7 @@ class ApplicationStatus(str):
 
 class ApplicationBase(BaseModel):
     """Base application schema."""
+
     resume_id: str
     jd_id: str
     status: ApplicationStatus = ApplicationStatus.SAVED
@@ -121,11 +134,13 @@ class ApplicationBase(BaseModel):
 
 class ApplicationCreate(ApplicationBase):
     """Schema for creating an application."""
+
     pass
 
 
 class ApplicationUpdate(BaseModel):
     """Schema for updating an application."""
+
     status: Optional[ApplicationStatus] = None
     notes: Optional[str] = None
     match_score: Optional[float] = None
@@ -134,6 +149,7 @@ class ApplicationUpdate(BaseModel):
 
 class ApplicationResponse(BaseModel):
     """Schema for application response."""
+
     id: str
     resume_id: str
     jd_id: str
@@ -151,8 +167,10 @@ class ApplicationResponse(BaseModel):
 
 # Search Schemas
 
+
 class SearchRequest(BaseModel):
     """Schema for search request."""
+
     query: str = Field(..., min_length=1)
     type: str = "all"  # all, resumes, jds, applications
     limit: int = Field(20, ge=1, le=100)
@@ -161,6 +179,7 @@ class SearchRequest(BaseModel):
 
 class SearchResponse(BaseModel):
     """Schema for search response."""
+
     total: int
     results: List[dict]
     query: str
@@ -169,12 +188,14 @@ class SearchResponse(BaseModel):
 
 class MatchRequest(BaseModel):
     """Schema for match request."""
+
     resume_id: str
     jd_id: str
 
 
 class MatchResponse(BaseModel):
     """Schema for match response."""
+
     resume_id: str
     jd_id: str
     match_score: float
@@ -183,8 +204,10 @@ class MatchResponse(BaseModel):
 
 # Data Portability Schemas
 
+
 class ExportResponse(BaseModel):
     """Schema for export response."""
+
     format: str  # json, csv
     data: Optional[dict] = None
     file_url: Optional[str] = None
@@ -193,6 +216,7 @@ class ExportResponse(BaseModel):
 
 class ImportRequest(BaseModel):
     """Schema for import request."""
+
     format: str  # json
     data: dict
     overwrite: bool = False
@@ -200,6 +224,7 @@ class ImportRequest(BaseModel):
 
 class ImportResponse(BaseModel):
     """Schema for import response."""
+
     imported: int
     skipped: int
     failed: int
@@ -208,8 +233,10 @@ class ImportResponse(BaseModel):
 
 # Local Profile Schemas
 
+
 class LocalProfileBase(BaseModel):
     """Base local profile schema."""
+
     name: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
@@ -218,11 +245,13 @@ class LocalProfileBase(BaseModel):
 
 class LocalProfileUpdate(LocalProfileBase):
     """Schema for updating local profile."""
+
     default_resume_id: Optional[str] = None
 
 
 class LocalProfileResponse(BaseModel):
     """Schema for local profile response."""
+
     id: str
     name: Optional[str] = None
     email: Optional[str] = None
@@ -238,8 +267,10 @@ class LocalProfileResponse(BaseModel):
 
 # Extension Schemas
 
+
 class ExtensionBase(BaseModel):
     """Base extension schema."""
+
     name: str = Field(..., min_length=1, max_length=255)
     display_name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
@@ -248,17 +279,20 @@ class ExtensionBase(BaseModel):
 
 class ExtensionCreate(ExtensionBase):
     """Schema for creating an extension."""
+
     config: Optional[dict] = None
 
 
 class ExtensionUpdate(BaseModel):
     """Schema for updating an extension."""
+
     enabled: Optional[bool] = None
     config: Optional[dict] = None
 
 
 class ExtensionResponse(BaseModel):
     """Schema for extension response."""
+
     id: str
     name: str
     display_name: str
@@ -276,8 +310,10 @@ class ExtensionResponse(BaseModel):
 
 # Health Check Schema
 
+
 class HealthResponse(BaseModel):
     """Schema for health check response."""
+
     status: str
     version: str
     mode: str

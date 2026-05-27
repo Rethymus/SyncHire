@@ -71,7 +71,12 @@ class SearchFiltersRequest(BaseModel):
     min_match_score: Optional[float] = None
     max_match_score: Optional[float] = None
 
-    @field_validator("posted_date_from", "posted_date_to", "application_deadline_from", "application_deadline_to")
+    @field_validator(
+        "posted_date_from",
+        "posted_date_to",
+        "application_deadline_from",
+        "application_deadline_to",
+    )
     @classmethod
     def validate_dates(cls, v, info):
         if v:
@@ -156,7 +161,9 @@ async def advanced_search_resumes(
     sort_by: str = Query("relevance", description="Sort by: relevance, date, title"),
     sort_order: str = Query("desc", description="Sort order: asc, desc"),
     use_semantic_search: bool = Query(True, description="Use semantic search"),
-    threshold: float = Query(0.3, ge=0, le=1, description="Minimum similarity threshold"),
+    threshold: float = Query(
+        0.3, ge=0, le=1, description="Minimum similarity threshold"
+    ),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -209,10 +216,14 @@ async def advanced_search_jds(
     filters: Optional[SearchFiltersRequest] = None,
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(10, ge=1, le=100, description="Results per page"),
-    sort_by: str = Query("relevance", description="Sort by: relevance, date, title, salary, posted_date"),
+    sort_by: str = Query(
+        "relevance", description="Sort by: relevance, date, title, salary, posted_date"
+    ),
     sort_order: str = Query("desc", description="Sort order: asc, desc"),
     use_semantic_search: bool = Query(True, description="Use semantic search"),
-    threshold: float = Query(0.3, ge=0, le=1, description="Minimum similarity threshold"),
+    threshold: float = Query(
+        0.3, ge=0, le=1, description="Minimum similarity threshold"
+    ),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -265,7 +276,10 @@ async def advanced_search_applications(
     filters: Optional[SearchFiltersRequest] = None,
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(10, ge=1, le=100, description="Results per page"),
-    sort_by: str = Query("updated_at", description="Sort by: updated_at, created_at, match_score, company"),
+    sort_by: str = Query(
+        "updated_at",
+        description="Sort by: updated_at, created_at, match_score, company",
+    ),
     sort_order: str = Query("desc", description="Sort order: asc, desc"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -351,7 +365,9 @@ async def save_search(
 @router.get("/saved", response_model=List[SavedSearchResponse])
 @rate_limit(RateLimitType.DEFAULT)
 async def get_saved_searches(
-    notify_only: bool = Query(False, description="Only return searches with notifications enabled"),
+    notify_only: bool = Query(
+        False, description="Only return searches with notifications enabled"
+    ),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -427,7 +443,9 @@ async def get_search_suggestions(
 
 
 # Analytics Endpoints
-@router.get("/analytics/popular/{search_type}", response_model=List[PopularSearchesResponse])
+@router.get(
+    "/analytics/popular/{search_type}", response_model=List[PopularSearchesResponse]
+)
 @rate_limit(RateLimitType.DEFAULT)
 async def get_popular_searches(
     search_type: str = Query(..., pattern="^(resume|jd|application)$"),

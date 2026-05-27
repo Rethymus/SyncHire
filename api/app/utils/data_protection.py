@@ -35,11 +35,11 @@ class DataMasker:
 
     # Patterns for detecting PII
     PII_PATTERNS = {
-        'email': r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
-        'phone': r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b',
-        'ssn': r'\b\d{3}-\d{2}-\d{4}\b',
-        'credit_card': r'\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b',
-        'ip_address': r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b',
+        "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+        "phone": r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b",
+        "ssn": r"\b\d{3}-\d{2}-\d{4}\b",
+        "credit_card": r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b",
+        "ip_address": r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b",
     }
 
     @classmethod
@@ -55,15 +55,17 @@ class DataMasker:
             Masked email address
         """
         try:
-            if '@' not in email:
+            if "@" not in email:
                 return email
 
-            username, domain = email.split('@', 1)
+            username, domain = email.split("@", 1)
 
             if len(username) <= show_chars:
-                masked_username = '*' * len(username)
+                masked_username = "*" * len(username)
             else:
-                masked_username = username[:show_chars] + '*' * (len(username) - show_chars)
+                masked_username = username[:show_chars] + "*" * (
+                    len(username) - show_chars
+                )
 
             return f"{masked_username}@{domain}"
         except Exception as e:
@@ -83,13 +85,13 @@ class DataMasker:
         """
         try:
             # Remove non-numeric characters
-            digits = ''.join(c for c in phone if c.isdigit())
+            digits = "".join(c for c in phone if c.isdigit())
 
             if len(digits) < 4:
-                return '*' * len(phone)
+                return "*" * len(phone)
 
             # Show last 4 digits only
-            return '*' * (len(digits) - 4) + digits[-4:]
+            return "*" * (len(digits) - 4) + digits[-4:]
         except Exception as e:
             logger.error(f"Error masking phone: {str(e)}")
             return "****"
@@ -107,12 +109,12 @@ class DataMasker:
         """
         try:
             # Remove non-numeric characters
-            digits = ''.join(c for c in card_number if c.isdigit())
+            digits = "".join(c for c in card_number if c.isdigit())
 
             if len(digits) < 4:
-                return '*' * len(card_number)
+                return "*" * len(card_number)
 
-            return '*' * (len(digits) - 4) + digits[-4:]
+            return "*" * (len(digits) - 4) + digits[-4:]
         except Exception as e:
             logger.error(f"Error masking credit card: {str(e)}")
             return "****"
@@ -132,28 +134,46 @@ class DataMasker:
 
         # Define sensitive fields
         sensitive_fields = {
-            'password', 'token', 'secret', 'key', 'ssn', 'social_security',
-            'credit_card', 'card_number', 'cvv', 'pin', 'password_reset',
-            'api_key', 'access_token', 'refresh_token', 'session_id',
+            "password",
+            "token",
+            "secret",
+            "key",
+            "ssn",
+            "social_security",
+            "credit_card",
+            "card_number",
+            "cvv",
+            "pin",
+            "password_reset",
+            "api_key",
+            "access_token",
+            "refresh_token",
+            "session_id",
         }
 
         for key, value in masked_data.items():
             # Check if key contains sensitive terms
             if any(sensitive in key.lower() for sensitive in sensitive_fields):
                 if isinstance(value, str):
-                    masked_data[key] = '*' * min(len(value), 8)
+                    masked_data[key] = "*" * min(len(value), 8)
                 elif isinstance(value, dict):
                     masked_data[key] = cls.mask_sensitive_data(value)
                 elif isinstance(value, list):
                     masked_data[key] = [
-                        cls.mask_sensitive_data(item) if isinstance(item, dict) else item
+                        (
+                            cls.mask_sensitive_data(item)
+                            if isinstance(item, dict)
+                            else item
+                        )
                         for item in value
                     ]
 
         return masked_data
 
     @classmethod
-    def anonymize_data(cls, data: Dict[str, Any], fields_to_anonymize: List[str]) -> Dict[str, Any]:
+    def anonymize_data(
+        cls, data: Dict[str, Any], fields_to_anonymize: List[str]
+    ) -> Dict[str, Any]:
         """
         Anonymize specific fields by replacing with fake data
 
@@ -175,7 +195,9 @@ class DataMasker:
                     fake_value = cls._generate_fake_data(field, value)
                     anonymized_data[field] = fake_value
                 elif isinstance(value, dict):
-                    anonymized_data[field] = cls.anonymize_data(value, fields_to_anonymize)
+                    anonymized_data[field] = cls.anonymize_data(
+                        value, fields_to_anonymize
+                    )
 
         return anonymized_data
 
@@ -192,15 +214,17 @@ class DataMasker:
             Fake value
         """
         # Use hash to generate consistent fake data
-        hash_value = hashlib.sha256(f"{field_name}:{original_value}".encode()).hexdigest()
+        hash_value = hashlib.sha256(
+            f"{field_name}:{original_value}".encode()
+        ).hexdigest()
 
-        if 'email' in field_name.lower():
+        if "email" in field_name.lower():
             return f"user_{hash_value[:8]}@example.com"
-        elif 'name' in field_name.lower():
+        elif "name" in field_name.lower():
             return f"User_{hash_value[:6]}"
-        elif 'phone' in field_name.lower():
+        elif "phone" in field_name.lower():
             return f"+1{hash_value[:10]}"
-        elif 'address' in field_name.lower():
+        elif "address" in field_name.lower():
             return f"{hash_value[:4]} Fake Street"
         else:
             return f"REDACTED_{hash_value[:6]}"
@@ -213,12 +237,12 @@ class DataRetentionManager:
 
     # Default retention periods (in days)
     RETENTION_PERIODS = {
-        'user_activity_logs': 90,
-        'search_history': 365,
-        'application_data': 2555,  # 7 years
-        'audit_logs': 2555,  # 7 years
-        'temp_files': 7,
-        'email_queue': 30,
+        "user_activity_logs": 90,
+        "search_history": 365,
+        "application_data": 2555,  # 7 years
+        "audit_logs": 2555,  # 7 years
+        "temp_files": 7,
+        "email_queue": 30,
     }
 
     @classmethod
@@ -288,7 +312,7 @@ class ConsentManager:
         user_id: str,
         consent_type: str,
         granted: bool,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Create a consent record
@@ -301,19 +325,23 @@ class ConsentManager:
         """
         try:
             consent_data = {
-                'user_id': user_id,
-                'consent_type': consent_type,
-                'granted': granted,
-                'timestamp': datetime.utcnow().isoformat(),
-                'metadata': metadata or {},
-                'ip_address': metadata.get('ip_address') if metadata else None,
+                "user_id": user_id,
+                "consent_type": consent_type,
+                "granted": granted,
+                "timestamp": datetime.utcnow().isoformat(),
+                "metadata": metadata or {},
+                "ip_address": metadata.get("ip_address") if metadata else None,
             }
 
             # Store in Redis for fast access
             key = f"consent:{user_id}:{consent_type}"
-            await redis_client.setex(key, 2555 * 24 * 3600, json.dumps(consent_data))  # 7 years
+            await redis_client.setex(
+                key, 2555 * 24 * 3600, json.dumps(consent_data)
+            )  # 7 years
 
-            logger.info(f"Consent record created: {user_id} - {consent_type} - {granted}")
+            logger.info(
+                f"Consent record created: {user_id} - {consent_type} - {granted}"
+            )
 
         except Exception as e:
             logger.error(f"Error creating consent record: {str(e)}")
@@ -338,7 +366,7 @@ class ConsentManager:
                 return False  # No consent record = no consent
 
             consent_json = json.loads(consent_data)
-            return consent_json.get('granted', False)
+            return consent_json.get("granted", False)
 
         except Exception as e:
             logger.error(f"Error checking consent: {str(e)}")
@@ -388,13 +416,17 @@ class DataExporter:
 
             # Build export data structure
             export_data = {
-                'export_date': datetime.utcnow().isoformat(),
-                'user_id': user_id,
-                'account': {
-                    'email': user.email,
-                    'full_name': user.full_name,
-                    'created_at': user.created_at.isoformat() if user.created_at else None,
-                    'last_login': user.last_login.isoformat() if user.last_login else None,
+                "export_date": datetime.utcnow().isoformat(),
+                "user_id": user_id,
+                "account": {
+                    "email": user.email,
+                    "full_name": user.full_name,
+                    "created_at": (
+                        user.created_at.isoformat() if user.created_at else None
+                    ),
+                    "last_login": (
+                        user.last_login.isoformat() if user.last_login else None
+                    ),
                 },
                 # Additional data would be added here based on actual models
                 # 'resumes': [],
@@ -431,7 +463,9 @@ class DataEraser:
     """
 
     @classmethod
-    async def erase_user_data(cls, db: AsyncSession, user_id: str) -> Tuple[bool, List[str]]:
+    async def erase_user_data(
+        cls, db: AsyncSession, user_id: str
+    ) -> Tuple[bool, List[str]]:
         """
         Erase all user data from system
 
@@ -459,7 +493,7 @@ class DataEraser:
             user.is_active = False
             user.deleted_at = datetime.utcnow()
 
-            erased_types.append('account_anonymized')
+            erased_types.append("account_anonymized")
 
             # Delete related data (implement based on actual models)
             # await db.execute(delete(Resume).where(Resume.user_id == user_id))
@@ -474,7 +508,7 @@ class DataEraser:
             await redis_client.delete(f"user:{user_id}")
             await redis_client.delete(f"active_sessions:{user_id}")
 
-            erased_types.append('cache_cleared')
+            erased_types.append("cache_cleared")
 
             logger.info(f"User data erased: {user_id} - {erased_types}")
 
@@ -497,7 +531,7 @@ class DataBreachNotifier:
         breach_type: str,
         affected_users: List[str],
         severity: str,
-        description: str
+        description: str,
     ) -> str:
         """
         Create a data breach record
@@ -515,18 +549,20 @@ class DataBreachNotifier:
             breach_id = secrets.token_hex(16)
 
             breach_data = {
-                'breach_id': breach_id,
-                'breach_type': breach_type,
-                'affected_users': affected_users,
-                'severity': severity,
-                'description': description,
-                'discovered_at': datetime.utcnow().isoformat(),
-                'status': 'investigating',
+                "breach_id": breach_id,
+                "breach_type": breach_type,
+                "affected_users": affected_users,
+                "severity": severity,
+                "description": description,
+                "discovered_at": datetime.utcnow().isoformat(),
+                "status": "investigating",
             }
 
             # Store breach record
             key = f"data_breach:{breach_id}"
-            await redis_client.setex(key, 2555 * 24 * 3600, json.dumps(breach_data))  # 7 years
+            await redis_client.setex(
+                key, 2555 * 24 * 3600, json.dumps(breach_data)
+            )  # 7 years
 
             logger.critical(f"Data breach recorded: {breach_id} - {breach_type}")
 
@@ -578,7 +614,7 @@ class DataBreachNotifier:
                 return 0
 
             breach_json = json.loads(breach_data)
-            affected_users = breach_json.get('affected_users', [])
+            affected_users = breach_json.get("affected_users", [])
 
             # Send notifications (implementation depends on email service)
             notified_count = 0

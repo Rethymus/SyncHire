@@ -148,9 +148,7 @@ class TestResumeServiceCreate:
         file.filename = "resume.pdf"
         file.read = AsyncMock(return_value=b"content")
 
-        with patch.object(
-            ResumeService, "StorageService"
-        ) as mock_storage:
+        with patch.object(ResumeService, "StorageService") as mock_storage:
             mock_storage.upload_file.side_effect = Exception("Storage service down")
 
             with pytest.raises(FileUploadError):
@@ -415,7 +413,10 @@ class TestResumeServiceUpdate:
 
         with pytest.raises(ValidationError) as exc_info:
             await ResumeService.update_resume(
-                db=db_session, resume_id=resume_id, user_id=user_id, update_data=update_data
+                db=db_session,
+                resume_id=resume_id,
+                user_id=user_id,
+                update_data=update_data,
             )
 
         assert "cannot be empty" in str(exc_info.value)
@@ -430,7 +431,10 @@ class TestResumeServiceUpdate:
 
         with pytest.raises(NotFoundError) as exc_info:
             await ResumeService.update_resume(
-                db=db_session, resume_id=resume_id, user_id=user_id, update_data=update_data
+                db=db_session,
+                resume_id=resume_id,
+                user_id=user_id,
+                update_data=update_data,
             )
 
         assert "Resume" in str(exc_info.value)
@@ -457,9 +461,7 @@ class TestResumeServiceDelete:
         db_session.add(resume)
         await db_session.commit()
 
-        with patch.object(
-            ResumeService, "StorageService"
-        ) as mock_storage:
+        with patch.object(ResumeService, "StorageService") as mock_storage:
             mock_storage.delete_file.return_value = None
 
             await ResumeService.delete_resume(
@@ -485,9 +487,7 @@ class TestResumeServiceDelete:
         db_session.add(resume)
         await db_session.commit()
 
-        with patch.object(
-            ResumeService, "StorageService"
-        ) as mock_storage:
+        with patch.object(ResumeService, "StorageService") as mock_storage:
             mock_storage.delete_file.side_effect = Exception("Storage service down")
 
             # Should still delete database record even if storage fails
@@ -496,7 +496,9 @@ class TestResumeServiceDelete:
             )
 
             # Verify deletion
-            result = await db_session.execute(select(Resume).where(Resume.id == resume_id))
+            result = await db_session.execute(
+                select(Resume).where(Resume.id == resume_id)
+            )
             assert result.scalar_one_or_none() is None
 
     @pytest.mark.asyncio
@@ -594,9 +596,7 @@ class TestResumeServiceReparse:
         db_session.add(resume)
         await db_session.commit()
 
-        with patch.object(
-            ResumeService, "StorageService"
-        ) as mock_storage:
+        with patch.object(ResumeService, "StorageService") as mock_storage:
             mock_storage.download_file.return_value = None
 
             with pytest.raises(NotFoundError) as exc_info:
@@ -625,9 +625,7 @@ class TestResumeServiceReparse:
 
         with patch.object(
             ResumeService, "StorageService"
-        ) as mock_storage, patch.object(
-            ResumeService, "mcp_client"
-        ) as mock_mcp, patch(
+        ) as mock_storage, patch.object(ResumeService, "mcp_client") as mock_mcp, patch(
             "tempfile.NamedTemporaryFile"
         ) as mock_temp:
 

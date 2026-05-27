@@ -3,6 +3,7 @@ Compliance API Endpoints for GDPR
 
 Provides endpoints for audit reports, data exports, and compliance documentation.
 """
+
 import uuid
 from datetime import datetime, timedelta
 from typing import Optional
@@ -28,7 +29,9 @@ logger = get_logger(__name__)
 
 @router.get("/audit-report")
 async def get_audit_report(
-    start_date: Optional[datetime] = Query(None, description="Start date for report range"),
+    start_date: Optional[datetime] = Query(
+        None, description="Start date for report range"
+    ),
     end_date: Optional[datetime] = Query(None, description="End date for report range"),
     user_id: Optional[uuid.UUID] = Query(None, description="Filter by specific user"),
     action_type: Optional[str] = Query(None, description="Filter by action type"),
@@ -66,16 +69,22 @@ async def get_audit_report(
 
         # Validate date range
         if start_date >= end_date:
-            raise HTTPException(status_code=400, detail="start_date must be before end_date")
+            raise HTTPException(
+                status_code=400, detail="start_date must be before end_date"
+            )
 
         # Validate format
         if format not in ["csv", "json"]:
-            raise HTTPException(status_code=400, detail="format must be 'csv' or 'json'")
+            raise HTTPException(
+                status_code=400, detail="format must be 'csv' or 'json'"
+            )
 
         # Check permissions - regular users can only access their own logs
         is_admin = getattr(current_user, "is_admin", False)
         if not is_admin and user_id and user_id != current_user.id:
-            raise HTTPException(status_code=403, detail="You can only access your own audit logs")
+            raise HTTPException(
+                status_code=403, detail="You can only access your own audit logs"
+            )
 
         # If not admin, force filter to current user
         if not is_admin:
@@ -87,14 +96,18 @@ async def get_audit_report(
             try:
                 action_enum = AuditAction(action_type.upper())
             except ValueError:
-                raise HTTPException(status_code=400, detail=f"Invalid action_type: {action_type}")
+                raise HTTPException(
+                    status_code=400, detail=f"Invalid action_type: {action_type}"
+                )
 
         resource_enum = None
         if resource_type:
             try:
                 resource_enum = ResourceType(resource_type.lower())
             except ValueError:
-                raise HTTPException(status_code=400, detail=f"Invalid resource_type: {resource_type}")
+                raise HTTPException(
+                    status_code=400, detail=f"Invalid resource_type: {resource_type}"
+                )
 
         # Export audit log
         return await export_audit_log(
@@ -114,7 +127,9 @@ async def get_audit_report(
 
 @router.get("/audit-logs")
 async def get_audit_logs_endpoint(
-    start_date: Optional[datetime] = Query(None, description="Start date for filtering"),
+    start_date: Optional[datetime] = Query(
+        None, description="Start date for filtering"
+    ),
     end_date: Optional[datetime] = Query(None, description="End date for filtering"),
     user_id: Optional[uuid.UUID] = Query(None, description="Filter by specific user"),
     action_type: Optional[str] = Query(None, description="Filter by action type"),
@@ -145,7 +160,9 @@ async def get_audit_logs_endpoint(
         # Check permissions
         is_admin = getattr(current_user, "is_admin", False)
         if not is_admin and user_id and user_id != current_user.id:
-            raise HTTPException(status_code=403, detail="You can only access your own audit logs")
+            raise HTTPException(
+                status_code=403, detail="You can only access your own audit logs"
+            )
 
         # If not admin, force filter to current user
         if not is_admin:
@@ -157,14 +174,18 @@ async def get_audit_logs_endpoint(
             try:
                 action_enum = AuditAction(action_type.upper())
             except ValueError:
-                raise HTTPException(status_code=400, detail=f"Invalid action_type: {action_type}")
+                raise HTTPException(
+                    status_code=400, detail=f"Invalid action_type: {action_type}"
+                )
 
         resource_enum = None
         if resource_type:
             try:
                 resource_enum = ResourceType(resource_type.lower())
             except ValueError:
-                raise HTTPException(status_code=400, detail=f"Invalid resource_type: {resource_type}")
+                raise HTTPException(
+                    status_code=400, detail=f"Invalid resource_type: {resource_type}"
+                )
 
         # Get audit logs
         logs = await get_audit_logs(
@@ -214,7 +235,9 @@ async def get_audit_logs_endpoint(
 async def get_my_audit_logs(
     action_type: Optional[str] = Query(None, description="Filter by action type"),
     resource_type: Optional[str] = Query(None, description="Filter by resource type"),
-    start_date: Optional[datetime] = Query(None, description="Start date for filtering"),
+    start_date: Optional[datetime] = Query(
+        None, description="Start date for filtering"
+    ),
     end_date: Optional[datetime] = Query(None, description="End date for filtering"),
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(100, ge=1, le=1000, description="Maximum records to return"),
@@ -244,14 +267,18 @@ async def get_my_audit_logs(
             try:
                 action_enum = AuditAction(action_type.upper())
             except ValueError:
-                raise HTTPException(status_code=400, detail=f"Invalid action_type: {action_type}")
+                raise HTTPException(
+                    status_code=400, detail=f"Invalid action_type: {action_type}"
+                )
 
         resource_enum = None
         if resource_type:
             try:
                 resource_enum = ResourceType(resource_type.lower())
             except ValueError:
-                raise HTTPException(status_code=400, detail=f"Invalid resource_type: {resource_type}")
+                raise HTTPException(
+                    status_code=400, detail=f"Invalid resource_type: {resource_type}"
+                )
 
         # Get user's audit history
         logs = await get_user_audit_history(
@@ -292,7 +319,9 @@ async def get_my_audit_logs(
 
 @router.get("/audit-statistics")
 async def get_audit_statistics_endpoint(
-    start_date: Optional[datetime] = Query(None, description="Start date for statistics"),
+    start_date: Optional[datetime] = Query(
+        None, description="Start date for statistics"
+    ),
     end_date: Optional[datetime] = Query(None, description="End date for statistics"),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -382,6 +411,7 @@ async def get_compliance_report(
 
         # Get consent history
         from app.services.audit_service import get_user_consent_history
+
         consent_logs = await get_user_consent_history(
             db=db,
             user_id=current_user.id,
@@ -410,7 +440,9 @@ async def get_compliance_report(
                     "type": log.consent_type,
                     "granted": log.granted,
                     "granted_at": log.granted_at.isoformat(),
-                    "revoked_at": log.revoked_at.isoformat() if log.revoked_at else None,
+                    "revoked_at": (
+                        log.revoked_at.isoformat() if log.revoked_at else None
+                    ),
                     "legal_basis": log.legal_basis,
                     "policy_version": log.privacy_policy_version,
                 }
@@ -431,7 +463,9 @@ async def get_compliance_report(
 
             # Track last access
             if action in [AuditAction.READ.value, AuditAction.UPDATE.value]:
-                if not report["recent_activity"]["last_access"] or log.timestamp > datetime.fromisoformat(
+                if not report["recent_activity"][
+                    "last_access"
+                ] or log.timestamp > datetime.fromisoformat(
                     report["recent_activity"]["last_access"]
                 ):
                     report["recent_activity"]["last_access"] = log.timestamp.isoformat()
@@ -440,7 +474,9 @@ async def get_compliance_report(
 
     except Exception as e:
         logger.error(f"Failed to generate compliance report: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to generate compliance report")
+        raise HTTPException(
+            status_code=500, detail="Failed to generate compliance report"
+        )
 
 
 @router.get("/health")

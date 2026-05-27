@@ -3,6 +3,7 @@ Audit Middleware for GDPR Compliance
 
 This middleware automatically logs all requests that access or modify user data.
 """
+
 import uuid
 import json
 from datetime import datetime
@@ -41,11 +42,9 @@ class AuditMiddleware(BaseHTTPMiddleware):
             "/api/notifications": ResourceType.NOTIFICATION,
             "/api/search": ResourceType.SEARCH,
             "/api/interviews": ResourceType.INTERVIEW,
-
             # Compliance endpoints
             "/api/gdpr": ResourceType.USER,
             "/api/compliance": ResourceType.USER,
-
             # Authentication endpoints
             "/api/auth/login": ResourceType.USER,
             "/api/auth/logout": ResourceType.USER,

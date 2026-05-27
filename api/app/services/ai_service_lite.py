@@ -63,8 +63,11 @@ class AIService:
             response = await self.openai_client.chat.completions.create(
                 model=model,
                 messages=[
-                    {"role": "system", "content": "You are an expert resume writer and career coach."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "You are an expert resume writer and career coach.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
                 temperature=0.7,
                 max_tokens=4000,
@@ -76,11 +79,15 @@ class AIService:
             return optimized
 
         except Exception as e:
-            logger.error(LogCategory.AI, f"Resume optimization failed: {str(e)}", exc_info=True)
+            logger.error(
+                LogCategory.AI, f"Resume optimization failed: {str(e)}", exc_info=True
+            )
             # Return original content on failure
             return resume_content
 
-    async def parse_jd(self, jd_content: str, model: str = "claude-3-5-sonnet-20241022") -> dict:
+    async def parse_jd(
+        self, jd_content: str, model: str = "claude-3-5-sonnet-20241022"
+    ) -> dict:
         """
         Parse job description using AI.
 
@@ -119,9 +126,7 @@ class AIService:
             response = await self.anthropic_client.messages.create(
                 model=model,
                 max_tokens=4000,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
+                messages=[{"role": "user", "content": prompt}],
             )
 
             content = response.content[0].text
@@ -147,7 +152,7 @@ class AIService:
                 "salary_max": None,
                 "location": "",
                 "remote": "unknown",
-                "employment_type": "unknown"
+                "employment_type": "unknown",
             }
 
     async def _parse_jd_openai(self, jd_content: str) -> dict:
@@ -179,8 +184,11 @@ class AIService:
             response = await self.openai_client.chat.completions.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": "You are an expert at parsing job descriptions."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "You are an expert at parsing job descriptions.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
                 response_format={"type": "json_object"},
                 temperature=0.3,
@@ -193,7 +201,9 @@ class AIService:
             return parsed
 
         except Exception as e:
-            logger.error(LogCategory.AI, f"OpenAI JD parsing failed: {str(e)}", exc_info=True)
+            logger.error(
+                LogCategory.AI, f"OpenAI JD parsing failed: {str(e)}", exc_info=True
+            )
             # Return basic parsed data on failure
             return {
                 "company": "",
@@ -207,14 +217,11 @@ class AIService:
                 "salary_max": None,
                 "location": "",
                 "remote": "unknown",
-                "employment_type": "unknown"
+                "employment_type": "unknown",
             }
 
     async def calculate_match_score(
-        self,
-        resume_content: str,
-        jd_content: str,
-        model: str = "gpt-4"
+        self, resume_content: str, jd_content: str, model: str = "gpt-4"
     ) -> float:
         """
         Calculate match score between resume and job description.
@@ -252,8 +259,11 @@ class AIService:
             response = await self.openai_client.chat.completions.create(
                 model=model,
                 messages=[
-                    {"role": "system", "content": "You are an expert at matching candidates to jobs."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "You are an expert at matching candidates to jobs.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
                 temperature=0.3,
                 max_tokens=10,
@@ -263,7 +273,9 @@ class AIService:
 
             # Extract numeric score
             try:
-                score = float(''.join(filter(lambda c: c.isdigit() or c == '.', score_text)))
+                score = float(
+                    "".join(filter(lambda c: c.isdigit() or c == ".", score_text))
+                )
                 score = max(0, min(100, score))  # Clamp to 0-100
             except ValueError:
                 score = 50.0
@@ -272,14 +284,15 @@ class AIService:
             return score
 
         except Exception as e:
-            logger.error(LogCategory.AI, f"Match score calculation failed: {str(e)}", exc_info=True)
+            logger.error(
+                LogCategory.AI,
+                f"Match score calculation failed: {str(e)}",
+                exc_info=True,
+            )
             return 50.0  # Default score on failure
 
     async def generate_interview_questions(
-        self,
-        jd_content: str,
-        num_questions: int = 5,
-        model: str = "gpt-4"
+        self, jd_content: str, num_questions: int = 5, model: str = "gpt-4"
     ) -> list[str]:
         """
         Generate interview questions based on job description.
@@ -297,7 +310,7 @@ class AIService:
                 return [
                     "Tell me about yourself.",
                     "Why do you want to work here?",
-                    "What are your strengths and weaknesses?"
+                    "What are your strengths and weaknesses?",
                 ]
 
             prompt = f"""
@@ -312,8 +325,11 @@ class AIService:
             response = await self.openai_client.chat.completions.create(
                 model=model,
                 messages=[
-                    {"role": "system", "content": "You are an expert interviewer and career coach."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "You are an expert interviewer and career coach.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
                 temperature=0.7,
                 max_tokens=1000,
@@ -322,20 +338,28 @@ class AIService:
             content = response.choices[0].message.content or ""
 
             # Parse questions
-            questions = [q.strip() for q in content.split('\n') if q.strip()][:num_questions]
+            questions = [q.strip() for q in content.split("\n") if q.strip()][
+                :num_questions
+            ]
 
-            logger.info(LogCategory.AI, f"Generated {len(questions)} interview questions")
+            logger.info(
+                LogCategory.AI, f"Generated {len(questions)} interview questions"
+            )
             return questions
 
         except Exception as e:
-            logger.error(LogCategory.AI, f"Interview question generation failed: {str(e)}", exc_info=True)
+            logger.error(
+                LogCategory.AI,
+                f"Interview question generation failed: {str(e)}",
+                exc_info=True,
+            )
             # Return default questions on failure
             return [
                 "Tell me about yourself.",
                 "Why do you want to work here?",
                 "What are your strengths and weaknesses?",
                 "Describe a challenging work situation and how you handled it.",
-                "Where do you see yourself in 5 years?"
+                "Where do you see yourself in 5 years?",
             ]
 
 

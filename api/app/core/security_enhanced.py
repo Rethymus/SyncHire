@@ -43,8 +43,16 @@ class PasswordPolicy:
     REQUIRE_DIGITS = True
     REQUIRE_SPECIAL = True
     FORBIDDEN_COMMON_PATTERNS = [
-        "password", "123456", "qwerty", "admin", "letmein",
-        "welcome", "monkey", "dragon", "master", "hello"
+        "password",
+        "123456",
+        "qwerty",
+        "admin",
+        "letmein",
+        "welcome",
+        "monkey",
+        "dragon",
+        "master",
+        "hello",
     ]
     FORBIDDEN_SEQUENCES = ["123456", "abcdef", "qwerty", "password"]
 
@@ -52,7 +60,9 @@ class PasswordPolicy:
     SPECIAL_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?"
 
     @classmethod
-    def validate_password(cls, password: str, user_email: str = "") -> Tuple[bool, list[str]]:
+    def validate_password(
+        cls, password: str, user_email: str = ""
+    ) -> Tuple[bool, list[str]]:
         """
         Validate password against security policy
 
@@ -72,37 +82,45 @@ class PasswordPolicy:
             errors.append(f"Password must not exceed {cls.MAX_LENGTH} characters")
 
         # Check character requirements
-        if cls.REQUIRE_UPPERCASE and not re.search(r'[A-Z]', password):
+        if cls.REQUIRE_UPPERCASE and not re.search(r"[A-Z]", password):
             errors.append("Password must contain at least one uppercase letter")
 
-        if cls.REQUIRE_LOWERCASE and not re.search(r'[a-z]', password):
+        if cls.REQUIRE_LOWERCASE and not re.search(r"[a-z]", password):
             errors.append("Password must contain at least one lowercase letter")
 
-        if cls.REQUIRE_DIGITS and not re.search(r'\d', password):
+        if cls.REQUIRE_DIGITS and not re.search(r"\d", password):
             errors.append("Password must contain at least one digit")
 
-        if cls.REQUIRE_SPECIAL and not re.search(rf'[{re.escape(cls.SPECIAL_CHARS)}]', password):
-            errors.append(f"Password must contain at least one special character ({cls.SPECIAL_CHARS})")
+        if cls.REQUIRE_SPECIAL and not re.search(
+            rf"[{re.escape(cls.SPECIAL_CHARS)}]", password
+        ):
+            errors.append(
+                f"Password must contain at least one special character ({cls.SPECIAL_CHARS})"
+            )
 
         # Check for common patterns
         password_lower = password.lower()
         for pattern in cls.FORBIDDEN_COMMON_PATTERNS:
             if pattern in password_lower:
-                errors.append(f"Password cannot contain common patterns like '{pattern}'")
+                errors.append(
+                    f"Password cannot contain common patterns like '{pattern}'"
+                )
 
         # Check for sequential characters
         for seq in cls.FORBIDDEN_SEQUENCES:
             if seq in password_lower:
-                errors.append(f"Password cannot contain sequential characters like '{seq}'")
+                errors.append(
+                    f"Password cannot contain sequential characters like '{seq}'"
+                )
 
         # Check for email similarity
         if user_email:
-            email_parts = user_email.split('@')[0].lower()
+            email_parts = user_email.split("@")[0].lower()
             if email_parts and len(email_parts) > 3 and email_parts in password_lower:
                 errors.append("Password cannot contain parts of your email address")
 
         # Check for repeated characters
-        if re.search(r'(.)\1{2,}', password):
+        if re.search(r"(.)\1{2,}", password):
             errors.append("Password cannot contain repeated characters")
 
         is_valid = len(errors) == 0
@@ -123,21 +141,21 @@ class PasswordPolicy:
         score += length_score
 
         # Character variety (up to 40 points)
-        if re.search(r'[a-z]', password):
+        if re.search(r"[a-z]", password):
             score += 10
-        if re.search(r'[A-Z]', password):
+        if re.search(r"[A-Z]", password):
             score += 10
-        if re.search(r'\d', password):
+        if re.search(r"\d", password):
             score += 10
-        if re.search(rf'[{re.escape(cls.SPECIAL_CHARS)}]', password):
+        if re.search(rf"[{re.escape(cls.SPECIAL_CHARS)}]", password):
             score += 10
 
         # Complexity bonus (up to 20 points)
         if len(password) >= 16:
             score += 5
-        if re.search(r'[a-z].*[A-Z]|[A-Z].*[a-z]', password):
+        if re.search(r"[a-z].*[A-Z]|[A-Z].*[a-z]", password):
             score += 5
-        if re.search(r'\d.*\D|\D.*\d', password):
+        if re.search(r"\d.*\D|\D.*\d", password):
             score += 5
         if len(set(password)) >= len(password) * 0.7:
             score += 5
@@ -156,11 +174,7 @@ class PasswordPolicy:
             level = "strong"
             feedback = "Password is strong!"
 
-        return {
-            "score": min(score, 100),
-            "level": level,
-            "feedback": feedback
-        }
+        return {"score": min(score, 100), "level": level, "feedback": feedback}
 
 
 class AccountLockout:
@@ -196,9 +210,11 @@ class AccountLockout:
             await redis_client.setex(
                 lockout_key,
                 cls.LOCKOUT_DURATION,
-                str(int(time.time()) + cls.LOCKOUT_DURATION)
+                str(int(time.time()) + cls.LOCKOUT_DURATION),
             )
-            logger.warning(f"Account locked out for {identifier} after {attempts} failed attempts")
+            logger.warning(
+                f"Account locked out for {identifier} after {attempts} failed attempts"
+            )
 
         return attempts
 
@@ -271,12 +287,12 @@ class DataEncryption:
         """Initialize the encryption cipher"""
         try:
             # Use a fixed key for encryption (in production, use proper key management)
-            encryption_key = settings.JWT_SECRET.encode()[:32].ljust(32, b'0')
+            encryption_key = settings.JWT_SECRET.encode()[:32].ljust(32, b"0")
             # Generate Fernet key from encryption key
             kdf = PBKDF2(
                 algorithm=hashes.SHA256(),
                 length=32,
-                salt=b'synchire_encryption_salt',  # In production, use proper salt
+                salt=b"synchire_encryption_salt",  # In production, use proper salt
                 iterations=100000,
             )
             key = base64.urlsafe_b64encode(kdf.derive(encryption_key))
@@ -353,7 +369,7 @@ class SecurityAuditor:
         event_type: str,
         user_id: Optional[str],
         details: Dict[str, Any],
-        severity: str = "info"
+        severity: str = "info",
     ) -> None:
         """
         Log security-related events
@@ -391,9 +407,7 @@ class SecurityAuditor:
 
     @classmethod
     async def get_recent_events(
-        cls,
-        severity: str = "info",
-        limit: int = 100
+        cls, severity: str = "info", limit: int = 100
     ) -> list[Dict[str, Any]]:
         """
         Get recent security events
@@ -493,11 +507,7 @@ class SessionManager:
             session_key = f"session:{user_id}:{session_id}"
 
             # Store session data
-            await redis_client.setex(
-                session_key,
-                cls.SESSION_EXPIRY,
-                str(session_data)
-            )
+            await redis_client.setex(session_key, cls.SESSION_EXPIRY, str(session_data))
 
             # Track active sessions
             active_sessions_key = f"active_sessions:{user_id}"
@@ -517,7 +527,9 @@ class SessionManager:
             raise
 
     @classmethod
-    async def get_session(cls, user_id: str, session_id: str) -> Optional[Dict[str, Any]]:
+    async def get_session(
+        cls, user_id: str, session_id: str
+    ) -> Optional[Dict[str, Any]]:
         """
         Get session data
 
@@ -534,7 +546,11 @@ class SessionManager:
 
             if session_data:
                 try:
-                    return json.loads(session_data) if isinstance(session_data, (str, bytes)) else session_data
+                    return (
+                        json.loads(session_data)
+                        if isinstance(session_data, (str, bytes))
+                        else session_data
+                    )
                 except (json.JSONDecodeError, TypeError):
                     return None
             return None

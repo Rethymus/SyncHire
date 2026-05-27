@@ -15,17 +15,22 @@ from app.core.database_lite import get_db, AsyncSessionLocal
 from app.models.application_lite import Application, ApplicationStatus
 from app.models.resume_lite import Resume
 from app.models.jd_lite import JobDescription
-from app.schemas.schemas_lite import ApplicationCreate, ApplicationUpdate, ApplicationResponse
+from app.schemas.schemas_lite import (
+    ApplicationCreate,
+    ApplicationUpdate,
+    ApplicationResponse,
+)
 from app.services.ai_service_lite import ai_service
 from app.core.logger import logger, LogCategory
 
 router = APIRouter(prefix="/applications", tags=["applications"])
 
 
-@router.post("", response_model=ApplicationResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "", response_model=ApplicationResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_application(
-    application: ApplicationCreate,
-    db: AsyncSession = Depends(get_db)
+    application: ApplicationCreate, db: AsyncSession = Depends(get_db)
 ):
     """
     Create a new application.
@@ -44,8 +49,7 @@ async def create_application(
         )
         if not resume_result.scalar_one_or_none():
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Resume not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Resume not found"
             )
 
         # Validate JD exists
@@ -55,7 +59,7 @@ async def create_application(
         if not jd_result.scalar_one_or_none():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Job description not found"
+                detail="Job description not found",
             )
 
         # Create application record
@@ -90,10 +94,12 @@ async def create_application(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to create application: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA, f"Failed to create application: {str(e)}", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create application"
+            detail="Failed to create application",
         )
 
 
@@ -102,7 +108,7 @@ async def list_applications(
     skip: int = 0,
     limit: int = 100,
     status_filter: str = None,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
     List all applications.
@@ -121,11 +127,13 @@ async def list_applications(
 
         if status_filter:
             try:
-                query = query.where(Application.status == ApplicationStatus(status_filter))
+                query = query.where(
+                    Application.status == ApplicationStatus(status_filter)
+                )
             except ValueError:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Invalid status: {status_filter}"
+                    detail=f"Invalid status: {status_filter}",
                 )
 
         query = query.offset(skip).limit(limit).order_by(Application.updated_at.desc())
@@ -152,18 +160,17 @@ async def list_applications(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to list applications: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA, f"Failed to list applications: {str(e)}", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to list applications"
+            detail="Failed to list applications",
         )
 
 
 @router.get("/{application_id}", response_model=ApplicationResponse)
-async def get_application(
-    application_id: str,
-    db: AsyncSession = Depends(get_db)
-):
+async def get_application(application_id: str, db: AsyncSession = Depends(get_db)):
     """
     Get a specific application.
 
@@ -179,7 +186,7 @@ async def get_application(
             select(Application)
             .options(
                 selectinload(Application.resume),
-                selectinload(Application.job_description)
+                selectinload(Application.job_description),
             )
             .where(Application.id == application_id)
         )
@@ -187,8 +194,7 @@ async def get_application(
 
         if not application:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Application not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Application not found"
             )
 
         return ApplicationResponse(
@@ -207,10 +213,14 @@ async def get_application(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to get application {application_id}: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA,
+            f"Failed to get application {application_id}: {str(e)}",
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get application"
+            detail="Failed to get application",
         )
 
 
@@ -218,7 +228,7 @@ async def get_application(
 async def update_application(
     application_id: str,
     application: ApplicationUpdate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Update an application.
@@ -233,15 +243,13 @@ async def update_application(
     """
     try:
         result = await db.execute(
-            select(Application)
-            .where(Application.id == application_id)
+            select(Application).where(Application.id == application_id)
         )
         db_application = result.scalar_one_or_none()
 
         if not db_application:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Application not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Application not found"
             )
 
         # Update fields
@@ -250,11 +258,12 @@ async def update_application(
                 db_application.status = ApplicationStatus(application.status)
                 # Update last_updated when status changes
                 from datetime import datetime
+
                 db_application.last_updated = datetime.utcnow()
             except ValueError:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Invalid status: {application.status}"
+                    detail=f"Invalid status: {application.status}",
                 )
 
         if application.notes is not None:
@@ -287,18 +296,19 @@ async def update_application(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to update application {application_id}: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA,
+            f"Failed to update application {application_id}: {str(e)}",
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update application"
+            detail="Failed to update application",
         )
 
 
 @router.delete("/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_application(
-    application_id: str,
-    db: AsyncSession = Depends(get_db)
-):
+async def delete_application(application_id: str, db: AsyncSession = Depends(get_db)):
     """
     Delete an application.
 
@@ -311,15 +321,13 @@ async def delete_application(
     """
     try:
         result = await db.execute(
-            select(Application)
-            .where(Application.id == application_id)
+            select(Application).where(Application.id == application_id)
         )
         application = result.scalar_one_or_none()
 
         if not application:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Application not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Application not found"
             )
 
         await db.delete(application)
@@ -332,18 +340,19 @@ async def delete_application(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to delete application {application_id}: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA,
+            f"Failed to delete application {application_id}: {str(e)}",
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete application"
+            detail="Failed to delete application",
         )
 
 
 @router.post("/{application_id}/match", response_model=ApplicationResponse)
-async def calculate_match(
-    application_id: str,
-    db: AsyncSession = Depends(get_db)
-):
+async def calculate_match(application_id: str, db: AsyncSession = Depends(get_db)):
     """
     Calculate match score for application using AI.
 
@@ -359,7 +368,7 @@ async def calculate_match(
             select(Application)
             .options(
                 selectinload(Application.resume),
-                selectinload(Application.job_description)
+                selectinload(Application.job_description),
             )
             .where(Application.id == application_id)
         )
@@ -367,14 +376,12 @@ async def calculate_match(
 
         if not application:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Application not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Application not found"
             )
 
         # Calculate match score
         match_score = await ai_service.calculate_match_score(
-            application.resume.content,
-            application.job_description.description
+            application.resume.content, application.job_description.description
         )
 
         # Update application
@@ -382,7 +389,10 @@ async def calculate_match(
         await db.commit()
         await db.refresh(application)
 
-        logger.info(LogCategory.AI, f"Calculated match score for application {application_id}: {match_score}")
+        logger.info(
+            LogCategory.AI,
+            f"Calculated match score for application {application_id}: {match_score}",
+        )
 
         return ApplicationResponse(
             id=str(application.id),
@@ -400,10 +410,14 @@ async def calculate_match(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.AI, f"Failed to calculate match for application {application_id}: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.AI,
+            f"Failed to calculate match for application {application_id}: {str(e)}",
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to calculate match score"
+            detail="Failed to calculate match score",
         )
 
 
@@ -412,7 +426,7 @@ async def batch_update_applications(
     application_ids: List[str],
     status: str = None,
     background_tasks: BackgroundTasks = None,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Batch update applications.
@@ -441,6 +455,7 @@ async def batch_update_applications(
                 if application and status:
                     application.status = ApplicationStatus(status)
                     from datetime import datetime
+
                     application.last_updated = datetime.utcnow()
                     updated += 1
 
@@ -450,17 +465,20 @@ async def batch_update_applications(
 
         await db.commit()
 
-        logger.info(LogCategory.DATA, f"Batch updated applications: {updated} updated, {failed} failed")
+        logger.info(
+            LogCategory.DATA,
+            f"Batch updated applications: {updated} updated, {failed} failed",
+        )
 
-        return {
-            "updated": updated,
-            "failed": failed,
-            "errors": errors
-        }
+        return {"updated": updated, "failed": failed, "errors": errors}
 
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to batch update applications: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA,
+            f"Failed to batch update applications: {str(e)}",
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to batch update applications"
+            detail="Failed to batch update applications",
         )

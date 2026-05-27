@@ -58,7 +58,9 @@ async def request_password_reset(
         if user:
             # Generate secure reset token
             reset_token = str(uuid.uuid4())
-            expiry_time = datetime.utcnow() + timedelta(hours=1)  # Token expires in 1 hour
+            expiry_time = datetime.utcnow() + timedelta(
+                hours=1
+            )  # Token expires in 1 hour
 
             # Store token in database
             password_reset_token = PasswordResetToken(
@@ -66,7 +68,7 @@ async def request_password_reset(
                 user_id=user.id,
                 token=reset_token,
                 expires_at=expiry_time,
-                used=False
+                used=False,
             )
             db.add(password_reset_token)
             await db.commit()
@@ -80,12 +82,14 @@ async def request_password_reset(
                     context={
                         "user_name": user.full_name or "there",
                         "reset_url": f"https://synchire.com/reset-password?token={reset_token}",
-                        "expiry_hours": 1
-                    }
+                        "expiry_hours": 1,
+                    },
                 )
                 logger.info(LogCategory.AUTH, f"Password reset email sent to {email}")
             except Exception as e:
-                logger.error(LogCategory.AUTH, f"Failed to send password reset email: {e}")
+                logger.error(
+                    LogCategory.AUTH, f"Failed to send password reset email: {e}"
+                )
                 # Don't raise error to prevent email enumeration
 
         # Always return success to prevent email enumeration
@@ -98,7 +102,11 @@ async def request_password_reset(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.AUTH, f"Unexpected error in password reset request: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.AUTH,
+            f"Unexpected error in password reset request: {str(e)}",
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Password reset request failed. Please try again later.",
@@ -137,25 +145,30 @@ async def validate_reset_token(
         reset_token_obj = result.scalar_one_or_none()
 
         if not reset_token_obj:
-            raise ValidationError(message="Invalid or expired reset token", field="token")
+            raise ValidationError(
+                message="Invalid or expired reset token", field="token"
+            )
 
         # Check token expiry
         if datetime.utcnow() > reset_token_obj.expires_at:
             raise ValidationError(message="Reset token has expired", field="token")
 
         # Get user email
-        user_result = await db.execute(select(User).where(User.id == reset_token_obj.user_id))
+        user_result = await db.execute(
+            select(User).where(User.id == reset_token_obj.user_id)
+        )
         user = user_result.scalar_one_or_none()
 
-        return {
-            "valid": True,
-            "email": user.email if user else ""
-        }
+        return {"valid": True, "email": user.email if user else ""}
 
     except ValidationError:
         raise
     except Exception as e:
-        logger.error(LogCategory.AUTH, f"Unexpected error in token validation: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.AUTH,
+            f"Unexpected error in token validation: {str(e)}",
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Token validation failed. Please try again later.",
@@ -197,7 +210,7 @@ async def reset_password(
         if len(new_password) < 12:
             raise ValidationError(
                 message="Password must be at least 12 characters long",
-                field="new_password"
+                field="new_password",
             )
 
         # Get token from database
@@ -209,14 +222,18 @@ async def reset_password(
         reset_token_obj = result.scalar_one_or_none()
 
         if not reset_token_obj:
-            raise ValidationError(message="Invalid or expired reset token", field="token")
+            raise ValidationError(
+                message="Invalid or expired reset token", field="token"
+            )
 
         # Check token expiry
         if datetime.utcnow() > reset_token_obj.expires_at:
             raise ValidationError(message="Reset token has expired", field="token")
 
         # Get user
-        user_result = await db.execute(select(User).where(User.id == reset_token_obj.user_id))
+        user_result = await db.execute(
+            select(User).where(User.id == reset_token_obj.user_id)
+        )
         user = user_result.scalar_one_or_none()
 
         if not user:
@@ -245,7 +262,11 @@ async def reset_password(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.AUTH, f"Unexpected error in password reset: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.AUTH,
+            f"Unexpected error in password reset: {str(e)}",
+            exc_info=True,
+        )
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -278,22 +299,28 @@ async def change_password(
     try:
         # Validate input
         if not current_password or not current_password.strip():
-            raise ValidationError(message="Current password is required", field="current_password")
+            raise ValidationError(
+                message="Current password is required", field="current_password"
+            )
 
         if not new_password or not new_password.strip():
-            raise ValidationError(message="New password is required", field="new_password")
+            raise ValidationError(
+                message="New password is required", field="new_password"
+            )
 
         if len(new_password) < 12:
             raise ValidationError(
                 message="Password must be at least 12 characters long",
-                field="new_password"
+                field="new_password",
             )
 
         # Verify current password
         from app.core.security import verify_password_hash
 
         if not verify_password_hash(current_password, current_user.hashed_password):
-            raise ValidationError(message="Current password is incorrect", field="current_password")
+            raise ValidationError(
+                message="Current password is incorrect", field="current_password"
+            )
 
         # Update password
         from app.core.security import get_password_hash
@@ -303,7 +330,10 @@ async def change_password(
 
         await db.commit()
 
-        logger.info(LogCategory.AUTH, f"Password changed successfully for user {current_user.id}")
+        logger.info(
+            LogCategory.AUTH,
+            f"Password changed successfully for user {current_user.id}",
+        )
 
         return {
             "message": "Password changed successfully. Please login with your new password."
@@ -312,7 +342,11 @@ async def change_password(
     except ValidationError:
         raise
     except Exception as e:
-        logger.error(LogCategory.AUTH, f"Unexpected error in password change: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.AUTH,
+            f"Unexpected error in password change: {str(e)}",
+            exc_info=True,
+        )
         await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

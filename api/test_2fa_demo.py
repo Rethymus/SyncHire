@@ -42,6 +42,7 @@ def demo_totp_generation():
 
     # Show time remaining
     import time
+
     time_remaining = totp.interval - (int(time.time()) % totp.interval)
     print(f"Time Remaining: {time_remaining} seconds")
 

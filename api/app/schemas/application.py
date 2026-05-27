@@ -115,7 +115,9 @@ class BulkStatusUpdateRequest(BaseModel):
         description="List of application IDs to update",
     )
     status: str = Field(..., description="New status to set for all applications")
-    notes: str | None = Field(None, description="Optional notes to add to all applications")
+    notes: str | None = Field(
+        None, description="Optional notes to add to all applications"
+    )
 
     class Config:
         json_schema_extra = {
@@ -202,7 +204,9 @@ class BulkTagResponse(BaseModel):
     success_count: int = Field(
         ..., description="Number of successfully updated applications"
     )
-    failed_count: int = Field(..., description="Number of applications that failed to update")
+    failed_count: int = Field(
+        ..., description="Number of applications that failed to update"
+    )
     errors: List[Dict[str, str]] = Field(
         default_factory=list, description="List of errors for failed updates"
     )

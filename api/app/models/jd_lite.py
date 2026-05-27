@@ -32,11 +32,20 @@ class JobDescription(Base):
     benefits = Column(Text)  # JSON-encoded benefits
     embedding = Column(Text)  # JSON-encoded vector for semantic search
     parsed_data = Column(Text)  # JSON-encoded parsed JD data
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     # Relationships
-    applications = relationship("Application", back_populates="job_description", cascade="all, delete-orphan")
+    applications = relationship(
+        "Application", back_populates="job_description", cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<JobDescription(id={self.id}, company={self.company}, title={self.title})>"

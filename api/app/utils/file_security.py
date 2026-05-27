@@ -81,7 +81,7 @@ class FileSecurityValidator:
         cls,
         file: UploadFile,
         max_size: Optional[int] = None,
-        allowed_extensions: Optional[set] = None
+        allowed_extensions: Optional[set] = None,
     ) -> Tuple[bool, List[str]]:
         """
         Validate uploaded file for security issues
@@ -115,14 +115,18 @@ class FileSecurityValidator:
                 )
 
             # Check file size
-            max_allowed_size = max_size or cls.MAX_FILE_SIZES.get(file_ext, cls.MAX_FILE_SIZES["default"])
+            max_allowed_size = max_size or cls.MAX_FILE_SIZES.get(
+                file_ext, cls.MAX_FILE_SIZES["default"]
+            )
 
             # Read file content for validation
             content = file.file.read()
 
             if len(content) > max_allowed_size:
                 max_mb = max_allowed_size / (1024 * 1024)
-                errors.append(f"File size exceeds maximum allowed size of {max_mb:.1f}MB")
+                errors.append(
+                    f"File size exceeds maximum allowed size of {max_mb:.1f}MB"
+                )
 
             # Reset file pointer
             file.file.seek(0)
@@ -139,9 +143,14 @@ class FileSecurityValidator:
 
             # Verify content type matches extension
             expected_content_type = cls.ALLOWED_EXTENSIONS.get(file_ext)
-            if expected_content_type and not content_type.startswith(expected_content_type.split('/')[0]):
+            if expected_content_type and not content_type.startswith(
+                expected_content_type.split("/")[0]
+            ):
                 # Allow broader content type categories (e.g., application/* for .docx)
-                if not (content_type.startswith("application/") or content_type.startswith("text/")):
+                if not (
+                    content_type.startswith("application/")
+                    or content_type.startswith("text/")
+                ):
                     errors.append(
                         f"File content does not match extension. "
                         f"Expected: {expected_content_type}, Got: {content_type}"
@@ -233,22 +242,19 @@ class FileSecurityValidator:
         """
         try:
             # Try to decode as UTF-8
-            content.decode('utf-8')
+            content.decode("utf-8")
             return True
         except UnicodeDecodeError:
             try:
                 # Try other common encodings
-                content.decode('latin-1')
+                content.decode("latin-1")
                 return True
             except UnicodeDecodeError:
                 return False
 
     @classmethod
     async def secure_save_file(
-        cls,
-        file: UploadFile,
-        upload_dir: str,
-        user_id: str
+        cls, file: UploadFile, upload_dir: str, user_id: str
     ) -> Tuple[str, str]:
         """
         Securely save uploaded file
@@ -292,7 +298,7 @@ class FileSecurityValidator:
             file_hash = hashlib.sha256(content).hexdigest()
 
             # Save file
-            with open(file_path, 'wb') as f:
+            with open(file_path, "wb") as f:
                 f.write(content)
 
             # Set secure permissions
@@ -345,9 +351,9 @@ class FileSecurityValidator:
         filename = os.path.basename(filename)
 
         # Remove dangerous characters
-        dangerous_chars = ['..', '/', '\\', '\x00']
+        dangerous_chars = ["..", "/", "\\", "\x00"]
         for char in dangerous_chars:
-            filename = filename.replace(char, '')
+            filename = filename.replace(char, "")
 
         # Limit filename length
         name, ext = os.path.splitext(filename)
@@ -381,7 +387,7 @@ class FileContentScanner:
             # For now, perform basic checks
             threats = []
 
-            with open(file_path, 'rb') as f:
+            with open(file_path, "rb") as f:
                 content = f.read()
 
                 # Check for suspicious patterns
@@ -389,11 +395,12 @@ class FileContentScanner:
                     threats.append("Suspicious file signature detected")
 
                 # Check for embedded scripts
-                if b'<script' in content.lower():
+                if b"<script" in content.lower():
                     threats.append("Embedded script detected")
 
                 # Check for suspicious URLs
                 import re
+
                 url_pattern = rb'https?://[^\s<>"]+|[^\s<>"]+\.com[^\s<>"]*'
                 urls = re.findall(url_pattern, content)
                 if len(urls) > 10:  # Arbitrary threshold
@@ -424,7 +431,7 @@ class SecureFileStorage:
         Returns:
             Storage path for user
         """
-        base_storage = getattr(settings, 'UPLOAD_DIR', '/tmp/uploads')
+        base_storage = getattr(settings, "UPLOAD_DIR", "/tmp/uploads")
         user_storage = os.path.join(base_storage, user_id)
         os.makedirs(user_storage, exist_ok=True)
         return user_storage
@@ -446,7 +453,7 @@ class SecureFileStorage:
 
             # Overwrite file with random data
             file_size = os.path.getsize(file_path)
-            with open(file_path, 'wb') as f:
+            with open(file_path, "wb") as f:
                 # Overwrite with random data
                 f.write(os.urandom(file_size))
                 f.flush()
@@ -476,7 +483,7 @@ class SecureFileStorage:
         try:
             sha256_hash = hashlib.sha256()
 
-            with open(file_path, 'rb') as f:
+            with open(file_path, "rb") as f:
                 # Read file in chunks
                 for byte_block in iter(lambda: f.read(4096), b""):
                     sha256_hash.update(byte_block)

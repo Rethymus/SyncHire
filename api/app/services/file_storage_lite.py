@@ -61,7 +61,7 @@ class LocalFileStorage:
             if not self.is_allowed_type(file.filename):
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Invalid file type. Allowed: {', '.join(self.allowed_extensions)}"
+                    detail=f"Invalid file type. Allowed: {', '.join(self.allowed_extensions)}",
                 )
 
             # Generate file path
@@ -70,14 +70,14 @@ class LocalFileStorage:
             file_path = self.files_dir / filename
 
             # Save file
-            async with aiofiles.open(file_path, 'wb') as f:
+            async with aiofiles.open(file_path, "wb") as f:
                 content = await file.read()
 
                 # Check file size
                 if len(content) > self.max_file_size:
                     raise HTTPException(
                         status_code=400,
-                        detail=f"File too large. Maximum size: {self.max_file_size} bytes"
+                        detail=f"File too large. Maximum size: {self.max_file_size} bytes",
                     )
 
                 await f.write(content)
@@ -89,11 +89,10 @@ class LocalFileStorage:
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(LogCategory.DATA, f"Failed to save file: {str(e)}", exc_info=True)
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to save file"
+            logger.error(
+                LogCategory.DATA, f"Failed to save file: {str(e)}", exc_info=True
             )
+            raise HTTPException(status_code=500, detail="Failed to save file")
 
     async def get_file(self, file_path: str, filename: str):
         """
@@ -113,28 +112,22 @@ class LocalFileStorage:
             path = Path(file_path)
 
             if not path.exists():
-                raise HTTPException(
-                    status_code=404,
-                    detail="File not found"
-                )
+                raise HTTPException(status_code=404, detail="File not found")
 
             # Determine media type
             media_type = self._get_media_type(path.suffix)
 
             return FileResponse(
-                path=str(path),
-                filename=filename,
-                media_type=media_type
+                path=str(path), filename=filename, media_type=media_type
             )
 
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(LogCategory.DATA, f"Failed to get file: {str(e)}", exc_info=True)
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to get file"
+            logger.error(
+                LogCategory.DATA, f"Failed to get file: {str(e)}", exc_info=True
             )
+            raise HTTPException(status_code=500, detail="Failed to get file")
 
     def delete_file(self, file_path: str) -> bool:
         """
@@ -157,7 +150,9 @@ class LocalFileStorage:
             return False
 
         except Exception as e:
-            logger.error(LogCategory.DATA, f"Failed to delete file: {str(e)}", exc_info=True)
+            logger.error(
+                LogCategory.DATA, f"Failed to delete file: {str(e)}", exc_info=True
+            )
             return False
 
     async def extract_text(self, file_path: str) -> str:
@@ -176,7 +171,7 @@ class LocalFileStorage:
 
             if ext == ".txt":
                 # Read text file directly
-                async with aiofiles.open(path, 'r', encoding='utf-8') as f:
+                async with aiofiles.open(path, "r", encoding="utf-8") as f:
                     return await f.read()
 
             elif ext == ".pdf":
@@ -191,7 +186,9 @@ class LocalFileStorage:
                 return ""
 
         except Exception as e:
-            logger.error(LogCategory.DATA, f"Failed to extract text: {str(e)}", exc_info=True)
+            logger.error(
+                LogCategory.DATA, f"Failed to extract text: {str(e)}", exc_info=True
+            )
             return ""
 
     async def _extract_pdf_text(self, path: Path) -> str:
@@ -200,7 +197,7 @@ class LocalFileStorage:
             import PyPDF2
 
             text = ""
-            with open(path, 'rb') as file:
+            with open(path, "rb") as file:
                 reader = PyPDF2.PdfReader(file)
                 for page in reader.pages:
                     text += page.extract_text() + "\n"
@@ -208,10 +205,14 @@ class LocalFileStorage:
             return text.strip()
 
         except ImportError:
-            logger.warning(LogCategory.DATA, "PyPDF2 not installed, cannot extract PDF text")
+            logger.warning(
+                LogCategory.DATA, "PyPDF2 not installed, cannot extract PDF text"
+            )
             return ""
         except Exception as e:
-            logger.error(LogCategory.DATA, f"PDF extraction failed: {str(e)}", exc_info=True)
+            logger.error(
+                LogCategory.DATA, f"PDF extraction failed: {str(e)}", exc_info=True
+            )
             return ""
 
     async def _extract_docx_text(self, path: Path) -> str:
@@ -225,10 +226,14 @@ class LocalFileStorage:
             return text.strip()
 
         except ImportError:
-            logger.warning(LogCategory.DATA, "python-docx not installed, cannot extract DOCX text")
+            logger.warning(
+                LogCategory.DATA, "python-docx not installed, cannot extract DOCX text"
+            )
             return ""
         except Exception as e:
-            logger.error(LogCategory.DATA, f"DOCX extraction failed: {str(e)}", exc_info=True)
+            logger.error(
+                LogCategory.DATA, f"DOCX extraction failed: {str(e)}", exc_info=True
+            )
             return ""
 
     def _get_media_type(self, ext: str) -> str:
@@ -251,7 +256,9 @@ class LocalFileStorage:
         try:
             return [str(f) for f in self.files_dir.iterdir() if f.is_file()]
         except Exception as e:
-            logger.error(LogCategory.DATA, f"Failed to list files: {str(e)}", exc_info=True)
+            logger.error(
+                LogCategory.DATA, f"Failed to list files: {str(e)}", exc_info=True
+            )
             return []
 
     def get_storage_size(self) -> int:
@@ -263,12 +270,16 @@ class LocalFileStorage:
         """
         try:
             total_size = 0
-            for file_path in self.files_dir.rglob('*'):
+            for file_path in self.files_dir.rglob("*"):
                 if file_path.is_file():
                     total_size += file_path.stat().st_size
             return total_size
         except Exception as e:
-            logger.error(LogCategory.DATA, f"Failed to calculate storage size: {str(e)}", exc_info=True)
+            logger.error(
+                LogCategory.DATA,
+                f"Failed to calculate storage size: {str(e)}",
+                exc_info=True,
+            )
             return 0
 
 

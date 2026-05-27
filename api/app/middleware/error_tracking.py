@@ -17,9 +17,9 @@ from app.core.errors import SyncHireError
 logger = logging.getLogger(__name__)
 
 # Context variables for request tracking
-request_id_var: ContextVar[str] = ContextVar('request_id', default='')
-user_id_var: ContextVar[Optional[str]] = ContextVar('user_id', default=None)
-error_count_var: ContextVar[int] = ContextVar('error_count', default=0)
+request_id_var: ContextVar[str] = ContextVar("request_id", default="")
+user_id_var: ContextVar[Optional[str]] = ContextVar("user_id", default=None)
+error_count_var: ContextVar[int] = ContextVar("error_count", default=0)
 
 
 class ErrorTrackingMiddleware(BaseHTTPMiddleware):
@@ -45,7 +45,7 @@ class ErrorTrackingMiddleware(BaseHTTPMiddleware):
         request_id_var.set(request_id)
 
         # Extract user ID if available
-        user_id = getattr(request.state, 'user_id', None)
+        user_id = getattr(request.state, "user_id", None)
         if user_id:
             user_id_var.set(user_id)
 
@@ -68,7 +68,7 @@ class ErrorTrackingMiddleware(BaseHTTPMiddleware):
                     "path": request.url.path,
                     "user_agent": request.headers.get("user-agent"),
                     "client_host": request.client.host if request.client else None,
-                }
+                },
             )
 
         try:
@@ -94,7 +94,7 @@ class ErrorTrackingMiddleware(BaseHTTPMiddleware):
                         "status_code": response.status_code,
                         "processing_time": processing_time,
                         "error_count": error_count_var.get(),
-                    }
+                    },
                 )
 
             return response
@@ -109,9 +109,7 @@ class ErrorTrackingMiddleware(BaseHTTPMiddleware):
 
             # Log the error with full context
             if self.log_errors:
-                self.log_error_with_context(
-                    request, exc, request_id, processing_time
-                )
+                self.log_error_with_context(request, exc, request_id, processing_time)
 
             # Re-raise the exception for error handlers to process
             raise
@@ -142,16 +140,20 @@ class ErrorTrackingMiddleware(BaseHTTPMiddleware):
 
         # Add error-specific context
         if isinstance(exc, SyncHireError):
-            error_context.update({
-                "error_code": exc.error_code,
-                "status_code": exc.status_code,
-                "error_details": exc.details,
-            })
+            error_context.update(
+                {
+                    "error_code": exc.error_code,
+                    "status_code": exc.status_code,
+                    "error_details": exc.details,
+                }
+            )
         else:
-            error_context.update({
-                "exception_type": type(exc).__name__,
-                "exception_message": str(exc),
-            })
+            error_context.update(
+                {
+                    "exception_type": type(exc).__name__,
+                    "exception_message": str(exc),
+                }
+            )
 
         # Log with appropriate level
         if isinstance(exc, SyncHireError):
@@ -201,23 +203,23 @@ class PerformanceMonitoringMiddleware(BaseHTTPMiddleware):
                 logger.critical(
                     f"Very slow request detected: {request.method} {request.url.path} - {processing_time:.2f}s",
                     extra={
-                        "request_id": getattr(request.state, 'request_id', 'unknown'),
+                        "request_id": getattr(request.state, "request_id", "unknown"),
                         "method": request.method,
                         "path": request.url.path,
                         "processing_time": processing_time,
                         "alert_type": "very_slow_request",
-                    }
+                    },
                 )
             elif processing_time >= self.slow_request_threshold:
                 logger.warning(
                     f"Slow request detected: {request.method} {request.url.path} - {processing_time:.2f}s",
                     extra={
-                        "request_id": getattr(request.state, 'request_id', 'unknown'),
+                        "request_id": getattr(request.state, "request_id", "unknown"),
                         "method": request.method,
                         "path": request.url.path,
                         "processing_time": processing_time,
                         "alert_type": "slow_request",
-                    }
+                    },
                 )
 
             # Add performance header
@@ -230,7 +232,7 @@ class PerformanceMonitoringMiddleware(BaseHTTPMiddleware):
             logger.error(
                 f"Request failed after {processing_time:.2f}s: {request.method} {request.url.path}",
                 extra={
-                    "request_id": getattr(request.state, 'request_id', 'unknown'),
+                    "request_id": getattr(request.state, "request_id", "unknown"),
                     "method": request.method,
                     "path": request.url.path,
                     "processing_time": processing_time,
@@ -261,7 +263,7 @@ class ErrorRateLimitingMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             return response
         except Exception as exc:
-            request_id = getattr(request.state, 'request_id', 'unknown')
+            request_id = getattr(request.state, "request_id", "unknown")
 
             # Track error
             self.track_error(request_id, exc)
@@ -275,7 +277,7 @@ class ErrorRateLimitingMiddleware(BaseHTTPMiddleware):
                         "alert_type": "high_error_rate",
                         "error_rate": error_rate,
                         "threshold": self.error_threshold,
-                    }
+                    },
                 )
 
             raise

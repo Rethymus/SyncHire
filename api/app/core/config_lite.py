@@ -43,9 +43,13 @@ class LiteSettings(BaseSettings):
 
     # MCP Servers (Local - preserved)
     MCP_JD_PARSER_URL: str = os.getenv("MCP_JD_PARSER_URL", "http://localhost:3001")
-    MCP_RESUME_ANALYZER_URL: str = os.getenv("MCP_RESUME_ANALYZER_URL", "http://localhost:3002")
+    MCP_RESUME_ANALYZER_URL: str = os.getenv(
+        "MCP_RESUME_ANALYZER_URL", "http://localhost:3002"
+    )
     MCP_JOB_MATCHER_URL: str = os.getenv("MCP_JOB_MATCHER_URL", "http://localhost:3003")
-    MCP_INTERVIEW_PREP_URL: str = os.getenv("MCP_INTERVIEW_PREP_URL", "http://localhost:3004")
+    MCP_INTERVIEW_PREP_URL: str = os.getenv(
+        "MCP_INTERVIEW_PREP_URL", "http://localhost:3004"
+    )
 
     # Extensions (Future platform integrations)
     EXTENSIONS_ENABLED: bool = False

@@ -14,7 +14,11 @@ import httpx
 
 from app.core.database_lite import get_db
 from app.models.jd_lite import JobDescription
-from app.schemas.schemas_lite import JobDescriptionCreate, JobDescriptionUpdate, JobDescriptionResponse
+from app.schemas.schemas_lite import (
+    JobDescriptionCreate,
+    JobDescriptionUpdate,
+    JobDescriptionResponse,
+)
 from app.services.ai_service_lite import ai_service
 from app.core.logger import logger, LogCategory
 from app.core.config_lite import get_lite_settings
@@ -24,11 +28,10 @@ settings = get_lite_settings()
 router = APIRouter(prefix="/jds", tags=["job-descriptions"])
 
 
-@router.post("", response_model=JobDescriptionResponse, status_code=status.HTTP_201_CREATED)
-async def create_jd(
-    jd: JobDescriptionCreate,
-    db: AsyncSession = Depends(get_db)
-):
+@router.post(
+    "", response_model=JobDescriptionResponse, status_code=status.HTTP_201_CREATED
+)
+async def create_jd(jd: JobDescriptionCreate, db: AsyncSession = Depends(get_db)):
     """
     Create a new job description.
 
@@ -83,16 +86,12 @@ async def create_jd(
         logger.error(LogCategory.DATA, f"Failed to create JD: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create job description"
+            detail="Failed to create job description",
         )
 
 
 @router.get("", response_model=List[JobDescriptionResponse])
-async def list_jds(
-    skip: int = 0,
-    limit: int = 100,
-    db: AsyncSession = Depends(get_db)
-):
+async def list_jds(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)):
     """
     List all job descriptions.
 
@@ -136,15 +135,12 @@ async def list_jds(
         logger.error(LogCategory.DATA, f"Failed to list JDs: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to list job descriptions"
+            detail="Failed to list job descriptions",
         )
 
 
 @router.get("/{jd_id}", response_model=JobDescriptionResponse)
-async def get_jd(
-    jd_id: str,
-    db: AsyncSession = Depends(get_db)
-):
+async def get_jd(jd_id: str, db: AsyncSession = Depends(get_db)):
     """
     Get a specific job description.
 
@@ -157,15 +153,14 @@ async def get_jd(
     """
     try:
         result = await db.execute(
-            select(JobDescription)
-            .where(JobDescription.id == jd_id)
+            select(JobDescription).where(JobDescription.id == jd_id)
         )
         jd = result.scalar_one_or_none()
 
         if not jd:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Job description not found"
+                detail="Job description not found",
             )
 
         return JobDescriptionResponse(
@@ -187,18 +182,18 @@ async def get_jd(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to get JD {jd_id}: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA, f"Failed to get JD {jd_id}: {str(e)}", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get job description"
+            detail="Failed to get job description",
         )
 
 
 @router.put("/{jd_id}", response_model=JobDescriptionResponse)
 async def update_jd(
-    jd_id: str,
-    jd: JobDescriptionUpdate,
-    db: AsyncSession = Depends(get_db)
+    jd_id: str, jd: JobDescriptionUpdate, db: AsyncSession = Depends(get_db)
 ):
     """
     Update a job description.
@@ -213,15 +208,14 @@ async def update_jd(
     """
     try:
         result = await db.execute(
-            select(JobDescription)
-            .where(JobDescription.id == jd_id)
+            select(JobDescription).where(JobDescription.id == jd_id)
         )
         db_jd = result.scalar_one_or_none()
 
         if not db_jd:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Job description not found"
+                detail="Job description not found",
             )
 
         # Update fields
@@ -270,18 +264,17 @@ async def update_jd(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to update JD {jd_id}: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA, f"Failed to update JD {jd_id}: {str(e)}", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update job description"
+            detail="Failed to update job description",
         )
 
 
 @router.delete("/{jd_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_jd(
-    jd_id: str,
-    db: AsyncSession = Depends(get_db)
-):
+async def delete_jd(jd_id: str, db: AsyncSession = Depends(get_db)):
     """
     Delete a job description.
 
@@ -294,15 +287,14 @@ async def delete_jd(
     """
     try:
         result = await db.execute(
-            select(JobDescription)
-            .where(JobDescription.id == jd_id)
+            select(JobDescription).where(JobDescription.id == jd_id)
         )
         jd = result.scalar_one_or_none()
 
         if not jd:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Job description not found"
+                detail="Job description not found",
             )
 
         await db.delete(jd)
@@ -315,10 +307,12 @@ async def delete_jd(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to delete JD {jd_id}: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA, f"Failed to delete JD {jd_id}: {str(e)}", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete job description"
+            detail="Failed to delete job description",
         )
 
 
@@ -327,7 +321,7 @@ async def parse_jd(
     content: str,
     url: str = None,
     background_tasks: BackgroundTasks = None,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Parse job description from text or URL using AI.
@@ -398,15 +392,13 @@ async def parse_jd(
         logger.error(LogCategory.AI, f"Failed to parse JD: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to parse job description"
+            detail="Failed to parse job description",
         )
 
 
 @router.post("/import")
 async def import_jd_from_url(
-    url: str,
-    background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db)
+    url: str, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)
 ):
     """
     Import job description from URL.
@@ -423,8 +415,7 @@ async def import_jd_from_url(
         # Validate URL
         if not url.startswith("http"):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid URL"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid URL"
             )
 
         # Fetch content in background
@@ -460,21 +451,25 @@ async def import_jd_from_url(
                 logger.info(LogCategory.DATA, f"Imported JD from URL: {url}")
 
             except Exception as e:
-                logger.error(LogCategory.DATA, f"Failed to import JD: {str(e)}", exc_info=True)
+                logger.error(
+                    LogCategory.DATA, f"Failed to import JD: {str(e)}", exc_info=True
+                )
 
         background_tasks.add_task(fetch_and_parse)
 
         return {
             "job_id": str(job_id),
             "status": "processing",
-            "message": "Job description is being imported"
+            "message": "Job description is being imported",
         }
 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(LogCategory.DATA, f"Failed to start import: {str(e)}", exc_info=True)
+        logger.error(
+            LogCategory.DATA, f"Failed to start import: {str(e)}", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to import job description"
+            detail="Failed to import job description",
         )

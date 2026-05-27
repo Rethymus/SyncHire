@@ -41,15 +41,18 @@ class WebSocketServer:
     """
 
     def __init__(self):
-        self._active_connections: Dict[str, Set[str]] = {}  # {room_id: set(connection_ids)}
-        self._connection_rooms: Dict[str, Set[str]] = {}  # {connection_id: set(room_ids)}
-        self._event_handlers: Dict[str, Set[callable]] = {}  # {event_type: set(handlers)}
+        self._active_connections: Dict[str, Set[str]] = (
+            {}
+        )  # {room_id: set(connection_ids)}
+        self._connection_rooms: Dict[str, Set[str]] = (
+            {}
+        )  # {connection_id: set(room_ids)}
+        self._event_handlers: Dict[str, Set[callable]] = (
+            {}
+        )  # {event_type: set(handlers)}
 
     async def authenticate_connection(
-        self,
-        websocket: WebSocket,
-        token: str,
-        db: AsyncSession
+        self, websocket: WebSocket, token: str, db: AsyncSession
     ) -> Optional[User]:
         """
         Authenticate WebSocket connection using JWT token.
@@ -65,9 +68,7 @@ class WebSocketServer:
         try:
             # Decode JWT token
             payload = jwt.decode(
-                token,
-                settings.JWT_SECRET,
-                algorithms=[settings.JWT_ALGORITHM]
+                token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
             )
             user_id = payload.get("sub")
 
@@ -76,9 +77,7 @@ class WebSocketServer:
                 return None
 
             # Verify user exists in database
-            result = await db.execute(
-                select(User).where(User.id == uuid.UUID(user_id))
-            )
+            result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
             user = result.scalar_one_or_none()
 
             if not user:
@@ -87,15 +86,14 @@ class WebSocketServer:
 
             logger.info(
                 LogCategory.WEBSOCKET,
-                f"WebSocket authentication successful for user {user_id}"
+                f"WebSocket authentication successful for user {user_id}",
             )
 
             return user
 
         except JWTError as e:
             logger.warning(
-                LogCategory.WEBSOCKET,
-                f"WebSocket authentication failed: {str(e)}"
+                LogCategory.WEBSOCKET, f"WebSocket authentication failed: {str(e)}"
             )
             await websocket.close(code=1008, reason=f"Invalid token: {str(e)}")
             return None
@@ -103,16 +101,13 @@ class WebSocketServer:
         except Exception as e:
             logger.error(
                 LogCategory.WEBSOCKET,
-                f"Unexpected error during authentication: {str(e)}"
+                f"Unexpected error during authentication: {str(e)}",
             )
             await websocket.close(code=1011, reason="Internal server error")
             return None
 
     async def handle_connection(
-        self,
-        websocket: WebSocket,
-        user: User,
-        db: AsyncSession
+        self, websocket: WebSocket, user: User, db: AsyncSession
     ) -> str:
         """
         Handle new WebSocket connection after authentication.
@@ -147,15 +142,18 @@ class WebSocketServer:
 
         logger.info(
             LogCategory.WEBSOCKET,
-            f"WebSocket connection established: {connection_id} for user {user.id}"
+            f"WebSocket connection established: {connection_id} for user {user.id}",
         )
 
         # Emit connection event
-        await self._emit_event("connection_established", {
-            "connection_id": connection_id,
-            "user_id": str(user.id),
-            "timestamp": datetime.utcnow().isoformat(),
-        })
+        await self._emit_event(
+            "connection_established",
+            {
+                "connection_id": connection_id,
+                "user_id": str(user.id),
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
 
         return connection_id
 
@@ -164,7 +162,7 @@ class WebSocketServer:
         websocket: WebSocket,
         user: User,
         connection_id: str,
-        message_data: Dict[str, Any]
+        message_data: Dict[str, Any],
     ):
         """
         Handle incoming WebSocket message.
@@ -187,17 +185,25 @@ class WebSocketServer:
             elif message_type == "subscribe":
                 subscription = message_payload.get("subscription")
                 if subscription:
-                    await self._handle_subscription(user, connection_id, subscription, True)
+                    await self._handle_subscription(
+                        user, connection_id, subscription, True
+                    )
 
             # Handle unsubscription requests
             elif message_type == "unsubscribe":
                 subscription = message_payload.get("subscription")
                 if subscription:
-                    await self._handle_subscription(user, connection_id, subscription, False)
+                    await self._handle_subscription(
+                        user, connection_id, subscription, False
+                    )
 
             # Handle ping/pong
             elif message_type == "ping":
-                await websocket.send_text('{"type": "pong", "data": {"timestamp": "' + datetime.utcnow().isoformat() + '"}}')
+                await websocket.send_text(
+                    '{"type": "pong", "data": {"timestamp": "'
+                    + datetime.utcnow().isoformat()
+                    + '"}}'
+                )
 
             # Handle room join requests
             elif message_type == "join_room":
@@ -223,10 +229,7 @@ class WebSocketServer:
                 await websocket.send_text(error_msg.model_dump_json())
 
         except Exception as e:
-            logger.error(
-                LogCategory.WEBSOCKET,
-                f"Error handling message: {str(e)}"
-            )
+            logger.error(LogCategory.WEBSOCKET, f"Error handling message: {str(e)}")
             error_msg = WebSocketMessage(
                 type=MessageType.ERROR,
                 data={
@@ -241,7 +244,7 @@ class WebSocketServer:
         user: User,
         connection_id: str,
         close_code: Optional[int] = None,
-        close_reason: Optional[str] = None
+        close_reason: Optional[str] = None,
     ):
         """
         Handle WebSocket disconnection.
@@ -263,22 +266,24 @@ class WebSocketServer:
 
             logger.info(
                 LogCategory.WEBSOCKET,
-                f"WebSocket disconnected: {connection_id} for user {user.id} - code: {close_code}, reason: {close_reason}"
+                f"WebSocket disconnected: {connection_id} for user {user.id} - code: {close_code}, reason: {close_reason}",
             )
 
             # Emit disconnection event
-            await self._emit_event("connection_closed", {
-                "connection_id": connection_id,
-                "user_id": str(user.id),
-                "close_code": close_code,
-                "close_reason": close_reason,
-                "timestamp": datetime.utcnow().isoformat(),
-            })
+            await self._emit_event(
+                "connection_closed",
+                {
+                    "connection_id": connection_id,
+                    "user_id": str(user.id),
+                    "close_code": close_code,
+                    "close_reason": close_reason,
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
+            )
 
         except Exception as e:
             logger.error(
-                LogCategory.WEBSOCKET,
-                f"Error handling disconnection: {str(e)}"
+                LogCategory.WEBSOCKET, f"Error handling disconnection: {str(e)}"
             )
 
     async def add_to_room(self, connection_id: str, room_id: str):
@@ -300,8 +305,7 @@ class WebSocketServer:
         self._connection_rooms[connection_id].add(room_id)
 
         logger.debug(
-            LogCategory.WEBSOCKET,
-            f"Connection {connection_id} joined room {room_id}"
+            LogCategory.WEBSOCKET, f"Connection {connection_id} joined room {room_id}"
         )
 
     async def remove_from_room(self, connection_id: str, room_id: str):
@@ -325,15 +329,14 @@ class WebSocketServer:
                 del self._connection_rooms[connection_id]
 
         logger.debug(
-            LogCategory.WEBSOCKET,
-            f"Connection {connection_id} left room {room_id}"
+            LogCategory.WEBSOCKET, f"Connection {connection_id} left room {room_id}"
         )
 
     async def broadcast_to_room(
         self,
         room_id: str,
         message: WebSocketMessage,
-        exclude_connection: Optional[str] = None
+        exclude_connection: Optional[str] = None,
     ):
         """
         Broadcast a message to all connections in a room.
@@ -380,11 +383,7 @@ class WebSocketServer:
         return len(self._active_connections.get(room_id, set()))
 
     async def _handle_subscription(
-        self,
-        user: User,
-        connection_id: str,
-        subscription: str,
-        subscribe: bool
+        self, user: User, connection_id: str, subscription: str, subscribe: bool
     ):
         """
         Handle subscription/unsubscription requests.
@@ -448,7 +447,7 @@ class WebSocketServer:
                 except Exception as e:
                     logger.error(
                         LogCategory.WEBSOCKET,
-                        f"Error in event handler for {event_type}: {str(e)}"
+                        f"Error in event handler for {event_type}: {str(e)}",
                     )
 
     def on_event(self, event_type: str, handler: callable):
