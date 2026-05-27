@@ -14,9 +14,6 @@ env:
 jobs:
   frontend-tests:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
 
     steps:
       - uses: actions/checkout@v4
@@ -37,21 +34,19 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install dependencies
-        run: |
-          cd .. && npm ci
-          cd frontend
+        run: npm ci
 
       - name: Run linter
-        run: npm run lint
+        run: npm run lint --workspace=frontend
 
       - name: Run type check
-        run: npm run type-check
+        run: npm run type-check --workspace=frontend
 
       - name: Run tests
-        run: npm run test || true
+        run: npm run test --workspace=frontend || true
 
       - name: Build
-        run: npm run build
+        run: npm run build --workspace=frontend
         env:
           NODE_ENV: production
 
