@@ -23,8 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd .. && npm ci
-          cd frontend
+          npm ci
 
       - name: Run linter
         working-directory: ./frontend
@@ -149,8 +148,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd .. && npm ci
-          cd frontend
+          npm ci
 
       - name: Install Playwright browsers
         working-directory: ./frontend

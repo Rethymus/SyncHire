@@ -40,9 +40,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: |
-          cd .. && npm ci
-          cd frontend
+        run: npm ci
 
       - name: Run type check
         working-directory: ./frontend
