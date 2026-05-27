@@ -10,6 +10,9 @@ email-validator==2.2.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.17
+pyotp==2.9.0
+qrcode==7.4.2
+pillow==11.1.0
 redis==5.2.0
 aiobotocore==2.15.0
 openai==1.57.0
@@ -25,13 +28,23 @@ pdfplumber==0.11.4
 python-docx==1.1.2
 Pillow==11.1.0
 
+# Security Dependencies
+cryptography==43.0.0
+python-magic==0.4.27
+clamd==1.0.2
+
 # Testing Dependencies (2026 Best Practices)
 pytest==8.3.4
 pytest-asyncio==0.24.0
 pytest-cov==6.0.0
 pytest-mock==3.14.0
+pytest-xdist==3.6.1  # Parallel test execution
 faker==36.0.0
 testcontainers==4.9.0
+freezegun==1.5.1  # Time mocking for tests
+factory-boy==3.3.1  # Test data factories
+pytest-timeout==2.3.1  # Test timeout enforcement
+pytest-benchmark==4.0.0  # Performance benchmarking
 
 # Code Quality Tools (2026 Standards)
 black==25.1.0

@@ -9,6 +9,7 @@ import { logger, LogCategory } from '@/lib/logger';
 import { authAPI } from '@/lib/api-client';
 import { storeTokens, storeUserData } from '@/lib/auth';
 import { useAppStore } from '@/lib/store';
+import { useToastMessage } from '@/components/ui/toast';
 
 export interface SignupFormData {
   name: string;
@@ -35,6 +36,7 @@ export interface PasswordStrength {
 export function useSignupForm() {
   const router = useRouter();
   const setUser = useAppStore((state) => state.setUser);
+  const { success, error: toastError, info } = useToastMessage();
   const [formData, setFormData] = useState<SignupFormData>({
     name: '',
     email: '',
@@ -251,6 +253,7 @@ export function useSignupForm() {
 
       if (response.error || !response.data) {
         setErrors({ general: response.error || '注册失败，请稍后重试' });
+        toastError('注册失败', response.error || '请稍后重试');
         return;
       }
 
@@ -262,6 +265,7 @@ export function useSignupForm() {
 
       if (loginResponse.error || !loginResponse.data) {
         setErrors({ general: '注册成功，但自动登录失败，请手动登录' });
+        success('注册成功', '账户已创建，请手动登录');
         router.push('/login');
         return;
       }
@@ -284,6 +288,9 @@ export function useSignupForm() {
 
       logger.info(LogCategory.AUTH, 'User registered successfully', { email: userData.email });
 
+      // Show success message
+      success('注册成功', `欢迎加入知遇，${userData.fullName}！`);
+
       // Redirect to dashboard
       router.push('/dashboard');
     } catch (error) {
@@ -292,7 +299,7 @@ export function useSignupForm() {
     } finally {
       setLoading(false);
     }
-  }, [validateForm, formData, router, setUser]);
+  }, [validateForm, formData, router, setUser, success, toastError]);
 
   return {
     formData,

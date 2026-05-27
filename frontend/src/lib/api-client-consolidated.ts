@@ -404,6 +404,27 @@ export const applicationAPI = {
       errors: Array<{ id: string; error: string }>;
     }>('/applications/bulk-delete', { ids }),
 
+  bulkUpdate: (updates: Array<{ id: string; status?: string; notes?: string }>) =>
+    apiClient.post<{
+      success_count: number;
+      failed_count: number;
+      errors: Array<{ id: string; error: string }>;
+    }>('/applications/bulk-update', { updates }),
+
+  bulkStatusUpdate: (ids: string[], status: string, notes?: string) =>
+    apiClient.post<{
+      success_count: number;
+      failed_count: number;
+      errors: Array<{ id: string; error: string }>;
+    }>('/applications/bulk-status-update', { ids, status, notes }),
+
+  bulkNotesUpdate: (ids: string[], notes: string, append: boolean = true) =>
+    apiClient.post<{
+      success_count: number;
+      failed_count: number;
+      errors: Array<{ id: string; error: string }>;
+    }>('/applications/bulk-notes-update', { ids, notes, append }),
+
   getMatchScore: (id: string) =>
     apiClient.get<{
       match_score: number;

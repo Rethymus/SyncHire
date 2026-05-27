@@ -1,7 +1,10 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Navigation } from "@/components/navigation";
+import { Suspense } from "react";
+// // import { Navigation } from "@/components/navigation";
 import { useAppStore } from "@/lib/store";
 import { apiClient } from "@/lib/api-client";
 import {
@@ -164,7 +167,7 @@ function StatCard({ title, value, icon: Icon, color, trend }: StatCardProps) {
   );
 }
 
-function AnalyticsPage() {
+function AnalyticsPageContent() {
   const { isAuthenticated } = useAppStore();
   const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -202,7 +205,6 @@ function AnalyticsPage() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navigation />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
@@ -220,7 +222,6 @@ function AnalyticsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navigation />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -233,7 +234,6 @@ function AnalyticsPage() {
   if (error || !analytics) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navigation />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6">
             <div className="flex items-center gap-3">
@@ -251,8 +251,6 @@ function AnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -510,4 +508,14 @@ function AnalyticsPage() {
   );
 }
 
-export default AnalyticsPage;
+export default function AnalyticsPageWrapper() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <AnalyticsPageContent />
+    </Suspense>
+  );
+}

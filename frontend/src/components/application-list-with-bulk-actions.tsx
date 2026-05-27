@@ -9,6 +9,7 @@ import { SelectableList, useSelectableList } from "@/components/selectable-list"
 import { applicationAPI } from "@/lib/api-client-consolidated";
 import { logger, LogCategory } from "@/lib/logger";
 import { useAppStore } from "@/lib/store";
+import { useToast } from "@/hooks/use-toast";
 import {
   FileText,
   Briefcase,
@@ -100,6 +101,7 @@ const getStatusIcon = (status: string) => {
 export const ApplicationListWithBulkActions = memo<ApplicationListWithBulkActionsProps>(
   function ApplicationListWithBulkActions({ applications, onRefresh, className }) {
     const { applications: storedApplications, deleteApplication } = useAppStore();
+    const { crud, api } = useToast();
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [applicationToDelete, setApplicationToDelete] = useState<Application | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -147,17 +149,21 @@ export const ApplicationListWithBulkActions = memo<ApplicationListWithBulkAction
         if (response.success) {
           // Update store to remove deleted application
           deleteApplication(applicationToDelete.id);
+          crud.delete.success("Application");
           logger.info(LogCategory.USER_ACTION, `Deleted application: ${applicationToDelete.id}`);
           onRefresh?.();
+        } else {
+          crud.delete.error("Application", response.error as string);
         }
       } catch (error) {
         logger.error(LogCategory.API, "Failed to delete application", error as Error);
+        api.error("Delete application", error as Error);
       } finally {
         setIsDeleting(false);
         setDeleteDialogOpen(false);
         setApplicationToDelete(null);
       }
-    }, [applicationToDelete, deleteApplication, onRefresh]);
+    }, [applicationToDelete, deleteApplication, onRefresh, crud, api]);
 
     const handleBulkDelete = useCallback(async (ids: string[]) => {
       const response = await applicationAPI.bulkDelete(ids);
@@ -172,7 +178,7 @@ export const ApplicationListWithBulkActions = memo<ApplicationListWithBulkAction
               !errors.some((error) => error.id === id)
             )
           );
-          // Note: Store will be updated via onRefresh callback
+          crud.bulk.delete.success("Application", success_count, failed_count);
         }
 
         if (failed_count > 0) {
@@ -185,6 +191,8 @@ export const ApplicationListWithBulkActions = memo<ApplicationListWithBulkAction
 
         clearSelection();
         onRefresh?.();
+      } else {
+        crud.bulk.delete.error("Application", response.error as string);
       }
 
       return response.data || {
@@ -192,7 +200,7 @@ export const ApplicationListWithBulkActions = memo<ApplicationListWithBulkAction
         failed_count: ids.length,
         errors: ids.map((id) => ({ id, error: "Unknown error" }))
       };
-    }, [clearSelection, onRefresh]);
+    }, [clearSelection, onRefresh, crud]);
 
     const renderApplicationItem = useCallback(
       (application: Application, isItemSelected: boolean) => {

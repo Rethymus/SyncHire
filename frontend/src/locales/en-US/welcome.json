@@ -1,0 +1,35 @@
+{
+  "welcome": {
+    "title": "Welcome to SyncHire!",
+    "subtitle": "Let AI help you find your dream job",
+    "close": "Close welcome banner",
+    "tips": {
+      "uploadResume": "💡 Tip: After uploading your resume, AI will automatically analyze and optimize your resume content",
+      "smartMatching": "🎯 Goal: Find the most suitable positions through intelligent matching",
+      "interviewPrep": "📈 Improve: Use interview preparation features to increase your success rate",
+      "efficiency": "⚡ Efficiency: Manage multiple applications in batches to save job hunting time"
+    },
+    "quickActions": {
+      "uploadResume": {
+        "title": "Upload Resume",
+        "description": "Start your smart job search journey"
+      },
+      "watchTutorial": {
+        "title": "Watch Tutorial",
+        "description": "Learn how to use platform features"
+      },
+      "readGuide": {
+        "title": "Read Guide",
+        "description": "View detailed documentation"
+      },
+      "joinCommunity": {
+        "title": "Join Community",
+        "description": "Exchange experiences with other users"
+      }
+    },
+    "cta": {
+      "startTour": "Start Guided Tutorial",
+      "later": "Maybe Later"
+    }
+  }
+}

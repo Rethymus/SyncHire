@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useMemo, memo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Navigation } from "@/components/navigation";
+// import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { applicationAPI } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
@@ -462,7 +462,7 @@ function InterviewPrepContent() {
   if (!applicationId) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navigation />
+        
         <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 flex items-start gap-4">
             <AlertCircle className="h-6 w-6 text-yellow-600 flex-shrink-0 mt-0.5" />
@@ -480,7 +480,7 @@ function InterviewPrepContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
+      
 
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}

@@ -1,525 +1,393 @@
+/**
+ * Dashboard Page - Lightweight Version
+ *
+ * Simplified dashboard without authentication or user-specific data.
+ */
+
 "use client";
 
 import { useState, useCallback, useMemo, memo, useEffect } from "react";
 import Link from "next/link";
-import { Navigation } from "@/components/navigation";
+import { Navigation } from "@/components/navigation-lite";
+import { Breadcrumb } from "@/components/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { ResumeUpload } from "@/components/resume-upload";
-import { JDInput } from "@/components/jd-input";
-import OnboardingWorkflow from "@/components/onboarding-workflow";
-import OnboardingProgress from "@/components/onboarding-progress";
-import WelcomeBanner from "@/components/welcome-banner";
-import { ApplicationCreateDialog } from "@/components/application-create-dialog";
-import { DashboardStatsSkeleton } from "@/components/skeleton";
-import { useAppStore, type Resume } from "@/lib/store";
-import { cn } from "@/lib/utils";
-import { resumeAPI, jdAPI } from "@/lib/api-client-consolidated";
+import { apiClient } from "@/lib/api-client-lite";
 import { logger, LogCategory } from "@/lib/logger";
 import {
-  LayoutDashboard,
   FileText,
   Briefcase,
-  Settings,
-  LogOut,
-  User,
-  Calendar,
+  BarChart3,
   TrendingUp,
   CheckCircle2,
   Clock,
   XCircle,
-  Menu,
-  X,
-  Search,
-  BarChart3,
   Plus,
+  FolderOpen,
 } from "lucide-react";
 
-const steps = [
-  { id: 1, name: "上传简历", icon: FileText, status: "current" },
-  { id: 2, name: "输入职位描述", icon: Briefcase, status: "upcoming" },
-  { id: 3, name: "AI 分析匹配", icon: TrendingUp, status: "upcoming" },
-  { id: 4, name: "生成优化简历", icon: CheckCircle2, status: "upcoming" },
-];
+interface Resume {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+}
+
+interface JobDescription {
+  id: string;
+  title: string;
+  company: string;
+  description: string;
+  created_at: string;
+}
+
+interface Application {
+  id: string;
+  resume_id: string;
+  jd_id: string;
+  status: string;
+  created_at: string;
+}
 
 function DashboardPage() {
-  const { resumes, currentJD, applications, onboarding, setResumes, addApplication, jobDescriptions, setJobDescriptions } = useAppStore();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [loadingResumes, setLoadingResumes] = useState(false);
-  const [loadingStats, setLoadingStats] = useState(true);
+  const [resumes, setResumes] = useState<Resume[]>([]);
+  const [jobDescriptions, setJobDescriptions] = useState<JobDescription[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
   const [applicationDialogOpen, setApplicationDialogOpen] = useState(false);
 
-  // Load resumes on mount
+  // Load all data in parallel on mount
   useEffect(() => {
-    const loadResumes = async () => {
-      setLoadingResumes(true);
-      setLoadingStats(true);
+    const loadData = async () => {
+      setLoading(true);
       try {
-        const response = await resumeAPI.list();
-        if (response.success && response.data) {
-          const transformedResumes: Resume[] = response.data.map((resume: any) => ({
-            id: resume.id,
-            name: resume.title,
-            content: resume.content || '',
-            uploadedAt: new Date(resume.created_at),
-            fileUrl: resume.file_path,
-          }));
-          setResumes(transformedResumes);
-        }
+        const [resumesData, jdsData, applicationsData] = await Promise.all([
+          apiClient.resume.list(),
+          apiClient.jd.list(),
+          apiClient.application.list(),
+        ]);
+
+        setResumes(resumesData || []);
+        setJobDescriptions(jdsData || []);
+        setApplications(applicationsData || []);
       } catch (error) {
-        logger.error(LogCategory.API, "Failed to load resumes", error as Error);
+        logger.error(LogCategory.API, "Failed to load dashboard data", error as Error);
       } finally {
-        setLoadingResumes(false);
-        // Ensure stats are visible for at least 500ms for smoother UX
-        setTimeout(() => setLoadingStats(false), 500);
+        setLoading(false);
       }
     };
 
-    loadResumes();
-  }, [setResumes]);
-
-  // Load job descriptions on mount
-  useEffect(() => {
-    const loadJDs = async () => {
-      try {
-        const response = await jdAPI.list();
-        if (response.success && response.data) {
-          const transformedJDs = response.data.map((jd: any) => ({
-            id: jd.id,
-            title: jd.title,
-            company: jd.company,
-            description: jd.description,
-            requirements: jd.requirements || [],
-            skills: jd.skills || [],
-            createdAt: new Date(jd.created_at),
-          }));
-          setJobDescriptions(transformedJDs);
-        }
-      } catch (error) {
-        logger.error(LogCategory.API, "Failed to load JDs", error as Error);
-      }
-    };
-
-    loadJDs();
-  }, [setJobDescriptions]);
-
-  // Show onboarding workflow for new users
-  const shouldShowOnboarding = !onboarding.isOnboarded && !onboarding.skipped;
+    loadData();
+  }, []);
 
   // Memoize stats to avoid recalculation on every render
   const stats = useMemo(() => [
     {
-      name: "总申请数",
-      value: applications.length,
-      icon: Briefcase,
+      name: "Resumes",
+      value: resumes.length,
+      icon: FileText,
       color: "bg-blue-500",
+      href: "/resumes",
     },
     {
-      name: "面试邀请",
+      name: "Job Descriptions",
+      value: jobDescriptions.length,
+      icon: Briefcase,
+      color: "bg-green-500",
+      href: "/job-descriptions",
+    },
+    {
+      name: "Applications",
+      value: applications.length,
+      icon: BarChart3,
+      color: "bg-purple-500",
+      href: "/applications",
+    },
+    {
+      name: "Interviews",
       value: applications.filter((a) => a.status === "interview").length,
       icon: CheckCircle2,
-      color: "bg-green-500",
+      color: "bg-emerald-500",
+      href: "/applications?status=interview",
     },
-    {
-      name: "处理中",
-      value: applications.filter((a) => a.status === "applied").length,
-      icon: Clock,
-      color: "bg-yellow-500",
-    },
-    {
-      name: "已拒绝",
-      value: applications.filter((a) => a.status === "rejected").length,
-      icon: XCircle,
-      color: "bg-red-500",
-    },
-  ], [applications]);
+  ], [resumes.length, jobDescriptions.length, applications.length]);
 
-  // Memoize recent applications to avoid re-slicing on every render
-  const recentApplications = useMemo(() => applications.slice(0, 5), [applications]);
+  // Memoize recent applications
+  const recentApplications = useMemo(() => {
+    return applications
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 5);
+  }, [applications]);
 
-  // Memoize sidebar toggle handler
-  const toggleSidebar = useCallback(() => {
-    setMobileSidebarOpen(prev => !prev);
-  }, []);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "interview":
+        return "bg-green-100 text-green-800";
+      case "applied":
+        return "bg-blue-100 text-blue-800";
+      case "rejected":
+        return "bg-red-100 text-red-800";
+      case "offer":
+        return "bg-emerald-100 text-emerald-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
 
-  // Memoize close sidebar handler
-  const closeSidebar = useCallback(() => {
-    setMobileSidebarOpen(false);
-  }, []);
-
-  // Memoize step change handlers
-  const goToStep1 = useCallback(() => setCurrentStep(1), []);
-  const goToStep2 = useCallback(() => setCurrentStep(2), []);
-  const goToStep3 = useCallback(() => setCurrentStep(3), []);
-  const goToStep4 = useCallback(() => setCurrentStep(4), []);
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "interview":
+        return "Interview";
+      case "applied":
+        return "Applied";
+      case "rejected":
+        return "Rejected";
+      case "offer":
+        return "Offer";
+      case "draft":
+        return "Draft";
+      default:
+        return status;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Onboarding Workflow */}
-      <OnboardingWorkflow />
+      
 
-      <Navigation />
-
-      <div className="flex flex-col md:flex-row">
-        {/* Mobile menu button */}
-        <div className="md:hidden bg-white border-b border-gray-200 p-4 sticky top-16 z-40">
-          <button
-            onClick={toggleSidebar}
-            className="flex items-center gap-2 text-gray-700 w-full px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
-            aria-expanded={mobileSidebarOpen}
-            aria-label="切换菜单"
-          >
-            {mobileSidebarOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-            <span className="font-medium">导航菜单</span>
-          </button>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Breadcrumb */}
+        <div className="mb-4">
+          <Breadcrumb />
         </div>
 
-        {/* Sidebar */}
-        <aside
-          className={cn(
-            "bg-white border-r border-gray-200 min-h-[calc(100vh-64px)] transition-all duration-300 ease-in-out",
-            mobileSidebarOpen ? "w-full md:w-64" : "hidden md:w-64 md:block",
-            "p-6"
-          )}
-          aria-label="主导航"
-        >
-          <nav className="space-y-2" aria-label="仪表盘导航">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-3 px-4 py-3 text-gray-900 rounded-lg bg-gray-100 font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset min-h-[44px]"
-              aria-current="page"
-              onClick={closeSidebar}
-            >
-              <LayoutDashboard className="h-5 w-5" aria-hidden="true" />
-              控制台
-            </Link>
-            <Link
-              href="/analytics"
-              className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset min-h-[44px]"
-              onClick={closeSidebar}
-            >
-              <BarChart3 className="h-5 w-5" aria-hidden="true" />
-              数据分析
-            </Link>
-            <button
-              className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors w-full focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset min-h-[44px]"
-              onClick={() => {
-                setApplicationDialogOpen(true);
-                closeSidebar();
-              }}
-            >
-              <Plus className="h-5 w-5" aria-hidden="true" />
-              创建申请
-            </button>
-            <Link
-              href="/search/applications"
-              className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset min-h-[44px]"
-              onClick={closeSidebar}
-            >
-              <Search className="h-5 w-5" aria-hidden="true" />
-              搜索申请
-            </Link>
-            <Link
-              href="/search/resumes"
-              className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset min-h-[44px]"
-              onClick={closeSidebar}
-            >
-              <FileText className="h-5 w-5" aria-hidden="true" />
-              搜索简历
-            </Link>
-            <Link
-              href="/search/jds"
-              className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset min-h-[44px]"
-              onClick={closeSidebar}
-            >
-              <Briefcase className="h-5 w-5" aria-hidden="true" />
-              搜索职位
-            </Link>
-            <Link
-              href="/dashboard/settings"
-              className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset min-h-[44px]"
-              onClick={closeSidebar}
-            >
-              <Settings className="h-5 w-5" aria-hidden="true" />
-              设置
-            </Link>
-          </nav>
-
-          <div className="mt-8 pt-8 border-t border-gray-200">
-            <div className="flex items-center gap-3 px-4 py-3" role="presentation">
-              <div className="h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center" aria-hidden="true">
-                <User className="h-5 w-5 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  用户
-                </p>
-                <p className="text-xs text-gray-600 truncate">
-                  user@example.com
-                </p>
-              </div>
-            </div>
-            <button
-              className="flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors w-full focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset min-h-[44px]"
-              aria-label="退出登录"
-            >
-              <LogOut className="h-5 w-5" aria-hidden="true" />
-              退出登录
-            </button>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Welcome to SyncHire Lite
+            </h1>
+            <p className="mt-2 text-gray-600">
+              Your local AI-powered job application assistant
+            </p>
           </div>
-        </aside>
+          <Button
+            onClick={() => setApplicationDialogOpen(true)}
+            size="lg"
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            New Application
+          </Button>
+        </div>
 
-        {/* Main content */}
-        <main className="flex-1 p-4 md:p-8">
-          <div className="max-w-6xl mx-auto space-y-8">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  欢迎回来
-                </h1>
-                <p className="mt-2 text-gray-700">
-                  开始您今天的求职旅程
-                </p>
+        {/* Quick Stats */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-lg shadow p-6 animate-pulse">
+                <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+                <div className="mt-4 h-6 bg-gray-200 rounded w-1/2"></div>
               </div>
-              <Button
-                onClick={() => setApplicationDialogOpen(true)}
-                size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                创建申请
-              </Button>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {stats.map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <Link
+                  key={stat.name}
+                  href={stat.href}
+                  className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">{stat.name}</p>
+                      <p className="text-3xl font-bold text-gray-900 mt-2">
+                        {stat.value}
+                      </p>
+                    </div>
+                    <div className={`${stat.color} p-3 rounded-lg`}>
+                      <Icon className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Quick Actions */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Link
+              href="/resumes"
+              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <FileText className="h-5 w-5 text-blue-600" />
+              <span className="font-medium text-gray-700">Manage Resumes</span>
+            </Link>
+            <Link
+              href="/job-descriptions"
+              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Briefcase className="h-5 w-5 text-green-600" />
+              <span className="font-medium text-gray-700">Job Descriptions</span>
+            </Link>
+            <Link
+              href="/applications"
+              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <BarChart3 className="h-5 w-5 text-purple-600" />
+              <span className="font-medium text-gray-700">Track Applications</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Getting Started */}
+        {(resumes.length === 0 || jobDescriptions.length === 0) && (
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Getting Started
+            </h2>
+            <div className="space-y-4">
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                  1
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900">Upload your resume</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Add your resume to get started. Use AI to optimize it for better ATS compatibility.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                  2
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900">Add job descriptions</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Import job descriptions from URLs or paste content. AI will parse and structure the information.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                  3
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900">Create applications</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Pair resumes with job descriptions and track your application status with AI-powered match scores.
+                  </p>
+                </div>
+              </div>
             </div>
+          </div>
+        )}
 
-            {/* Onboarding Progress */}
-            {!onboarding.isOnboarded && (
-              <>
-                <WelcomeBanner />
-                <OnboardingProgress />
-              </>
+        {/* Recent Applications */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Recent Applications
+            </h2>
+            {applications.length > 5 && (
+              <Link href="/applications" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                View all
+              </Link>
             )}
+          </div>
+          {recentApplications.length > 0 ? (
+            <div className="space-y-4">
+              {recentApplications.map((app) => {
+                const resume = resumes.find((r) => r.id === app.resume_id);
+                const jd = jobDescriptions.find((j) => j.id === app.jd_id);
 
-            {/* Stats */}
-            {loadingStats ? (
-              <DashboardStatsSkeleton />
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {stats.map((stat) => (
+                return (
                   <div
-                    key={stat.name}
-                    className="bg-white rounded-lg p-6 border border-gray-200"
+                    key={app.id}
+                    className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-700">{stat.name}</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">
-                          {stat.value}
-                        </p>
-                      </div>
-                      <div className={`${stat.color} p-3 rounded-lg`}>
-                        <stat.icon className="h-6 w-6 text-white" />
-                      </div>
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {jd?.title || "Unknown Position"}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        {jd?.company || "Unknown Company"} • {resume?.title || "Unknown Resume"}
+                      </p>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Steps */}
-            <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <div className="flex items-center justify-between mb-8">
-                <h2 id="steps-heading" className="text-xl font-semibold text-gray-900">
-                  创建新申请
-                </h2>
-                <nav className="flex gap-2" aria-labelledby="steps-heading">
-                  <ol className="flex gap-2" role="list">
-                    {steps.map((step, idx) => (
-                      <li key={step.id} className="flex items-center">
-                        <span
-                          className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                            currentStep >= step.id
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-200 text-gray-700"
-                          }`}
-                          aria-current={currentStep === step.id ? "step" : undefined}
-                        >
-                          {step.id}
-                        </span>
-                        {idx < steps.length - 1 && (
-                          <div
-                            className={`w-16 h-1 ${
-                              currentStep > step.id ? "bg-blue-600" : "bg-gray-200"
-                            }`}
-                            aria-hidden="true"
-                          />
-                        )}
-                      </li>
-                    ))}
-                  </ol>
-                </nav>
-              </div>
-
-              <div className="space-y-8">
-                {currentStep === 1 && (
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      上传您的简历
-                    </h3>
-                    <ResumeUpload />
-                    {resumes.length > 0 && (
-                      <div className="mt-6 flex justify-end">
-                        <Button onClick={goToStep2}>
-                          下一步
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {currentStep === 2 && (
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      输入职位描述
-                    </h3>
-                    <JDInput />
-                    {currentJD && (
-                      <div className="mt-6 flex justify-end gap-3">
-                        <Button
-                          variant="outline"
-                          onClick={goToStep1}
-                        >
-                          上一步
-                        </Button>
-                        <Button onClick={goToStep3}>
-                          下一步
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {currentStep === 3 && (
-                  <div className="text-center py-12">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                      <TrendingUp className="h-8 w-8 text-blue-600" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      AI 正在分析匹配度
-                    </h3>
-                    <p className="text-gray-700 mb-6">
-                      这可能需要几秒钟时间...
-                    </p>
-                    <div className="flex justify-center gap-3">
-                      <Button
-                        variant="outline"
-                        onClick={goToStep2}
+                    <div className="flex items-center gap-4">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(app.status)}`}
                       >
-                        上一步
-                      </Button>
-                      <Button onClick={goToStep4}>
-                        查看结果
-                      </Button>
+                        {getStatusLabel(app.status)}
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        {new Date(app.created_at).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
-                )}
-
-                {currentStep === 4 && (
-                  <div className="text-center py-12">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                      <CheckCircle2 className="h-8 w-8 text-green-600" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      分析完成！
-                    </h3>
-                    <p className="text-gray-700 mb-6">
-                      您的简历与职位匹配度为 85%
-                    </p>
-                    <div className="flex justify-center gap-3">
-                      <Button
-                        variant="outline"
-                        onClick={goToStep1}
-                      >
-                        创建新申请
-                      </Button>
-                      <Button>
-                        查看详细报告
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
+                );
+              })}
             </div>
+          ) : (
+            <div className="text-center py-8 text-gray-600">
+              No applications yet. Create your first application to get started.
+            </div>
+          )}
+        </div>
 
-            {/* Recent Activity */}
-            <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                最近活动
-              </h2>
-              {applications.length > 0 ? (
-                <div className="space-y-4">
-                  {recentApplications.map((app) => (
-                    <div
-                      key={app.id}
-                      className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
-                    >
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {app.position}
-                        </p>
-                        <p className="text-sm text-gray-700">
-                          {app.companyName}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            app.status === "interview"
-                              ? "bg-green-100 text-green-800"
-                              : app.status === "applied"
-                              ? "bg-blue-100 text-blue-800"
-                              : app.status === "rejected"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {app.status === "interview"
-                            ? "面试中"
-                            : app.status === "applied"
-                            ? "已申请"
-                            : app.status === "rejected"
-                            ? "已拒绝"
-                            : "草稿"}
-                        </span>
-                        <span className="text-sm text-gray-600">
-                          {new Date(app.createdAt).toLocaleDateString("zh-CN")}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-600">
-                  暂无活动记录
-                </div>
-              )}
+        {/* Data Management */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Data Management</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Link
+              href="/data"
+              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <FolderOpen className="h-5 w-5 text-orange-600" />
+              <div>
+                <p className="font-medium text-gray-700">Manage Data</p>
+                <p className="text-sm text-gray-500">
+                  Export, import, backup your data
+                </p>
+              </div>
+            </Link>
+            <Link
+              href="/search"
+              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <TrendingUp className="h-5 w-5 text-indigo-600" />
+              <div>
+                <p className="font-medium text-gray-700">Search</p>
+                <p className="text-sm text-gray-500">
+                  Full-text and semantic search
+                </p>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* Info Banner */}
+        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex">
+            <TrendingUp className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-blue-800">
+                SyncHire Lite - Local & Private
+              </h3>
+              <p className="text-sm text-blue-600 mt-1">
+                All your data is stored locally on your machine. No cloud storage, no authentication
+                required. Your resume and job search data stays private.
+              </p>
             </div>
           </div>
-        </main>
-      </div>
-
-      {/* Application Creation Dialog */}
-      <ApplicationCreateDialog
-        open={applicationDialogOpen}
-        onOpenChange={setApplicationDialogOpen}
-        onSuccess={(application) => {
-          logger.info(LogCategory.API, "Application created successfully", { applicationId: application.id });
-        }}
-      />
+        </div>
+      </main>
     </div>
   );
 }

@@ -13,6 +13,12 @@ from app.schemas.application import (
     ApplicationStatusUpdate,
     BulkDeleteRequest,
     BulkDeleteResponse,
+    BulkUpdateRequest,
+    BulkStatusUpdateRequest,
+    BulkNotesUpdateRequest,
+    BulkUpdateResponse,
+    BulkTagRequest,
+    BulkTagResponse,
 )
 from app.services.application_service import ApplicationService
 from pydantic import BaseModel
@@ -177,4 +183,153 @@ async def bulk_delete_applications(
     )
     return await ApplicationService.bulk_delete_applications(
         db, current_user.id, request.ids
+    )
+
+
+@router.post("/bulk-update", response_model=BulkUpdateResponse)
+async def bulk_update_applications(
+    request: BulkUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Bulk update multiple applications
+
+    Updates multiple applications with different values per application.
+    Supports partial failure handling.
+
+    - **updates**: List of updates, each containing id and fields to update
+    - **success_count**: Number of successfully updated applications
+    - **failed_count**: Number of applications that failed to update
+    - **errors**: List of errors for failed updates with ID and error message
+    """
+    logger.info(
+        f"Bulk update request for {len(request.updates)} applications by user {current_user.id}"
+    )
+    return await ApplicationService.bulk_update_applications(
+        db, current_user.id, request.updates
+    )
+
+
+@router.post("/bulk-status-update", response_model=BulkUpdateResponse)
+async def bulk_update_application_status(
+    request: BulkStatusUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Bulk update application status
+
+    Updates the status (and optionally notes) for multiple applications at once.
+    Useful for moving multiple applications to the same stage.
+
+    - **ids**: List of application IDs to update (max 100 at once)
+    - **status**: New status to set for all applications
+    - **notes**: Optional notes to add to all applications
+    - **success_count**: Number of successfully updated applications
+    - **failed_count**: Number of applications that failed to update
+    - **errors**: List of errors for failed updates with ID and error message
+    """
+    logger.info(
+        f"Bulk status update request for {len(request.ids)} applications "
+        f"to status '{request.status}' by user {current_user.id}"
+    )
+
+    # Convert bulk status update to bulk update format
+    updates = []
+    for app_id in request.ids:
+        update_data = {"id": str(app_id), "status": request.status}
+        if request.notes:
+            update_data["notes"] = request.notes
+        updates.append(update_data)
+
+    return await ApplicationService.bulk_update_applications(
+        db, current_user.id, updates
+    )
+
+
+@router.post("/bulk-notes-update", response_model=BulkUpdateResponse)
+async def bulk_update_application_notes(
+    request: BulkNotesUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Bulk update application notes
+
+    Updates notes for multiple applications at once.
+    Can append to existing notes or replace them entirely.
+
+    - **ids**: List of application IDs to update (max 100 at once)
+    - **notes**: Notes content to set/add
+    - **append**: If true, append to existing notes. If false, replace existing notes.
+    - **success_count**: Number of successfully updated applications
+    - **failed_count**: Number of applications that failed to update
+    - **errors**: List of errors for failed updates with ID and error message
+    """
+    logger.info(
+        f"Bulk notes update request for {len(request.ids)} applications "
+        f"(append={request.append}) by user {current_user.id}"
+    )
+
+    # For append mode, we need to fetch current notes first
+    if request.append:
+        from sqlalchemy import select
+        from app.models.application import Application
+
+        result = await db.execute(
+            select(Application.id, Application.notes).where(
+                Application.id.in_(request.ids),
+                Application.user_id == current_user.id,
+            )
+        )
+        existing_notes = {row.id: row.notes for row in result.all()}
+
+        updates = []
+        for app_id in request.ids:
+            current_notes = existing_notes.get(str(app_id))
+            new_notes = (
+                f"{current_notes}\n\n{request.notes}"
+                if current_notes
+                else request.notes
+            )
+            updates.append({"id": str(app_id), "notes": new_notes})
+    else:
+        # Replace mode - set the same notes for all
+        updates = [{"id": str(app_id), "notes": request.notes} for app_id in request.ids]
+
+    return await ApplicationService.bulk_update_applications(
+        db, current_user.id, updates
+    )
+
+
+@router.post("/bulk-tag", response_model=BulkTagResponse)
+async def bulk_tag_applications(
+    request: BulkTagRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Bulk tag applications
+
+    Add, remove, or replace tags on multiple applications at once.
+    Supports partial failure handling.
+
+    - **ids**: List of application IDs to update (max 100 at once)
+    - **tags**: List of tags to add/remove/replace
+    - **operation**: Operation type - 'add', 'remove', or 'replace'
+      - add: Append tags to existing tags (no duplicates)
+      - remove: Remove specified tags from existing tags
+      - replace: Replace all existing tags with new tags
+    - **success_count**: Number of successfully updated applications
+    - **failed_count**: Number of applications that failed to update
+    - **errors**: List of errors for failed updates with ID and error message
+    """
+    logger.info(
+        f"Bulk {request.operation} tag request for {len(request.ids)} applications "
+        f"with tags {request.tags} by user {current_user.id}"
+    )
+
+    return await ApplicationService.bulk_tag_applications(
+        db, current_user.id, request
     )

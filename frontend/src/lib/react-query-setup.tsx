@@ -1,5 +1,5 @@
 /**
- * React Query Setup
+ * React Query Setup with Enhanced Error Handling
  * Provides QueryClient and QueryClientProvider configuration
  */
 
@@ -7,28 +7,15 @@
 
 import { QueryClient, QueryClientProvider as ReactQueryProvider } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
+import { createEnhancedQueryClient } from './react-query-error-handling';
 
 interface QueryClientProviderProps {
   children: ReactNode;
 }
 
 export function QueryClientProvider({ children }: QueryClientProviderProps) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 1000 * 60 * 5, // 5 minutes
-            gcTime: 1000 * 60 * 10, // 10 minutes (formerly cacheTime)
-            retry: 1,
-            refetchOnWindowFocus: false,
-          },
-          mutations: {
-            retry: 1,
-          },
-        },
-      })
-  );
+  // Use enhanced query client with comprehensive error handling
+  const [queryClient] = useState(() => createEnhancedQueryClient());
 
   return (
     <ReactQueryProvider client={queryClient}>

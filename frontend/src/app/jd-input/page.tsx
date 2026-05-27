@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Navigation } from "@/components/navigation";
+// // import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { useAppStore, type JobDescription } from "@/lib/store";
 import { useRouter } from "next/navigation";
@@ -104,7 +104,6 @@ export default function JDInputPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
 
       <div className="max-w-4xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
         <div className="mb-8">

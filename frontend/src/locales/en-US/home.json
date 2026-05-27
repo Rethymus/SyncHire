@@ -1,0 +1,57 @@
+{
+  "hero": {
+    "title": "Where Every Job Application",
+    "titleHighlight": "Is a Perfect Match",
+    "description": "SyncHire uses AI to power your job search. Intelligently match job requirements, automatically optimize resume content, and stand out from the crowd to find your ideal job opportunity.",
+    "cta": {
+      "primary": "Get Started Free",
+      "secondary": "Watch Demo"
+    },
+    "socialProof": "10,000+ job seekers already using"
+  },
+  "benefits": {
+    "increaseInterviewRate": "3x higher interview invitation rate",
+    "saveTime": "Save 90% resume preparation time",
+    "multipleFormats": "Support PDF, Word, LinkedIn import",
+    "bilingualSupport": "English and Chinese bilingual support",
+    "unlimitedGeneration": "Unlimited resume generation",
+    "aiAssistant": "24/7 AI assistant"
+  },
+  "features": {
+    "sectionTitle": "Core Features",
+    "sectionSubtitle": "One-stop AI Job Assistant",
+    "sectionDescription": "From resume optimization to job matching, we provide full-process AI support to make job hunting simple and efficient",
+    "smartOptimization": {
+      "title": "Smart Resume Optimization",
+      "description": "AI-driven resume analysis that automatically optimizes your resume content for each position"
+    },
+    "jobMatching": {
+      "title": "Job Matching Analysis",
+      "description": "Deep analysis of job descriptions to calculate your match score and provide improvement suggestions"
+    },
+    "oneClickGeneration": {
+      "title": "One-Click Resume Generation",
+      "description": "Quickly generate targeted resumes based on job requirements, saving 90% editing time"
+    },
+    "realTimePreview": {
+      "title": "Real-Time Preview",
+      "description": "WYSIWYG resume editor with real-time modification preview"
+    },
+    "dataInsights": {
+      "title": "Data Insights",
+      "description": "Visual display of how your skills match job requirements"
+    },
+    "secureReliable": {
+      "title": "Secure & Reliable",
+      "description": "Enterprise-level data encryption to protect your privacy and job application information"
+    }
+  },
+  "cta": {
+    "title": "Ready to Start Your Job Search Journey?",
+    "description": "Sign up now to get professional AI job advice and make your resume stand out from candidates",
+    "button": "Sign Up Free"
+  },
+  "footer": {
+    "copyright": "© 2024 SyncHire. All rights reserved."
+  }
+}

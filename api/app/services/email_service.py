@@ -247,6 +247,69 @@ class InterviewReminderTemplate(EmailTemplate):
         )
 
 
+class PasswordResetTemplate(EmailTemplate):
+    """Template for password reset emails."""
+
+    def __init__(self):
+        super().__init__("password_reset")
+
+    def get_default_template(self) -> Template:
+        return Template(
+            """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Reset Your Password</title>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+                    .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; }
+                    .button { display: inline-block; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 15px 0; }
+                    .footer { text-align: center; margin-top: 20px; color: #777; font-size: 12px; }
+                    .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>Reset Your Password</h1>
+                    </div>
+                    <div class="content">
+                        <p>Hello {{ user_name }},</p>
+                        <p>We received a request to reset your password for your SyncHire account.</p>
+
+                        <p style="text-align: center;">
+                            <a href="{{ reset_url }}" class="button">Reset Password</a>
+                        </p>
+
+                        <p>Or copy and paste this link into your browser:</p>
+                        <p style="word-break: break-all; color: #667eea;">{{ reset_url }}</p>
+
+                        <div class="warning">
+                            <p><strong>Important:</strong></p>
+                            <ul>
+                                <li>This link will expire in {{ expiry_hours }} hour(s)</li>
+                                <li>If you didn't request this, please ignore this email</li>
+                                <li>Your password won't change until you access the link above</li>
+                            </ul>
+                        </div>
+
+                        <p>If you have any questions, feel free to contact our support team.</p>
+                    </div>
+                    <div class="footer">
+                        <p>You received this email because you signed up for SyncHire.</p>
+                        <p><a href="{{ unsubscribe_url }}">Unsubscribe</a> | <a href="{{ settings_url }}">Manage Notifications</a></p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+        )
+
+
 class WeeklyDigestTemplate(EmailTemplate):
     """Template for weekly digest notifications."""
 
@@ -356,6 +419,7 @@ class EmailService:
             "application_status": ApplicationStatusTemplate(),
             "interview_reminder": InterviewReminderTemplate(),
             "weekly_digest": WeeklyDigestTemplate(),
+            "password_reset": PasswordResetTemplate(),
         }
 
     async def initialize_redis(self):

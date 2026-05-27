@@ -6,6 +6,7 @@
  */
 
 import React, { useState } from 'react';
+import { Briefcase, XCircle } from 'lucide-react';
 import {
   ErrorRecoveryStrategy,
   RecoveryAction,

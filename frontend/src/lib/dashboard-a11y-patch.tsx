@@ -103,7 +103,7 @@ export function AccessibleStatCard({
 export function AccessibleAppStatus({
   status
 }: {
-  status: "interview" | "applied" | "rejected" | "draft" | "offer"
+  status: "interview" | "applied" | "rejected" | "draft" | "offer" | "optimized" | "pending"
 }) {
   const statusConfig = {
     interview: {
@@ -130,6 +130,16 @@ export function AccessibleAppStatus({
       label: "收到offer",
       color: "bg-purple-100 text-purple-800",
       icon: "🎉",
+    },
+    optimized: {
+      label: "已优化",
+      color: "bg-green-100 text-green-800",
+      icon: "✨",
+    },
+    pending: {
+      label: "处理中",
+      color: "bg-yellow-100 text-yellow-800",
+      icon: "⏳",
     },
   };
 

@@ -111,7 +111,12 @@ class DashboardResponse(BaseModel):
 
 
 def calculate_success_rate(applications: List[Application]) -> Dict[str, float]:
-    """Calculate various success rate metrics."""
+    """Calculate various success rate metrics.
+
+    NOTE: This function operates on already-fetched Application objects.
+    For large datasets, prefer using SQL aggregation directly in the query
+    (see get_analytics_overview for the optimal approach).
+    """
     total = len(applications)
     if total == 0:
         return {
@@ -121,13 +126,15 @@ def calculate_success_rate(applications: List[Application]) -> Dict[str, float]:
             "average_match_score": 0.0,
         }
 
-    interviews = len([a for a in applications if a.status in ["interview", "offer"]])
-    offers = len([a for a in applications if a.status == "offer"])
+    # Use list comprehension instead of filter for better performance
+    interviews = sum(1 for a in applications if a.status in ["interview", "offer"])
+    offers = sum(1 for a in applications if a.status == "offer")
 
     application_to_interview = (interviews / total) * 100 if total > 0 else 0.0
     interview_to_offer = (offers / interviews) * 100 if interviews > 0 else 0.0
     overall_success = (offers / total) * 100 if total > 0 else 0.0
 
+    # Calculate average match score more efficiently
     match_scores = [a.match_score for a in applications if a.match_score is not None]
     avg_match_score = sum(match_scores) / len(match_scores) if match_scores else 0.0
 
@@ -297,10 +304,13 @@ async def get_analytics(
         success_metrics = calculate_success_rate(all_applications)
         success_rates = SuccessRateMetrics(**success_metrics)
 
-        # Calculate status distribution
-        status_counts = {}
-        for app in all_applications:
-            status_counts[app.status] = status_counts.get(app.status, 0) + 1
+        # Calculate status distribution using SQL aggregation
+        status_result = await db.execute(
+            select(Application.status, func.count(Application.id))
+            .where(Application.user_id == current_user.id)
+            .group_by(Application.status)
+        )
+        status_counts = dict(status_result.all())
 
         total = len(all_applications)
         status_distribution = [
@@ -312,45 +322,99 @@ async def get_analytics(
             for status, count in status_counts.items()
         ]
 
-        # Generate activity timeline (daily data)
+        # Generate activity timeline (daily data) using SQL aggregation
+        activity_timeline_result = await db.execute(
+            select(
+                func.date(Application.created_at).label("date"),
+                func.count(Application.id).label("applications"),
+                func.sum(case((Application.status == "interview", 1), else_=0)).label("interviews"),
+                func.sum(case((Application.status == "offer", 1), else_=0)).label("offers"),
+                func.sum(case((Application.status == "rejected", 1), else_=0)).label("rejections"),
+            )
+            .where(
+                and_(
+                    Application.user_id == current_user.id,
+                    Application.created_at >= start_date,
+                )
+            )
+            .group_by(func.date(Application.created_at))
+            .order_by(func.date(Application.created_at))
+        )
+
+        # Build a dictionary for quick lookup
+        activity_by_date = {
+            row.date: ActivityDataPoint(
+                date=row.date.strftime("%Y-%m-%d"),
+                applications=row.applications,
+                interviews=row.interviews or 0,
+                offers=row.offers or 0,
+                rejections=row.rejections or 0,
+            )
+            for row in activity_timeline_result
+        }
+
+        # Fill in missing dates with zeros
         activity_timeline = []
         for i in range(days):
             day_date = end_date - timedelta(days=i)
             day_start = day_date.replace(hour=0, minute=0, second=0, microsecond=0)
-            day_end = day_start + timedelta(days=1)
+            day_key = day_start.date()
 
-            day_apps = [a for a in applications if day_start <= a.created_at < day_end]
-
-            activity_timeline.append(
-                ActivityDataPoint(
-                    date=day_start.strftime("%Y-%m-%d"),
-                    applications=len(day_apps),
-                    interviews=len([a for a in day_apps if a.status == "interview"]),
-                    offers=len([a for a in day_apps if a.status == "offer"]),
-                    rejections=len([a for a in day_apps if a.status == "rejected"]),
+            if day_key in activity_by_date:
+                activity_timeline.append(activity_by_date[day_key])
+            else:
+                activity_timeline.append(
+                    ActivityDataPoint(
+                        date=day_start.strftime("%Y-%m-%d"),
+                        applications=0,
+                        interviews=0,
+                        offers=0,
+                        rejections=0,
+                    )
                 )
-            )
 
         activity_timeline.reverse()  # Show oldest to newest
 
-        # Generate trends (weekly data)
-        trends = []
+        # Generate trends (weekly data) using SQL aggregation
+        # For PostgreSQL, we need to calculate week numbers differently
         weeks = days // 7
+
+        # Build weekly trends using date truncation
+        trends = []
         for week in range(weeks):
             week_start = start_date + timedelta(weeks=week)
             week_end = week_start + timedelta(days=7)
 
-            week_apps = [
-                a for a in applications if week_start <= a.created_at < week_end
-            ]
-            week_success = calculate_success_rate(week_apps)
+            # Single SQL query per week (much better than N queries per application)
+            week_result = await db.execute(
+                select(
+                    func.count(Application.id).label("applications"),
+                    func.avg(Application.match_score).label("avg_match_score"),
+                    func.sum(case((Application.status == "interview", 1), else_=0)).label("interviews"),
+                    func.sum(case((Application.status == "offer", 1), else_=0)).label("offers"),
+                )
+                .where(
+                    and_(
+                        Application.user_id == current_user.id,
+                        Application.created_at >= week_start,
+                        Application.created_at < week_end,
+                    )
+                )
+            )
+
+            row = week_result.first()
+            total_apps = row.applications or 0
+            interviews = row.interviews or 0
+            offers = row.offers or 0
+
+            application_to_interview = (interviews / total_apps) * 100 if total_apps > 0 else 0.0
 
             trends.append(
                 TrendData(
                     period=f"Week {week + 1}",
-                    applications=len(week_apps),
-                    success_rate=week_success["application_to_interview_rate"],
-                    avg_match_score=week_success["average_match_score"],
+                    applications=total_apps,
+                    success_rate=round(application_to_interview, 2),
+                    avg_match_score=round(row.avg_match_score or 0.0, 2),
                 )
             )
 
@@ -741,35 +805,56 @@ async def get_activity_timeline(
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(days=days)
 
+        # Single SQL query with aggregation - MUCH more efficient
         result = await db.execute(
-            select(Application)
+            select(
+                func.date(Application.created_at).label("date"),
+                func.count(Application.id).label("applications"),
+                func.sum(case((Application.status == "interview", 1), else_=0)).label("interviews"),
+                func.sum(case((Application.status == "offer", 1), else_=0)).label("offers"),
+                func.sum(case((Application.status == "rejected", 1), else_=0)).label("rejections"),
+            )
             .where(
                 and_(
                     Application.user_id == current_user.id,
                     Application.created_at >= start_date,
                 )
             )
-            .order_by(Application.created_at.desc())
+            .group_by(func.date(Application.created_at))
+            .order_by(func.date(Application.created_at))
         )
-        applications = result.scalars().all()
 
+        # Build a dictionary for quick lookup
+        activity_by_date = {
+            row.date: ActivityDataPoint(
+                date=row.date.strftime("%Y-%m-%d"),
+                applications=row.applications,
+                interviews=row.interviews or 0,
+                offers=row.offers or 0,
+                rejections=row.rejections or 0,
+            )
+            for row in result
+        }
+
+        # Fill in missing dates with zeros
         activity_timeline = []
         for i in range(days):
             day_date = end_date - timedelta(days=i)
             day_start = day_date.replace(hour=0, minute=0, second=0, microsecond=0)
-            day_end = day_start + timedelta(days=1)
+            day_key = day_start.date()
 
-            day_apps = [a for a in applications if day_start <= a.created_at < day_end]
-
-            activity_timeline.append(
-                ActivityDataPoint(
-                    date=day_start.strftime("%Y-%m-%d"),
-                    applications=len(day_apps),
-                    interviews=len([a for a in day_apps if a.status == "interview"]),
-                    offers=len([a for a in day_apps if a.status == "offer"]),
-                    rejections=len([a for a in day_apps if a.status == "rejected"]),
+            if day_key in activity_by_date:
+                activity_timeline.append(activity_by_date[day_key])
+            else:
+                activity_timeline.append(
+                    ActivityDataPoint(
+                        date=day_start.strftime("%Y-%m-%d"),
+                        applications=0,
+                        interviews=0,
+                        offers=0,
+                        rejections=0,
+                    )
                 )
-            )
 
         activity_timeline.reverse()
         return activity_timeline

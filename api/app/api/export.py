@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
@@ -32,9 +33,11 @@ async def export_applications_csv(
 ):
     """Export all applications as CSV file."""
     try:
-        # Fetch all applications with related data
+        # Fetch all applications with eager loading of JD relationship
+        # This prevents N+1 queries by loading JDs in a single query
         result = await db.execute(
             select(Application)
+            .options(selectinload(Application.jd))  # Eager load JD to prevent N+1
             .where(Application.user_id == current_user.id)
             .order_by(Application.created_at.desc())
         )
@@ -60,8 +63,9 @@ async def export_applications_csv(
 
         # Write data rows
         for app in applications:
-            company_name = app.jd.company_name if app.jd else "N/A"
-            position = app.jd.position if app.jd else "N/A"
+            # Now app.jd is already loaded, no additional query (N+1 fixed)
+            company_name = app.jd.company if app.jd else "N/A"
+            position = app.jd.title if app.jd else "N/A"
 
             writer.writerow(
                 [
@@ -125,7 +129,7 @@ async def export_resumes_csv(
         output = io.StringIO()
         writer = csv.writer(output)
 
-        writer.writerow(["ID", "Title", "Created Date", "Updated Date", "File Name"])
+        writer.writerow(["ID", "Title", "Created Date", "Updated Date", "File Path"])
 
         for resume in resumes:
             writer.writerow(
@@ -142,7 +146,7 @@ async def export_resumes_csv(
                         if resume.updated_at
                         else "N/A"
                     ),
-                    resume.file_name or "N/A",
+                    resume.file_path or "N/A",
                 ]
             )
 
@@ -192,7 +196,7 @@ async def export_jds_csv(
                 [
                     str(jd.id),
                     jd.title or "Untitled",
-                    jd.company_name or "N/A",
+                    jd.company or "N/A",
                     (
                         jd.created_at.strftime("%Y-%m-%d %H:%M:%S")
                         if jd.created_at

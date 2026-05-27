@@ -1,23 +1,20 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from "@/components/ui/button";
 import { Menu, X, Sparkles, LogOut, Settings } from "lucide-react";
 import { memo } from "react";
 import { useAppStore } from "@/lib/store";
 import { clearAuthData } from "@/lib/auth";
 import { NotificationCenter } from "@/components/notification-center";
-
-const navLinks = [
-  { name: "首页", href: "/" },
-  { name: "功能", href: "#features" },
-  { name: "价格", href: "#pricing" },
-  { name: "关于", href: "#about" },
-] as const;
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 function NavigationComponent() {
+  const t = useTranslations('navigation');
+  const locale = useLocale();
   const router = useRouter();
   const isAuthenticated = useAppStore((state) => state.isAuthenticated);
   const user = useAppStore((state) => state.user);
@@ -27,7 +24,12 @@ function NavigationComponent() {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   // Memoize nav links to prevent re-renders
-  const navLinksMemo = useMemo(() => navLinks, []);
+  const navLinksMemo = useMemo(() => [
+    { name: t('home'), href: "/" },
+    { name: t('about'), href: "#about" },
+    { name: t('pricing'), href: "#pricing" },
+    { name: t('help'), href: "#help" },
+  ], [t]);
 
   // Handle menu close with useCallback
   const handleCloseMenu = useCallback(() => {
@@ -99,10 +101,10 @@ function NavigationComponent() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
       <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
         <div className="flex lg:flex-1">
-          <Link href="/" className="flex items-center gap-2 -m-1.5 p-1.5">
+          <a href="/" className="flex items-center gap-2 -m-1.5 p-1.5">
             <Sparkles className="h-8 w-8 text-blue-600" aria-hidden="true" />
             <span className="text-xl font-bold text-gray-900">SyncHire 知遇</span>
-          </Link>
+          </a>
         </div>
 
         <div className="flex lg:hidden">
@@ -131,6 +133,7 @@ function NavigationComponent() {
         </div>
 
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
+          <LanguageSwitcher />
           {isAuthenticated ? (
             <>
               <span className="text-sm text-gray-700 self-center">
@@ -138,29 +141,29 @@ function NavigationComponent() {
               </span>
               <NotificationCenter />
               <Button variant="ghost" asChild>
-                <Link href="/dashboard">仪表盘</Link>
+                <a href="/dashboard">{t('dashboard')}</a>
               </Button>
               <Button variant="ghost" asChild>
-                <Link href="/analytics">数据分析</Link>
+                <a href="/analytics">{t('applications')}</a>
               </Button>
               <Button variant="ghost" asChild>
-                <Link href="/settings">
+                <a href="/settings">
                   <Settings className="h-4 w-4 mr-2" />
-                  设置
-                </Link>
+                  {t('settings')}
+                </a>
               </Button>
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
-                登出
+                {t('logout')}
               </Button>
             </>
           ) : (
             <>
               <Button variant="ghost" asChild>
-                <Link href="/login">登录</Link>
+                <a href="/login">{t('login')}</a>
               </Button>
               <Button asChild>
-                <Link href="/signup">免费开始</Link>
+                <a href="/signup">{t('signup')}</a>
               </Button>
             </>
           )}
@@ -180,14 +183,14 @@ function NavigationComponent() {
             className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10"
           >
             <div className="flex items-center justify-between">
-              <Link
+              <a
                 href="/"
                 className="flex items-center gap-2 -m-1.5 p-1.5"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Sparkles className="h-8 w-8 text-blue-600" aria-hidden="true" />
                 <span className="text-xl font-bold text-gray-900">SyncHire 知遇</span>
-              </Link>
+              </a>
               <button
                 ref={closeButtonRef}
                 type="button"
@@ -201,7 +204,7 @@ function NavigationComponent() {
             <div className="mt-6 flow-root">
               <nav className="-my-6 divide-y divide-gray-500/10" aria-label="移动菜单">
                 <div className="space-y-2 py-6">
-                  {navLinks.map((link) => (
+                  {navLinksMemo.map((link) => (
                     <Link
                       key={link.name}
                       href={link.href}
@@ -222,57 +225,57 @@ function NavigationComponent() {
                         <NotificationCenter />
                       </div>
                       <Button variant="ghost" className="w-full justify-start" asChild>
-                        <Link
+                        <a
                           href="/dashboard"
                           onClick={() => setMobileMenuOpen(false)}
                           className="focus:outline-none focus:ring-2 focus:ring-blue-600"
                         >
-                          仪表盘
-                        </Link>
+                          {t('dashboard')}
+                        </a>
                       </Button>
                       <Button variant="ghost" className="w-full justify-start" asChild>
-                        <Link
+                        <a
                           href="/analytics"
                           onClick={() => setMobileMenuOpen(false)}
                           className="focus:outline-none focus:ring-2 focus:ring-blue-600"
                         >
-                          数据分析
-                        </Link>
+                          {t('applications')}
+                        </a>
                       </Button>
                       <Button variant="ghost" className="w-full justify-start" asChild>
-                        <Link
+                        <a
                           href="/settings"
                           onClick={() => setMobileMenuOpen(false)}
                           className="focus:outline-none focus:ring-2 focus:ring-blue-600"
                         >
                           <Settings className="h-4 w-4 mr-2" />
-                          设置
-                        </Link>
+                          {t('settings')}
+                        </a>
                       </Button>
                       <Button variant="outline" className="w-full" onClick={handleLogout}>
                         <LogOut className="h-4 w-4 mr-2" />
-                        登出
+                        {t('logout')}
                       </Button>
                     </>
                   ) : (
                     <>
                       <Button variant="ghost" className="w-full justify-start" asChild>
-                        <Link
+                        <a
                           href="/login"
                           onClick={() => setMobileMenuOpen(false)}
                           className="focus:outline-none focus:ring-2 focus:ring-blue-600"
                         >
-                          登录
-                        </Link>
+                          {t('login')}
+                        </a>
                       </Button>
                       <Button className="w-full" asChild>
-                        <Link
+                        <a
                           href="/signup"
                           onClick={() => setMobileMenuOpen(false)}
                           className="focus:outline-none focus:ring-2 focus:ring-blue-600"
                         >
-                          免费开始
-                        </Link>
+                          {t('signup')}
+                        </a>
                       </Button>
                     </>
                   )}

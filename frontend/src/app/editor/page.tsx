@@ -1,6 +1,6 @@
 "use client";
 
-import { Navigation } from "@/components/navigation";
+// import { Navigation } from "@/components/navigation";
 import { ResumeEditor } from "@/components/resume-editor";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
@@ -22,7 +22,7 @@ export default function EditorPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
+      
       <div className="pt-16 h-[calc(100vh-64px)]">
         <ResumeEditor />
       </div>

@@ -1,24 +1,61 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
-import { ApplicationsList } from "@/components/applications-list";
+import { BatchApplicationsList } from "@/components/batch-applications-list";
 import { MatchRankingControls } from "@/components/match-ranking-controls";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Breadcrumb } from "@/components/breadcrumb";
 import Link from "next/link";
-import { Plus, TrendingUp, Award, Target, BarChart3 } from "lucide-react";
+import { Plus, TrendingUp, Award, Target, BarChart3, Sparkles, Bell, X } from "lucide-react";
 import { rankApplications, getMatchStatistics, getRecommendedApplications } from "@/lib/match-ranking";
+import { useWorkflowAutomation } from "@/lib/use-workflow-automation";
 
 export default function ApplicationsPage() {
   const { applications } = useAppStore();
+  const {
+    highPrioritySuggestions,
+    highPriorityCount,
+    loadAllSuggestions,
+    setAutoMode,
+    executeTransition,
+  } = useWorkflowAutomation();
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(new Set());
 
   const stats = useMemo(() => getMatchStatistics(applications), [applications]);
   const recommended = useMemo(() => getRecommendedApplications(applications, 3), [applications]);
 
+  // Filter out dismissed suggestions
+  const activeSuggestions = useMemo(() => {
+    return highPrioritySuggestions.filter(
+      item => !dismissedSuggestions.has(item.applicationId)
+    );
+  }, [highPrioritySuggestions, dismissedSuggestions]);
+
+  // Load suggestions when applications change
+  useEffect(() => {
+    if (applications.length > 0) {
+      loadAllSuggestions();
+    }
+  }, [applications.length, loadAllSuggestions]);
+
+  // Dismiss a suggestion
+  const dismissSuggestion = (applicationId: string) => {
+    setDismissedSuggestions(prev => new Set([...prev, applicationId]));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
+        {/* Breadcrumb */}
+        <div className="mb-4">
+          <Breadcrumb />
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -90,6 +127,87 @@ export default function ApplicationsPage() {
           </Card>
         </div>
 
+        {/* High Priority Workflow Suggestions */}
+        {showSuggestions && activeSuggestions.length > 0 && (
+          <Card className="p-6 mb-8 border-2 border-yellow-200 bg-yellow-50">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <Sparkles className="h-5 w-5 text-yellow-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    智能工作流建议
+                  </h2>
+                  <p className="text-sm text-gray-600">
+                    基于您的申请状态和匹配度分析的建议
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSuggestions(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              {activeSuggestions.slice(0, 3).map(({ applicationId, suggestion, application }) => {
+                if (!application) return null;
+
+                return (
+                  <div
+                    key={applicationId}
+                    className="flex items-start justify-between p-4 bg-white rounded-lg border border-yellow-200"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-gray-900">
+                          {application.position}
+                        </h3>
+                        <Badge variant="outline" className="text-xs">
+                          置信度: {Math.round(suggestion.confidence * 100)}%
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {application.companyName}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        {suggestion.reason}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => dismissSuggestion(applicationId)}
+                      >
+                        忽略
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => executeTransition(applicationId, suggestion)}
+                      >
+                        应用建议
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {activeSuggestions.length > 3 && (
+              <div className="mt-4 text-center">
+                <Button variant="link" size="sm">
+                  查看更多建议 ({activeSuggestions.length - 3})
+                </Button>
+              </div>
+            )}
+          </Card>
+        )}
+
         {/* Recommended Applications */}
         {recommended.length > 0 && (
           <Card className="p-6 mb-8 border-2 border-green-200 bg-green-50">
@@ -150,7 +268,7 @@ export default function ApplicationsPage() {
             console.log("Ranked applications:", ranked.length);
           }}
         >
-          <ApplicationsList showRanking={true} />
+          <BatchApplicationsList showRanking={true} />
         </MatchRankingControls>
 
         {/* Empty State */}

@@ -19,6 +19,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { rankApplications, getMatchLevel } from "@/lib/match-ranking";
+import { useOptimisticMutation, ArrayUpdateHelper } from "@/lib/optimistic-updates";
+import { useQueryClient } from "@tanstack/react-query";
+import { applicationAPI } from "@/lib/api-client-consolidated";
+import { logger, LogCategory } from "@/lib/logger";
+import { useToast } from "@/hooks/use-toast";
 
 const statusConfig: Record<string, {
   label: string;
@@ -74,12 +79,62 @@ export const ApplicationsList = memo(function ApplicationsList({ showRanking = f
   const { applications, updateApplication } = useAppStore();
   const [sortBy, setSortBy] = useState<"matchScore" | "updatedAt">("updatedAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const queryClient = useQueryClient();
+  const { crud } = useToast();
+
+  // Optimistic mutation for status updates
+  const updateStatusMutation = useOptimisticMutation(
+    async ({ applicationId, newStatus }: { applicationId: string; newStatus: string }) => {
+      return await applicationAPI.updateStatus(applicationId, { status: newStatus, notes: '' });
+    },
+    {
+      queryKey: ['applications'],
+      updateFn: (oldData, variables) => {
+        // Handle both array and APIResponse structures
+        if (Array.isArray(oldData)) {
+          return oldData.map((app) =>
+            app.id === variables.applicationId
+              ? { ...app, status: variables.newStatus as any }
+              : app
+          ) as any;
+        } else if (oldData && typeof oldData === 'object' && 'data' in oldData && Array.isArray(oldData.data)) {
+          return {
+            ...oldData,
+            data: oldData.data.map((app: any) =>
+              app.id === variables.applicationId
+                ? { ...app, status: variables.newStatus }
+                : app
+            )
+          } as any;
+        }
+        return oldData;
+      },
+      onSuccess: (data, variables) => {
+        logger.info(LogCategory.UI, 'Application status updated', {
+          applicationId: variables.applicationId,
+          newStatus: variables.newStatus,
+        });
+      },
+      onError: (error, variables) => {
+        crud.update.error('Application', 'Failed to update status');
+        logger.error(LogCategory.API, 'Failed to update application status', error as Error, {
+          applicationId: variables.applicationId,
+          newStatus: variables.newStatus,
+        });
+      },
+      invalidateQueries: [['applications'], ['analytics']],
+    }
+  );
 
   const handleStatusUpdate = useCallback(
     (applicationId: string, newStatus: string) => {
+      // Optimistically update local state immediately
       updateApplication(applicationId, { status: newStatus as any });
+
+      // Then update via API with optimistic mutation
+      updateStatusMutation.mutate({ applicationId, newStatus });
     },
-    [updateApplication]
+    [updateApplication, updateStatusMutation]
   );
 
   const sortedApplications = useMemo(() => {

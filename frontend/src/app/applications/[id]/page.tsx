@@ -9,11 +9,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Breadcrumb } from "@/components/breadcrumb";
 import { logger, LogCategory } from "@/lib/logger";
 import { applicationAPI, resumeAPI, jdAPI } from "@/lib/api-client-consolidated";
 import { ApplicationNotes } from "@/components/application-notes";
 import { MatchAnalysisDisplay } from "@/components/match-analysis-display";
+import { WorkflowAutomation } from "@/components/workflow-automation";
+import { StatusWorkflowTracker, MiniStatusTracker } from "@/components/status-workflow-tracker";
 import {
   ArrowLeft,
   Briefcase,
@@ -32,6 +41,7 @@ import {
   Phone,
   MapPin,
   DollarSign,
+  Sparkles,
 } from "lucide-react";
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
@@ -232,6 +242,14 @@ export default function ApplicationDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
+        {/* Breadcrumb */}
+        <div className="mb-4">
+          <Breadcrumb
+            currentTitle={application?.jobDescription?.title || "Application Details"}
+            dynamicParams={{ id: applicationId }}
+          />
+        </div>
+
         {/* Header */}
         <div className="mb-6">
           <Button
@@ -267,16 +285,17 @@ export default function ApplicationDetailPage() {
             </div>
 
             <div className="flex gap-2">
-              <Select
-                value={application.status}
-                onChange={(e) => updateStatus(e.target.value)}
-                className="w-[180px]"
-              >
-                {Object.entries(statusConfig).map(([key, value]) => (
-                  <option key={key} value={key}>
-                    {value.label}
-                  </option>
-                ))}
+              <Select value={application.status} onValueChange={(value) => updateStatus(value)}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(statusConfig).map(([key, value]) => (
+                    <SelectItem key={key} value={key}>
+                      {value.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
           </div>
@@ -292,15 +311,27 @@ export default function ApplicationDetailPage() {
 
         {/* Main Content */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">概览</TabsTrigger>
             <TabsTrigger value="match">匹配分析</TabsTrigger>
             <TabsTrigger value="optimization">优化建议</TabsTrigger>
+            <TabsTrigger value="workflow">智能工作流</TabsTrigger>
             <TabsTrigger value="notes">备注</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
+            {/* Status Workflow Tracker */}
+            <StatusWorkflowTracker
+              currentStatus={application.status}
+              onStatusClick={(status) => updateStatus(status)}
+              showHistory={true}
+              history={application.status_history?.map((h: any) => ({
+                status: h.new_status,
+                timestamp: new Date(h.changed_at),
+              })) || []}
+            />
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Resume Card */}
               <Card className="p-6">
@@ -487,6 +518,11 @@ export default function ApplicationDetailPage() {
                 </div>
               )}
             </Card>
+          </TabsContent>
+
+          {/* Workflow Automation Tab */}
+          <TabsContent value="workflow">
+            <WorkflowAutomation applicationId={applicationId} />
           </TabsContent>
 
           {/* Notes Tab */}

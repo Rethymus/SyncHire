@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SearchResult as APISearchResult } from "@/lib/api/search";
+import { sanitizeHighlight } from "@/lib/sanitize";
 
 interface SearchResultItem {
   id: string;
@@ -191,7 +192,7 @@ export const SearchResults = memo(function SearchResults({
                       WebkitBoxOrient: "vertical",
                       overflow: "hidden",
                     }}
-                    dangerouslySetInnerHTML={{ __html: highlightText(result.highlighted_content) }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHighlight(highlightText(result.highlighted_content)) }}
                   />
                 )}
 

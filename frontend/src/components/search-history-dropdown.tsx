@@ -52,22 +52,6 @@ export const SearchHistoryDropdown = memo(function SearchHistoryDropdown({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load search history on mount and when menu opens
-  useEffect(() => {
-    if (isOpen) {
-      loadSearchHistory();
-    }
-  }, [isOpen, searchType]);
-
-  // Load search suggestions when query changes
-  useEffect(() => {
-    if (query.length >= 2) {
-      loadSuggestions();
-    } else {
-      setSuggestions([]);
-    }
-  }, [query, searchType]);
-
   const loadSearchHistory = useCallback(async () => {
     try {
       setLoading(true);
@@ -76,7 +60,7 @@ export const SearchHistoryDropdown = memo(function SearchHistoryDropdown({
         search_type: searchType,
         page_size: 10,
       });
-      setHistory(response.items);
+      setHistory(response.items || []);
     } catch (error) {
       logger.error(LogCategory.API, "Failed to load search history", error as Error);
       setError("Failed to load search history");
@@ -85,14 +69,30 @@ export const SearchHistoryDropdown = memo(function SearchHistoryDropdown({
     }
   }, [searchType]);
 
+  // Load search history on mount and when menu opens
+  useEffect(() => {
+    if (isOpen) {
+      loadSearchHistory();
+    }
+  }, [isOpen, loadSearchHistory]);
+
   const loadSuggestions = useCallback(async () => {
     try {
       const response = await searchHistoryAPI.getSearchSuggestions(query, 5);
-      setSuggestions(response.suggestions);
+      setSuggestions(response.suggestions || []);
     } catch (error) {
       logger.error(LogCategory.API, "Failed to load search suggestions", error as Error);
     }
   }, [query]);
+
+  // Load search suggestions when query changes
+  useEffect(() => {
+    if (query.length >= 2) {
+      loadSuggestions();
+    } else {
+      setSuggestions([]);
+    }
+  }, [query, loadSuggestions]);
 
   const handleSearch = useCallback(async (searchQuery: string = query) => {
     if (!searchQuery.trim()) return;

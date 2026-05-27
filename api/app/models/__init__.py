@@ -5,6 +5,9 @@ from app.models.application import Application
 from app.models.application_status_history import ApplicationStatusHistory
 from app.models.notification import Notification
 from app.models.search import SearchHistory, SavedSearch, SearchAnalytics
+from app.models.interview import Interview, InterviewReminder, InterviewEvent
+from app.models.audit_log import AuditLog, DataRetentionLog, ConsentLog
+from app.models.task import Task
 
 __all__ = [
     "User",
@@ -16,6 +19,13 @@ __all__ = [
     "SearchHistory",
     "SavedSearch",
     "SearchAnalytics",
+    "Interview",
+    "InterviewReminder",
+    "InterviewEvent",
+    "AuditLog",
+    "DataRetentionLog",
+    "ConsentLog",
+    "Task",
 ]
 
 # Import after all models to establish relationships
@@ -40,4 +50,16 @@ User.saved_searches = relationship(
 )
 User.search_analytics = relationship(
     "SearchAnalytics", back_populates="user", cascade="all, delete-orphan"
+)
+User.interviews = relationship(
+    "Interview", back_populates="user", cascade="all, delete-orphan"
+)
+User.interview_reminders = relationship(
+    "InterviewReminder", back_populates="user", cascade="all, delete-orphan"
+)
+User.interview_events = relationship(
+    "InterviewEvent", back_populates="user", cascade="all, delete-orphan"
+)
+User.tasks = relationship(
+    "Task", back_populates="user", cascade="all, delete-orphan"
 )

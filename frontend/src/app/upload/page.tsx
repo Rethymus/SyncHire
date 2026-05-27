@@ -2,8 +2,9 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Navigation } from "@/components/navigation";
+// import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
+import { Breadcrumb } from "@/components/breadcrumb";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { logger } from "@/lib/logger";
@@ -18,12 +19,14 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToastMessage } from "@/components/ui/toast";
 
 export default function UploadPage() {
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { addResume, resumes, setCurrentResume } = useAppStore();
+  const { success, error: toastError } = useToastMessage();
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
@@ -57,17 +60,20 @@ export default function UploadPage() {
         }
 
         // Redirect to editor after successful upload
+        success("简历上传成功", "AI 正在分析您的简历，即将进入编辑器...");
         setTimeout(() => {
           router.push("/editor");
         }, 1000);
       } catch (err) {
         logger.error(LogCategory.API, "Failed to upload resume", err as Error);
-        setError("文件上传失败，请重试");
+        const errorMsg = "文件上传失败，请重试";
+        setError(errorMsg);
+        toastError("上传失败", errorMsg);
       } finally {
         setUploading(false);
       }
     },
-    [addResume, setCurrentResume, router]
+    [addResume, setCurrentResume, router, success, toastError]
   );
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } =
@@ -100,9 +106,14 @@ export default function UploadPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
+      
 
       <div className="max-w-4xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
+        {/* Breadcrumb */}
+        <div className="mb-4">
+          <Breadcrumb />
+        </div>
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
             上传您的简历

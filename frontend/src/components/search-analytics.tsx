@@ -46,16 +46,12 @@ export const SearchAnalytics = memo(function SearchAnalytics({
   const [error, setError] = useState<string | null>(null);
   const [selectedDays, setSelectedDays] = useState(days);
 
-  useEffect(() => {
-    loadAnalytics();
-  }, [selectedDays]);
-
   const loadAnalytics = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await searchHistoryAPI.getSearchAnalytics(selectedDays);
-      setAnalytics(data);
+      const response = await searchHistoryAPI.getSearchAnalytics(selectedDays);
+      setAnalytics(response || null);
     } catch (error) {
       logger.error(LogCategory.API, "Failed to load search analytics", error as Error);
       setError("Failed to load search analytics");
@@ -63,6 +59,10 @@ export const SearchAnalytics = memo(function SearchAnalytics({
       setLoading(false);
     }
   }, [selectedDays]);
+
+  useEffect(() => {
+    loadAnalytics();
+  }, [loadAnalytics]);
 
   const handleSearchClick = useCallback((query: string) => {
     onSearchSelect?.(query);
@@ -106,7 +106,7 @@ export const SearchAnalytics = memo(function SearchAnalytics({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Select value={selectedDays.toString()} onChange={(e) => setSelectedDays(parseInt(e.target.value))}>
+          <Select value={selectedDays.toString()} onValueChange={(value) => setSelectedDays(parseInt(value))}>
             <option value="7">Last 7 days</option>
             <option value="30">Last 30 days</option>
             <option value="90">Last 90 days</option>

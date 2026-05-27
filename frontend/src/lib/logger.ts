@@ -20,6 +20,7 @@ export enum LogCategory {
   DATABASE = "DATABASE",
   USER_ACTION = "USER_ACTION",
   API_ERROR = "API_ERROR",
+  WORKFLOW = "WORKFLOW",
 }
 
 interface LogEntry {

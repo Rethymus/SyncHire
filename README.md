@@ -8,93 +8,175 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.2.6-black.svg)](https://nextjs.org/)
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791.svg)](https://www.postgresql.org/)
 
 </div>
 
 ## 🌟 Overview
 
-**SyncHire** is an innovative AI-powered job application platform designed to help job seekers create optimized resumes and analyze job descriptions with AI assistance. The platform leverages modern technologies including Next.js 14, FastAPI, and Model Context Protocol (MCP) servers to provide intelligent job matching and resume optimization services.
+**SyncHire** is an innovative AI-powered job application platform designed to revolutionize how job seekers create optimized resumes, analyze job descriptions, and match their experience with requirements. The platform leverages cutting-edge technologies including Next.js 16, FastAPI, and Model Context Protocol (MCP) servers to provide intelligent job matching and resume optimization services.
 
 ## ✨ Key Features
 
-- **AI-Powered Resume Optimization**: Automatically optimize resume content for specific job positions
-- **Job Description Analysis**: Deep analysis of job requirements with matching score calculation
-- **Real-time Skill Matching**: Visual representation of skill gaps and requirements
-- **Secure Authentication**: JWT-based authentication with OAuth2 (Google, GitHub)
-- **Modern UI/UX**: Built with Next.js 14, TypeScript, and TailwindCSS
-- **Accessibility First**: WCAG 2.1 compliant with comprehensive ARIA support
-- **Performance Optimized**: React Server Components, lazy loading, and efficient state management
+### Core Capabilities
+- **AI-Powered Resume Analysis**: Parse and analyze resumes from multiple formats (PDF, DOC, DOCX) with comprehensive skill extraction
+- **Job Description Intelligence**: Deep analysis of job requirements with structured data extraction and matching scores
+- **Smart Job Matching**: Calculate compatibility scores (0-100%) with detailed gap analysis and improvement recommendations
+- **Interview Preparation**: Generate role-specific interview questions, HR screening prep, and STAR method behavioral questions
+- **Real-time Analytics**: Track application status, skill development, and job search progress with detailed dashboards
+
+### Technical Excellence
+- **MCP Server Architecture**: Modular AI processing with 4 specialized servers for scalable, maintainable AI operations
+- **Advanced Security**: JWT authentication, OAuth2 (Google, GitHub), Two-Factor Authentication (2FA), and GDPR compliance
+- **Accessibility First**: WCAG 2.1 AA compliant with comprehensive ARIA support and keyboard navigation
+- **Performance Optimized**: React Server Components, lazy loading, React Query caching, and efficient state management
+- **Internationalization**: Multi-language support with next-intl for global accessibility
+- **Modern UI/UX**: Built with Next.js 16, TypeScript 5, TailwindCSS 4, and shadcn/ui components
+
+### Developer Experience
+- **Comprehensive Testing**: Unit tests (Vitest), integration tests, and E2E tests (Playwright)
+- **Type Safety**: Full TypeScript coverage with strict mode enabled
+- **Code Quality**: ESLint 9 flat config, Prettier formatting, and pre-commit hooks
+- **CI/CD Pipeline**: GitHub Actions with automated testing and deployment
+- **Security-Validated Skills**: Development automation with security-vetted Claude Code skills
 
 ## 🏗️ Architecture
 
 ### Technology Stack
 
 **Frontend:**
-- Next.js 14 (App Router)
-- TypeScript 5
-- TailwindCSS 4
-- Zustand (state management)
-- React Hook Form + Zod (validation)
-- DOMPurify (XSS protection)
+- **Framework**: Next.js 16.2.6 (App Router + Turbopack)
+- **Language**: TypeScript 5 with strict mode
+- **Styling**: TailwindCSS 4 with custom components
+- **State Management**: Zustand 5 + React Query (TanStack Query)
+- **Forms**: React Hook Form + Zod validation
+- **Security**: DOMPurify (XSS protection), CSRF tokens
+- **Testing**: Vitest, Playwright, Testing Library
+- **Internationalization**: next-intl for multi-language support
 
 **Backend:**
-- FastAPI (Python 3.11+)
-- PostgreSQL 16 + PGVector
-- Redis 7 (cache/queue)
-- Minio (S3-compatible storage)
+- **Framework**: FastAPI (Python 3.11+)
+- **Database**: PostgreSQL 16 + PGVector (vector embeddings)
+- **Cache/Queue**: Redis 7 for caching and rate limiting
+- **Storage**: Minio (S3-compatible) for resume/JD files
+- **Authentication**: JWT, OAuth2 (Google, GitHub), 2FA
+- **Validation**: Pydantic models for request/response
+- **Testing**: Pytest with async support
 
 **AI Services:**
-- OpenAI GPT-4
-- Anthropic Claude 3
-- MCP Servers for modular AI processing
+- **Primary Models**: OpenAI GPT-4, Anthropic Claude 3
+- **MCP Architecture**: 4 specialized servers for modular AI processing
+- **Vector Search**: PGVector for semantic matching
+- **Prompt Engineering**: Few-shot examples with structured outputs
 
 ### Project Structure
 
 ```
 SyncHire/
-├── frontend/          # Next.js 14 application
-├── api/              # FastAPI backend
-├── mcp-servers/     # Modular MCP services
-├── db/               # Database schemas and migrations
-├── docs/             # Technical documentation
-└── docker-compose.yml
+├── frontend/                 # Next.js 16 application (App Router)
+│   ├── app/                 # App Router pages and layouts
+│   ├── components/          # React components
+│   ├── lib/                 # Utilities and configurations
+│   └── public/              # Static assets
+├── api/                     # FastAPI backend
+│   ├── app/                 # FastAPI application setup
+│   ├── routers/             # API endpoint handlers
+│   ├── models/              # Database models
+│   └── tests/               # Backend test suite
+├── mcp-servers/            # Modular MCP services
+│   ├── jd-parser/          # Parse job descriptions
+│   ├── resume-analyzer/    # Analyze resumes
+│   ├── job-matcher/        # Calculate compatibility
+│   └── interview-prep/     # Generate interview prep
+├── db/                      # Database schemas and migrations
+├── docs/                    # Technical documentation
+├── deploy/                  # Deployment configurations
+├── k8s/                     # Kubernetes manifests
+└── docker-compose.yml       # Local development stack
 ```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Docker and Docker Compose
-- Node.js 18+
-- Python 3.11+
-- npm or yarn
+- **Docker** and Docker Compose (for infrastructure)
+- **Node.js** 22+ (engines: >=22.0.0)
+- **npm** 10+ (engines: >=10.0.0)
+- **Python** 3.11+ (for backend development)
+- **Git** for version control
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
    git clone https://github.com/Rethymus/synchire.git
-   cd synchire
+   cd SyncHire
    ```
 
 2. **Configure environment variables**
    ```bash
    cp .env.example .env
    # Edit .env with your configuration
+   # Required: AI API keys (OpenAI, Anthropic)
+   # Required: Database credentials
+   # Optional: OAuth credentials (Google, GitHub)
    ```
 
-3. **Start the development environment**
+3. **Install dependencies**
    ```bash
-   docker-compose up -d
+   npm install
+   ```
+
+4. **Start the development environment**
+   ```bash
+   # Start infrastructure (PostgreSQL, Redis, Minio)
+   npm run docker:up
+   
+   # Run database migrations
    npm run db:migrate
+   
+   # Start all services (frontend + API)
    npm run dev
    ```
 
-4. **Access the application**
-   - Frontend: http://localhost:3000
-   - API: http://localhost:8000
-   - API Docs: http://localhost:8000/docs
+5. **Access the application**
+   - **Frontend**: http://localhost:3000
+   - **API**: http://localhost:8000
+   - **API Docs**: http://localhost:8000/docs
+   - **Database**: localhost:5432
+
+### Development Scripts
+
+```bash
+# Start services
+npm run dev              # Start frontend + API
+npm run dev:frontend     # Frontend only
+npm run dev:api          # API only
+npm run dev:mcp          # Start MCP servers
+
+# Database operations
+npm run db:migrate       # Run migrations
+npm run db:seed          # Seed database
+npm run db:reset         # Reset database
+
+# Testing
+npm run test             # Run all tests
+npm run test:unit        # Unit tests
+npm run test:e2e         # E2E tests
+
+# Code quality
+npm run lint             # ESLint check
+npm run lint:fix         # Fix linting issues
+npm run type-check       # TypeScript check
+npm run format           # Prettier format
+
+# Docker operations
+npm run docker:up        # Start containers
+npm run docker:down      # Stop containers
+npm run docker:logs      # View logs
+```
 
 ## 📸 Screenshots
 

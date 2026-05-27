@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: staging
+
+namePrefix: staging-
+
+resources:
+- ../../base
+
+patchesStrategicMerge:
+- backend-replicas.yaml
+- frontend-replicas.yaml
+- resources.yaml
+
+images:
+- name: synchire/backend
+  newTag: staging-latest
+- name: synchire/frontend
+  newTag: staging-latest
+
+configMapGenerator:
+- name: synchire-config
+  behavior: merge
+  literals:
+  - LOG_LEVEL=debug
+  - RATE_LIMIT_PER_MINUTE=200
+  - MAX_PAGE_SIZE=100

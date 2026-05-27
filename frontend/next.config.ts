@@ -1,10 +1,16 @@
+/**
+ * Next.js Configuration - Lightweight Version
+ *
+ * Simplified configuration without i18n plugin for local-first operation.
+ */
+
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // 输出模式 (Docker 部署需要)
+  // Output mode (Docker deployment)
   output: "standalone",
 
-  // 图片优化
+  // Image optimization
   images: {
     remotePatterns: [
       {
@@ -14,25 +20,24 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // 压缩
+  // Compression
   compress: true,
 
-  // 生产环境源映射 (仅错误时)
+  // Production source maps (errors only)
   productionBrowserSourceMaps: false,
 
-  // React 严格模式
+  // React strict mode
   reactStrictMode: true,
 
-  // 注意: SWC压缩在Next.js 16+中默认启用，无需配置
-
-  // 环境变量 (服务端)
+  // Environment variables (server-side)
   env: {
-    NEXT_PUBLIC_APP_NAME: "SyncHire 知遇",
+    NEXT_PUBLIC_APP_NAME: "SyncHire Lite",
     NEXT_PUBLIC_APP_VERSION: "1.0.0",
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
     NEXT_TELEMETRY_DISABLED: "1",
   },
 
-  // 安全头部配置
+  // Security headers configuration
   async headers() {
     return [
       {

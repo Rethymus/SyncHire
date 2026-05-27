@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Float, ForeignKey, Text
+from sqlalchemy import Column, String, DateTime, Float, ForeignKey, Text, ARRAY
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -26,15 +26,22 @@ class Application(Base):
         String, default="pending"
     )  # pending, optimized, applied, interview, offer, rejected
     notes = Column(Text)
+    tags = Column(ARRAY(String), default=list)  # Array of tags for categorization
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = relationship("User", back_populates="applications")
     resume = relationship("Resume")
-    jd = relationship("JD")
+    jd = relationship("JD", backref="applications")
     status_history = relationship(
         "ApplicationStatusHistory",
         back_populates="application",
         order_by="ApplicationStatusHistory.changed_at.desc()",
+        cascade="all, delete-orphan",
+    )
+    interviews = relationship(
+        "Interview",
+        back_populates="application",
+        order_by="Interview.scheduled_date.desc()",
         cascade="all, delete-orphan",
     )

@@ -1,17 +1,46 @@
 /**
- * Next.js Middleware
- * Applies security headers to all responses
+ * Next.js Middleware - Configurable for both auth and lite modes
+ *
+ * Applies security headers and handles route redirects based on configuration.
  */
 
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+// Feature flags from environment
+const ENABLE_AUTH = process.env.NEXT_PUBLIC_ENABLE_AUTH === 'true';
+
+// Route configuration - can be extended without modifying core logic
+const ROUTE_CONFIG = {
+  // Routes to redirect to dashboard in lite mode
+  redirectTargets: [
+    "/",
+    "/index.html",
+    "/index",
+  ],
+  // Auth routes that only exist in auth mode
+  authRoutes: [
+    "/login",
+    "/signup",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+    "/auth",
+  ],
+  // Protected routes that require authentication
+  protectedRoutes: [
+    "/profile",
+    "/settings",
+    "/analytics",
+  ],
+  // Default redirect target
+  defaultRedirect: "/dashboard",
+};
+
 /**
  * Generate CSP headers with nonce for inline scripts
  */
 function getCSPHeaders(nonce: string) {
-  // Production: strict CSP with nonce
-  // Development: relaxed CSP for Next.js dev mode
   const isDev = process.env.NODE_ENV === "development";
 
   if (isDev) {
@@ -20,9 +49,9 @@ function getCSPHeaders(nonce: string) {
         "default-src 'self'",
         "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
         "style-src 'self' 'unsafe-inline'",
-        "img-src 'self' data: blob: https://*.githubusercontent.com",
+        "img-src 'self' data: blob:",
         "font-src 'self' data:",
-        "connect-src 'self' https://api.github.com",
+        "connect-src 'self' http://localhost:* https://localhost:*",
         "frame-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",
@@ -35,9 +64,9 @@ function getCSPHeaders(nonce: string) {
       "default-src 'self'",
       `script-src 'self' 'nonce-${nonce}'`,
       "style-src 'self' 'unsafe-inline'", // Required for Tailwind
-      "img-src 'self' data: blob: https://*.githubusercontent.com",
+      "img-src 'self' data: blob:",
       "font-src 'self' data:",
-      "connect-src 'self' https://api.github.com",
+      "connect-src 'self'",
       "frame-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -47,9 +76,39 @@ function getCSPHeaders(nonce: string) {
 }
 
 /**
- * Middleware to apply security headers
+ * Check if route should be redirected based on mode
+ */
+function shouldRedirectRoute(pathname: string): string | null {
+  // In lite mode, redirect auth routes to dashboard
+  if (!ENABLE_AUTH) {
+    if (ROUTE_CONFIG.authRoutes.some((route) => pathname.startsWith(route))) {
+      return ROUTE_CONFIG.defaultRedirect;
+    }
+  }
+
+  // Redirect root paths to dashboard
+  if (ROUTE_CONFIG.redirectTargets.includes(pathname)) {
+    return ROUTE_CONFIG.defaultRedirect;
+  }
+
+  return null;
+}
+
+/**
+ * Middleware to apply security headers and handle route redirects
  */
 export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Check if route should be redirected
+  const redirectTarget = shouldRedirectRoute(pathname);
+  if (redirectTarget) {
+    const url = request.nextUrl.clone();
+    url.pathname = redirectTarget;
+    return NextResponse.redirect(url);
+  }
+
+  // Generate response with security headers
   const response = NextResponse.next();
 
   // Generate nonce for this request
@@ -67,7 +126,6 @@ export function middleware(request: NextRequest) {
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
-  response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   response.headers.set("X-DNS-Prefetch-Control", "off");
 
   // Remove x-powered-by header

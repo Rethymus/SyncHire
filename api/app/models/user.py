@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Boolean, DateTime
+from sqlalchemy import Column, String, Boolean, DateTime, ARRAY
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -26,6 +26,12 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_onboarded = Column(Boolean, default=False)
     onboarding_completed_at = Column(DateTime, nullable=True)
+
+    # Two-Factor Authentication (2FA) fields
+    two_factor_enabled = Column(Boolean, default=False, nullable=False)
+    two_factor_secret = Column(String, nullable=True)  # TOTP secret key
+    backup_codes = Column(ARRAY(String), nullable=True)  # Backup codes for 2FA
+    two_factor_enabled_at = Column(DateTime, nullable=True)
 
     # Notification preferences
     notification_preferences = Column(
@@ -63,21 +69,40 @@ class User(Base):
         order_by="Notification.created_at.desc()",
         cascade="all, delete-orphan",
     )
-    search_history = relationship(
-        "SearchHistory",
+    # Search relationships - commented out to avoid circular imports
+    # search_history = relationship(
+    #     "SearchHistory",
+    #     back_populates="user",
+    #     order_by="SearchHistory.created_at.desc()",
+    #     cascade="all, delete-orphan",
+    # )
+    # saved_searches = relationship(
+    #     "SavedSearch",
+    #     back_populates="user",
+    #     order_by="SavedSearch.created_at.desc()",
+    #     cascade="all, delete-orphan",
+    # )
+    oauth_accounts = relationship(
+        "OAuthAccount",
         back_populates="user",
-        order_by="SearchHistory.search_timestamp.desc()",
+        order_by="OAuthAccount.created_at.desc()",
         cascade="all, delete-orphan",
     )
-    saved_searches = relationship(
-        "SavedSearch",
-        back_populates="user",
-        order_by="SavedSearch.created_at.desc()",
-        cascade="all, delete-orphan",
-    )
-    search_analytics = relationship(
-        "SearchAnalytics",
-        back_populates="user",
-        order_by="SearchAnalytics.search_count.desc()",
-        cascade="all, delete-orphan",
-    )
+
+
+class OAuthAccount(Base):
+    """OAuth account linking for social login"""
+
+    __tablename__ = "oauth_accounts"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    provider = Column(String, nullable=False)  # 'google' or 'github'
+    provider_user_id = Column(String, nullable=False)  # OAuth provider's user ID
+    access_token = Column(String, nullable=True)  # Encrypted access token
+    refresh_token = Column(String, nullable=True)  # Encrypted refresh token
+    account_info = Column(JSONB, nullable=True)  # Additional account info
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User", back_populates="oauth_accounts")

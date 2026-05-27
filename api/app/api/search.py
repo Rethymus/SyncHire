@@ -626,24 +626,76 @@ async def get_match_score(
 def highlight_search_terms(text: str, query: str) -> str:
     """
     Highlight search terms in text using markdown bold syntax.
+
+    Security: Sanitizes input to prevent ReDoS attacks and limits query processing.
     """
     if not query or not text:
         return text
 
-    # Split query into terms
+    # Security: Limit query length to prevent DoS
+    if len(query) > 200:
+        return text
+
+    # Security: Limit text length to prevent DoS
+    if len(text) > 10000:
+        text = text[:10000]
+
+    # Split query into terms and sanitize
     terms = query.lower().split()
 
-    # Highlight each term
+    # Security: Limit number of terms to prevent DoS
+    if len(terms) > 10:
+        terms = terms[:10]
+
+    # Highlight each term with security constraints
     highlighted = text
     for term in terms:
-        if len(term) < 2:  # Skip very short terms
+        # Security: Skip very short or very long terms
+        if len(term) < 2 or len(term) > 50:
+            continue
+
+        # Security: Skip terms with special characters that could cause ReDoS
+        # Only allow alphanumeric, spaces, and common punctuation
+        if not all(c.isalnum() or c in ' .-_' for c in term):
             continue
 
         # Find and highlight matches (case-insensitive)
         import re
 
-        pattern = re.compile(f"({re.escape(term)})", re.IGNORECASE)
-        highlighted = pattern.sub(r"**\1**", highlighted)
+        try:
+            # Security: Use literal string matching instead of regex for safety
+            # This prevents ReDoS while maintaining functionality
+            term_lower = term.lower()
+            text_lower = highlighted.lower()
+
+            # Find all occurrences and replace them
+            result_parts = []
+            last_pos = 0
+
+            while True:
+                pos = text_lower.find(term_lower, last_pos)
+                if pos == -1:
+                    break
+
+                # Add text before match
+                result_parts.append(highlighted[last_pos:pos])
+
+                # Add highlighted match (preserve original casing)
+                result_parts.append(f"**{highlighted[pos:pos + len(term)]}**")
+
+                last_pos = pos + len(term)
+
+                # Security: Limit iterations to prevent infinite loops
+                if len(result_parts) > 1000:
+                    break
+
+            # Add remaining text
+            result_parts.append(highlighted[last_pos:])
+            highlighted = "".join(result_parts)
+
+        except Exception:
+            # If highlighting fails, return original text
+            continue
 
     return highlighted
 

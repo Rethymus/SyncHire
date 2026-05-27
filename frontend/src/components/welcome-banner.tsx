@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, memo, useCallback, useState, useEffect } from "react";
+import { useTranslations } from 'next-intl';
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -16,18 +17,18 @@ import {
 
 interface QuickAction {
   id: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   icon: React.ComponentType<{ className?: string }>;
   href: string;
   color: string;
 }
 
-const quickActions: QuickAction[] = [
+const quickActionsConfig: QuickAction[] = [
   {
     id: "upload-resume",
-    title: "上传简历",
-    description: "开始您的智能求职之旅",
+    titleKey: "quickActions.uploadResume.title",
+    descriptionKey: "quickActions.uploadResume.description",
     icon: () => (
       <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -38,24 +39,24 @@ const quickActions: QuickAction[] = [
   },
   {
     id: "watch-tutorial",
-    title: "观看教程",
-    description: "了解如何使用平台功能",
+    titleKey: "quickActions.watchTutorial.title",
+    descriptionKey: "quickActions.watchTutorial.description",
     icon: Play,
     href: "#tutorial",
     color: "bg-purple-500",
   },
   {
     id: "read-guide",
-    title: "阅读指南",
-    description: "查看详细的使用文档",
+    titleKey: "quickActions.readGuide.title",
+    descriptionKey: "quickActions.readGuide.description",
     icon: BookOpen,
     href: "#guide",
     color: "bg-green-500",
   },
   {
     id: "join-community",
-    title: "加入社区",
-    description: "与其他用户交流经验",
+    titleKey: "quickActions.joinCommunity.title",
+    descriptionKey: "quickActions.joinCommunity.description",
     icon: Users,
     href: "#community",
     color: "bg-orange-500",
@@ -63,19 +64,26 @@ const quickActions: QuickAction[] = [
 ];
 
 function WelcomeBanner() {
+  const t = useTranslations('welcome');
   const { onboarding, startOnboarding } = useAppStore();
   const [isVisible, setIsVisible] = useState(true);
   const [currentTip, setCurrentTip] = useState(0);
 
   const tips = useMemo(
     () => [
-      "💡 提示：上传简历后，AI 会自动分析并优化您的简历内容",
-      "🎯 目标：通过智能匹配找到最适合您的职位",
-      "📈 提升：使用面试准备功能提高您的面试成功率",
-      "⚡ 效率：批量管理多个申请，节省求职时间",
+      t('tips.uploadResume'),
+      t('tips.smartMatching'),
+      t('tips.interviewPrep'),
+      t('tips.efficiency'),
     ],
-    []
+    [t]
   );
+
+  const quickActions = useMemo(() => quickActionsConfig.map(action => ({
+    ...action,
+    title: t(action.titleKey as any),
+    description: t(action.descriptionKey as any)
+  })), [t]);
 
   const handleClose = useCallback(() => {
     setIsVisible(false);
@@ -113,7 +121,7 @@ function WelcomeBanner() {
       <button
         onClick={handleClose}
         className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white"
-        aria-label="关闭欢迎横幅"
+        aria-label={t('close')}
       >
         <X className="h-5 w-5" />
       </button>
@@ -128,10 +136,10 @@ function WelcomeBanner() {
           </div>
           <div className="flex-1">
             <h2 className="text-2xl font-bold mb-2">
-              欢迎来到 SyncHire！
+              {t('title')}
             </h2>
             <p className="text-blue-100 text-lg">
-              让 AI 帮助您找到理想的工作
+              {t('subtitle')}
             </p>
           </div>
         </div>
@@ -181,14 +189,14 @@ function WelcomeBanner() {
             className="bg-white text-blue-600 hover:bg-blue-50 min-h-[44px] px-6 font-semibold"
           >
             <Play className="h-4 w-4 mr-2" />
-            开始引导教程
+            {t('cta.startTour')}
           </Button>
           <Button
             variant="outline"
             className="border-white/30 text-white hover:bg-white/10 min-h-[44px] px-6"
             onClick={handleClose}
           >
-            稍后再说
+            {t('cta.later')}
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
         </div>

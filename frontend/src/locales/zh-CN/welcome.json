@@ -1,0 +1,35 @@
+{
+  "welcome": {
+    "title": "欢迎来到 SyncHire！",
+    "subtitle": "让 AI 帮助您找到理想的工作",
+    "close": "关闭欢迎横幅",
+    "tips": {
+      "uploadResume": "💡 提示：上传简历后，AI 会自动分析并优化您的简历内容",
+      "smartMatching": "🎯 目标：通过智能匹配找到最适合您的职位",
+      "interviewPrep": "📈 提升：使用面试准备功能提高您的面试成功率",
+      "efficiency": "⚡ 效率：批量管理多个申请，节省求职时间"
+    },
+    "quickActions": {
+      "uploadResume": {
+        "title": "上传简历",
+        "description": "开始您的智能求职之旅"
+      },
+      "watchTutorial": {
+        "title": "观看教程",
+        "description": "了解如何使用平台功能"
+      },
+      "readGuide": {
+        "title": "阅读指南",
+        "description": "查看详细的使用文档"
+      },
+      "joinCommunity": {
+        "title": "加入社区",
+        "description": "与其他用户交流经验"
+      }
+    },
+    "cta": {
+      "startTour": "开始引导教程",
+      "later": "稍后再说"
+    }
+  }
+}

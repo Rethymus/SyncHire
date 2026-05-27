@@ -4,7 +4,13 @@ import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { JobApplication } from "@/lib/store";
@@ -98,14 +104,19 @@ export function MatchRankingControls({
             <Label>排序方式</Label>
             <Select
               value={options.sortBy}
-              onChange={(e) =>
-                updateOptions({ sortBy: e.target.value as MatchRankingOptions["sortBy"] })
+              onValueChange={(value) =>
+                updateOptions({ sortBy: value as MatchRankingOptions["sortBy"] })
               }
             >
-              <option value="matchScore">匹配度</option>
-              <option value="updatedAt">更新时间</option>
-              <option value="createdAt">创建时间</option>
-              <option value="position">职位名称</option>
+              <SelectTrigger>
+                <SelectValue placeholder="排序方式" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="matchScore">匹配度</SelectItem>
+                <SelectItem value="updatedAt">更新时间</SelectItem>
+                <SelectItem value="createdAt">创建时间</SelectItem>
+                <SelectItem value="position">职位名称</SelectItem>
+              </SelectContent>
             </Select>
           </div>
 
@@ -114,12 +125,17 @@ export function MatchRankingControls({
             <Label>排序顺序</Label>
             <Select
               value={options.sortOrder}
-              onChange={(e) =>
-                updateOptions({ sortOrder: e.target.value as "asc" | "desc" })
+              onValueChange={(value) =>
+                updateOptions({ sortOrder: value as "asc" | "desc" })
               }
             >
-              <option value="desc">降序</option>
-              <option value="asc">升序</option>
+              <SelectTrigger>
+                <SelectValue placeholder="排序顺序" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc">降序</SelectItem>
+                <SelectItem value="asc">升序</SelectItem>
+              </SelectContent>
             </Select>
           </div>
 
@@ -128,17 +144,22 @@ export function MatchRankingControls({
             <Label>匹配等级</Label>
             <Select
               value={options.filterBy?.matchLevel ?? "all"}
-              onChange={(e) =>
+              onValueChange={(value) =>
                 updateOptions({
-                  filterBy: { matchLevel: e.target.value as any },
+                  filterBy: { matchLevel: value as any },
                 })
               }
             >
-              <option value="all">全部</option>
-              <option value="excellent">优秀 (80%+)</option>
-              <option value="good">良好 (60%+)</option>
-              <option value="fair">一般 (40%+)</option>
-              <option value="poor">较差 (&lt;40%)</option>
+              <SelectTrigger>
+                <SelectValue placeholder="匹配等级" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部</SelectItem>
+                <SelectItem value="excellent">优秀 (80%+)</SelectItem>
+                <SelectItem value="good">良好 (60%+)</SelectItem>
+                <SelectItem value="fair">一般 (40%+)</SelectItem>
+                <SelectItem value="poor">较差 (&lt;40%)</SelectItem>
+              </SelectContent>
             </Select>
           </div>
         </div>

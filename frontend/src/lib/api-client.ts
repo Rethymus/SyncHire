@@ -196,6 +196,31 @@ export const authAPI = {
     apiClient.post<void>('/auth/verify-email', { token }),
 
   getCurrentUser: () => apiClient.get<{ id: string; email: string; full_name: string; is_active: boolean }>('/auth/me'),
+
+  // OAuth endpoints
+  getOAuthProviders: () => apiClient.get<{
+    providers: {
+      google: { available: boolean; display_name: string };
+      github: { available: boolean; display_name: string };
+    }
+  }>('/oauth/providers'),
+
+  getOAuthAuthorizationURL: (provider: 'google' | 'github') =>
+    apiClient.get<{ authorization_url: string; provider: string }>(`/oauth/authorize/${provider}`),
+
+  oauthCallback: (data: { code: string; redirect_uri: string; provider: 'google' | 'github' }) =>
+    apiClient.post<{
+      access_token: string;
+      refresh_token: string;
+      token_type: string;
+      user_info: {
+        id: string;
+        email: string;
+        full_name: string;
+        is_active: boolean;
+        provider: string;
+      };
+    }>('/oauth/callback', data),
 };
 
 /**
@@ -280,6 +305,60 @@ export const applicationAPI = {
   delete: (id: string) => apiClient.delete(`/applications/${id}`),
 
   getInterviewPrep: (id: string) => apiClient.get(`/applications/${id}/interview-prep`),
+};
+
+/**
+ * Interview API endpoints
+ */
+export const interviewAPI = {
+  create: (data: {
+    application_id: string;
+    title: string;
+    description?: string;
+    interview_type: string;
+    scheduled_date: string;
+    duration_minutes: number;
+    timezone?: string;
+    location_type: string;
+    location_url?: string;
+    location_address?: string;
+    meeting_platform?: string;
+    meeting_id?: string;
+    meeting_password?: string;
+    interviewers?: Array<{ name: string; role?: string; email?: string }>;
+    preparation_notes?: string;
+    reminder_enabled?: boolean;
+    reminder_timings?: number[];
+  }) => apiClient.post('/interviews', data),
+
+  list: (params?: {
+    page?: number;
+    page_size?: number;
+    status?: string;
+    interview_type?: string;
+    from_date?: string;
+    to_date?: string;
+  }) => {
+    const queryString = new URLSearchParams(params as any).toString();
+    return apiClient.get(`/interviews${queryString ? `?${queryString}` : ''}`);
+  },
+
+  getCalendar: (year: number, month: number) =>
+    apiClient.get(`/interviews/calendar?year=${year}&month=${month}`),
+
+  getStats: () => apiClient.get('/interviews/stats'),
+
+  get: (id: string) => apiClient.get(`/interviews/${id}`),
+
+  update: (id: string, data: any) => apiClient.put(`/interviews/${id}`, data),
+
+  delete: (id: string) => apiClient.delete(`/interviews/${id}`),
+
+  submitFeedback: (id: string, data: {
+    feedback: string;
+    rating?: number;
+    next_steps?: string;
+  }) => apiClient.post(`/interviews/${id}/feedback`, data),
 };
 
 /**

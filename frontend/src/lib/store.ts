@@ -15,12 +15,13 @@ export interface JobApplication {
   id: string;
   companyName: string;
   position: string;
-  status: "draft" | "applied" | "interview" | "offer" | "rejected";
+  status: "draft" | "applied" | "interview" | "offer" | "rejected" | "optimized" | "pending";
   jobId: string;
   resumeId: string;
   matchScore?: number;
   createdAt: Date;
   updatedAt: Date;
+  tags?: string[];
 }
 
 export interface JobDescription {
@@ -51,6 +52,12 @@ export type OnboardingStep =
   | "tutorial"
   | "complete";
 
+interface ToastAction {
+  showSuccess: (title: string, description?: string) => void;
+  showError: (title: string, description?: string) => void;
+  showInfo: (title: string, description?: string) => void;
+}
+
 interface AppState {
   // Auth state
   user: UserData | null;
@@ -67,6 +74,9 @@ interface AppState {
   deleteResume: (id: string) => void;
   setCurrentResume: (resume: Resume | null) => void;
 
+  // Toast actions
+  showToast: (action: ToastAction) => void;
+
   // Template state
   selectedTemplate: string;
   templateCustomization: Record<string, any>;
@@ -79,6 +89,8 @@ interface AppState {
   addApplication: (application: JobApplication) => void;
   updateApplication: (id: string, updates: Partial<JobApplication>) => void;
   deleteApplication: (id: string) => void;
+  batchUpdateApplications: (ids: string[], updates: Partial<JobApplication>) => void;
+  batchDeleteApplications: (ids: string[]) => void;
 
   // Job description state
   jobDescriptions: JobDescription[];
@@ -141,10 +153,17 @@ export const useAppStore = create<AppState>()((set) => ({
 
   // Resume actions
   addResume: (resume) =>
-    set((state) => ({
-      resumes: [...state.resumes, resume],
-      currentResume: resume,
-    })),
+    set((state) => {
+      state.showToast?.({
+        showSuccess: () => {},
+        showError: () => {},
+        showInfo: () => {},
+      });
+      return {
+        resumes: [...state.resumes, resume],
+        currentResume: resume,
+      };
+    }),
 
   updateResume: (id, updates) =>
     set((state) => ({
@@ -213,6 +232,21 @@ export const useAppStore = create<AppState>()((set) => ({
   deleteApplication: (id) =>
     set((state) => ({
       applications: state.applications.filter((app) => app.id !== id),
+    })),
+
+  // Toast actions (optional - can be set by components to enable toast notifications)
+  showToast: () => {},
+
+  batchUpdateApplications: (ids, updates) =>
+    set((state) => ({
+      applications: state.applications.map((app) =>
+        ids.includes(app.id) ? { ...app, ...updates } : app
+      ),
+    })),
+
+  batchDeleteApplications: (ids) =>
+    set((state) => ({
+      applications: state.applications.filter((app) => !ids.includes(app.id)),
     })),
 
   // Job description actions

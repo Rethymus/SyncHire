@@ -17,6 +17,14 @@ class LogCategory(Enum):
     AI = "ai"
     MCP = "mcp"
     GENERAL = "general"
+    WEBSOCKET = "websocket"
+    NOTIFICATION = "notification"
+    APPLICATION = "application"
+    SEARCH = "search"
+    ANALYTICS = "analytics"
+    ERROR = "error"
+    SECURITY = "security"
+    PERFORMANCE = "performance"
 
 
 class StructuredLogger:

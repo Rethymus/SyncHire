@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BulkDeleteActions } from "@/components/bulk-delete-actions";
 import { SelectableList, useSelectableList } from "@/components/selectable-list";
-import { resumeAPI } from "@/lib/api-client-consolidated";
+import { resumeAPI, type APIResponse } from "@/lib/api-client-consolidated";
 import { logger, LogCategory } from "@/lib/logger";
 import { useAppStore, type Resume } from "@/lib/store";
 import {
@@ -34,6 +34,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { formatDistanceToNow } from "date-fns";
+import { useOptimisticMutation, ArrayUpdateHelper } from "@/lib/optimistic-updates";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 interface ResumeListWithBulkActionsProps {
   resumes?: Resume[];
@@ -43,10 +46,12 @@ interface ResumeListWithBulkActionsProps {
 
 export const ResumeListWithBulkActions = memo<ResumeListWithBulkActionsProps>(
   function ResumeListWithBulkActions({ resumes, onRefresh, className }) {
-    const { resumes: storedResumes, setResumes } = useAppStore();
+    const { resumes: storedResumes, setResumes, deleteResume } = useAppStore();
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [resumeToDelete, setResumeToDelete] = useState<Resume | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const queryClient = useQueryClient();
+    const { crud } = useToast();
 
     // Use provided resumes or fall back to store
     const displayResumes = resumes || storedResumes;
@@ -59,6 +64,104 @@ export const ResumeListWithBulkActions = memo<ResumeListWithBulkActionsProps>(
       isSelected,
     } = useSelectableList();
 
+    // Optimistic mutation for single delete
+    const deleteMutation = useOptimisticMutation(
+      async (resumeId: string) => {
+        return await resumeAPI.delete(resumeId);
+      },
+      {
+        queryKey: ['resumes'],
+        updateFn: (oldData, variables) => {
+          // Handle both array and APIResponse structures
+          if (Array.isArray(oldData)) {
+            return {
+              status: 200,
+              success: true,
+              data: oldData.filter((resume) => resume.id !== variables)
+            } as APIResponse<any>;
+          } else if (oldData && typeof oldData === 'object' && 'data' in oldData && Array.isArray(oldData.data)) {
+            return {
+              ...oldData,
+              data: oldData.data.filter((resume: any) => resume.id !== variables)
+            } as APIResponse<any>;
+          }
+          return oldData as APIResponse<any>;
+        },
+        onSuccess: (data, variables) => {
+          deleteResume(variables);
+          logger.info(LogCategory.USER_ACTION, `Deleted resume: ${variables}`);
+          onRefresh?.();
+          crud.delete.success('Resume', 1);
+        },
+        onError: (error, variables) => {
+          crud.delete.error('Resume', 'Failed to delete resume');
+          logger.error(LogCategory.API, "Failed to delete resume", error as Error, {
+            resumeId: variables,
+          });
+        },
+        invalidateQueries: [['resumes'], ['analytics']],
+      }
+    );
+
+    // Optimistic mutation for bulk delete
+    const bulkDeleteMutation = useOptimisticMutation(
+      async (ids: string[]) => {
+        return await resumeAPI.bulkDelete(ids);
+      },
+      {
+        queryKey: ['resumes'],
+        updateFn: (oldData, variables): APIResponse<any> => {
+          // Handle both array and APIResponse structures
+          if (Array.isArray(oldData)) {
+            return {
+              status: 200,
+              success: true,
+              data: oldData.filter((resume) => !variables.includes(resume.id))
+            } as APIResponse<any>;
+          } else if (oldData && typeof oldData === 'object' && 'data' in oldData && Array.isArray(oldData.data)) {
+            return {
+              ...oldData,
+              data: oldData.data.filter((resume: any) => !variables.includes(resume.id))
+            } as APIResponse<any>;
+          }
+          return oldData as APIResponse<any>;
+        },
+        onSuccess: (data, variables) => {
+          if (data.success && data.data) {
+            const { success_count, failed_count, errors } = data.data;
+
+            // Remove successfully deleted resumes from store
+            variables.forEach((id) => {
+              if (!errors.some((error: any) => error.id === id)) {
+                deleteResume(id);
+              }
+            });
+
+            logger.info(LogCategory.USER_ACTION, `Bulk deleted ${success_count} resumes`);
+            onRefresh?.();
+
+            if (success_count > 0) {
+              crud.delete.success('Resumes', success_count);
+            }
+
+            if (failed_count > 0) {
+              crud.delete.error(
+                'Resumes',
+                `${failed_count} resume${failed_count > 1 ? 's' : ''} failed to delete`
+              );
+            }
+          }
+        },
+        onError: (error, variables) => {
+          crud.delete.error('Resumes', 'Failed to delete resumes');
+          logger.error(LogCategory.API, "Failed to bulk delete resumes", error as Error, {
+            count: variables.length,
+          });
+        },
+        invalidateQueries: [['resumes'], ['analytics']],
+      }
+    );
+
     const handleSingleDelete = useCallback(async (resume: Resume) => {
       setResumeToDelete(resume);
       setDeleteDialogOpen(true);
@@ -69,56 +172,28 @@ export const ResumeListWithBulkActions = memo<ResumeListWithBulkActionsProps>(
 
       setIsDeleting(true);
       try {
-        const response = await resumeAPI.delete(resumeToDelete.id);
-        if (response.success) {
-          // Update store to remove deleted resume
-          setResumes(storedResumes.filter((r) => r.id !== resumeToDelete.id));
-          logger.info(LogCategory.USER_ACTION, `Deleted resume: ${resumeToDelete.id}`);
-          onRefresh?.();
-        }
-      } catch (error) {
-        logger.error(LogCategory.API, "Failed to delete resume", error as Error);
+        await deleteMutation.mutateAsync(resumeToDelete.id);
       } finally {
         setIsDeleting(false);
         setDeleteDialogOpen(false);
         setResumeToDelete(null);
       }
-    }, [resumeToDelete, storedResumes, setResumes, onRefresh]);
+    }, [resumeToDelete, deleteMutation]);
 
     const handleBulkDelete = useCallback(async (ids: string[]) => {
-      const response = await resumeAPI.bulkDelete(ids);
-
-      if (response.success && response.data) {
-        const { success_count, failed_count, errors } = response.data;
-
-        // Update store to remove successfully deleted resumes
-        if (success_count > 0) {
-          const deletedIds = new Set(
-            ids.filter((id) =>
-              !errors.some((error) => error.id === id)
-            )
-          );
-          setResumes(storedResumes.filter((r) => !deletedIds.has(r.id)));
-        }
-
-        if (failed_count > 0) {
-          logger.warn(
-            LogCategory.USER_ACTION,
-            `Bulk delete completed with ${failed_count} failures`,
-            new Error(errors.map((e) => e.error).join(", "))
-          );
-        }
-
-        clearSelection();
-        onRefresh?.();
+      const result = await bulkDeleteMutation.mutateAsync(ids);
+      clearSelection();
+      // Extract the data from APIResponse
+      if (result.success && result.data) {
+        return result.data;
       }
-
-      return response.data || {
+      // Return default error response if something went wrong
+      return {
         success_count: 0,
         failed_count: ids.length,
-        errors: ids.map((id) => ({ id, error: "Unknown error" }))
+        errors: ids.map(id => ({ id, error: 'Failed to delete' }))
       };
-    }, [storedResumes, setResumes, clearSelection, onRefresh]);
+    }, [bulkDeleteMutation, clearSelection]);
 
     const handleExport = useCallback(async (resume: Resume) => {
       try {

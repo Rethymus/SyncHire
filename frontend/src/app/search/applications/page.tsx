@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Navigation } from "@/components/navigation";
+export const dynamic = 'force-dynamic';
+
+import { useState, useCallback, useEffect } from "react";
+// import { Navigation } from "@/components/navigation";
 import { UniversalSearch } from "@/components/universal-search";
 import { SearchResults } from "@/components/search-results";
 import { searchApi, SearchFilters as APISearchFilters } from "@/lib/api/search";
@@ -55,13 +57,14 @@ export default function ApplicationSearchPage() {
   );
 
   // Load initial results
-  useState(() => {
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
     handleSearch("", currentFilters);
-  });
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
+      
 
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}

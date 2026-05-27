@@ -2,7 +2,13 @@
 
 import { useState, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
@@ -131,20 +137,21 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
       <div className={cn("flex items-center gap-2", className)}>
         <Select
           value={currentStatus}
-          onChange={(e) => {
-            const value = e.target.value;
+          onValueChange={(value) => {
             setSelectedStatus(value);
             setIsDialogOpen(true);
           }}
         >
-          <option value="" disabled>
-            {currentLabel}
-          </option>
-          {STATUS_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
+          <SelectTrigger>
+            <SelectValue placeholder={currentLabel} />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
         </Select>
 
         <Button

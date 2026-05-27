@@ -1,0 +1,66 @@
+{
+  "errors": {
+    "required": "此字段为必填项",
+    "invalid_email": "请输入有效的邮箱地址",
+    "invalid_password": "密码至少需要8个字符",
+    "password_mismatch": "两次输入的密码不一致",
+    "unauthorized": "未授权访问",
+    "forbidden": "访问被禁止",
+    "not_found": "未找到资源",
+    "already_exists": "该资源已存在",
+    "rate_limit_exceeded": "请求过多，请稍后重试",
+    "server_error": "服务器错误，请稍后重试",
+    "validation_error": "验证错误",
+    "authentication_failed": "认证失败",
+    "token_expired": "令牌已过期",
+    "invalid_token": "无效的令牌",
+    "file_too_large": "文件大小超过限制",
+    "invalid_file_type": "无效的文件类型"
+  },
+  "success": {
+    "created": "创建成功",
+    "updated": "更新成功",
+    "deleted": "删除成功",
+    "uploaded": "上传成功",
+    "authenticated": "认证成功"
+  },
+  "auth": {
+    "login_success": "登录成功",
+    "logout_success": "退出成功",
+    "register_success": "注册成功",
+    "password_reset_sent": "密码重置邮件已发送",
+    "password_reset_success": "密码重置成功",
+    "email_verified": "邮箱验证成功",
+    "2fa_enabled": "双因素认证已启用",
+    "2fa_disabled": "双因素认证已禁用"
+  },
+  "resumes": {
+    "created": "简历创建成功",
+    "updated": "简历更新成功",
+    "deleted": "简历删除成功",
+    "analyzed": "简历分析完成",
+    "optimized": "简历优化成功"
+  },
+  "jobs": {
+    "created": "职位描述创建成功",
+    "updated": "职位描述更新成功",
+    "deleted": "职位描述删除成功",
+    "matched": "职位匹配完成"
+  },
+  "applications": {
+    "created": "申请创建成功",
+    "updated": "申请更新成功",
+    "deleted": "申请删除成功",
+    "status_updated": "申请状态已更新"
+  },
+  "emails": {
+    "subject": {
+      "welcome": "欢迎来到 SyncHire",
+      "password_reset": "重置您的密码",
+      "email_verification": "验证您的邮箱",
+      "application_update": "申请状态更新"
+    },
+    "greeting": "您好 {name}",
+    "closing": "祝好，\nSyncHire 团队"
+  }
+}

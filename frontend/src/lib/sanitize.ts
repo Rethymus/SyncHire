@@ -60,4 +60,28 @@ export function sanitizeMarkdownHtml(markdown: string): string {
   });
 }
 
+/**
+ * Sanitize search result highlights to prevent XSS attacks
+ *
+ * This function is specifically designed for search result highlights where we want
+ * to allow basic highlighting tags but prevent any malicious content.
+ *
+ * Security Critical: Search results come from user-generated content and must be
+ * sanitized before rendering to prevent XSS attacks.
+ *
+ * @param highlight - The unsanitized highlight HTML string
+ * @returns Sanitized HTML safe for rendering in search results
+ */
+export function sanitizeHighlight(html: string): string {
+  if (!html) return '';
+
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['mark', 'strong', 'em'],
+    ALLOWED_ATTR: ['class'], // Only allow class attribute for styling
+    ALLOW_DATA_ATTR: false,
+    FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'a'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur', 'onchange', 'onkey', 'href', 'src'],
+  });
+}
+
 export default DOMPurify;

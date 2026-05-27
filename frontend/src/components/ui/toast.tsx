@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useCallback, useRef, useEffect, Re
 import { X, CheckCircle, AlertCircle, Info, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type ToastType = "success" | "error" | "info" | "warning";
+export type ToastType = "success" | "error" | "info" | "warning" | "destructive";
 
 export interface Toast {
   id: string;
@@ -19,6 +19,7 @@ interface ToastContextType {
   addToast: (toast: Omit<Toast, "id">) => void;
   removeToast: (id: string) => void;
   clearToasts: () => void;
+  toast: (toast: { title: string; description?: string; variant?: ToastType }) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -74,8 +75,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts([]);
   }, []);
 
+  // Convenience method that matches the expected API
+  const toast = useCallback(({ title, description, variant = "info" }: { title: string; description?: string; variant?: ToastType }) => {
+    addToast({
+      type: variant,
+      title,
+      message: description,
+    });
+  }, [addToast]);
+
   return (
-    <ToastContext.Provider value={{ toasts, addToast, removeToast, clearToasts }}>
+    <ToastContext.Provider value={{ toasts, addToast, removeToast, clearToasts, toast }}>
       {children}
       <ToastContainer />
     </ToastContext.Provider>
@@ -110,6 +120,7 @@ function ToastItem({ toast, onRemove }: ToastItemProps) {
     error: <XCircle className="h-5 w-5" />,
     info: <Info className="h-5 w-5" />,
     warning: <AlertCircle className="h-5 w-5" />,
+    destructive: <XCircle className="h-5 w-5" />,
   };
 
   const styles = {
@@ -117,6 +128,7 @@ function ToastItem({ toast, onRemove }: ToastItemProps) {
     error: "bg-red-50 border-red-200 text-red-900",
     info: "bg-blue-50 border-blue-200 text-blue-900",
     warning: "bg-yellow-50 border-yellow-200 text-yellow-900",
+    destructive: "bg-red-50 border-red-200 text-red-900",
   };
 
   return (

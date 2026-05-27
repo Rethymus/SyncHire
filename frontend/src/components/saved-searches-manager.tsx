@@ -72,11 +72,6 @@ export const SavedSearchesManager = memo(function SavedSearchesManager({
     is_favorite: false,
   });
 
-  // Load saved searches on mount
-  useEffect(() => {
-    loadSavedSearches();
-  }, [searchType, filter, sortBy]);
-
   const loadSavedSearches = useCallback(async () => {
     try {
       setLoading(true);
@@ -87,7 +82,7 @@ export const SavedSearchesManager = memo(function SavedSearchesManager({
         sort_by: sortBy,
         page_size: 50,
       });
-      setSavedSearches(response.items);
+      setSavedSearches(response.items || []);
     } catch (error) {
       logger.error(LogCategory.API, "Failed to load saved searches", error as Error);
       setError("Failed to load saved searches");
@@ -95,6 +90,11 @@ export const SavedSearchesManager = memo(function SavedSearchesManager({
       setLoading(false);
     }
   }, [searchType, filter, sortBy]);
+
+  // Load saved searches on mount
+  useEffect(() => {
+    loadSavedSearches();
+  }, [loadSavedSearches]);
 
   const handleCreateSavedSearch = useCallback(async () => {
     if (!formData.query.trim()) {
@@ -227,7 +227,7 @@ export const SavedSearchesManager = memo(function SavedSearchesManager({
           merge_strategy: 'skip_existing',
         });
 
-        logger.info(LogCategory.API, `Imported ${result.imported} searches`, result);
+        logger.info(LogCategory.API, `Imported ${result.imported || 0} searches`, result);
         loadSavedSearches();
       }
     } catch (error) {

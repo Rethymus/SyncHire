@@ -28,7 +28,57 @@ class JDService:
         db: AsyncSession,
         user_id: uuid.UUID,
         jd_data: JDCreate,
-    ) -> JD:
+        async_processing: bool = False,
+    ) -> JD | dict:
+        """
+        Create a new JD with optional async processing.
+
+        Args:
+            db: Database session
+            user_id: User ID
+            jd_data: JD creation data
+            async_processing: If True, submit parsing as async task and return task_id
+
+        Returns:
+            JD object if async_processing=False, dict with task_id if True
+        """
+        if async_processing:
+            # Submit async parsing task
+            from app.services.task_service import TaskService
+
+            task = await TaskService.submit_task(
+                db=db,
+                user_id=user_id,
+                task_type="jd_parsing",
+                input_data={
+                    "title": jd_data.title,
+                    "company": jd_data.company,
+                    "content": jd_data.content,
+                },
+                priority="normal",
+            )
+
+            # Create JD record immediately with pending status
+            db_jd = JD(
+                user_id=user_id,
+                title=jd_data.title,
+                company=jd_data.company,
+                content=jd_data.content,
+                parsed_data=None,  # Will be filled by task
+                embedding=None,  # Will be filled by task
+            )
+
+            db.add(db_jd)
+            await db.commit()
+            await db.refresh(db_jd)
+
+            return {
+                "jd": db_jd,
+                "task_id": task.id,
+                "message": "JD created. Parsing is being processed in background.",
+            }
+
+        # Synchronous processing (original behavior)
         parsed_data = await JDService.parse_jd(jd_data.content)
 
         # Generate embedding for semantic search
