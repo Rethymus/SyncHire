@@ -23,7 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm ci
+          npm install --prefer-offline --no-audit --no-fund
 
       - name: Run linter
         working-directory: ./frontend
@@ -148,7 +148,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm ci
+          npm install --prefer-offline --no-audit --no-fund
 
       - name: Install Playwright browsers
         working-directory: ./frontend
