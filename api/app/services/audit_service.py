@@ -22,9 +22,7 @@ from app.models.audit_log import (
     DataRetentionLog,
     ConsentLog,
 )
-from app.core.logger import get_logger
-
-logger = get_logger(__name__)
+from app.core.logger import logger
 
 
 class AuditService:

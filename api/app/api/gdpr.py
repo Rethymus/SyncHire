@@ -26,8 +26,7 @@ from app.models.application import Application
 from app.models.resume import Resume
 from app.models.jd import JD
 from app.models.notification import Notification
-from app.models.search_history import SearchHistory
-from app.models.saved_search import SavedSearch
+from app.models.search import SearchHistory, SavedSearch
 from app.middleware.rate_limit import rate_limit, RateLimitType
 from app.core.logger import logger, LogCategory
 from app.services.email_service import email_service
@@ -57,7 +56,7 @@ class DataRestoreRequest(BaseModel):
 
 
 @router.post("/account/deletion-request")
-@rate_limit(RateLimitType.SENSITIVE)
+@rate_limit(RateLimitType.AUTH)
 async def request_account_deletion(
     request: AccountDeletionRequest,
     background_tasks: BackgroundTasks,
@@ -132,7 +131,7 @@ async def request_account_deletion(
 
 
 @router.post("/account/deletion-cancel/{token}")
-@rate_limit(RateLimitType.SENSITIVE)
+@rate_limit(RateLimitType.AUTH)
 async def cancel_account_deletion(
     token: str,
     db: AsyncSession = Depends(get_db),
@@ -350,7 +349,7 @@ async def list_user_backups(
 
 
 @router.post("/data/restore")
-@rate_limit(RateLimitType.SENSITIVE)
+@rate_limit(RateLimitType.AUTH)
 async def restore_data_backup(
     request: DataRestoreRequest,
     background_tasks: BackgroundTasks,
@@ -410,7 +409,7 @@ async def restore_data_backup(
 
 
 @router.delete("/data/clear")
-@rate_limit(RateLimitType.SENSITIVE)
+@rate_limit(RateLimitType.AUTH)
 async def clear_all_user_data(
     confirm: bool = False,
     db: AsyncSession = Depends(get_db),

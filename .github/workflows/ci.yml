@@ -43,7 +43,7 @@ jobs:
         run: npm run type-check --workspace=frontend
 
       - name: Run tests
-        run: npm run test --workspace=frontend -- --run 2>/dev/null || echo "Tests skipped for CI/CD validation"
+        run: npm run test --workspace=frontend -- --run
 
       - name: Build
         run: npm run build --workspace=frontend
@@ -98,18 +98,16 @@ jobs:
 
       - name: Run linter
         run: |
-          black --check . || echo "Black formatting issues detected"
-          ruff check . || echo "Ruff linting issues detected"
-        continue-on-error: true
+          black --check .
+          ruff check .
 
       - name: Run tests
         run: |
-          python -m pytest tests/test_api.py::TestHealthEndpoints -v --tb=short || echo "Tests completed with some failures"
+          python -m pytest tests/test_api.py::TestHealthEndpoints -v --tb=short
         env:
           DATABASE_URL: postgresql+asyncpg://synchire:synchire_test@localhost:5432/synchire_test
           REDIS_URL: redis://localhost:6379
           TEST_MODE: true
-        continue-on-error: true
 
   security-scan:
     runs-on: ubuntu-latest

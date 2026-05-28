@@ -9,9 +9,7 @@ from app.models.task import Task, TaskType, TaskStatus
 from app.services.ai_service import AIService
 from app.services.mcp_client import mcp_client, MCPError
 from app.core.redis import redis_client
-from app.core.logger import setup_logger
-
-logger = setup_logger(__name__)
+from app.core.logger import logger
 
 
 class TaskService:

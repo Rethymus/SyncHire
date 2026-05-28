@@ -76,8 +76,8 @@ describe('useWebSocket', () => {
 
     expect(result.current.client).not.toBeNull();
 
-    act(() => {
-      vi.runAllTimers();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     await waitFor(() => {
@@ -99,8 +99,8 @@ describe('useWebSocket', () => {
       useWebSocket('test-token', { enabled: true })
     );
 
-    act(() => {
-      vi.runAllTimers();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     await waitFor(() => {
@@ -113,8 +113,8 @@ describe('useWebSocket', () => {
       useWebSocket('test-token', { enabled: true })
     );
 
-    act(() => {
-      vi.runAllTimers();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     await waitFor(() => {
@@ -138,8 +138,8 @@ describe('useWebSocket', () => {
       useWebSocket('test-token', { enabled: true })
     );
 
-    act(() => {
-      vi.runAllTimers();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     await waitFor(() => {
@@ -161,8 +161,8 @@ describe('useWebSocket', () => {
       useWebSocket('test-token', { enabled: true })
     );
 
-    act(() => {
-      vi.runAllTimers();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     await waitFor(() => {
@@ -200,8 +200,8 @@ describe('useWebSocket', () => {
       })
     );
 
-    act(() => {
-      vi.runAllTimers();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     await waitFor(() => {
@@ -219,8 +219,8 @@ describe('useWebSocket', () => {
       })
     );
 
-    act(() => {
-      vi.runAllTimers();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     await waitFor(() => {
@@ -245,8 +245,8 @@ describe('useWebSocket', () => {
       })
     );
 
-    act(() => {
-      vi.runAllTimers();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     await waitFor(() => {
@@ -265,8 +265,8 @@ describe('useWebSocket', () => {
     });
 
     // Fast forward past reconnect interval
-    act(() => {
-      vi.advanceTimersByTime(1000);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
     });
 
     // Should attempt reconnection
@@ -291,8 +291,8 @@ describe('useRealtimeNotifications', () => {
       useRealtimeNotifications('test-token')
     );
 
-    act(() => {
-      vi.runAllTimers();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     await waitFor(() => {
@@ -333,8 +333,8 @@ describe('useRealtimeNotifications', () => {
       useRealtimeNotifications('test-token')
     );
 
-    act(() => {
-      vi.runAllTimers();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     await waitFor(() => {
@@ -382,8 +382,8 @@ describe('useRealtimeNotifications', () => {
       useRealtimeNotifications('test-token')
     );
 
-    act(() => {
-      vi.runAllTimers();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
     });
 
     await waitFor(() => {

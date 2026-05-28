@@ -28,10 +28,10 @@ from app.api import (
     gdpr,
     two_factor,
     i18n,
-    compliance,
-    tasks,
+    # compliance,  # TODO: Fix missing audit_service functions
+    # tasks,  # TODO: Fix task_service import issues
     upload,
-    csv,
+    # csv,  # TODO: Fix task_service import issues
 )
 from app.websocket import manager
 from app.websocket.routes import router as websocket_router
@@ -145,10 +145,10 @@ app.include_router(oauth.router, prefix="/api")
 app.include_router(export.router, prefix="/api")
 app.include_router(gdpr.router, prefix="/api")
 app.include_router(i18n.router)
-app.include_router(compliance.router)
-app.include_router(tasks.router)
+# app.include_router(compliance.router)  # TODO: Fix missing audit_service functions
+# app.include_router(tasks.router)  # TODO: Fix task_service import issues
 app.include_router(upload.router, prefix="/api")
-app.include_router(csv.router)  # CSV export/import endpoints
+# app.include_router(csv.router)  # TODO: Fix task_service import issues
 app.include_router(websocket_router)
 
 

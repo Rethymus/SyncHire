@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.logger import get_logger
+from app.core.logger import logger
 from app.services.audit_service import (
     get_audit_logs,
     export_audit_log,
@@ -23,7 +23,6 @@ from app.models.user import User
 from app.models.audit_log import AuditAction, ResourceType
 
 router = APIRouter(prefix="/api/compliance", tags=["compliance"])
-logger = get_logger(__name__)
 
 
 @router.get("/audit-report")

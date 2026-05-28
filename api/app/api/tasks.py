@@ -4,13 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field
 from app.core.database import get_db
-from app.core.auth import get_current_user
+from app.core.deps import get_current_user
 from app.models.user import User
 from app.models.task import TaskStatus
 from app.services.task_service import TaskService
-from app.core.logger import setup_logger
-
-logger = setup_logger(__name__)
+from app.core.logger import logger
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
 

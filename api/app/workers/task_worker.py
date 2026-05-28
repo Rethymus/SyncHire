@@ -23,12 +23,12 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from app.core.config import get_settings
 from app.core.redis import redis_client
-from app.core.logger import setup_logger
+from app.core.logger import logger
 from app.services.task_service import TaskService
 
 # Setup
 settings = get_settings()
-logger = setup_logger(__name__)
+# logger is already imported
 
 # Global state
 worker_running = True

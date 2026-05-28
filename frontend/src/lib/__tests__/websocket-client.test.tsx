@@ -4,9 +4,28 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useQueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { useWebSocketClient, useWebSocketState } from '../websocket-client';
 import { WebSocketMessage, MessageType } from '../websocket-types';
+
+// Test wrapper component
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  const TestWrapper = ({ children }: { children: any }) => (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+  TestWrapper.displayName = 'TestWrapper';
+
+  return TestWrapper;
+};
 
 // Mock WebSocket
 class MockWebSocket {
@@ -55,6 +74,8 @@ class MockWebSocket {
 global.WebSocket = MockWebSocket as any;
 
 describe('WebSocket Client', () => {
+  const wrapper = createWrapper();
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -69,7 +90,8 @@ describe('WebSocket Client', () => {
         useWebSocketClient({
           token: 'test-token',
           url: 'ws://localhost:8000/api/ws',
-        })
+        }),
+        { wrapper }
       );
 
       // Wait for connection
@@ -81,7 +103,7 @@ describe('WebSocket Client', () => {
     });
 
     it('should handle connection state changes', async () => {
-      const { result } = renderHook(() => useWebSocketState());
+      const { result } = renderHook(() => useWebSocketState(), { wrapper });
 
       // Initial state should be disconnected
       expect(result.current).toBe('disconnected');
@@ -92,7 +114,8 @@ describe('WebSocket Client', () => {
           useWebSocketClient({
             token: 'test-token',
             url: 'ws://localhost:8000/api/ws',
-          })
+          }),
+          { wrapper }
         );
 
         await new Promise(resolve => setTimeout(resolve, 200));
@@ -107,7 +130,8 @@ describe('WebSocket Client', () => {
         useWebSocketClient({
           token: 'test-token',
           url: 'ws://localhost:8000/api/ws',
-        })
+        }),
+        { wrapper }
       );
 
       // Register message handler
@@ -135,7 +159,8 @@ describe('WebSocket Client', () => {
         useWebSocketClient({
           token: 'test-token',
           url: 'ws://localhost:8000/api/ws',
-        })
+        }),
+        { wrapper }
       );
 
       await act(async () => {
@@ -157,7 +182,8 @@ describe('WebSocket Client', () => {
         useWebSocketClient({
           token: 'test-token',
           url: 'ws://localhost:8000/api/ws',
-        })
+        }),
+        { wrapper }
       );
 
       await act(async () => {
@@ -175,7 +201,8 @@ describe('WebSocket Client', () => {
         useWebSocketClient({
           token: 'test-token',
           url: 'ws://localhost:8000/api/ws',
-        })
+        }),
+        { wrapper }
       );
 
       await act(async () => {
@@ -198,7 +225,8 @@ describe('WebSocket Client', () => {
           reconnect: true,
           reconnectInterval: 100,
           maxReconnectAttempts: 3,
-        })
+        }),
+        { wrapper }
       );
 
       await act(async () => {
@@ -214,7 +242,8 @@ describe('WebSocket Client', () => {
 
   describe('React Query Integration', () => {
     it('should invalidate queries on application updates', async () => {
-      const queryClient = renderHook(() => useQueryClient()).result.current;
+      const { result: queryClientResult } = renderHook(() => useQueryClient(), { wrapper });
+      const queryClient = queryClientResult.current;
 
       const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
@@ -222,7 +251,8 @@ describe('WebSocket Client', () => {
         useWebSocketClient({
           token: 'test-token',
           url: 'ws://localhost:8000/api/ws',
-        })
+        }),
+        { wrapper }
       );
 
       await act(async () => {

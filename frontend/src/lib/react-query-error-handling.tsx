@@ -9,6 +9,10 @@ import {
   QueryCache,
   MutationCache,
   QueryKey,
+  useQuery,
+  UseQueryResult,
+  useMutation,
+  UseMutationResult,
 } from '@tanstack/react-query';
 import { logger, LogCategory } from './logger';
 import { ErrorHandler, ErrorLogger, AppError } from './error-handler';
@@ -131,10 +135,10 @@ export function useEnhancedQuery<T>(
     staleTime?: number;
     refetchInterval?: number;
   }
-) {
+): UseQueryResult<T, AppError> {
   const { onError, onSuccess, ...queryOptions } = options || {};
 
-  return {
+  return useQuery<T, AppError>({
     queryKey,
     queryFn: async (): Promise<T> => {
       try {
@@ -148,7 +152,7 @@ export function useEnhancedQuery<T>(
       }
     },
     ...queryOptions,
-  };
+  });
 }
 
 /**
@@ -161,10 +165,10 @@ export function useEnhancedMutation<T, V>(
     onError?: (error: AppError, variables: V) => void;
     onSettled?: () => void;
   }
-) {
+): UseMutationResult<T, AppError, V, unknown> {
   const { onError, onSuccess, onSettled, ...mutationOptions } = options || {};
 
-  return {
+  return useMutation<T, AppError, V, unknown>({
     mutationFn: async (variables: V): Promise<T> => {
       try {
         const result = await mutationFn(variables);
@@ -179,7 +183,7 @@ export function useEnhancedMutation<T, V>(
       }
     },
     ...mutationOptions,
-  };
+  });
 }
 
 /**

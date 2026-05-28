@@ -7,11 +7,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 from typing import Optional, Literal
 from app.core.database import get_db
+from app.core.deps import get_current_user
 from app.core.security import create_access_token, create_refresh_token
 from app.core.errors import ValidationError, RateLimitError
 from app.core.config import get_settings
 from app.services.oauth_service import OAuthService
 from app.middleware.rate_limit import rate_limit, RateLimitType
+from app.models.user import User
 import logging
 
 logger = logging.getLogger(__name__)
@@ -227,7 +229,7 @@ async def get_available_providers():
 @router.post("/unlink/{provider}")
 async def unlink_oauth_account(
     provider: str,
-    current_user_id: str = Depends(...),  # This would use get_current_user dependency
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -235,7 +237,7 @@ async def unlink_oauth_account(
 
     Args:
         provider: OAuth provider to unlink ('google' or 'github')
-        current_user_id: Current authenticated user ID
+        current_user: Current authenticated user
         db: Database session
 
     Returns:
@@ -254,12 +256,12 @@ async def unlink_oauth_account(
 
         # Delete the OAuth account
         stmt = delete(OAuthAccount).where(
-            OAuthAccount.user_id == current_user_id, OAuthAccount.provider == provider
+            OAuthAccount.user_id == current_user.id, OAuthAccount.provider == provider
         )
         await db.execute(stmt)
         await db.commit()
 
-        logger.info(f"Unlinked {provider} account from user: {current_user_id}")
+        logger.info(f"Unlinked {provider} account from user: {current_user.id}")
 
         return {"message": f"Successfully unlinked {provider} account"}
 
