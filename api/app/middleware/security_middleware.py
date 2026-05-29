@@ -51,7 +51,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-DNS-Prefetch-Control"] = "off"
 
         # Remove server information
-        response.headers.pop("Server", None)
+        try:
+            del response.headers["Server"]
+        except KeyError:
+            pass
 
         return response
 
