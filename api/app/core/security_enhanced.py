@@ -19,7 +19,7 @@ from datetime import datetime
 from typing import Optional, Dict, Any, Tuple
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import base64
 
 from app.core.config import get_settings
@@ -289,7 +289,7 @@ class DataEncryption:
             # Use a fixed key for encryption (in production, use proper key management)
             encryption_key = settings.JWT_SECRET.encode()[:32].ljust(32, b"0")
             # Generate Fernet key from encryption key
-            kdf = PBKDF2(
+            kdf = PBKDF2HMAC(
                 algorithm=hashes.SHA256(),
                 length=32,
                 salt=b"synchire_encryption_salt",  # In production, use proper salt
