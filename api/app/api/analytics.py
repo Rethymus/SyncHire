@@ -247,7 +247,7 @@ async def get_analytics(
         start_date = end_date - timedelta(days=days)
 
         # Fetch user's applications
-        result = await db.execute(
+        await db.execute(
             select(Application)
             .where(
                 and_(
@@ -257,7 +257,7 @@ async def get_analytics(
             )
             .order_by(Application.created_at.desc())
         )
-        applications = result.scalars().all()
+        # applications = result.scalars().all()  # Commented out - unused variable
 
         # Fetch all-time data for overview
         all_apps_result = await db.execute(
@@ -414,7 +414,7 @@ async def get_analytics(
             row = week_result.first()
             total_apps = row.applications or 0
             interviews = row.interviews or 0
-            offers = row.offers or 0
+            # offers = row.offers or 0  # Commented out - unused variable
 
             application_to_interview = (
                 (interviews / total_apps) * 100 if total_apps > 0 else 0.0

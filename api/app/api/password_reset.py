@@ -139,7 +139,7 @@ async def validate_reset_token(
         result = await db.execute(
             select(PasswordResetToken)
             .where(PasswordResetToken.token == token.strip())
-            .where(PasswordResetToken.used == False)
+            .where(~PasswordResetToken.used)
         )
         reset_token_obj = result.scalar_one_or_none()
 
@@ -216,7 +216,7 @@ async def reset_password(
         result = await db.execute(
             select(PasswordResetToken)
             .where(PasswordResetToken.token == token.strip())
-            .where(PasswordResetToken.used == False)
+            .where(~PasswordResetToken.used)
         )
         reset_token_obj = result.scalar_one_or_none()
 

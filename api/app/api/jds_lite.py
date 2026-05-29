@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import httpx
 
-from app.core.database_lite import get_db
+from app.core.database_lite import get_db, AsyncSessionLocal
 from app.models.jd_lite import JobDescription
 from app.schemas.schemas_lite import (
     JobDescriptionCreate,

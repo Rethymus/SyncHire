@@ -177,7 +177,7 @@ class PerformanceAnalyzer:
                 planning_time = plan_data[0].get("Planning Time", 0)
                 total_cost = plan_info.get("Total Cost", 0)
 
-                logger.info(f"  📊 Execution plan:")
+                logger.info("  📊 Execution plan:")
                 logger.info(f"     Total cost: {total_cost:.2f}")
                 logger.info(f"     Planning time: {planning_time:.2f}ms")
                 logger.info(f"     Execution time: {execution_time:.2f}ms")
@@ -185,13 +185,13 @@ class PerformanceAnalyzer:
                 # Check for sequential scans (bad performance)
                 if self._has_seq_scan(plan_info):
                     logger.warning(
-                        f"  ⚠️  Query uses sequential scan - consider adding index"
+                        "  ⚠️  Query uses sequential scan - consider adding index"
                     )
 
                 # Check for sort operations (can be optimized with composite indexes)
                 if self._has_sort(plan_info):
                     logger.warning(
-                        f"  ⚠️  Query requires sorting - consider composite index"
+                        "  ⚠️  Query requires sorting - consider composite index"
                     )
 
         except Exception as e:

@@ -128,7 +128,7 @@ def demo_complete_2fa_flow():
     backup_code_used = test_backup_code in backup_codes
     if backup_code_used:
         backup_codes.remove(test_backup_code)
-        print(f"  Backup code verified successfully!")
+        print("  Backup code verified successfully!")
         print(f"  Remaining backup codes: {len(backup_codes)}")
 
 

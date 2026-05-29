@@ -12,6 +12,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config_lite import get_lite_settings
 from app.core.database_lite import init_db, close_db
 from app.core.logger import logger
+from app.api.resumes_lite import router as resumes_router
+from app.api.jds_lite import router as jds_router
+from app.api.applications_lite import router as applications_router
+from app.api.search_lite import router as search_router
+from app.api.portability import router as portability_router
 
 settings = get_lite_settings()
 
@@ -73,12 +78,6 @@ async def health_check():
 
 
 # Include simplified API routers
-from app.api.resumes_lite import router as resumes_router
-from app.api.jds_lite import router as jds_router
-from app.api.applications_lite import router as applications_router
-from app.api.search_lite import router as search_router
-from app.api.portability import router as portability_router
-
 app.include_router(resumes_router, prefix="/api/resumes", tags=["resumes"])
 app.include_router(jds_router, prefix="/api/jds", tags=["job-descriptions"])
 app.include_router(

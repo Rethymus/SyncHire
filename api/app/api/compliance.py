@@ -88,20 +88,18 @@ async def get_audit_report(
         if not is_admin:
             user_id = current_user.id
 
-        # Convert string filters to enums if provided
-        action_enum = None
+        # Validate string filters if provided
         if action_type:
             try:
-                action_enum = AuditAction(action_type.upper())
+                AuditAction(action_type.upper())  # Validate enum value
             except ValueError:
                 raise HTTPException(
                     status_code=400, detail=f"Invalid action_type: {action_type}"
                 )
 
-        resource_enum = None
         if resource_type:
             try:
-                resource_enum = ResourceType(resource_type.lower())
+                ResourceType(resource_type.lower())  # Validate enum value
             except ValueError:
                 raise HTTPException(
                     status_code=400, detail=f"Invalid resource_type: {resource_type}"

@@ -346,7 +346,7 @@ class TestApplicationServiceUpdate:
 
         with patch(
             "app.services.application_service.notification_service"
-        ) as mock_notification:
+        ) as _mock_notification:
             status_update = ApplicationStatusUpdate(
                 status="interview", notes="Phone screen scheduled"
             )
@@ -841,7 +841,7 @@ class TestApplicationServiceOptimize:
 
         with patch("app.services.application_service.mcp_client") as mock_mcp, patch(
             "app.services.application_service.notification_service"
-        ) as mock_notification:
+        ) as _mock_notification:
             mock_mcp.optimize_resume.return_value = {
                 "optimized_content": "Optimized resume content",
                 "improvements": ["Added FastAPI experience"],

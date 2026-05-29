@@ -38,9 +38,22 @@ export function useWebSocket(
 ): UseWebSocketReturn {
   const { enabled = true, onConnect, onDisconnect, onError } = options;
 
+  const clientRef = useRef<WebSocketClient | null>(null);
   const [client, setClient] = useState<WebSocketClient | null>(null);
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
   const [connectionId, setConnectionId] = useState<string | null>(null);
+
+  // Store callbacks in refs to avoid re-creating effect
+  const onConnectRef = useRef(onConnect);
+  const onDisconnectRef = useRef(onDisconnect);
+  const onErrorRef = useRef(onError);
+
+  // Sync callback refs after render
+  useEffect(() => {
+    onConnectRef.current = onConnect;
+    onDisconnectRef.current = onDisconnect;
+    onErrorRef.current = onError;
+  });
 
   // Create and connect WebSocket client
   useEffect(() => {
@@ -60,21 +73,25 @@ export function useWebSocket(
       maxReconnectAttempts: 10,
     });
 
+    clientRef.current = wsClient;
+
     // Set up connection state handler
     const unsubscribeConnection = wsClient.onConnectionChange((state) => {
       setConnectionState(state);
 
       switch (state) {
         case 'connected':
+          setClient(wsClient);
           setConnectionId(wsClient.getConnectionId());
-          onConnect?.();
+          onConnectRef.current?.();
           break;
         case 'disconnected':
+          setClient(null);
           setConnectionId(null);
-          onDisconnect?.();
+          onDisconnectRef.current?.();
           break;
         case 'error':
-          onError?.(new Event('WebSocket error'));
+          onErrorRef.current?.(new Event('WebSocket error'));
           break;
       }
     });
@@ -86,13 +103,14 @@ export function useWebSocket(
     return () => {
       unsubscribeConnection();
       wsClient.disconnect();
+      clientRef.current = null;
     };
-  }, [enabled, token, onConnect, onDisconnect, onError]);
+  }, [enabled, token]);
 
   // Send message function
   const sendMessage = useCallback(
     (message: Partial<WebSocketMessage>) => {
-      client?.send(message);
+      clientRef.current?.send(message);
     },
     []
   );
@@ -100,7 +118,7 @@ export function useWebSocket(
   // Subscribe function
   const subscribe = useCallback(
     (subscription: string) => {
-      client?.subscribe(subscription);
+      clientRef.current?.subscribe(subscription);
     },
     []
   );
@@ -108,7 +126,7 @@ export function useWebSocket(
   // Unsubscribe function
   const unsubscribe = useCallback(
     (subscription: string) => {
-      client?.unsubscribe(subscription);
+      clientRef.current?.unsubscribe(subscription);
     },
     []
   );
@@ -116,13 +134,13 @@ export function useWebSocket(
   // Register message handler
   const on = useCallback(
     (messageType: MessageType, handler: MessageHandler) => {
-      return client?.on(messageType, handler) || (() => {});
+      return clientRef.current?.on(messageType, handler) || (() => {});
     },
     []
   );
 
   return {
-    client: client,
+    client,
     connectionState,
     isConnected: connectionState === 'connected',
     connectionId,

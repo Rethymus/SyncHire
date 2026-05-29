@@ -4,6 +4,7 @@ Provides reusable functions for API testing
 """
 
 import asyncio
+import pytest
 from typing import Dict, Any, Optional, List
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession

@@ -30,8 +30,10 @@ from app.core.errors import (
     AuthenticationError,
 )
 from app.core.email_service import email_service
+from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
+settings = get_settings()
 
 
 class AuthServiceEnhanced:

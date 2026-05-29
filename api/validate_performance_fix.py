@@ -47,7 +47,7 @@ class PerformanceValidator:
         # Warm-up run
         try:
             await query_func()
-        except:
+        except Exception:
             pass
 
         # Measure multiple runs for accuracy

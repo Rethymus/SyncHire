@@ -15,7 +15,7 @@ import uuid
 import re
 import time
 from typing import List, Optional, Dict, Any
-from datetime import datetime, date as date_type
+from datetime import datetime, date, date as date_type
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import (
     select,
@@ -970,7 +970,7 @@ class AdvancedSearchService:
         query = select(SavedSearch).where(SavedSearch.user_id == user_id)
 
         if notify_only:
-            query = query.where(SavedSearch.notify_matches == True)
+            query = query.where(SavedSearch.notify_matches.is_(True))
 
         query = query.order_by(desc(SavedSearch.created_at))
 

@@ -462,7 +462,3 @@ class CSVExportService:
         except Exception as e:
             logger.error(f"Error exporting JDs: {str(e)}")
             raise DatabaseError(f"Failed to export JDs: {str(e)}") from e
-
-
-# Import at top level
-from sqlalchemy import func

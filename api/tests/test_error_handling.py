@@ -257,7 +257,7 @@ class TestErrorLogging:
     def test_error_context_logging(self, client: TestClient, caplog):
         """Test that errors are logged with proper context"""
         with caplog.at_level("ERROR"):
-            response = client.post(
+            client.post(
                 "/api/auth/login",
                 json={"email": "test@example.com", "password": "wrongpassword"},
             )

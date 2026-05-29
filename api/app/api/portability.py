@@ -894,7 +894,7 @@ async def restore_backup(backup_id: str, db: AsyncSession = Depends(get_db)):
 
         # Read backup file
         with open(backup_path, "r", encoding="utf-8") as f:
-            backup_data = json.load(f)
+            json.load(f)
 
         # Import data (similar to import endpoint)
         imported = 0

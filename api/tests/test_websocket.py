@@ -382,7 +382,7 @@ async def test_failed_websocket_send(manager):
     ws.send_text = AsyncMock(side_effect=Exception("Connection lost"))
 
     user_id = "test-user-123"
-    connection_id = await manager.connect(websocket=ws, user_id=user_id)
+    await manager.connect(websocket=ws, user_id=user_id)
 
     message = WebSocketMessage(
         type=MessageType.NOTIFICATION_NEW,

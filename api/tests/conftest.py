@@ -25,6 +25,7 @@ from app.models.jd import JD
 from app.models.application import Application
 from app.models.interview import Interview
 from datetime import datetime, timedelta
+import uuid
 
 
 # Test database URL (use in-memory SQLite for faster tests)

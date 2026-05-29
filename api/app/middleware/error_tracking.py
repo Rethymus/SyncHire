@@ -227,7 +227,7 @@ class PerformanceMonitoringMiddleware(BaseHTTPMiddleware):
 
             return response
 
-        except Exception as exc:
+        except Exception:
             processing_time = time.time() - start_time
             logger.error(
                 f"Request failed after {processing_time:.2f}s: {request.method} {request.url.path}",

@@ -13,6 +13,7 @@ import pytest
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from fastapi import HTTPException, status
 
 from app.services.jd_service import JDService
