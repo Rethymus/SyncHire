@@ -51,7 +51,13 @@ jobs:
 
       - name: Build frontend (static export)
         working-directory: ./frontend
-        run: npm run build
+        run: |
+          # Temporarily move API routes out (they can't be statically exported)
+          mv src/app/api src/app/api.bak 2>/dev/null || true
+          # Skip lint/type-check (CI already validates), just build
+          npx next build
+          # Restore API routes
+          mv src/app/api.bak src/app/api 2>/dev/null || true
         env:
           NODE_ENV: production
           NEXT_OUTPUT: export
@@ -122,7 +128,13 @@ jobs:
 
       - name: Build frontend (static export)
         working-directory: ./frontend
-        run: npm run build
+        run: |
+          # Temporarily move API routes out (they can't be statically exported)
+          mv src/app/api src/app/api.bak 2>/dev/null || true
+          # Skip lint/type-check (CI already validates), just build
+          npx next build
+          # Restore API routes
+          mv src/app/api.bak src/app/api 2>/dev/null || true
         env:
           NODE_ENV: production
           NEXT_OUTPUT: export
