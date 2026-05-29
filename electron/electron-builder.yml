@@ -1,0 +1,70 @@
+appId: com.synchire.desktop
+productName: SyncHire
+copyright: Copyright © 2026 SyncHire
+
+directories:
+  output: dist
+  buildResources: resources
+
+files:
+  - main/**/*
+  - preload.js
+  - frontend/out/**/*
+  - python/**/*
+  - resources/**/*
+  - "!**/*.map"
+  - "!**/*.pyc"
+  - "!**/__pycache__"
+
+extraResources:
+  - from: "../api"
+    to: "python"
+    filter:
+      - "**/*"
+      - "!tests/**"
+      - "!*.pyc"
+      - "!__pycache__/**"
+      - "!.pytest_cache/**"
+      - "!alembic/**"
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: resources/icon.ico
+  artifactName: "${productName}-${version}-Setup.${ext}"
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  perMachine: false
+  shortcutName: SyncHire
+  uninstallDisplayName: SyncHire
+  installerIcon: resources/icon.ico
+  uninstallerIcon: resources/icon.ico
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  icon: resources/icon.icns
+  category: public.app-category.productivity
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  icon: resources
+  category: Office
+  artifactName: "${productName}-${version}.${ext}"
+
+publish:
+  provider: github
+  owner: Rethymus
+  repo: synchire

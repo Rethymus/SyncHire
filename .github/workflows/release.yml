@@ -1,0 +1,224 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+env:
+  NODE_VERSION: '22.x'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # ─────────────────────────────────────────────
+  # Build Windows exe with Electron + PyInstaller
+  # ─────────────────────────────────────────────
+  build-windows:
+    runs-on: windows-latest
+    needs: [] # No dependencies, runs in parallel
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: api/requirements.txt
+
+      - name: Install Python dependencies
+        working-directory: ./api
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Install frontend dependencies
+        run: npm install --prefer-offline --no-audit --no-fund
+
+      - name: Build frontend (static export)
+        working-directory: ./frontend
+        run: |
+          npm run build
+          # Create static export for Electron
+          npx next export -o ../electron/frontend/out
+        env:
+          NODE_ENV: production
+
+      - name: Install Electron dependencies
+        working-directory: ./electron
+        run: npm install
+
+      - name: Build Python backend with PyInstaller
+        working-directory: ./api
+        run: |
+          pyinstaller main_lite.spec --distpath ../electron/python --clean
+
+      - name: Package Electron app
+        working-directory: ./electron
+        run: npm run package:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: SyncHire-Windows
+          path: electron/dist/*.exe
+          retention-days: 30
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: electron/dist/*.exe
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─────────────────────────────────────────────
+  # Build Android APK with Capacitor + Chaquopy
+  # ─────────────────────────────────────────────
+  build-android:
+    runs-on: ubuntu-latest
+    needs: []
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install frontend dependencies
+        run: npm install --prefer-offline --no-audit --no-fund
+
+      - name: Build frontend (static export)
+        working-directory: ./frontend
+        run: |
+          npm run build
+          npx next export -o out
+        env:
+          NODE_ENV: production
+
+      - name: Initialize Capacitor
+        run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap init "SyncHire" "com.synchire.app" --web-dir frontend/out
+
+      - name: Add Android platform
+        run: |
+          npx cap add android
+
+      - name: Configure Android for Chaquopy
+        working-directory: ./android
+        run: |
+          # Add Chaquopy plugin to build.gradle
+          sed -i '/plugins {/a\    id "com.chaquo.python" version "15.0.1"' app/build.gradle
+
+          # Configure Chaquopy in app/build.gradle
+          cat >> app/build.gradle << 'GRADLE_CONFIG'
+
+          chaquopy {
+              defaultConfig {
+                  python {
+                      version = "3.11"
+                      pip {
+                          install "fastapi"
+                          install "uvicorn"
+                          install "sqlalchemy"
+                          install "aiosqlite"
+                          install "pydantic"
+                          install "python-jose"
+                          install "passlib"
+                          install "httpx"
+                      }
+                  }
+              }
+          }
+          GRADLE_CONFIG
+
+      - name: Copy Python backend to Android assets
+        run: |
+          mkdir -p android/app/src/main/assets/python
+          cp -r api/app android/app/src/main/assets/python/
+          cp api/main_lite.py android/app/src/main/assets/python/
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build Android APK
+        working-directory: ./android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SyncHire-Android
+          path: android/app/build/outputs/apk/debug/*.apk
+          retention-days: 30
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/app/build/outputs/apk/debug/*.apk
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─────────────────────────────────────────────
+  # Quality gate - ensures CI passes first
+  # ─────────────────────────────────────────────
+  quality-gate:
+    needs: [build-windows, build-android]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Check build results
+        run: |
+          echo "## 📦 Release Build Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.build-windows.result }}" = "success" ]; then
+            echo "- ✅ Windows exe: Built successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Windows exe: Build failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ needs.build-android.result }}" = "success" ]; then
+            echo "- ✅ Android APK: Built successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Android APK: Build failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail if any build failed
+        if: needs.build-windows.result != 'success' || needs.build-android.result != 'success'
+        run: exit 1
