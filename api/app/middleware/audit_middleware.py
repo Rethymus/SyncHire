@@ -14,9 +14,9 @@ from starlette.types import ASGIApp
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.audit_service import AuditAction, ResourceType
-from app.core.logger import get_logger
+import logging
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class AuditMiddleware(BaseHTTPMiddleware):
