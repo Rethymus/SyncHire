@@ -21,7 +21,7 @@ jobs:
   # ─────────────────────────────────────────────
   build-windows:
     runs-on: windows-latest
-    needs: [] # No dependencies, runs in parallel
+    needs: []
 
     steps:
       - name: Checkout code
@@ -51,18 +51,19 @@ jobs:
 
       - name: Build frontend (static export)
         working-directory: ./frontend
+        shell: bash
         run: |
-          # Temporarily move API routes out (they can't be statically exported)
-          mv src/app/api src/app/api.bak 2>/dev/null || true
-          # Skip lint/type-check (CI already validates), just build
+          # Move API routes completely out of src/app (they can't be statically exported)
+          mv src/app/api ../_api_temp
           npx next build
           # Restore API routes
-          mv src/app/api.bak src/app/api 2>/dev/null || true
+          mv ../_api_temp src/app/api
         env:
           NODE_ENV: production
           NEXT_OUTPUT: export
 
       - name: Copy static export to Electron
+        shell: bash
         run: |
           mkdir -p electron/frontend/out
           cp -r frontend/out/* electron/frontend/out/
@@ -128,13 +129,13 @@ jobs:
 
       - name: Build frontend (static export)
         working-directory: ./frontend
+        shell: bash
         run: |
-          # Temporarily move API routes out (they can't be statically exported)
-          mv src/app/api src/app/api.bak 2>/dev/null || true
-          # Skip lint/type-check (CI already validates), just build
+          # Move API routes completely out of src/app (they can't be statically exported)
+          mv src/app/api ../_api_temp
           npx next build
           # Restore API routes
-          mv src/app/api.bak src/app/api 2>/dev/null || true
+          mv ../_api_temp src/app/api
         env:
           NODE_ENV: production
           NEXT_OUTPUT: export
@@ -208,7 +209,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ─────────────────────────────────────────────
-  # Quality gate - ensures CI passes first
+  # Quality gate
   # ─────────────────────────────────────────────
   quality-gate:
     needs: [build-windows, build-android]
