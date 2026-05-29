@@ -7,8 +7,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Output mode (Docker deployment)
-  output: "standalone",
+  // Output mode: 'standalone' for Docker, 'export' for static/Electron/Capacitor
+  output: process.env.NEXT_OUTPUT === "export" ? "export" : "standalone",
 
   // Image optimization
   images: {

@@ -51,12 +51,15 @@ jobs:
 
       - name: Build frontend (static export)
         working-directory: ./frontend
-        run: |
-          npm run build
-          # Create static export for Electron
-          npx next export -o ../electron/frontend/out
+        run: npm run build
         env:
           NODE_ENV: production
+          NEXT_OUTPUT: export
+
+      - name: Copy static export to Electron
+        run: |
+          mkdir -p electron/frontend/out
+          cp -r frontend/out/* electron/frontend/out/
 
       - name: Install Electron dependencies
         working-directory: ./electron
@@ -119,11 +122,10 @@ jobs:
 
       - name: Build frontend (static export)
         working-directory: ./frontend
-        run: |
-          npm run build
-          npx next export -o out
+        run: npm run build
         env:
           NODE_ENV: production
+          NEXT_OUTPUT: export
 
       - name: Initialize Capacitor
         run: |
