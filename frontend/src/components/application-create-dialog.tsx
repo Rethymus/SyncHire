@@ -22,7 +22,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { logger, LogCategory } from "@/lib/logger";
-import { applicationAPI, APIError } from "@/lib/api-client-consolidated";
 import { useToast } from "@/hooks/use-toast";
 import {
   Briefcase,
@@ -46,8 +45,7 @@ import {
   staggerContainer,
   staggerItem,
 } from "@/lib/animations";
-import { useOptimisticMutation, ArrayUpdateHelper, OptimisticLoadingHelper } from "@/lib/optimistic-updates";
-import { useQueryClient } from "@tanstack/react-query";
+import { useOptimisticMutation } from "@/lib/optimistic-updates";
 
 interface ApplicationCreateDialogProps {
   open: boolean;
@@ -73,7 +71,6 @@ export function ApplicationCreateDialog({
 }: ApplicationCreateDialogProps) {
   const { resumes, jobDescriptions, addApplication } = useAppStore();
   const { crud, api } = useToast();
-  const queryClient = useQueryClient();
 
   const [selectedResumeId, setSelectedResumeId] = useState<string>("");
   const [selectedJDId, setSelectedJDId] = useState<string>("");
@@ -218,11 +215,25 @@ export function ApplicationCreateDialog({
   // Optimistic mutation for creating applications
   const createApplicationMutation = useOptimisticMutation(
     async (data: { resumeId: string; jdId: string; notes?: string }) => {
-      return await applicationAPI.create({
-        resume_id: data.resumeId,
-        jd_id: data.jdId,
-        notes: data.notes,
-      });
+      const selectedJD = availableJDs.find((jd) => jd.id === data.jdId);
+      const now = new Date();
+
+      await sleep(150);
+
+      return {
+        success: true,
+        data: {
+          id: crypto.randomUUID(),
+          jd: {
+            title: selectedJD?.title || "Unknown Position",
+            company: selectedJD?.company || "Unknown Company",
+          },
+          status: "draft",
+          match_score: undefined,
+          created_at: now.toISOString(),
+          updated_at: now.toISOString(),
+        },
+      };
     },
     {
       queryKey: ['applications'],

@@ -27,15 +27,15 @@ const navItems = [
   },
   {
     name: "Resumes",
-    href: "/resumes",
+    href: "/upload",
     icon: FileText,
-    current: /^\/resumes/,
+    current: /^\/(upload|resumes)/,
   },
   {
     name: "Job Descriptions",
-    href: "/job-descriptions",
+    href: "/jd-input",
     icon: Briefcase,
-    current: /^\/job-descriptions/,
+    current: /^\/(jd-input|job-descriptions)/,
   },
   {
     name: "Applications",

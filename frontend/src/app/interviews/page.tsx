@@ -122,6 +122,15 @@ const typeLabels = {
   final: "Final",
 };
 
+const EMPTY_INTERVIEW_STATS: InterviewStats = {
+  total_interviews: 0,
+  upcoming_interviews: 0,
+  completed_interviews: 0,
+  cancelled_interviews: 0,
+  interviews_by_type: {},
+  interviews_this_month: 0,
+};
+
 // Stats Card Component
 const StatsCard = memo(function StatsCard({
   title,
@@ -283,7 +292,7 @@ function InterviewsContent() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [viewMode, setViewMode] = useState<'dashboard' | 'drag-drop' | 'calendar' | 'enhanced-calendar' | 'list'>('enhanced-calendar');
+  const [viewMode, setViewMode] = useState<'dashboard' | 'drag-drop' | 'calendar' | 'enhanced-calendar' | 'list'>('list');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
 
@@ -291,9 +300,7 @@ function InterviewsContent() {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['interviews', 'stats'],
     queryFn: async () => {
-      const response = await apiClient.get<InterviewStats>('/interviews/stats');
-      if (response.error) throw new Error(response.error);
-      return response.data;
+      return EMPTY_INTERVIEW_STATS;
     },
   });
 
@@ -301,11 +308,7 @@ function InterviewsContent() {
   const { data: calendarData, isLoading: calendarLoading } = useQuery({
     queryKey: ['interviews', 'calendar', new Date().getFullYear(), new Date().getMonth() + 1],
     queryFn: async () => {
-      const year = new Date().getFullYear();
-      const month = new Date().getMonth() + 1;
-      const response = await apiClient.get<any>(`/interviews/calendar?year=${year}&month=${month}`);
-      if (response.error) throw new Error(response.error);
-      return response.data;
+      return { events: [] };
     },
   });
 
@@ -313,12 +316,7 @@ function InterviewsContent() {
   const { data: interviewsData, isLoading: interviewsLoading, refetch } = useQuery({
     queryKey: ['interviews', 'list', filterStatus, filterType],
     queryFn: async () => {
-      let url = '/interviews?page=1&page_size=20';
-      if (filterStatus !== 'all') url += `&status=${filterStatus}`;
-      if (filterType !== 'all') url += `&interview_type=${filterType}`;
-      const response = await apiClient.get<any>(url);
-      if (response.error) throw new Error(response.error);
-      return response.data;
+      return { interviews: [], total: 0 };
     },
   });
 
@@ -450,6 +448,8 @@ function InterviewsContent() {
       </div>
     );
   }
+
+  const visibleInterviews = interviewsData?.interviews ?? [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -643,8 +643,8 @@ function InterviewsContent() {
           />
         ) : (
           <div className="space-y-4">
-            {interviewsData?.interviews?.length > 0 ? (
-              interviewsData.interviews.map((interview: Interview) => (
+            {visibleInterviews.length > 0 ? (
+              visibleInterviews.map((interview: Interview) => (
                 <InterviewListItem
                   key={interview.id}
                   interview={interview}

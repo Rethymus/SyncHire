@@ -10,7 +10,8 @@ from typing import Optional
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Query
 from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
-from jose import JWTError, jwt
+import jwt
+from jwt import PyJWTError
 
 from app.core.config import get_settings
 from app.core.database import get_db
@@ -55,7 +56,7 @@ async def get_user_from_token(token: str, db: AsyncSession) -> Optional[User]:
 
         return user
 
-    except (JWTError, ValueError):
+    except (PyJWTError, ValueError):
         return None
 
 

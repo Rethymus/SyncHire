@@ -11,12 +11,12 @@
 
 "use client";
 
-import { useState, useCallback, memo, useRef, useEffect } from "react";
+import { useState, useCallback, memo, useRef, useMemo } from "react";
 import { Navigation } from "@/components/navigation-lite";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { apiClient } from "@/lib/api-client-lite";
 import { logger, LogCategory } from "@/lib/logger";
+import { useAppStore, type JobApplication, type JobDescription, type Resume } from "@/lib/store";
 import {
   Download,
   Upload,
@@ -46,6 +46,28 @@ interface Backup {
   created_at: string;
   size: number;
   files_count: number;
+}
+
+const LOCAL_BACKUPS_KEY = "synchire-backups";
+
+function readLocalBackups(): Backup[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const stored = window.localStorage.getItem(LOCAL_BACKUPS_KEY);
+    const parsed = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalBackups(backups: Backup[]) {
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(LOCAL_BACKUPS_KEY, JSON.stringify(backups));
+  }
 }
 
 interface DataStatus {
@@ -109,9 +131,16 @@ const EXPORT_TEMPLATES = {
 };
 
 function DataManagementPage() {
+  const {
+    resumes,
+    jobDescriptions,
+    applications,
+    setResumes,
+    setJobDescriptions,
+    setApplications,
+  } = useAppStore();
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<DataStatus | null>(null);
-  const [backups, setBackups] = useState<Backup[]>([]);
+  const [backups, setBackups] = useState<Backup[]>(() => readLocalBackups());
   const [message, setMessage] = useState<{
     type: "success" | "error" | "info";
     text: string;
@@ -137,46 +166,32 @@ function DataManagementPage() {
   const [resolveConflicts, setResolveConflicts] = useState<"skip" | "overwrite" | "rename">("skip");
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
-    const loadStatus = async () => {
-      try {
-        const data = await apiClient.portability.getStatus();
-        setStatus(data);
-      } catch (error) {
-        logger.error(LogCategory.API, "Failed to load data status", error as Error);
-      }
+  const buildExportData = useCallback(() => ({
+    version: 1,
+    exported_at: new Date().toISOString(),
+    state: {
+      resumes,
+      jobDescriptions,
+      applications,
+    },
+  }), [applications, jobDescriptions, resumes]);
+
+  const buildLocalStatus = useCallback((localBackups = readLocalBackups()): DataStatus => {
+    const snapshot = JSON.stringify(buildExportData());
+
+    return {
+      resumes_count: resumes.length,
+      jds_count: jobDescriptions.length,
+      applications_count: applications.length,
+      database_size: new Blob([snapshot]).size,
+      last_backup: localBackups[0]?.created_at ?? null,
     };
+  }, [applications.length, buildExportData, jobDescriptions.length, resumes.length]);
 
-    const loadBackups = async () => {
-      try {
-        const data = await apiClient.portability.listBackups();
-        setBackups(data.backups || []);
-      } catch (error) {
-        logger.error(LogCategory.API, "Failed to load backups", error as Error);
-      }
-    };
+  const status = useMemo(() => buildLocalStatus(backups), [backups, buildLocalStatus]);
 
-    loadStatus();
-    loadBackups();
-  }, []);
-
-  // Helper functions for refresh operations
-  const loadStatus = useCallback(async () => {
-    try {
-      const data = await apiClient.portability.getStatus();
-      setStatus(data);
-    } catch (error) {
-      logger.error(LogCategory.API, "Failed to load data status", error as Error);
-    }
-  }, []);
-
-  const loadBackups = useCallback(async () => {
-    try {
-      const data = await apiClient.portability.listBackups();
-      setBackups(data.backups || []);
-    } catch (error) {
-      logger.error(LogCategory.API, "Failed to load backups", error as Error);
-    }
+  const loadBackups = useCallback(() => {
+    setBackups(readLocalBackups());
   }, []);
 
   const showMessage = useCallback(
@@ -204,7 +219,7 @@ function DataManagementPage() {
 
       // Stage 1: Collecting data
       setExportProgress((prev) => ({ ...prev!, stage: "Collecting data", progress: 20 }));
-      const data = await apiClient.portability.exportJSON();
+      const data = buildExportData();
 
       if (signal.aborted) throw new Error("Export cancelled");
 
@@ -243,7 +258,7 @@ function DataManagementPage() {
       setLoading(false);
       abortControllerRef.current = null;
     }
-  }, [showMessage]);
+  }, [buildExportData, showMessage]);
 
   const handleExportCSV = useCallback(async () => {
     setLoading(true);
@@ -253,35 +268,48 @@ function DataManagementPage() {
     try {
       const signal = abortControllerRef.current.signal;
 
-      // Build query parameters for filters
-      const params = new URLSearchParams();
-      if (exportFilters.dataTypes.length > 0) {
-        params.append("data_types", exportFilters.dataTypes.join(","));
-      }
-      if (exportFilters.dateRange.from) {
-        params.append("from_date", exportFilters.dateRange.from);
-      }
-      if (exportFilters.dateRange.to) {
-        params.append("to_date", exportFilters.dateRange.to);
-      }
-      if (exportFilters.status.length > 0) {
-        params.append("status", exportFilters.status.join(","));
-      }
+      const escapeCsv = (value: unknown) =>
+        `"${String(value ?? "").replace(/"/g, '""')}"`;
+      const rows = [
+        ["type", "id", "name", "company", "position", "status", "created_at"],
+        ...resumes.map((resume) => [
+          "resume",
+          resume.id,
+          resume.name,
+          "",
+          "",
+          "",
+          resume.uploadedAt,
+        ]),
+        ...jobDescriptions.map((jd) => [
+          "job_description",
+          jd.id,
+          jd.title,
+          jd.company,
+          "",
+          "",
+          jd.createdAt,
+        ]),
+        ...applications.map((application) => [
+          "application",
+          application.id,
+          "",
+          application.companyName,
+          application.position,
+          application.status,
+          application.createdAt,
+        ]),
+      ];
+      const csv = rows.map((row) => row.map(escapeCsv).join(",")).join("\n");
 
       // Stage 1: Collecting data
       setExportProgress((prev) => ({ ...prev!, stage: "Collecting data", progress: 20 }));
-      const response = await fetch(
-        `/api/portability/export/csv${params.toString() ? `?${params}` : ""}`,
-        { signal }
-      );
 
       if (signal.aborted) throw new Error("Export cancelled");
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
       // Stage 2: Downloading
       setExportProgress((prev) => ({ ...prev!, stage: "Downloading file", progress: 50 }));
-      const blob = await response.blob();
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
 
       if (signal.aborted) throw new Error("Export cancelled");
 
@@ -290,7 +318,7 @@ function DataManagementPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `synchire-export-${new Date().toISOString().split("T")[0]}.zip`;
+      a.download = `synchire-export-${new Date().toISOString().split("T")[0]}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -313,7 +341,7 @@ function DataManagementPage() {
       setLoading(false);
       abortControllerRef.current = null;
     }
-  }, [exportFilters, showMessage]);
+  }, [applications, jobDescriptions, resumes, showMessage]);
 
   const cancelExport = useCallback(() => {
     abortControllerRef.current?.abort();
@@ -323,17 +351,64 @@ function DataManagementPage() {
   const handleGeneratePreview = useCallback(async (file: File) => {
     setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      const text = await file.text();
 
-      const response = await fetch("/api/portability/import/preview", {
-        method: "POST",
-        body: formData,
-      });
+      if (!file.name.endsWith(".json")) {
+        setImportPreview({
+          total_records: 0,
+          resumes: 0,
+          jds: 0,
+          applications: 0,
+          conflicts: [],
+          validation_errors: [{
+            record: 0,
+            field: "file",
+            message: "CSV import is not available in Lite mode yet. Use JSON backups for restore.",
+          }],
+        });
+        showMessage("error", "CSV import is not available in Lite mode yet. Use JSON backups for restore.");
+        return;
+      }
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const preview: ImportPreview = await response.json();
+      const parsed = JSON.parse(text);
+      const state = parsed.state ?? parsed;
+      const importedResumes = Array.isArray(state.resumes) ? state.resumes : [];
+      const importedJDs = Array.isArray(state.jobDescriptions) ? state.jobDescriptions : [];
+      const importedApplications = Array.isArray(state.applications) ? state.applications : [];
+      const conflicts = [
+        ...importedResumes
+          .filter((resume: Resume) => resumes.some((existing) => existing.id === resume.id))
+          .map((resume: Resume) => ({
+            type: "resume",
+            id: resume.id,
+            existing: resumes.find((existing) => existing.id === resume.id),
+            incoming: resume,
+          })),
+        ...importedJDs
+          .filter((jd: JobDescription) => jobDescriptions.some((existing) => existing.id === jd.id))
+          .map((jd: JobDescription) => ({
+            type: "job_description",
+            id: jd.id,
+            existing: jobDescriptions.find((existing) => existing.id === jd.id),
+            incoming: jd,
+          })),
+        ...importedApplications
+          .filter((application: JobApplication) => applications.some((existing) => existing.id === application.id))
+          .map((application: JobApplication) => ({
+            type: "application",
+            id: application.id,
+            existing: applications.find((existing) => existing.id === application.id),
+            incoming: application,
+          })),
+      ];
+      const preview: ImportPreview = {
+        total_records: importedResumes.length + importedJDs.length + importedApplications.length,
+        resumes: importedResumes.length,
+        jds: importedJDs.length,
+        applications: importedApplications.length,
+        conflicts,
+        validation_errors: [],
+      };
       setImportPreview(preview);
 
       if (preview.validation_errors.length > 0) {
@@ -355,7 +430,7 @@ function DataManagementPage() {
     } finally {
       setLoading(false);
     }
-  }, [showMessage]);
+  }, [applications, jobDescriptions, resumes, showMessage]);
 
   const handleImportFileSelect = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -395,59 +470,78 @@ function DataManagementPage() {
     abortControllerRef.current = new AbortController();
 
     try {
-      const formData = new FormData();
-      formData.append("file", importFile);
-      formData.append("mode", importMode);
-      formData.append("conflict_resolution", resolveConflicts);
-
       const signal = abortControllerRef.current.signal;
 
-      // Use fetch with progress tracking
-      const response = await fetch("/api/portability/import", {
-        method: "POST",
-        body: formData,
-        signal,
-      });
+      if (!importFile.name.endsWith(".json")) {
+        throw new Error("Only JSON backup imports are available in Lite mode");
+      }
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setImportProgress(30);
+      const parsed = JSON.parse(await importFile.text());
+      const state = parsed.state ?? parsed;
+      const importedResumes: Resume[] = Array.isArray(state.resumes)
+        ? state.resumes.map((resume: Resume) => ({
+            ...resume,
+            uploadedAt: new Date(resume.uploadedAt),
+          }))
+        : [];
+      const importedJDs: JobDescription[] = Array.isArray(state.jobDescriptions)
+        ? state.jobDescriptions.map((jd: JobDescription) => ({
+            ...jd,
+            createdAt: new Date(jd.createdAt),
+          }))
+        : [];
+      const importedApplications: JobApplication[] = Array.isArray(state.applications)
+        ? state.applications.map((application: JobApplication) => ({
+            ...application,
+            createdAt: new Date(application.createdAt),
+            updatedAt: new Date(application.updatedAt),
+          }))
+        : [];
 
-      // Track progress if available
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error("No response body");
+      if (signal.aborted) throw new Error("Import cancelled");
 
-      const decoder = new TextDecoder();
-      let resultText = "";
+      setImportProgress(65);
+      const mergeById = <T extends { id: string }>(current: T[], incoming: T[]) => {
+        if (importMode === "replace") {
+          return incoming;
+        }
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        resultText += chunk;
-
-        // Parse progress updates (if server sends progress)
-        const lines = chunk.split("\n");
-        for (const line of lines) {
-          if (line.startsWith("progress:")) {
-            const progress = parseInt(line.replace("progress:", ""));
-            setImportProgress(progress);
+        const records = new Map(current.map((record) => [record.id, record]));
+        for (const record of incoming) {
+          if (!records.has(record.id) || resolveConflicts === "overwrite") {
+            records.set(record.id, record);
+          } else if (resolveConflicts === "rename") {
+            records.set(`${record.id}-${Date.now()}`, {
+              ...record,
+              id: `${record.id}-${Date.now()}`,
+            });
           }
         }
-      }
+        return Array.from(records.values());
+      };
 
-      const result: ImportResult = JSON.parse(resultText);
+      setResumes(mergeById(resumes, importedResumes));
+      setJobDescriptions(mergeById(jobDescriptions, importedJDs));
+      setApplications(mergeById(applications, importedApplications));
+      setImportProgress(100);
+
+      const imported =
+        importedResumes.length + importedJDs.length + importedApplications.length;
+      const result: ImportResult = {
+        success: true,
+        imported,
+        failed: 0,
+        skipped: 0,
+        errors: [],
+      };
       setImportResult(result);
 
-      if (result.success) {
-        showMessage(
-          "success",
-          `Import completed: ${result.imported} imported, ${result.skipped} skipped, ${result.failed} failed`
-        );
-        loadStatus();
-        loadBackups();
-      } else {
-        showMessage("error", `Import failed: ${result.errors.join(", ")}`);
-      }
+      showMessage(
+        "success",
+        `Import completed: ${result.imported} imported, ${result.skipped} skipped, ${result.failed} failed`
+      );
+      loadBackups();
 
       logger.info(LogCategory.API, "Data import completed", result);
     } catch (error: any) {
@@ -462,7 +556,19 @@ function DataManagementPage() {
       setImportProgress(0);
       abortControllerRef.current = null;
     }
-  }, [importFile, importMode, resolveConflicts, loadStatus, loadBackups, showMessage]);
+  }, [
+    applications,
+    importFile,
+    importMode,
+    jobDescriptions,
+    loadBackups,
+    resolveConflicts,
+    resumes,
+    setApplications,
+    setJobDescriptions,
+    setResumes,
+    showMessage,
+  ]);
 
   const cancelImport = useCallback(() => {
     abortControllerRef.current?.abort();
@@ -471,18 +577,25 @@ function DataManagementPage() {
   const handleCreateBackup = useCallback(async () => {
     setLoading(true);
     try {
-      await apiClient.portability.createBackup();
+      const snapshot = buildExportData();
+      const backup: Backup = {
+        id: crypto.randomUUID(),
+        created_at: snapshot.exported_at,
+        size: new Blob([JSON.stringify(snapshot)]).size,
+        files_count: 3,
+      };
+      const nextBackups = [backup, ...readLocalBackups()].slice(0, 10);
+      writeLocalBackups(nextBackups);
+      setBackups(nextBackups);
       showMessage("success", "Backup created successfully");
       logger.info(LogCategory.API, "Backup created successfully");
-      loadBackups();
-      loadStatus();
     } catch (error) {
       showMessage("error", "Failed to create backup");
       logger.error(LogCategory.API, "Failed to create backup", error as Error);
     } finally {
       setLoading(false);
     }
-  }, [loadBackups, loadStatus, showMessage]);
+  }, [buildExportData, showMessage]);
 
   return (
     <div className="min-h-screen bg-gray-50">

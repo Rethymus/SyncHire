@@ -6,78 +6,26 @@
 
 "use client";
 
-import { useState, useCallback, useMemo, memo, useEffect } from "react";
+import { useState, useMemo, memo } from "react";
 import Link from "next/link";
-import { Navigation } from "@/components/navigation-lite";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { apiClient } from "@/lib/api-client-lite";
-import { logger, LogCategory } from "@/lib/logger";
+import { ApplicationCreateDialog } from "@/components/application-create-dialog";
+import { useAppStore } from "@/lib/store";
 import {
   FileText,
   Briefcase,
   BarChart3,
   TrendingUp,
   CheckCircle2,
-  Clock,
-  XCircle,
   Plus,
   FolderOpen,
 } from "lucide-react";
 
-interface Resume {
-  id: string;
-  title: string;
-  content: string;
-  created_at: string;
-}
-
-interface JobDescription {
-  id: string;
-  title: string;
-  company: string;
-  description: string;
-  created_at: string;
-}
-
-interface Application {
-  id: string;
-  resume_id: string;
-  jd_id: string;
-  status: string;
-  created_at: string;
-}
-
 function DashboardPage() {
-  const [resumes, setResumes] = useState<Resume[]>([]);
-  const [jobDescriptions, setJobDescriptions] = useState<JobDescription[]>([]);
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { resumes, jobDescriptions, applications } = useAppStore();
+  const loading = false;
   const [applicationDialogOpen, setApplicationDialogOpen] = useState(false);
-
-  // Load all data in parallel on mount
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const [resumesData, jdsData, applicationsData] = await Promise.all([
-          apiClient.resume.list(),
-          apiClient.jd.list(),
-          apiClient.application.list(),
-        ]);
-
-        setResumes(resumesData || []);
-        setJobDescriptions(jdsData || []);
-        setApplications(applicationsData || []);
-      } catch (error) {
-        logger.error(LogCategory.API, "Failed to load dashboard data", error as Error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
 
   // Memoize stats to avoid recalculation on every render
   const stats = useMemo(() => [
@@ -86,14 +34,14 @@ function DashboardPage() {
       value: resumes.length,
       icon: FileText,
       color: "bg-blue-500",
-      href: "/resumes",
+      href: "/upload",
     },
     {
       name: "Job Descriptions",
       value: jobDescriptions.length,
       icon: Briefcase,
       color: "bg-green-500",
-      href: "/job-descriptions",
+      href: "/jd-input",
     },
     {
       name: "Applications",
@@ -114,7 +62,7 @@ function DashboardPage() {
   // Memoize recent applications
   const recentApplications = useMemo(() => {
     return applications
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .toSorted((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 5);
   }, [applications]);
 
@@ -222,14 +170,14 @@ function DashboardPage() {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link
-              href="/resumes"
+              href="/upload"
               className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <FileText className="h-5 w-5 text-blue-600" />
               <span className="font-medium text-gray-700">Manage Resumes</span>
             </Link>
             <Link
-              href="/job-descriptions"
+              href="/jd-input"
               className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <Briefcase className="h-5 w-5 text-green-600" />
@@ -304,8 +252,8 @@ function DashboardPage() {
           {recentApplications.length > 0 ? (
             <div className="space-y-4">
               {recentApplications.map((app) => {
-                const resume = resumes.find((r) => r.id === app.resume_id);
-                const jd = jobDescriptions.find((j) => j.id === app.jd_id);
+                const resume = resumes.find((r) => r.id === app.resumeId);
+                const jd = jobDescriptions.find((j) => j.id === app.jobId);
 
                 return (
                   <div
@@ -317,7 +265,7 @@ function DashboardPage() {
                         {jd?.title || "Unknown Position"}
                       </p>
                       <p className="text-sm text-gray-700">
-                        {jd?.company || "Unknown Company"} • {resume?.title || "Unknown Resume"}
+                        {jd?.company || "Unknown Company"} • {resume?.name || "Unknown Resume"}
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
@@ -327,7 +275,7 @@ function DashboardPage() {
                         {getStatusLabel(app.status)}
                       </span>
                       <span className="text-sm text-gray-600">
-                        {new Date(app.created_at).toLocaleDateString()}
+                        {new Date(app.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
@@ -387,6 +335,10 @@ function DashboardPage() {
             </div>
           </div>
         </div>
+        <ApplicationCreateDialog
+          open={applicationDialogOpen}
+          onOpenChange={setApplicationDialogOpen}
+        />
       </main>
     </div>
   );

@@ -10,7 +10,8 @@ import uuid
 from typing import Optional, Dict, Any, Set, List
 from datetime import datetime
 from fastapi import WebSocket
-from jose import JWTError, jwt
+import jwt
+from jwt import PyJWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -89,7 +90,7 @@ class WebSocketServer:
 
             return user
 
-        except JWTError as e:
+        except PyJWTError as e:
             logger.warning(
                 LogCategory.WEBSOCKET, f"WebSocket authentication failed: {str(e)}"
             )

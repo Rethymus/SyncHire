@@ -57,7 +57,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: any }> 
 export default function ApplicationDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { applications, updateApplication } = useAppStore();
+  const { applications, resumes, jobDescriptions, hasHydrated, updateApplication } = useAppStore();
   const applicationId = params.id as string;
 
   const [loading, setLoading] = useState(true);
@@ -71,14 +71,60 @@ export default function ApplicationDetailPage() {
   const [notes, setNotes] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
   const [error, setError] = useState("");
+  const isLocalApplication = applications.some((item) => item.id === applicationId);
 
   // Load application details
   useEffect(() => {
     const loadApplication = async () => {
+      if (!hasHydrated) {
+        return;
+      }
+
       setLoading(true);
       setError("");
 
       try {
+        const storedApplication = applications.find((item) => item.id === applicationId);
+        if (storedApplication) {
+          const storedResume = resumes.find((item) => item.id === storedApplication.resumeId);
+          const storedJD = jobDescriptions.find((item) => item.id === storedApplication.jobId);
+          const localApplication = {
+            id: storedApplication.id,
+            resume_id: storedApplication.resumeId,
+            jd_id: storedApplication.jobId,
+            status: storedApplication.status,
+            match_score: storedApplication.matchScore,
+            created_at: storedApplication.createdAt,
+            updated_at: storedApplication.updatedAt,
+            notes: "",
+            jobDescription: storedJD,
+            resume: storedResume,
+            jd: storedJD,
+          };
+
+          setApplication(localApplication);
+          setResume(storedResume
+            ? {
+                id: storedResume.id,
+                title: storedResume.name,
+                content: storedResume.content,
+                created_at: storedResume.uploadedAt,
+              }
+            : null);
+          setJD(storedJD
+            ? {
+                id: storedJD.id,
+                title: storedJD.title,
+                company: storedJD.company,
+                description: storedJD.description,
+                created_at: storedJD.createdAt,
+              }
+            : null);
+          setNotes("");
+          setLoading(false);
+          return;
+        }
+
         const response = await applicationAPI.getById(applicationId);
         if (response.success && response.data) {
           setApplication(response.data);
@@ -110,7 +156,7 @@ export default function ApplicationDetailPage() {
     };
 
     loadApplication();
-  }, [applicationId]);
+  }, [applicationId, applications, hasHydrated, jobDescriptions, resumes]);
 
   // Load match score
   const loadMatchScore = useCallback(async () => {
@@ -118,6 +164,22 @@ export default function ApplicationDetailPage() {
     setError("");
 
     try {
+      if (isLocalApplication) {
+        setMatchScore({
+          match_score: application.match_score ?? 0,
+          match_details: {
+            skills_match: 0,
+            experience_match: 0,
+            education_match: 0,
+            missing_skills: [],
+            recommendations: [
+              "Lite mode keeps your data local. Connect the API service for AI-generated match analysis.",
+            ],
+          },
+        });
+        return;
+      }
+
       const response = await applicationAPI.getMatchScore(applicationId);
       if (response.success && response.data) {
         setMatchScore(response.data);
@@ -130,7 +192,7 @@ export default function ApplicationDetailPage() {
     } finally {
       setLoadingMatch(false);
     }
-  }, [applicationId]);
+  }, [application, applicationId, isLocalApplication]);
 
   // Optimize resume
   const optimizeResume = useCallback(async () => {
@@ -138,6 +200,17 @@ export default function ApplicationDetailPage() {
     setError("");
 
     try {
+      if (isLocalApplication) {
+        setOptimizedResume({
+          optimized_resume: resume?.content || "",
+          changes_made: [],
+          keywords_added: [],
+          sections_improved: [],
+        });
+        setError("Lite 模式暂不支持自动优化。请连接 API 服务后重试。");
+        return;
+      }
+
       const response = await applicationAPI.optimizeResume(applicationId);
       if (response.success && response.data) {
         setOptimizedResume(response.data);
@@ -154,12 +227,24 @@ export default function ApplicationDetailPage() {
     } finally {
       setLoadingOptimization(false);
     }
-  }, [applicationId, application]);
+  }, [applicationId, application, isLocalApplication, resume]);
 
   // Update application status
   const updateStatus = useCallback(
     async (newStatus: string) => {
       try {
+        if (isLocalApplication) {
+          setApplication((current: any) => current
+            ? {
+                ...current,
+                status: newStatus,
+                updated_at: new Date(),
+              }
+            : current);
+          updateApplication(applicationId, { status: newStatus as any, updatedAt: new Date() });
+          return;
+        }
+
         const response = await applicationAPI.updateStatus(applicationId, {
           status: newStatus,
           notes: notes || undefined,
@@ -176,7 +261,7 @@ export default function ApplicationDetailPage() {
         setError("更新状态时发生错误");
       }
     },
-    [applicationId, notes, updateApplication]
+    [applicationId, isLocalApplication, notes, updateApplication]
   );
 
   // Save notes
@@ -185,6 +270,11 @@ export default function ApplicationDetailPage() {
     setError("");
 
     try {
+      if (isLocalApplication) {
+        setApplication((current: any) => current ? { ...current, notes } : current);
+        return;
+      }
+
       const response = await applicationAPI.update(applicationId, {
         notes,
       });
@@ -202,7 +292,7 @@ export default function ApplicationDetailPage() {
     } finally {
       setSavingNotes(false);
     }
-  }, [applicationId, notes, application]);
+  }, [applicationId, application, isLocalApplication, notes]);
 
   const config = application ? statusConfig[application.status] : statusConfig.pending;
   const StatusIcon = config?.icon || Clock;

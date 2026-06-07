@@ -65,11 +65,11 @@ function NavigationComponent() {
       },
       {
         name: "Resumes",
-        href: "/resumes",
+        href: "/upload",
       },
       {
         name: "Job Descriptions",
-        href: "/job-descriptions",
+        href: "/jd-input",
       },
       {
         name: t('settings'),

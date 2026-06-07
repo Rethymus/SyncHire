@@ -7,8 +7,6 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { apiClient } from "@/lib/api-client";
-import { logger, LogCategory } from "@/lib/logger";
 import {
   Check,
   CheckCheck,
@@ -58,38 +56,19 @@ export function NotificationHistory({ className }: NotificationHistoryProps) {
     try {
       setLoading(true);
       setError(null);
-
-      const params = new URLSearchParams({
-        limit: limit.toString(),
-        offset: ((page - 1) * limit).toString(),
-      });
-
-      if (filter === "unread") {
-        params.append("unread_only", "true");
-      }
-
-      const response = await apiClient.get(`/api/notifications?${params}`);
-      const data = response.data as {
-        notifications: Notification[];
-        total: number;
-        unread_count: number;
-      };
-
-      setNotifications(data.notifications || []);
-      setTotal(data.total || 0);
-      setUnreadCount(data.unread_count || 0);
+      setNotifications([]);
+      setTotal(0);
+      setUnreadCount(0);
     } catch (err) {
-      logger.error(LogCategory.API, "Failed to fetch notifications", err as Error);
       setError("Failed to load notifications");
     } finally {
       setLoading(false);
     }
-  }, [filter, page, limit]);
+  }, []);
 
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
-      await apiClient.put(`/api/notifications/${notificationId}/read`, {});
       setNotifications(prev =>
         prev.map(n =>
           n.id === notificationId ? { ...n, read: true } : n
@@ -97,27 +76,25 @@ export function NotificationHistory({ className }: NotificationHistoryProps) {
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (err) {
-      logger.error(LogCategory.API, "Failed to mark notification as read", err as Error);
+      setError("Failed to mark notification as read");
     }
   }, []);
 
   // Mark all as read
   const markAllAsRead = useCallback(async () => {
     try {
-      await apiClient.put("/api/notifications/read-all", {});
       setNotifications(prev =>
         prev.map(n => ({ ...n, read: true }))
       );
       setUnreadCount(0);
     } catch (err) {
-      logger.error(LogCategory.API, "Failed to mark all as read", err as Error);
+      setError("Failed to mark all as read");
     }
   }, []);
 
   // Delete notification
   const deleteNotification = useCallback(async (notificationId: string) => {
     try {
-      await apiClient.delete(`/api/notifications/${notificationId}`);
       setNotifications(prev => {
         const filtered = prev.filter(n => n.id !== notificationId);
         setUnreadCount(filtered.filter(n => !n.read).length);
@@ -125,7 +102,7 @@ export function NotificationHistory({ className }: NotificationHistoryProps) {
         return filtered;
       });
     } catch (err) {
-      logger.error(LogCategory.API, "Failed to delete notification", err as Error);
+      setError("Failed to delete notification");
     }
   }, []);
 
@@ -136,12 +113,11 @@ export function NotificationHistory({ className }: NotificationHistoryProps) {
     }
 
     try {
-      await apiClient.delete("/api/notifications/clear-all");
       setNotifications([]);
       setUnreadCount(0);
       setTotal(0);
     } catch (err) {
-      logger.error(LogCategory.API, "Failed to clear notifications", err as Error);
+      setError("Failed to clear notifications");
     }
   }, []);
 

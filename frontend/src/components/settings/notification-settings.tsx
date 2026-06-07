@@ -6,9 +6,7 @@
  * Allows users to manage their email notification preferences
  */
 
-import { useState, useEffect, useCallback, useId } from "react";
-import { apiClient } from "@/lib/api-client";
-import { logger, LogCategory } from "@/lib/logger";
+import { useState, useEffect, useId } from "react";
 
 interface NotificationPreferences {
   email_enabled: boolean;
@@ -33,16 +31,22 @@ interface NotificationStatus {
   email_address: string;
 }
 
+const LOCAL_NOTIFICATION_PREFERENCES_KEY = "synchire-notification-preferences";
+
+const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  email_enabled: true,
+  application_status_updates: true,
+  interview_reminders: true,
+  weekly_digest: false,
+  job_recommendations: true,
+  profile_views: true,
+  notification_frequency: "immediate",
+};
+
 export function NotificationSettings() {
-  const [preferences, setPreferences] = useState<NotificationPreferences>({
-    email_enabled: true,
-    application_status_updates: true,
-    interview_reminders: true,
-    weekly_digest: false,
-    job_recommendations: true,
-    profile_views: true,
-    notification_frequency: "immediate",
-  });
+  const [preferences, setPreferences] = useState<NotificationPreferences>(
+    DEFAULT_NOTIFICATION_PREFERENCES
+  );
   const [status, setStatus] = useState<NotificationStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -65,15 +69,29 @@ export function NotificationSettings() {
 
   // Load preferences on mount
   useEffect(() => {
-    const loadPreferences = async () => {
+    const loadPreferences = () => {
       try {
         setLoading(true);
-        const response = await apiClient.get("/api/notifications/preferences");
-        setPreferences((response.data as { preferences: NotificationPreferences }).preferences);
-        setStatus(response.data as NotificationStatus);
+        const stored = window.localStorage.getItem(LOCAL_NOTIFICATION_PREFERENCES_KEY);
+        const storedPreferences = stored
+          ? { ...DEFAULT_NOTIFICATION_PREFERENCES, ...JSON.parse(stored) }
+          : DEFAULT_NOTIFICATION_PREFERENCES;
+
+        setPreferences(storedPreferences);
+        setStatus({
+          ...storedPreferences,
+          email_unsubscribed: !storedPreferences.email_enabled,
+          email_bounced: false,
+          email_address: "local@sync-hire.local",
+        });
       } catch (error) {
-        logger.error(LogCategory.API, "Failed to load notification preferences", error as Error);
-        showMessage("error", "Failed to load notification preferences");
+        setPreferences(DEFAULT_NOTIFICATION_PREFERENCES);
+        setStatus({
+          ...DEFAULT_NOTIFICATION_PREFERENCES,
+          email_unsubscribed: false,
+          email_bounced: false,
+          email_address: "local@sync-hire.local",
+        });
       } finally {
         setLoading(false);
       }
@@ -93,14 +111,18 @@ export function NotificationSettings() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      await apiClient.put("/api/notifications/preferences", preferences);
-      // Reload preferences after save
-      const response = await apiClient.get("/api/notifications/preferences");
-      setPreferences((response.data as { preferences: NotificationPreferences }).preferences);
-      setStatus(response.data as NotificationStatus);
+      window.localStorage.setItem(
+        LOCAL_NOTIFICATION_PREFERENCES_KEY,
+        JSON.stringify(preferences)
+      );
+      setStatus({
+        ...preferences,
+        email_unsubscribed: !preferences.email_enabled,
+        email_bounced: false,
+        email_address: "local@sync-hire.local",
+      });
       showMessage("success", "Notification preferences updated successfully");
     } catch (error) {
-      logger.error(LogCategory.API, "Failed to update notification preferences", error as Error);
       showMessage("error", "Failed to update notification preferences");
     } finally {
       setSaving(false);
@@ -114,14 +136,20 @@ export function NotificationSettings() {
 
     try {
       setSaving(true);
-      await apiClient.post("/api/notifications/unsubscribe", {});
-      // Reload preferences after unsubscribe
-      const response = await apiClient.get("/api/notifications/preferences");
-      setPreferences((response.data as { preferences: NotificationPreferences }).preferences);
-      setStatus(response.data as NotificationStatus);
+      const nextPreferences = { ...preferences, email_enabled: false };
+      setPreferences(nextPreferences);
+      window.localStorage.setItem(
+        LOCAL_NOTIFICATION_PREFERENCES_KEY,
+        JSON.stringify(nextPreferences)
+      );
+      setStatus({
+        ...nextPreferences,
+        email_unsubscribed: true,
+        email_bounced: false,
+        email_address: "local@sync-hire.local",
+      });
       showMessage("success", "You have been unsubscribed from all email notifications");
     } catch (error) {
-      logger.error(LogCategory.API, "Failed to unsubscribe", error as Error);
       showMessage("error", "Failed to unsubscribe");
     } finally {
       setSaving(false);
@@ -131,14 +159,20 @@ export function NotificationSettings() {
   const handleResubscribe = async () => {
     try {
       setSaving(true);
-      await apiClient.post("/api/notifications/resubscribe", {});
-      // Reload preferences after resubscribe
-      const response = await apiClient.get("/api/notifications/preferences");
-      setPreferences((response.data as { preferences: NotificationPreferences }).preferences);
-      setStatus(response.data as NotificationStatus);
+      const nextPreferences = { ...preferences, email_enabled: true };
+      setPreferences(nextPreferences);
+      window.localStorage.setItem(
+        LOCAL_NOTIFICATION_PREFERENCES_KEY,
+        JSON.stringify(nextPreferences)
+      );
+      setStatus({
+        ...nextPreferences,
+        email_unsubscribed: false,
+        email_bounced: false,
+        email_address: "local@sync-hire.local",
+      });
       showMessage("success", "You have been resubscribed to email notifications");
     } catch (error) {
-      logger.error(LogCategory.API, "Failed to resubscribe", error as Error);
       showMessage("error", "Failed to resubscribe");
     } finally {
       setSaving(false);
@@ -148,10 +182,8 @@ export function NotificationSettings() {
   const handleTestNotification = async (type: "application_status" | "interview_reminder" | "weekly_digest") => {
     try {
       setTestLoading(true);
-      await apiClient.post(`/api/notifications/test?notification_type=${type}`, {});
-      showMessage("success", `Test ${type.replace("_", " ")} notification sent to your email`);
+      showMessage("success", `Test ${type.replace("_", " ")} notification recorded locally`);
     } catch (error) {
-      logger.error(LogCategory.API, "Failed to send test notification", error as Error);
       showMessage("error", "Failed to send test notification");
     } finally {
       setTestLoading(false);

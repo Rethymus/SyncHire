@@ -14,6 +14,8 @@ from app.models.jd import JD
 from app.models.application import Application
 from datetime import datetime, timedelta
 
+TEST_JWT_SECRET = "synchire-test-jwt-secret-32-bytes"
+
 
 class APITestHelpers:
     """Helper class for API testing"""
@@ -59,7 +61,7 @@ class APITestHelpers:
 
         token = jwt.encode(
             {"sub": str(user.id), "exp": datetime.utcnow() + timedelta(hours=1)},
-            "test_secret_key",
+            TEST_JWT_SECRET,
             algorithm="HS256",
         )
         return {"Authorization": f"Bearer {token}"}

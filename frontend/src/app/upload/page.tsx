@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { useToastMessage } from "@/components/ui/toast";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const ALLOWED_RESUME_EXTENSIONS = new Set([".pdf", ".doc", ".docx", ".txt"]);
 
 function getUploadRejectionMessage(rejections: FileRejection[]) {
   const firstError = rejections[0]?.errors[0];
@@ -35,6 +36,25 @@ function getUploadRejectionMessage(rejections: FileRejection[]) {
   }
 
   return "不支持的文件格式。请上传 PDF、Word 或文本文档。";
+}
+
+function validateResumeFile(file: File) {
+  if (file.size > MAX_FILE_SIZE) {
+    return {
+      code: "file-too-large",
+      message: "文件大小超过 10MB 限制",
+    };
+  }
+
+  const extension = `.${file.name.split(".").pop()?.toLowerCase() ?? ""}`;
+  if (!ALLOWED_RESUME_EXTENSIONS.has(extension)) {
+    return {
+      code: "file-invalid-type",
+      message: "不支持的文件格式。请上传 PDF、Word 或文本文档。",
+    };
+  }
+
+  return null;
 }
 
 export default function UploadPage() {
@@ -95,9 +115,14 @@ export default function UploadPage() {
     [addResume, setCurrentResume, router, success, toastError]
   );
 
+  const onDropRejected = useCallback((rejectedFiles: FileRejection[]) => {
+    setError(getUploadRejectionMessage(rejectedFiles));
+  }, []);
+
   const { getRootProps, getInputProps, isDragActive, isDragReject } =
     useDropzone({
       onDrop,
+      onDropRejected,
       accept: {
         "application/pdf": [".pdf"],
         "application/msword": [".doc"],
@@ -109,6 +134,7 @@ export default function UploadPage() {
       maxFiles: 5,
       maxSize: MAX_FILE_SIZE,
       multiple: true,
+      validator: validateResumeFile,
     });
 
   const handleDelete = (id: string) => {

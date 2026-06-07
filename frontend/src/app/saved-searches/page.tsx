@@ -76,9 +76,7 @@ export default function SavedSearchesPage() {
   const { data: savedSearches, isLoading } = useQuery({
     queryKey: ["saved-searches"],
     queryFn: async () => {
-      const response = await fetch("/api/advanced-search/saved");
-      if (!response.ok) throw new Error("Failed to fetch saved searches");
-      return response.json() as Promise<SavedSearch[]>;
+      return [] as SavedSearch[];
     },
     enabled: isClient, // Only fetch on client side
   });
@@ -86,11 +84,7 @@ export default function SavedSearchesPage() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await fetch(`/api/advanced-search/saved/${id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) throw new Error("Failed to delete saved search");
-      return response.json();
+      return { id };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["saved-searches"] });
@@ -104,13 +98,7 @@ export default function SavedSearchesPage() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, name, frequency }: { id: string; name: string; frequency: string }) => {
-      const response = await fetch(`/api/advanced-search/saved/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, notification_frequency: frequency }),
-      });
-      if (!response.ok) throw new Error("Failed to update saved search");
-      return response.json();
+      return { id, name, notification_frequency: frequency };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["saved-searches"] });

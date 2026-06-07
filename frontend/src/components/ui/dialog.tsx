@@ -52,6 +52,9 @@ const DialogContent = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <div
     ref={ref}
+    role="dialog"
+    aria-modal="true"
+    tabIndex={-1}
     className={cn(
       "relative z-50 grid w-full max-w-lg gap-4 rounded-lg border bg-white p-6 shadow-lg",
       className

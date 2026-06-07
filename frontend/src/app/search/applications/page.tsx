@@ -6,7 +6,8 @@ import { useState, useCallback, useEffect } from "react";
 // import { Navigation } from "@/components/navigation";
 import { UniversalSearch } from "@/components/universal-search";
 import { SearchResults } from "@/components/search-results";
-import { searchApi, SearchFilters as APISearchFilters } from "@/lib/api/search";
+import { SearchFilters as APISearchFilters } from "@/lib/api/search";
+import { useAppStore } from "@/lib/store";
 import { Briefcase } from "lucide-react";
 
 const DEFAULT_APPLICATION_SEARCH_FILTERS: APISearchFilters = {
@@ -17,6 +18,7 @@ const DEFAULT_APPLICATION_SEARCH_FILTERS: APISearchFilters = {
 };
 
 export default function ApplicationSearchPage() {
+  const { applications, resumes, jobDescriptions } = useAppStore();
   const [results, setResults] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -32,15 +34,71 @@ export default function ApplicationSearchPage() {
     setCurrentFilters(filters);
 
     try {
-      const response = await searchApi.searchApplications(query, {
-        ...filters,
-        page: filters.page || 1,
-        pageSize: filters.pageSize || 10,
-      });
+      const normalizedQuery = query.trim().toLowerCase();
+      const requestedPage = filters.page || 1;
+      const requestedPageSize = filters.pageSize || 10;
+      const filteredApplications = applications
+        .filter((application) => {
+          if (filters.status && application.status !== filters.status) {
+            return false;
+          }
 
-      setResults(response.results);
-      setTotal(response.total);
-      setPage(response.page);
+          if (!normalizedQuery) {
+            return true;
+          }
+
+          const resume = resumes.find((item) => item.id === application.resumeId);
+          const jd = jobDescriptions.find((item) => item.id === application.jobId);
+          const searchableText = [
+            application.companyName,
+            application.position,
+            application.status,
+            resume?.name,
+            jd?.title,
+            jd?.company,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+
+          return searchableText.includes(normalizedQuery);
+        })
+        .toSorted((a, b) => {
+          const sortOrder = filters.sortOrder === "asc" ? 1 : -1;
+          const aDate = new Date(a.updatedAt || a.createdAt).getTime();
+          const bDate = new Date(b.updatedAt || b.createdAt).getTime();
+          return (aDate - bDate) * sortOrder;
+        });
+
+      const pagedApplications = filteredApplications.slice(
+        (requestedPage - 1) * requestedPageSize,
+        requestedPage * requestedPageSize
+      );
+
+      setResults(
+        pagedApplications.map((application) => {
+          const resume = resumes.find((item) => item.id === application.resumeId);
+          const jd = jobDescriptions.find((item) => item.id === application.jobId);
+
+          return {
+            id: application.id,
+            title: application.position,
+            content: `${application.companyName} ${application.position}`,
+            type: "application",
+            created_at: application.createdAt,
+            updated_at: application.updatedAt,
+            company_name: jd?.company || application.companyName,
+            position: jd?.title || application.position,
+            status: application.status,
+            match_score: application.matchScore,
+            resume_title: resume?.name || "Unknown Resume",
+            jd_title: jd?.title || application.position,
+            highlighted_content: jd?.description || application.position,
+          };
+        })
+      );
+      setTotal(filteredApplications.length);
+      setPage(requestedPage);
     } catch (error) {
       console.error("Search failed:", error);
       setResults([]);
@@ -48,7 +106,7 @@ export default function ApplicationSearchPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [applications, resumes, jobDescriptions]);
 
   const handlePageChange = useCallback(
     async (newPage: number) => {

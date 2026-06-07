@@ -7,16 +7,16 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function EditorPage() {
-  const { currentResume } = useAppStore();
+  const { currentResume, hasHydrated } = useAppStore();
   const router = useRouter();
 
   useEffect(() => {
-    if (!currentResume) {
+    if (hasHydrated && !currentResume) {
       router.push("/dashboard");
     }
-  }, [currentResume, router]);
+  }, [currentResume, hasHydrated, router]);
 
-  if (!currentResume) {
+  if (!hasHydrated || !currentResume) {
     return null;
   }
 

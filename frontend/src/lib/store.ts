@@ -87,6 +87,7 @@ interface AppState {
   // Job application state
   applications: JobApplication[];
   addApplication: (application: JobApplication) => void;
+  setApplications: (applications: JobApplication[]) => void;
   updateApplication: (id: string, updates: Partial<JobApplication>) => void;
   deleteApplication: (id: string) => void;
   batchUpdateApplications: (ids: string[], updates: Partial<JobApplication>) => void;
@@ -104,6 +105,8 @@ interface AppState {
   setSidebarOpen: (open: boolean) => void;
 
   // Onboarding state
+  hasHydrated: boolean;
+  hydrateFromStorage: () => void;
   onboarding: OnboardingState;
   setOnboardingStep: (step: number) => void;
   completeOnboardingStep: (step: string) => void;
@@ -111,6 +114,147 @@ interface AppState {
   resetOnboarding: () => void;
   startOnboarding: () => void;
   finishOnboarding: () => void;
+}
+
+const STORAGE_KEY = "synchire-storage";
+const STORAGE_VERSION = 1;
+
+type PersistedAppState = Pick<
+  AppState,
+  | "resumes"
+  | "currentResume"
+  | "applications"
+  | "jobDescriptions"
+  | "currentJD"
+  | "selectedTemplate"
+  | "templateCustomization"
+  | "onboarding"
+>;
+
+function parseDate(value: unknown, fallback = new Date()): Date {
+  if (value instanceof Date) {
+    return value;
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? fallback : parsed;
+  }
+
+  return fallback;
+}
+
+function hydrateResume(resume: Resume): Resume {
+  return {
+    ...resume,
+    uploadedAt: parseDate(resume.uploadedAt),
+  };
+}
+
+function hydrateApplication(application: JobApplication): JobApplication {
+  return {
+    ...application,
+    createdAt: parseDate(application.createdAt),
+    updatedAt: parseDate(application.updatedAt),
+  };
+}
+
+function hydrateJobDescription(jd: JobDescription): JobDescription {
+  return {
+    ...jd,
+    createdAt: parseDate(jd.createdAt),
+  };
+}
+
+function hydratePersistedState(state: Partial<PersistedAppState>): Partial<PersistedAppState> {
+  const resumes = Array.isArray(state.resumes)
+    ? state.resumes.map(hydrateResume)
+    : [];
+  const currentResume = state.currentResume
+    ? hydrateResume(state.currentResume)
+    : null;
+  const applications = Array.isArray(state.applications)
+    ? state.applications.map(hydrateApplication)
+    : [];
+  const jobDescriptions = Array.isArray(state.jobDescriptions)
+    ? state.jobDescriptions.map(hydrateJobDescription)
+    : [];
+  const currentJD = state.currentJD
+    ? hydrateJobDescription(state.currentJD)
+    : null;
+
+  return {
+    ...state,
+    resumes,
+    currentResume,
+    applications,
+    jobDescriptions,
+    currentJD,
+    onboarding: state.onboarding
+      ? {
+          ...state.onboarding,
+          startedAt: state.onboarding.startedAt
+            ? parseDate(state.onboarding.startedAt)
+            : undefined,
+          completedAt: state.onboarding.completedAt
+            ? parseDate(state.onboarding.completedAt)
+            : undefined,
+        }
+      : undefined,
+  };
+}
+
+function loadPersistedState(): Partial<PersistedAppState> {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return {};
+    }
+
+    const parsed = JSON.parse(stored) as {
+      version?: number;
+      state?: Partial<PersistedAppState>;
+    };
+
+    return hydratePersistedState(parsed.state ?? {});
+  } catch {
+    return {};
+  }
+}
+
+function persistState(state: AppState) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const persisted: PersistedAppState = {
+    resumes: state.resumes,
+    currentResume: state.currentResume,
+    applications: state.applications,
+    jobDescriptions: state.jobDescriptions,
+    currentJD: state.currentJD,
+    selectedTemplate: state.selectedTemplate,
+    templateCustomization: state.templateCustomization,
+    onboarding: state.onboarding,
+  };
+
+  window.localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      version: STORAGE_VERSION,
+      state: persisted,
+    })
+  );
+}
+
+function clearPersistedState() {
+  if (typeof window !== "undefined") {
+    window.localStorage.removeItem(STORAGE_KEY);
+  }
 }
 
 // Main store without persistence for sensitive data
@@ -126,6 +270,7 @@ export const useAppStore = create<AppState>()((set) => ({
   jobDescriptions: [],
   currentJD: null,
   sidebarOpen: true,
+  hasHydrated: false,
   onboarding: {
     isOnboarded: false,
     currentStep: 0,
@@ -141,55 +286,85 @@ export const useAppStore = create<AppState>()((set) => ({
     }),
 
   logout: () =>
-    set({
-      user: null,
-      isAuthenticated: false,
-      resumes: [],
-      currentResume: null,
-      applications: [],
-      jobDescriptions: [],
-      currentJD: null,
+    set((state) => {
+      const nextState = {
+        ...state,
+        user: null,
+        isAuthenticated: false,
+        resumes: [],
+        currentResume: null,
+        applications: [],
+        jobDescriptions: [],
+        currentJD: null,
+      };
+      clearPersistedState();
+      return nextState;
     }),
 
   // Resume actions
   addResume: (resume) =>
     set((state) => {
+      const nextState = {
+        ...state,
+        resumes: [...state.resumes, resume],
+        currentResume: resume,
+      };
       state.showToast?.({
         showSuccess: () => {},
         showError: () => {},
         showInfo: () => {},
       });
+      persistState(nextState);
       return {
-        resumes: [...state.resumes, resume],
-        currentResume: resume,
+        resumes: nextState.resumes,
+        currentResume: nextState.currentResume,
       };
     }),
 
   updateResume: (id, updates) =>
-    set((state) => ({
-      resumes: state.resumes.map((r) =>
+    set((state) => {
+      const resumes = state.resumes.map((r) =>
         r.id === id ? { ...r, ...updates } : r
-      ),
-      currentResume:
+      );
+      const currentResume =
         state.currentResume?.id === id
           ? { ...state.currentResume, ...updates }
-          : state.currentResume,
-    })),
+          : state.currentResume;
+      persistState({ ...state, resumes, currentResume });
+      return { resumes, currentResume };
+    }),
 
-  setResumes: (resumes: Resume[]) => set({ resumes }),
+  setResumes: (resumes: Resume[]) =>
+    set((state) => {
+      const currentResume =
+        state.currentResume && resumes.some((resume) => resume.id === state.currentResume?.id)
+          ? state.currentResume
+          : null;
+      persistState({ ...state, resumes, currentResume });
+      return { resumes, currentResume };
+    }),
 
   deleteResume: (id) =>
-    set((state) => ({
-      resumes: state.resumes.filter((r) => r.id !== id),
-      currentResume:
-        state.currentResume?.id === id ? null : state.currentResume,
-    })),
+    set((state) => {
+      const resumes = state.resumes.filter((r) => r.id !== id);
+      const currentResume =
+        state.currentResume?.id === id ? null : state.currentResume;
+      persistState({ ...state, resumes, currentResume });
+      return { resumes, currentResume };
+    }),
 
-  setCurrentResume: (resume) => set({ currentResume: resume }),
+  setCurrentResume: (resume) =>
+    set((state) => {
+      persistState({ ...state, currentResume: resume });
+      return { currentResume: resume };
+    }),
 
   // Template actions
   setSelectedTemplate: (templateId) => {
-    set({ selectedTemplate: templateId });
+    set((state) => {
+      persistState({ ...state, selectedTemplate: templateId });
+      return { selectedTemplate: templateId };
+    });
     // Save to localStorage for persistence
     if (typeof window !== 'undefined') {
       localStorage.setItem('selectedTemplate', templateId);
@@ -197,7 +372,10 @@ export const useAppStore = create<AppState>()((set) => ({
   },
 
   setTemplateCustomization: (customization) => {
-    set({ templateCustomization: customization });
+    set((state) => {
+      persistState({ ...state, templateCustomization: customization });
+      return { templateCustomization: customization };
+    });
     // Save to localStorage for persistence
     if (typeof window !== 'undefined') {
       localStorage.setItem('templateCustomization', JSON.stringify(customization));
@@ -205,9 +383,16 @@ export const useAppStore = create<AppState>()((set) => ({
   },
 
   saveTemplatePreferences: (templateId, customization) => {
-    set({
-      selectedTemplate: templateId,
-      templateCustomization: customization
+    set((state) => {
+      persistState({
+        ...state,
+        selectedTemplate: templateId,
+        templateCustomization: customization,
+      });
+      return {
+        selectedTemplate: templateId,
+        templateCustomization: customization,
+      };
     });
     // Save to localStorage for persistence
     if (typeof window !== 'undefined') {
@@ -218,103 +403,165 @@ export const useAppStore = create<AppState>()((set) => ({
 
   // Application actions
   addApplication: (application) =>
-    set((state) => ({
-      applications: [...state.applications, application],
-    })),
+    set((state) => {
+      const applications = [...state.applications, application];
+      persistState({ ...state, applications });
+      return { applications };
+    }),
+
+  setApplications: (applications) =>
+    set((state) => {
+      persistState({ ...state, applications });
+      return { applications };
+    }),
 
   updateApplication: (id, updates) =>
-    set((state) => ({
-      applications: state.applications.map((app) =>
+    set((state) => {
+      const applications = state.applications.map((app) =>
         app.id === id ? { ...app, ...updates } : app
-      ),
-    })),
+      );
+      persistState({ ...state, applications });
+      return { applications };
+    }),
 
   deleteApplication: (id) =>
-    set((state) => ({
-      applications: state.applications.filter((app) => app.id !== id),
-    })),
+    set((state) => {
+      const applications = state.applications.filter((app) => app.id !== id);
+      persistState({ ...state, applications });
+      return { applications };
+    }),
 
   // Toast actions (optional - can be set by components to enable toast notifications)
   showToast: () => {},
 
   batchUpdateApplications: (ids, updates) =>
-    set((state) => ({
-      applications: state.applications.map((app) =>
+    set((state) => {
+      const applications = state.applications.map((app) =>
         ids.includes(app.id) ? { ...app, ...updates } : app
-      ),
-    })),
+      );
+      persistState({ ...state, applications });
+      return { applications };
+    }),
 
   batchDeleteApplications: (ids) =>
-    set((state) => ({
-      applications: state.applications.filter((app) => !ids.includes(app.id)),
-    })),
+    set((state) => {
+      const applications = state.applications.filter((app) => !ids.includes(app.id));
+      persistState({ ...state, applications });
+      return { applications };
+    }),
 
   // Job description actions
   addJobDescription: (jd) =>
-    set((state) => ({
-      jobDescriptions: [...state.jobDescriptions, jd],
-      currentJD: jd,
-    })),
+    set((state) => {
+      const jobDescriptions = [...state.jobDescriptions, jd];
+      const currentJD = jd;
+      persistState({ ...state, jobDescriptions, currentJD });
+      return { jobDescriptions, currentJD };
+    }),
 
   setJobDescriptions: (jds) =>
-    set({ jobDescriptions: jds }),
+    set((state) => {
+      const currentJD =
+        state.currentJD && jds.some((jd) => jd.id === state.currentJD?.id)
+          ? state.currentJD
+          : null;
+      persistState({ ...state, jobDescriptions: jds, currentJD });
+      return { jobDescriptions: jds, currentJD };
+    }),
 
-  setCurrentJD: (jd) => set({ currentJD: jd }),
+  setCurrentJD: (jd) =>
+    set((state) => {
+      persistState({ ...state, currentJD: jd });
+      return { currentJD: jd };
+    }),
 
   // UI actions
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
   // Onboarding actions
+  hydrateFromStorage: () =>
+    set((state) => {
+      if (state.hasHydrated) {
+        return state;
+      }
+
+      const persistedState = loadPersistedState();
+      return {
+        resumes: persistedState.resumes ?? state.resumes,
+        currentResume: persistedState.currentResume ?? state.currentResume,
+        applications: persistedState.applications ?? state.applications,
+        jobDescriptions: persistedState.jobDescriptions ?? state.jobDescriptions,
+        currentJD: persistedState.currentJD ?? state.currentJD,
+        selectedTemplate: persistedState.selectedTemplate ?? state.selectedTemplate,
+        templateCustomization:
+          persistedState.templateCustomization ?? state.templateCustomization,
+        onboarding: persistedState.onboarding ?? state.onboarding,
+        hasHydrated: true,
+      };
+    }),
+
   setOnboardingStep: (step) =>
-    set((state) => ({
-      onboarding: { ...state.onboarding, currentStep: step },
-    })),
+    set((state) => {
+      const onboarding = { ...state.onboarding, currentStep: step };
+      persistState({ ...state, onboarding });
+      return { onboarding };
+    }),
 
   completeOnboardingStep: (step) =>
-    set((state) => ({
-      onboarding: {
+    set((state) => {
+      const onboarding = {
         ...state.onboarding,
         completedSteps: [...state.onboarding.completedSteps, step],
-      },
-    })),
+      };
+      persistState({ ...state, onboarding });
+      return { onboarding };
+    }),
 
   skipOnboarding: () =>
-    set((state) => ({
-      onboarding: {
+    set((state) => {
+      const onboarding = {
         ...state.onboarding,
         skipped: true,
         isOnboarded: true,
-      },
-    })),
+      };
+      persistState({ ...state, onboarding });
+      return { onboarding };
+    }),
 
   resetOnboarding: () =>
-    set({
-      onboarding: {
+    set((state) => {
+      const onboarding = {
         isOnboarded: false,
         currentStep: 0,
         completedSteps: [],
         skipped: false,
-      },
+      };
+      persistState({ ...state, onboarding });
+      return { onboarding };
     }),
 
   startOnboarding: () =>
-    set((state) => ({
-      onboarding: {
+    set((state) => {
+      const onboarding = {
         ...state.onboarding,
         startedAt: new Date(),
         currentStep: 1,
-      },
-    })),
+      };
+      persistState({ ...state, onboarding });
+      return { onboarding };
+    }),
 
   finishOnboarding: () =>
-    set((state) => ({
-      onboarding: {
+    set((state) => {
+      const onboarding = {
         ...state.onboarding,
         isOnboarded: true,
         completedAt: new Date(),
         currentStep: 7,
-      },
-    })),
+      };
+      persistState({ ...state, onboarding });
+      return { onboarding };
+    }),
 }));
 
 // Separate UI-only store with persistence for non-sensitive data

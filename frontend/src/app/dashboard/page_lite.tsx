@@ -60,7 +60,7 @@ export default function DashboardPage() {
       icon: FileText,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
-      href: "/resumes",
+      href: "/upload",
     },
     {
       title: "Job Descriptions",
@@ -68,7 +68,7 @@ export default function DashboardPage() {
       icon: Briefcase,
       color: "text-green-600",
       bgColor: "bg-green-50",
-      href: "/job-descriptions",
+      href: "/jd-input",
     },
     {
       title: "Applications",
@@ -135,14 +135,14 @@ export default function DashboardPage() {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link
-              href="/resumes"
+              href="/upload"
               className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <FileText className="h-5 w-5 text-blue-600" />
               <span className="font-medium text-gray-700">Create Resume</span>
             </Link>
             <Link
-              href="/job-descriptions"
+              href="/jd-input"
               className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <Briefcase className="h-5 w-5 text-green-600" />

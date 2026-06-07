@@ -10,15 +10,11 @@ import { LogCategory } from "@/lib/logger";
 import { TIMING } from "@/lib/constants";
 import {
   Briefcase,
-  Building2,
-  Plus,
-  X,
   CheckCircle2,
   Sparkles,
   ArrowRight,
   Link as LinkIcon,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 export default function JDInputPage() {
   const router = useRouter();
@@ -30,6 +26,7 @@ export default function JDInputPage() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState<string | null>(null);
   const { addJobDescription, currentJD, setCurrentJD, jobDescriptions } = useAppStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,10 +64,11 @@ export default function JDInputPage() {
   };
 
   const handleImportFromURL = async () => {
-    if (!url) {
+    if (!url.trim()) {
       return;
     }
 
+    setImportMessage(null);
     setImporting(true);
 
     try {
@@ -80,10 +78,15 @@ export default function JDInputPage() {
       // In production, this would call your scraping API
       // TODO: Implement URL import API
 
-      setImporting(false);
-      setUrl("");
+      setImportMessage(
+        "暂不支持自动导入该链接。链接已保留，请将职位信息粘贴到下方表单。"
+      );
     } catch (error) {
       logger.error(LogCategory.API, "Import error", error as Error);
+      setImportMessage(
+        "导入失败。链接已保留，请将职位信息手动粘贴到下方表单。"
+      );
+    } finally {
       setImporting(false);
     }
   };
@@ -136,18 +139,32 @@ export default function JDInputPage() {
               <input
                 type="url"
                 value={url}
-                onChange={(e) => setUrl(e.target.value)}
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  setImportMessage(null);
+                }}
                 placeholder="https://www.example.com/job/123456"
+                aria-describedby={importMessage ? "job-url-import-message" : undefined}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
               <Button
                 variant="outline"
                 onClick={handleImportFromURL}
-                disabled={!url || importing}
+                disabled={!url.trim() || importing}
               >
                 {importing ? "导入中..." : "导入"}
               </Button>
             </div>
+            {importMessage && (
+              <p
+                id="job-url-import-message"
+                role="status"
+                aria-live="polite"
+                className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+              >
+                {importMessage}
+              </p>
+            )}
           </div>
 
           {/* Manual Input Form */}

@@ -36,6 +36,7 @@ warnings.filterwarnings(
 # Test database URL (use in-memory SQLite for faster tests). Set it before
 # importing app modules so the global application engine also uses SQLite.
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+TEST_JWT_SECRET = "synchire-test-jwt-secret-32-bytes"
 os.environ.setdefault("DATABASE_URL", TEST_DATABASE_URL)
 
 from app.core.database import Base, get_db  # noqa: E402
@@ -778,7 +779,7 @@ def auth_headers(test_user: User) -> dict:
 
     token = jwt.encode(
         {"sub": str(test_user.id), "exp": datetime.utcnow() + timedelta(hours=1)},
-        "test_secret_key",
+        TEST_JWT_SECRET,
         algorithm="HS256",
     )
     return {"Authorization": f"Bearer {token}"}
@@ -792,7 +793,7 @@ def create_auth_headers():
     def _create_headers(user_id: str) -> dict:
         token = jwt.encode(
             {"sub": str(user_id), "exp": datetime.utcnow() + timedelta(hours=1)},
-            "test_secret_key",
+            TEST_JWT_SECRET,
             algorithm="HS256",
         )
         return {"Authorization": f"Bearer {token}"}
