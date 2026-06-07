@@ -4,7 +4,7 @@ Applications API - Lightweight Version
 Local-first application tracking without authentication.
 """
 
-from uuid import uuid4, UUID
+from uuid import uuid4
 from typing import List
 from fastapi import APIRouter, Body, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -49,9 +49,7 @@ async def create_application(
         jd_id = parse_uuid(application.jd_id, "jd_id")
 
         # Validate resume exists
-        resume_result = await db.execute(
-            select(Resume).where(Resume.id == resume_id)
-        )
+        resume_result = await db.execute(select(Resume).where(Resume.id == resume_id))
         if not resume_result.scalar_one_or_none():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Resume not found"

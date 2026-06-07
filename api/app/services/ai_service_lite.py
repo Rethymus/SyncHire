@@ -243,10 +243,14 @@ class AIService:
         salary_min = None
         salary_max = None
         salary_text = fields.get("salary", "")
-        salary_numbers = [int(n.replace(",", "")) for n in re.findall(r"\d[\d,]*", salary_text)]
+        salary_numbers = [
+            int(n.replace(",", "")) for n in re.findall(r"\d[\d,]*", salary_text)
+        ]
         if salary_numbers:
             salary_min = salary_numbers[0]
-            salary_max = salary_numbers[-1] if len(salary_numbers) > 1 else salary_numbers[0]
+            salary_max = (
+                salary_numbers[-1] if len(salary_numbers) > 1 else salary_numbers[0]
+            )
 
         lower_content = jd_content.lower()
         remote = fields.get("remote", "")
@@ -369,9 +373,13 @@ class AIService:
             )
             return self._calculate_local_match_score(resume_content, jd_content)
 
-    def _calculate_local_match_score(self, resume_content: str, jd_content: str) -> float:
+    def _calculate_local_match_score(
+        self, resume_content: str, jd_content: str
+    ) -> float:
         """Calculate a deterministic local match score when AI is unavailable."""
-        resume_words = set(re.findall(r"[a-zA-Z][a-zA-Z0-9.+#-]*", resume_content.lower()))
+        resume_words = set(
+            re.findall(r"[a-zA-Z][a-zA-Z0-9.+#-]*", resume_content.lower())
+        )
         jd_words = set(re.findall(r"[a-zA-Z][a-zA-Z0-9.+#-]*", jd_content.lower()))
         if not resume_words or not jd_words:
             return 50.0

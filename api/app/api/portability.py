@@ -501,9 +501,7 @@ async def import_data(
                     if mode == "merge":
                         # Check if JD exists
                         existing = await db.execute(
-                            select(JobDescription).where(
-                                JobDescription.id == jd_id
-                            )
+                            select(JobDescription).where(JobDescription.id == jd_id)
                         )
                         if existing.scalar_one_or_none():
                             if conflict_resolution == "skip":
@@ -846,9 +844,7 @@ async def import_preview(
             if "applications" in data:
                 for app_data in data["applications"]:
                     if "id" in app_data:
-                        application_id = parse_uuid(
-                            app_data["id"], "application_id"
-                        )
+                        application_id = parse_uuid(app_data["id"], "application_id")
                         existing = await db.execute(
                             select(Application).where(Application.id == application_id)
                         )

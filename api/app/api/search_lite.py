@@ -75,10 +75,7 @@ async def search_all(
                 for term in terms
             ]
             resume_result = await db.execute(
-                select(Resume)
-                .where(and_(*resume_filters))
-                .offset(offset)
-                .limit(limit)
+                select(Resume).where(and_(*resume_filters)).offset(offset).limit(limit)
             )
             resumes = resume_result.scalars().all()
 
@@ -204,9 +201,7 @@ async def match_resume_jd(request: MatchRequest, db: AsyncSession = Depends(get_
         jd_id = parse_uuid(request.jd_id, "jd_id")
 
         # Get resume
-        resume_result = await db.execute(
-            select(Resume).where(Resume.id == resume_id)
-        )
+        resume_result = await db.execute(select(Resume).where(Resume.id == resume_id))
         resume = resume_result.scalar_one_or_none()
 
         if not resume:
