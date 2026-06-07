@@ -1,281 +1,243 @@
 # SyncHire (知遇)
 
-<div align="center">
+<p align="center">
+  <strong>The AI-powered job application command center for people who refuse to send generic resumes.</strong>
+  <br />
+  Build sharper resumes, decode job descriptions, manage every opportunity, and walk into interviews with a plan.
+</p>
 
-**AI-Powered Job Application Platform**
+<p align="center">
+  <a href="./README.md"><strong>English</strong></a>
+  ·
+  <a href="./README.zh-CN.md">简体中文</a>
+</p>
 
-让每一次求职，都是一场被看见的知遇之恩
+<p align="center">
+  <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
+  <img alt="Next.js 16.2.7" src="https://img.shields.io/badge/Next.js-16.2.7-black.svg" />
+  <img alt="React 19" src="https://img.shields.io/badge/React-19.2.7-61DAFB.svg" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-blue.svg" />
+  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-Python%203.11+-009688.svg" />
+  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL%20%2B%20PGVector-16-336791.svg" />
+</p>
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-16.2.6-black.svg)](https://nextjs.org/)
-[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791.svg)](https://www.postgresql.org/)
+<p align="center">
+  <img src="dogfood-output/screenshots/final-desktop-dashboard.png" alt="SyncHire dashboard preview" width="860" />
+</p>
 
-</div>
+## The Product Pitch
 
-## 🌟 Overview
+Job hunting should not feel like throwing your career into a black box.
 
-**SyncHire** is an innovative AI-powered job application platform designed to revolutionize how job seekers create optimized resumes, analyze job descriptions, and match their experience with requirements. The platform leverages cutting-edge technologies including Next.js 16, FastAPI, and Model Context Protocol (MCP) servers to provide intelligent job matching and resume optimization services.
+SyncHire is built for one clear promise: turn every application into a targeted, measurable, high-confidence campaign. It brings your resume, job descriptions, match scoring, interview preparation, application tracking, and data portability into one focused workspace. No more scattered files, half-finished notes, lost links, or guessing whether your resume actually speaks the language of the role.
 
-## ✨ Key Features
+Use SyncHire in local-first Lite mode when you want a private, fast, no-backend workflow. Turn on the full stack when you want AI analysis, vector matching, API-backed persistence, OAuth, 2FA, object storage, and production-grade infrastructure.
 
-### Core Capabilities
-- **AI-Powered Resume Analysis**: Parse and analyze resumes from multiple formats (PDF, DOC, DOCX) with comprehensive skill extraction
-- **Job Description Intelligence**: Deep analysis of job requirements with structured data extraction and matching scores
-- **Smart Job Matching**: Calculate compatibility scores (0-100%) with detailed gap analysis and improvement recommendations
-- **Interview Preparation**: Generate role-specific interview questions, HR screening prep, and STAR method behavioral questions
-- **Real-time Analytics**: Track application status, skill development, and job search progress with detailed dashboards
+## Why SyncHire Wins
 
-### Technical Excellence
-- **MCP Server Architecture**: Modular AI processing with 4 specialized servers for scalable, maintainable AI operations
-- **Advanced Security**: JWT authentication, OAuth2 (Google, GitHub), Two-Factor Authentication (2FA), and GDPR compliance
-- **Accessibility First**: WCAG 2.1 AA compliant with comprehensive ARIA support and keyboard navigation
-- **Performance Optimized**: React Server Components, lazy loading, React Query caching, and efficient state management
-- **Internationalization**: Multi-language support with next-intl for global accessibility
-- **Modern UI/UX**: Built with Next.js 16, TypeScript 5, TailwindCSS 4, and shadcn/ui components
+| What job seekers usually fight                | What SyncHire gives them                              |
+| --------------------------------------------- | ----------------------------------------------------- |
+| One resume sent everywhere                    | Role-specific resume and job-description workflows    |
+| Job links buried in tabs and notes            | A structured application pipeline                     |
+| Vague "looks good" feedback                   | Match scores, gaps, and next actions                  |
+| Interview prep starting too late              | Role-aware prep generated from the actual opportunity |
+| Data trapped in a product                     | JSON/CSV export, import preview, and local backups    |
+| Fragile demos that need every service running | Lite mode that works locally without backend noise    |
 
-### Developer Experience
-- **Comprehensive Testing**: Unit tests (Vitest), integration tests, and E2E tests (Playwright)
-- **Type Safety**: Full TypeScript coverage with strict mode enabled
-- **Code Quality**: ESLint 9 flat config, Prettier formatting, and pre-commit hooks
-- **CI/CD Pipeline**: GitHub Actions with automated testing and deployment
-- **Security-Validated Skills**: Development automation with security-vetted Claude Code skills
+## What You Can Do
 
-## 🏗️ Architecture
+- Upload and manage resumes with visible validation for file type and size.
+- Save job descriptions manually or preserve job URLs when auto-import is unavailable.
+- Create local applications from a resume and a job description in minutes.
+- Track application status, notes, search views, interviews, analytics, and saved searches.
+- Export, import, and back up your data from a dedicated data management console.
+- Connect a full backend for AI-powered resume analysis, job matching, interview prep, authentication, storage, and vector search.
+
+## Product Modes
+
+| Mode            | Best for                                                     | What runs                                                           |
+| --------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |
+| Lite Mode       | Private local workflows, demos, offline-friendly exploration | Next.js frontend, browser local storage, no required API            |
+| Full Stack Mode | AI features, team deployments, API-backed persistence        | Next.js, FastAPI, PostgreSQL + PGVector, Redis, Minio, MCP services |
+
+## Core Capabilities
+
+### Resume Intelligence
+
+Upload PDF, DOC, DOCX, or TXT resumes, extract structured content, and keep the resume attached to the application workflow where it matters. SyncHire treats the resume as a living asset, not a forgotten attachment.
+
+### Job Description Command Center
+
+Capture job descriptions, company context, requirements, skills, and links in a structured format. Every role becomes something you can compare, analyze, and act on.
+
+### Match and Gap Analysis
+
+The full AI workflow is designed to score fit, identify missing skills, surface keyword gaps, and recommend stronger positioning. The product goal is simple: make every application more intentional than the last.
+
+### Interview Preparation
+
+Generate role-specific technical, behavioral, HR, and STAR-method prep from the opportunity itself. SyncHire helps you prepare for the conversation you are actually walking into.
+
+### Data Ownership
+
+Export JSON or CSV, preview imports, resolve conflicts, and keep local backup metadata. Your job search is strategic data; SyncHire keeps it accessible.
+
+## Architecture
+
+```text
+SyncHire/
+├── frontend/        Next.js 16 app, Lite mode UX, E2E coverage
+├── api/             FastAPI backend, auth, data, AI orchestration
+├── mcp-servers/     Modular AI services for parsing, matching, and prep
+├── db/              Database schema and migrations
+├── deploy/          Deployment assets
+├── k8s/             Kubernetes manifests
+├── docs/            Engineering and product documentation
+└── docker-compose.yml
+```
 
 ### Technology Stack
 
-**Frontend:**
-- **Framework**: Next.js 16.2.6 (App Router + Turbopack)
-- **Language**: TypeScript 5 with strict mode
-- **Styling**: TailwindCSS 4 with custom components
-- **State Management**: Zustand 5 + React Query (TanStack Query)
-- **Forms**: React Hook Form + Zod validation
-- **Security**: DOMPurify (XSS protection), CSRF tokens
-- **Testing**: Vitest, Playwright, Testing Library
-- **Internationalization**: next-intl for multi-language support
+| Layer    | Stack                                                                           |
+| -------- | ------------------------------------------------------------------------------- |
+| Frontend | Next.js 16.2.7, React 19.2.7, TypeScript, Tailwind CSS, Zustand, TanStack Query |
+| Backend  | FastAPI, Python 3.11+, Pydantic, PyJWT                                          |
+| Data     | PostgreSQL 16, PGVector, Redis, Minio                                           |
+| AI       | OpenAI, Anthropic, modular MCP servers                                          |
+| Quality  | Vitest, Playwright, Pytest, Ruff, Black, Bandit, pip-audit, ESLint              |
 
-**Backend:**
-- **Framework**: FastAPI (Python 3.11+)
-- **Database**: PostgreSQL 16 + PGVector (vector embeddings)
-- **Cache/Queue**: Redis 7 for caching and rate limiting
-- **Storage**: Minio (S3-compatible) for resume/JD files
-- **Authentication**: JWT, OAuth2 (Google, GitHub), 2FA
-- **Validation**: Pydantic models for request/response
-- **Testing**: Pytest with async support
-
-**AI Services:**
-- **Primary Models**: OpenAI GPT-4, Anthropic Claude 3
-- **MCP Architecture**: 4 specialized servers for modular AI processing
-- **Vector Search**: PGVector for semantic matching
-- **Prompt Engineering**: Few-shot examples with structured outputs
-
-### Project Structure
-
-```
-SyncHire/
-├── frontend/                 # Next.js 16 application (App Router)
-│   ├── app/                 # App Router pages and layouts
-│   ├── components/          # React components
-│   ├── lib/                 # Utilities and configurations
-│   └── public/              # Static assets
-├── api/                     # FastAPI backend
-│   ├── app/                 # FastAPI application setup
-│   ├── routers/             # API endpoint handlers
-│   ├── models/              # Database models
-│   └── tests/               # Backend test suite
-├── mcp-servers/            # Modular MCP services
-│   ├── jd-parser/          # Parse job descriptions
-│   ├── resume-analyzer/    # Analyze resumes
-│   ├── job-matcher/        # Calculate compatibility
-│   └── interview-prep/     # Generate interview prep
-├── db/                      # Database schemas and migrations
-├── docs/                    # Technical documentation
-├── deploy/                  # Deployment configurations
-├── k8s/                     # Kubernetes manifests
-└── docker-compose.yml       # Local development stack
-```
-
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
-- **Docker** and Docker Compose (for infrastructure)
-- **Node.js** 22+ (engines: >=22.0.0)
-- **npm** 10+ (engines: >=10.0.0)
-- **Python** 3.11+ (for backend development)
-- **Git** for version control
+- Node.js 22+ and npm 10+
+- Python 3.11+
+- Docker and Docker Compose
+- Git
 
-### Installation
+### Option 1: Run Lite Mode
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Rethymus/synchire.git
-   cd SyncHire
-   ```
-
-2. **Configure environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   # Required: AI API keys (OpenAI, Anthropic)
-   # Required: Database credentials
-   # Optional: OAuth credentials (Google, GitHub)
-   ```
-
-3. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-4. **Start the development environment**
-   ```bash
-   # Start infrastructure (PostgreSQL, Redis, Minio)
-   npm run docker:up
-   
-   # Run database migrations
-   npm run db:migrate
-   
-   # Start all services (frontend + API)
-   npm run dev
-   ```
-
-5. **Access the application**
-   - **Frontend**: http://localhost:3000
-   - **API**: http://localhost:8000
-   - **API Docs**: http://localhost:8000/docs
-   - **Database**: localhost:5432
-
-### Development Scripts
+Lite Mode is the fastest way to experience the product. It does not require the backend.
 
 ```bash
-# Start services
-npm run dev              # Start frontend + API
-npm run dev:frontend     # Frontend only
-npm run dev:api          # API only
-npm run dev:mcp          # Start MCP servers
-
-# Database operations
-npm run db:migrate       # Run migrations
-npm run db:seed          # Seed database
-npm run db:reset         # Reset database
-
-# Testing
-npm run test             # Run all tests
-npm run test:unit        # Unit tests
-npm run test:e2e         # E2E tests
-
-# Code quality
-npm run lint             # ESLint check
-npm run lint:fix         # Fix linting issues
-npm run type-check       # TypeScript check
-npm run format           # Prettier format
-
-# Docker operations
-npm run docker:up        # Start containers
-npm run docker:down      # Stop containers
-npm run docker:logs      # View logs
+git clone https://github.com/Rethymus/SyncHire.git
+cd SyncHire
+npm install
+npm run dev:frontend
 ```
 
-## 📸 Screenshots
+Open:
 
-<div align="center">
-  <img src="docs/images/dashboard-preview.png" alt="Dashboard Preview" width="800">
-  <p align="center">Dashboard Overview</p>
-</div>
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Run pre-commit skills**:
-   ```bash
-   /code-review-expert          # Security & architecture review
-   /fixing-accessibility        # WCAG 2.1 AA compliance check
-   /supabase-postgres-best-practices  # Database optimization
-   ```
-4. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
-5. **Run CI/CD validation**:
-   ```bash
-   npm run type-check          # TypeScript compilation
-   npm run lint                # ESLint check
-   npm run build               # Production build
-   npm run test                # Test suite
-   ```
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-### Skills & Tools
-
-This project uses **security-validated Claude Code skills** for development automation:
-
-| Skill | Purpose | Usage |
-|-------|---------|-------|
-| `code-review-expert` | Security & SOLID review | Pre-commit |
-| `vercel-react-best-practices` | React/Next.js optimization | Active ✅ |
-| `fixing-accessibility` | WCAG 2.1 AA compliance | UI development |
-| `supabase-postgres-best-practices` | PostgreSQL optimization | Backend development |
-| `web-perf` | Performance audit | Pre-deployment |
-| `seo-audit` | SEO health check | Public pages |
-| `skill-vetter` | Security vetting | New skill installation |
-
-**Documentation**:
-- [Skills Index](SKILLS_INDEX.md) - Central navigation hub
-- [Skills Search Guide](SKILLS_SEARCH_GUIDE.md) - Find skills by tag/use case
-- [Skills Quick Reference](SKILLS_QUICK_REFERENCE.md) - Daily command reference
-- [Version Tracking](docs/VERSION_TRACKING.md) - Skill versions and updates
-
-**Modular Documentation**:
-- [Security & Code Review](docs/security-review.md) - code-review-expert, skill-vetter
-- [Database & Performance](docs/database-optimization.md) - PostgreSQL, web-perf
-- [Frontend & Accessibility](docs/frontend-performance.md) - React, accessibility
-- [Testing & QA](docs/testing-qa.md) - Exploratory testing with dogfood
-- [SEO & Analytics](docs/seo-analytics.md) - SEO optimization
-
-**All skills have been security-vetted** using the `skill-vetter` protocol.
-
-### Commit Message Guidelines
-
-- Use conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, etc.
-- All commit messages **MUST be in English**
-- Be descriptive and concise
-- Reference issues: `Fixes #123`, `Relates to #456`
-
-**Examples:**
-```
-feat: implement user authentication with OAuth2
-fix: resolve memory leak in performance monitoring
-docs: update API documentation with new endpoints
-refactor: optimize resume preview component rendering
+```text
+http://localhost:3000
 ```
 
-## 📝 License
+### Option 2: Run the Full Stack
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Use this when you want the API, database, object storage, AI services, and full platform behavior.
 
-## 👥 Authors
+```bash
+git clone https://github.com/Rethymus/SyncHire.git
+cd SyncHire
+cp .env.example .env
+npm install
+npm run docker:up
+npm run db:migrate
+npm run dev
+```
 
-- **Rethymus** - Initial work
+Service URLs:
 
-## 🙏 Acknowledgments
+| Service       | URL                        |
+| ------------- | -------------------------- |
+| Frontend      | http://localhost:3000      |
+| API           | http://localhost:8000      |
+| API Docs      | http://localhost:8000/docs |
+| PostgreSQL    | localhost:5432             |
+| Minio Console | http://localhost:9001      |
 
-- Next.js team for the amazing framework
-- OpenAI and Anthropic for AI capabilities
-- All contributors and supporters
+AI features require provider keys in `.env`:
 
-## 📞 Contact
+```bash
+OPENAI_API_KEY=sk-your-openai-key
+ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
+```
 
-For questions, suggestions, or issues:
-- Email: [928136377@qq.com](mailto:928136377@qq.com)
-- GitHub Issues: [Create an issue](https://github.com/Rethymus/synchire/issues)
+## Developer Commands
 
----
+```bash
+# Development
+npm run dev
+npm run dev:frontend
+npm run dev:api
+npm run dev:mcp
 
-<div align="center">
-  <sub>Built with ❤️ by the SyncHire team</sub>
-</div>
+# Infrastructure
+npm run docker:up
+npm run docker:down
+npm run docker:logs
+npm run db:migrate
+
+# Frontend quality
+npm run type-check --workspace=frontend
+npm run lint:nocache --workspace=frontend -- --max-warnings=0
+npm test --workspace=frontend
+npm run test:integration --workspace=frontend
+npm run test:e2e --workspace=frontend
+npm run build --workspace=frontend
+
+# Backend quality
+cd api
+pytest -q -W error --tb=short
+ruff check .
+black --check .
+bandit -q -r app main.py
+pip check
+pip-audit
+```
+
+## Quality Bar
+
+The current QA baseline is intentionally strict because a job-search tool cannot feel fragile.
+
+| Gate                       | Current baseline                                                                   |
+| -------------------------- | ---------------------------------------------------------------------------------- |
+| Backend tests              | 344 passing with warnings treated as errors                                        |
+| Frontend unit tests        | 320 passing                                                                        |
+| Frontend integration tests | 18 passing                                                                         |
+| Playwright E2E             | 13 passing                                                                         |
+| Route dogfood sweep        | 13 key routes across desktop and mobile, HTTP 200, zero console errors or warnings |
+| Security checks            | Bandit, pip-audit, pip check passing                                               |
+| Production build           | Passing                                                                            |
+
+The full exploratory QA report lives in [dogfood-output/report.md](dogfood-output/report.md).
+
+## Roadmap
+
+- Deeper AI resume rewrites with explainable changes.
+- Better job-source importing and enrichment.
+- Stronger interview simulation loops.
+- Collaboration workflows for mentors, recruiters, and career coaches.
+- Deployment-ready observability, alerts, and analytics dashboards.
+
+## Contributing
+
+We welcome focused contributions that make the job-search workflow sharper, faster, more reliable, or more humane.
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Keep changes scoped and tested.
+4. Run the relevant quality gates.
+5. Open a pull request with a clear product impact summary.
+
+Commit messages should follow conventional commits:
+
+```text
+feat: add role-specific interview prep flow
+fix: preserve job URL during import fallback
+docs: refresh bilingual README
+```
+
+## License
+
+SyncHire is released under the [MIT License](https://opensource.org/licenses/MIT).
