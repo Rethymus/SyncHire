@@ -16,7 +16,8 @@ import {
   Settings,
   Home,
   FolderOpen,
-  BarChart3
+  BarChart3,
+  IdCard,
 } from "lucide-react";
 
 export function Navigation() {
@@ -41,6 +42,12 @@ export function Navigation() {
       href: "/jd-input",
       icon: Briefcase,
       current: /^\/(jd-input|job-descriptions)/,
+    },
+    {
+      name: locale === "zh-CN" ? "角色卡" : "Profile",
+      href: "/profile",
+      icon: IdCard,
+      current: /^\/profile/,
     },
     {
       name: t.nav.applications,

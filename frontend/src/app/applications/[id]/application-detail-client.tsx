@@ -19,6 +19,7 @@ import {
 import { Breadcrumb } from "@/components/breadcrumb";
 import { logger, LogCategory } from "@/lib/logger";
 import { applicationAPI, resumeAPI, jdAPI } from "@/lib/api-client-consolidated";
+import { generateTailoredResumeMarkdown } from "@/lib/tailored-resume";
 import { ApplicationNotes } from "@/components/application-notes";
 import { MatchAnalysisDisplay } from "@/components/match-analysis-display";
 import { WorkflowAutomation } from "@/components/workflow-automation";
@@ -58,7 +59,15 @@ export default function ApplicationDetailClient() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { applications, resumes, jobDescriptions, hasHydrated, updateApplication } = useAppStore();
+  const {
+    applications,
+    resumes,
+    jobDescriptions,
+    candidateProfile,
+    hasHydrated,
+    updateApplication,
+    updateResume,
+  } = useAppStore();
   const routeApplicationId = params.id;
   const applicationId = searchParams.get("id")
     || (Array.isArray(routeApplicationId) ? routeApplicationId[0] : routeApplicationId)
@@ -211,13 +220,41 @@ export default function ApplicationDetailClient() {
 
     try {
       if (isLocalApplication) {
-        setOptimizedResume({
-          optimized_resume: resume?.content || "",
-          changes_made: [],
-          keywords_added: [],
-          sections_improved: [],
+        const storedApplication = applications.find((item) => item.id === applicationId);
+        const sourceResume = storedApplication
+          ? resumes.find((item) => item.id === storedApplication.resumeId)
+          : undefined;
+        const targetJD = storedApplication
+          ? jobDescriptions.find((item) => item.id === storedApplication.jobId)
+          : undefined;
+        const tailoredResume = generateTailoredResumeMarkdown({
+          profile: candidateProfile,
+          resume: sourceResume,
+          jd: targetJD,
         });
-        setError("Lite 模式暂不支持自动优化。请连接 API 服务后重试。");
+
+        if (sourceResume) {
+          updateResume(sourceResume.id, {
+            content: tailoredResume,
+            skills: candidateProfile.skills,
+            experience: candidateProfile.projects,
+          });
+        }
+
+        setOptimizedResume({
+          optimized_resume: tailoredResume,
+          changes_made: [
+            "Generated a role-specific summary from the local candidate role card.",
+            "Prioritized skills that appear in the selected job description.",
+            "Added project proof points for manual review before submission.",
+          ],
+          keywords_added: targetJD?.skills ?? [],
+          sections_improved: ["summary", "skills", "projects"],
+        });
+        setApplication((current: any) => current
+          ? { ...current, status: "optimized", updated_at: new Date() }
+          : current);
+        updateApplication(applicationId, { status: "optimized", updatedAt: new Date() });
         return;
       }
 
@@ -237,7 +274,17 @@ export default function ApplicationDetailClient() {
     } finally {
       setLoadingOptimization(false);
     }
-  }, [applicationId, application, isLocalApplication, resume]);
+  }, [
+    applicationId,
+    application,
+    applications,
+    candidateProfile,
+    isLocalApplication,
+    jobDescriptions,
+    resumes,
+    updateApplication,
+    updateResume,
+  ]);
 
   // Update application status
   const updateStatus = useCallback(
@@ -596,9 +643,9 @@ export default function ApplicationDetailClient() {
                       <CheckCircle2 className="h-5 w-5 text-green-600" />
                       <h3 className="font-semibold text-green-900">优化完成</h3>
                     </div>
-                    <p className="text-sm text-green-800">
-                      简历已根据职位要求进行优化，建议在编辑器中查看并应用更改。
-                    </p>
+                  <p className="text-sm text-green-800">
+                      已根据本地角色卡和职位描述生成岗位化简历。请在编辑器中审核内容，再导出 PDF 人工提交。
+                  </p>
                   </div>
 
                   <Button

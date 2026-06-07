@@ -162,24 +162,34 @@ export function ResumePreview() {
 
     setPdfGenerating(true);
     try {
-      // Call backend API to generate PDF
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/resumes/${currentResume.id}/export`, {
+      const documentHtml = `<!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <style>${templateCSS}</style>
+          </head>
+          <body>
+            <main class="resume">${renderedHTML}</main>
+          </body>
+        </html>`;
+
+      const response = await fetch("/api/generate-pdf", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          html: documentHtml,
           template: selectedTemplate,
-          dpi: 300,
+          filename: `${currentResume.name || "resume"}_${selectedTemplate}`,
         }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: "Unknown error" }));
-        throw new Error(errorData.detail || "Failed to generate PDF");
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        throw new Error(errorData.error || errorData.detail || "Failed to generate PDF");
       }
 
-      // Download the PDF file
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -198,7 +208,7 @@ export function ResumePreview() {
     } finally {
       setPdfGenerating(false);
     }
-  }, [currentResume, selectedTemplate]);
+  }, [currentResume, renderedHTML, selectedTemplate, templateCSS]);
 
   const handleZoomIn = useCallback(() => setZoom((prev) => Math.min(prev + 10, 150)), []);
   const handleZoomOut = useCallback(() => setZoom((prev) => Math.max(prev - 10, 50)), []);

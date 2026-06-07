@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger, LogCategory } from "@/lib/logger";
+import { createSimpleResumePdf, htmlToPlainText } from "@/lib/simple-pdf";
 
 export async function POST(request: NextRequest) {
   try {
-    const { html, template, filename } = await request.json();
+    const { html, filename } = await request.json();
 
     if (!html) {
       return NextResponse.json(
@@ -12,13 +13,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // In production, this would call a Puppeteer service
-    // For now, we'll return the HTML as a downloadable file
-    const response = new NextResponse(html, {
+    const pdf = createSimpleResumePdf({
+      title: filename || "SyncHire resume",
+      plainText: htmlToPlainText(html),
+    });
+
+    const response = new NextResponse(pdf, {
       status: 200,
       headers: {
-        "Content-Type": "text/html; charset=utf-8",
-        "Content-Disposition": `attachment; filename="${filename || "resume"}.html"`,
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${filename || "resume"}.pdf"`,
       },
     });
 

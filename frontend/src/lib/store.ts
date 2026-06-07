@@ -1,5 +1,12 @@
 import { create } from "zustand";
 import { UserData } from "./auth";
+import {
+  type BrowserFillSession,
+  type CandidateRoleCard,
+  type ProfileLearningUpdate,
+  applyApprovedProfileLearning,
+  createDefaultCandidateRoleCard,
+} from "./browser-fill-assistant";
 
 export interface Resume {
   id: string;
@@ -100,6 +107,14 @@ interface AppState {
   setJobDescriptions: (jds: JobDescription[]) => void;
   setCurrentJD: (jd: JobDescription | null) => void;
 
+  // Local-first profile and browser fill assistant state
+  candidateProfile: CandidateRoleCard;
+  browserFillSessions: BrowserFillSession[];
+  updateCandidateProfile: (updates: Partial<CandidateRoleCard>) => void;
+  addBrowserFillSession: (session: BrowserFillSession) => void;
+  updateBrowserFillSession: (id: string, updates: Partial<BrowserFillSession>) => void;
+  approveProfileLearning: (sessionId: string, updates: ProfileLearningUpdate[]) => void;
+
   // UI state
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
@@ -126,6 +141,8 @@ type PersistedAppState = Pick<
   | "applications"
   | "jobDescriptions"
   | "currentJD"
+  | "candidateProfile"
+  | "browserFillSessions"
   | "selectedTemplate"
   | "templateCustomization"
   | "onboarding"
@@ -166,6 +183,25 @@ function hydrateJobDescription(jd: JobDescription): JobDescription {
   };
 }
 
+function hydrateCandidateProfile(profile: CandidateRoleCard): CandidateRoleCard {
+  return {
+    ...createDefaultCandidateRoleCard(),
+    ...profile,
+    skills: Array.isArray(profile.skills) ? profile.skills : [],
+    projects: Array.isArray(profile.projects) ? profile.projects : [],
+    updatedAt: parseDate(profile.updatedAt),
+  };
+}
+
+function hydrateBrowserFillSession(session: BrowserFillSession): BrowserFillSession {
+  return {
+    ...session,
+    createdAt: parseDate(session.createdAt),
+    suggestions: Array.isArray(session.suggestions) ? session.suggestions : [],
+    learnedUpdates: Array.isArray(session.learnedUpdates) ? session.learnedUpdates : [],
+  };
+}
+
 function hydratePersistedState(state: Partial<PersistedAppState>): Partial<PersistedAppState> {
   const resumes = Array.isArray(state.resumes)
     ? state.resumes.map(hydrateResume)
@@ -182,6 +218,12 @@ function hydratePersistedState(state: Partial<PersistedAppState>): Partial<Persi
   const currentJD = state.currentJD
     ? hydrateJobDescription(state.currentJD)
     : null;
+  const candidateProfile = state.candidateProfile
+    ? hydrateCandidateProfile(state.candidateProfile)
+    : createDefaultCandidateRoleCard();
+  const browserFillSessions = Array.isArray(state.browserFillSessions)
+    ? state.browserFillSessions.map(hydrateBrowserFillSession)
+    : [];
 
   return {
     ...state,
@@ -190,6 +232,8 @@ function hydratePersistedState(state: Partial<PersistedAppState>): Partial<Persi
     applications,
     jobDescriptions,
     currentJD,
+    candidateProfile,
+    browserFillSessions,
     onboarding: state.onboarding
       ? {
           ...state.onboarding,
@@ -237,6 +281,8 @@ function persistState(state: AppState) {
     applications: state.applications,
     jobDescriptions: state.jobDescriptions,
     currentJD: state.currentJD,
+    candidateProfile: state.candidateProfile,
+    browserFillSessions: state.browserFillSessions,
     selectedTemplate: state.selectedTemplate,
     templateCustomization: state.templateCustomization,
     onboarding: state.onboarding,
@@ -269,6 +315,8 @@ export const useAppStore = create<AppState>()((set) => ({
   applications: [],
   jobDescriptions: [],
   currentJD: null,
+  candidateProfile: createDefaultCandidateRoleCard(),
+  browserFillSessions: [],
   sidebarOpen: true,
   hasHydrated: false,
   onboarding: {
@@ -475,6 +523,54 @@ export const useAppStore = create<AppState>()((set) => ({
       return { currentJD: jd };
     }),
 
+  updateCandidateProfile: (updates) =>
+    set((state) => {
+      const candidateProfile = {
+        ...state.candidateProfile,
+        ...updates,
+        skills: updates.skills ?? state.candidateProfile.skills,
+        projects: updates.projects ?? state.candidateProfile.projects,
+        updatedAt: new Date(),
+      };
+      persistState({ ...state, candidateProfile });
+      return { candidateProfile };
+    }),
+
+  addBrowserFillSession: (session) =>
+    set((state) => {
+      const browserFillSessions = [session, ...state.browserFillSessions].slice(0, 12);
+      persistState({ ...state, browserFillSessions });
+      return { browserFillSessions };
+    }),
+
+  updateBrowserFillSession: (id, updates) =>
+    set((state) => {
+      const browserFillSessions = state.browserFillSessions.map((session) =>
+        session.id === id ? { ...session, ...updates } : session
+      );
+      persistState({ ...state, browserFillSessions });
+      return { browserFillSessions };
+    }),
+
+  approveProfileLearning: (sessionId, updates) =>
+    set((state) => {
+      const candidateProfile = applyApprovedProfileLearning(
+        state.candidateProfile,
+        updates
+      );
+      const browserFillSessions = state.browserFillSessions.map((session) =>
+        session.id === sessionId
+          ? {
+              ...session,
+              status: "learned" as const,
+              learnedUpdates: updates,
+            }
+          : session
+      );
+      persistState({ ...state, candidateProfile, browserFillSessions });
+      return { candidateProfile, browserFillSessions };
+    }),
+
   // UI actions
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
@@ -492,6 +588,9 @@ export const useAppStore = create<AppState>()((set) => ({
         applications: persistedState.applications ?? state.applications,
         jobDescriptions: persistedState.jobDescriptions ?? state.jobDescriptions,
         currentJD: persistedState.currentJD ?? state.currentJD,
+        candidateProfile: persistedState.candidateProfile ?? state.candidateProfile,
+        browserFillSessions:
+          persistedState.browserFillSessions ?? state.browserFillSessions,
         selectedTemplate: persistedState.selectedTemplate ?? state.selectedTemplate,
         templateCustomization:
           persistedState.templateCustomization ?? state.templateCustomization,

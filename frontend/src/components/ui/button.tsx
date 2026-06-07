@@ -49,6 +49,7 @@ export interface ButtonProps extends VariantProps<typeof buttonVariants> {
   onClick?: (e?: React.MouseEvent) => void
   disabled?: boolean
   type?: "button" | "submit" | "reset"
+  "data-testid"?: string
 }
 
 function Button({

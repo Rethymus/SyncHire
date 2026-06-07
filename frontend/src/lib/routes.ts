@@ -22,6 +22,7 @@ import {
   Target,
   FolderOpen,
   Bell,
+  IdCard,
 } from "lucide-react";
 
 export interface RouteConfig {
@@ -74,6 +75,14 @@ export const routes: Record<string, RouteConfig> = {
     parent: "/",
     icon: Home,
     description: "Overview of your job applications",
+  },
+
+  "/profile": {
+    path: "/profile",
+    title: "Profile",
+    parent: "/dashboard",
+    icon: IdCard,
+    description: "Manage local role card and browser fill assistant",
   },
 
   // Resumes

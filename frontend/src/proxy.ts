@@ -38,9 +38,15 @@ const ROUTE_CONFIG = {
 };
 
 /**
- * Generate CSP headers with nonce for inline scripts
+ * Generate CSP headers.
+ *
+ * SyncHire Lite keeps most routes statically rendered for standalone, desktop,
+ * and Android shells. Next.js App Router emits inline RSC bootstrap scripts for
+ * those static pages, so a nonce-only production CSP prevents hydration. A
+ * fully strict nonce CSP would require dynamic rendering instead of the current
+ * lightweight static-first output.
  */
-function getCSPHeaders(nonce: string) {
+function getCSPHeaders() {
   const isDev = process.env.NODE_ENV === "development";
 
   if (isDev) {
@@ -62,7 +68,7 @@ function getCSPHeaders(nonce: string) {
   return {
     "Content-Security-Policy": [
       "default-src 'self'",
-      `script-src 'self' 'nonce-${nonce}'`,
+      "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'", // Required for Tailwind
       "img-src 'self' data: blob:",
       "font-src 'self' data:",
@@ -111,12 +117,8 @@ export function proxy(request: NextRequest) {
   // Generate response with security headers
   const response = NextResponse.next();
 
-  // Generate nonce for this request
-  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
-  response.headers.set("x-nonce", nonce);
-
   // Apply CSP headers
-  const cspHeaders = getCSPHeaders(nonce);
+  const cspHeaders = getCSPHeaders();
   for (const [key, value] of Object.entries(cspHeaders)) {
     response.headers.set(key, value);
   }

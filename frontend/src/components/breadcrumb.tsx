@@ -68,6 +68,7 @@ export function Breadcrumb({
     const titleOverrides: Record<string, string> = {
       Home: locale === "zh-CN" ? "首页" : "Home",
       Dashboard: t.nav.dashboard,
+      Profile: locale === "zh-CN" ? "角色卡" : "Profile",
       Resumes: t.nav.resumes,
       Upload: t.nav.resumes,
       "Job Descriptions": t.nav.jobDescriptions,
@@ -175,6 +176,7 @@ export function CompactBreadcrumb({
     const titleOverrides: Record<string, string> = {
       Home: locale === "zh-CN" ? "首页" : "Home",
       Dashboard: t.nav.dashboard,
+      Profile: locale === "zh-CN" ? "角色卡" : "Profile",
       Resumes: t.nav.resumes,
       Upload: t.nav.resumes,
       "Job Descriptions": t.nav.jobDescriptions,
@@ -239,6 +241,7 @@ export function BreadcrumbWithSeparator({
     const titleOverrides: Record<string, string> = {
       Home: locale === "zh-CN" ? "首页" : "Home",
       Dashboard: t.nav.dashboard,
+      Profile: locale === "zh-CN" ? "角色卡" : "Profile",
       Resumes: t.nav.resumes,
       Upload: t.nav.resumes,
       "Job Descriptions": t.nav.jobDescriptions,

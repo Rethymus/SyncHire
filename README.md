@@ -29,9 +29,9 @@
 
 Job hunting should not feel like throwing your career into a black box.
 
-SyncHire is built for one clear promise: turn every application into a targeted, measurable, high-confidence campaign. It brings your resume, job descriptions, match scoring, interview preparation, application tracking, and data portability into one focused workspace. No more scattered files, half-finished notes, lost links, or guessing whether your resume actually speaks the language of the role.
+SyncHire is built for one clear promise: turn every application into a targeted, measurable, high-confidence campaign. It brings your resume, job descriptions, role card, tailored PDF export, match scoring, interview preparation, application tracking, browser-assisted form filling, and data portability into one focused workspace. No more scattered files, half-finished notes, lost links, or guessing whether your resume actually speaks the language of the role.
 
-Use SyncHire in local-first Lite mode when you want a private, fast, no-backend workflow. Turn on the full stack when you want AI analysis, vector matching, API-backed persistence, OAuth, 2FA, object storage, and production-grade infrastructure.
+Use SyncHire in local-first Lite mode when you want a private, fast, no-backend workflow where personal data stays on your machine. Turn on the full stack when you want AI analysis, vector matching, API-backed persistence, OAuth, 2FA, object storage, and production-grade infrastructure.
 
 ## Why SyncHire Wins
 
@@ -43,19 +43,24 @@ Use SyncHire in local-first Lite mode when you want a private, fast, no-backend 
 | Interview prep starting too late              | Role-aware prep generated from the actual opportunity |
 | Data trapped in a product                     | JSON/CSV export, import preview, and local backups    |
 | Fragile demos that need every service running | Lite mode that works locally without backend noise    |
+| Application forms that steal your time        | Agent-ready fill plans that stop before submission    |
 
 ## What You Can Do
 
 - Upload and manage resumes with visible validation for file type and size.
 - Save job descriptions manually or preserve job URLs when auto-import is unavailable.
 - Create local applications from a resume and a job description in minutes.
+- Maintain a local candidate role card that powers tailored resumes and browser fill suggestions.
+- Generate local PDF resume exports without sending personal data to the cloud.
+- Produce browser-agent instructions for Kimi WebBridge-style assisted form filling while excluding every submit control.
+- Review generated field values, edit them as a real applicant, and approve learning only when you want the role card updated.
 - Track application status, notes, search views, interviews, analytics, and saved searches.
 - Export, import, and back up your data from a dedicated data management console.
 - Connect a full backend for AI-powered resume analysis, job matching, interview prep, authentication, storage, and vector search.
 
 ## English Linux Dogfood Showcase
 
-These screenshots come from the June 7, 2026 Linux production-static validation run. SyncHire was launched locally with seeded fresh-graduate job-search data, switched to English, and exercised across the core Lite workflow: dashboard, resumes, job descriptions, and application tracking.
+These screenshots come from the June 8, 2026 Linux standalone production validation run. SyncHire was launched locally with seeded fresh-graduate job-search data, switched to English, and exercised across the core Lite workflow: dashboard, resumes, job descriptions, role card assisted filling, application tracking, match analysis, search, and data management.
 
 | Dashboard | Resumes |
 | --------- | ------- |
@@ -65,18 +70,30 @@ These screenshots come from the June 7, 2026 Linux production-static validation 
 | ---------------- | ------------ |
 | <img src="docs/assets/readme/en-linux-job-descriptions.png" alt="SyncHire Lite English job descriptions screen from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-applications.png" alt="SyncHire Lite English applications screen from Linux validation" width="420" /> |
 
+| Role Card & Browser Fill | Match Analysis |
+| ------------------------ | -------------- |
+| <img src="docs/assets/readme/en-linux-profile.png" alt="SyncHire Lite English role card and browser fill assistant with user-reviewed learning" width="420" /> | <img src="docs/assets/readme/en-linux-match-analysis.png" alt="SyncHire Lite English match analysis screen from Linux validation" width="420" /> |
+
+| Search | Data Management |
+| ------ | --------------- |
+| <img src="docs/assets/readme/en-linux-search.png" alt="SyncHire Lite English local search screen from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-data-management.png" alt="SyncHire Lite English data management screen from Linux validation" width="420" /> |
+
 ## Product Modes
 
 | Mode            | Best for                                                     | What runs                                                           |
 | --------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |
-| Lite Mode       | Private local workflows, demos, offline-friendly exploration | Next.js frontend, browser local storage, no required API            |
+| Lite Mode       | Private local workflows, demos, offline-friendly exploration | Next.js frontend, browser local storage, local PDF export, no required API |
 | Full Stack Mode | AI features, team deployments, API-backed persistence        | Next.js, FastAPI, PostgreSQL + PGVector, Redis, Minio, MCP services |
 
 ## Core Capabilities
 
 ### Resume Intelligence
 
-Upload PDF, DOC, DOCX, or TXT resumes, extract structured content, and keep the resume attached to the application workflow where it matters. SyncHire treats the resume as a living asset, not a forgotten attachment.
+Upload PDF, DOC, DOCX, or TXT resumes, extract structured content, tailor the resume to a target role, and export a local PDF artifact for manual submission. SyncHire treats the resume as a living asset, not a forgotten attachment.
+
+### Local Role Card
+
+Store your candidate identity as a local role card: contact details, target title, education, skills, project proof points, work authorization, availability, and compensation expectations. SyncHire uses it as the source of truth for personalized resumes and browser fill plans without cloud storage.
 
 ### Job Description Command Center
 
@@ -85,6 +102,10 @@ Capture job descriptions, company context, requirements, skills, and links in a 
 ### Match and Gap Analysis
 
 The full AI workflow is designed to score fit, identify missing skills, surface keyword gaps, and recommend stronger positioning. The product goal is simple: make every application more intentional than the last.
+
+### Browser Fill Assistant
+
+Generate a reviewed fill plan for application pages and hand the policy to Kimi WebBridge or another local browser agent. SyncHire fills known fields, excludes submit controls, stops for user review, and learns from user edits only after explicit approval.
 
 ### Interview Preparation
 
