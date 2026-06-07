@@ -11,9 +11,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from app.api.local_first_helpers import dump_json, load_json
 from app.api.utils_lite import parse_uuid
 from app.core.database_lite import get_db
 from app.models.application_lite import Application, ApplicationStatus
+from app.models.application_material_lite import ApplicationMaterial
+from app.models.resume_variant_lite import ResumeVariant
 from app.models.resume_lite import Resume
 from app.models.jd_lite import JobDescription
 from app.schemas.schemas_lite import (
@@ -26,6 +29,90 @@ from app.services.ai_service_lite import ai_service
 from app.core.logger import logger, LogCategory
 
 router = APIRouter(prefix="/applications", tags=["applications"])
+
+
+def _application_response(application: Application) -> ApplicationResponse:
+    return ApplicationResponse(
+        id=str(application.id),
+        resume_id=str(application.resume_id),
+        jd_id=str(application.jd_id),
+        status=application.status.value,
+        resume_variant_id=(
+            str(application.resume_variant_id)
+            if application.resume_variant_id
+            else None
+        ),
+        materials_id=(
+            str(application.materials_id) if application.materials_id else None
+        ),
+        platform=application.platform,
+        source_url=application.source_url,
+        notes=application.notes,
+        match_score=application.match_score,
+        applied_date=application.applied_date,
+        submitted_manually_at=application.submitted_manually_at,
+        next_action=application.next_action,
+        next_action_at=application.next_action_at,
+        contact_name=application.contact_name,
+        contact_channel=application.contact_channel,
+        timeline=load_json(application.timeline_json),
+        last_updated=application.last_updated,
+        created_at=application.created_at,
+        updated_at=application.updated_at,
+    )
+
+
+async def _ensure_materials_ready_allowed(
+    db: AsyncSession,
+    application: Application,
+    materials_id=None,
+) -> None:
+    material_id = materials_id or application.materials_id
+    if material_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="materials_ready requires linked application materials",
+        )
+
+    result = await db.execute(
+        select(ApplicationMaterial).where(ApplicationMaterial.id == material_id)
+    )
+    material = result.scalar_one_or_none()
+    if material is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Application materials not found",
+        )
+    if material.review_status not in {"reviewed", "ready"}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="materials_ready requires reviewed or ready materials",
+        )
+
+
+async def _validate_optional_application_links(
+    db: AsyncSession,
+    resume_variant_id=None,
+    materials_id=None,
+) -> None:
+    if resume_variant_id is not None:
+        result = await db.execute(
+            select(ResumeVariant).where(ResumeVariant.id == resume_variant_id)
+        )
+        if result.scalar_one_or_none() is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Resume variant not found",
+            )
+    if materials_id is not None:
+        result = await db.execute(
+            select(ApplicationMaterial).where(ApplicationMaterial.id == materials_id)
+        )
+        if result.scalar_one_or_none() is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Application materials not found",
+            )
 
 
 @router.post(
@@ -47,6 +134,16 @@ async def create_application(
     try:
         resume_id = parse_uuid(application.resume_id, "resume_id")
         jd_id = parse_uuid(application.jd_id, "jd_id")
+        resume_variant_id = (
+            parse_uuid(application.resume_variant_id, "resume_variant_id")
+            if application.resume_variant_id
+            else None
+        )
+        materials_id = (
+            parse_uuid(application.materials_id, "materials_id")
+            if application.materials_id
+            else None
+        )
 
         # Validate resume exists
         resume_result = await db.execute(select(Resume).where(Resume.id == resume_id))
@@ -65,17 +162,28 @@ async def create_application(
                 detail="Job description not found",
             )
 
+        await _validate_optional_application_links(
+            db, resume_variant_id=resume_variant_id, materials_id=materials_id
+        )
+
         # Create application record
         application_id = uuid4()
         db_application = Application(
             id=application_id,
             resume_id=resume_id,
             jd_id=jd_id,
+            resume_variant_id=resume_variant_id,
+            materials_id=materials_id,
             status=ApplicationStatus(
                 (application.status or ApplicationStatus.SAVED).value
             ),
+            platform=application.platform,
+            source_url=application.source_url,
             notes=application.notes,
         )
+
+        if db_application.status == ApplicationStatus.MATERIALS_READY:
+            await _ensure_materials_ready_allowed(db, db_application, materials_id)
 
         db.add(db_application)
         await db.commit()
@@ -83,18 +191,7 @@ async def create_application(
 
         logger.info(LogCategory.DATA, f"Created application: {application_id}")
 
-        return ApplicationResponse(
-            id=str(db_application.id),
-            resume_id=str(db_application.resume_id),
-            jd_id=str(db_application.jd_id),
-            status=db_application.status.value,
-            notes=db_application.notes,
-            match_score=db_application.match_score,
-            applied_date=db_application.applied_date,
-            last_updated=db_application.last_updated,
-            created_at=db_application.created_at,
-            updated_at=db_application.updated_at,
-        )
+        return _application_response(db_application)
 
     except HTTPException:
         raise
@@ -146,21 +243,7 @@ async def list_applications(
         result = await db.execute(query)
         applications = result.scalars().all()
 
-        return [
-            ApplicationResponse(
-                id=str(app.id),
-                resume_id=str(app.resume_id),
-                jd_id=str(app.jd_id),
-                status=app.status.value,
-                notes=app.notes,
-                match_score=app.match_score,
-                applied_date=app.applied_date,
-                last_updated=app.last_updated,
-                created_at=app.created_at,
-                updated_at=app.updated_at,
-            )
-            for app in applications
-        ]
+        return [_application_response(app) for app in applications]
 
     except HTTPException:
         raise
@@ -203,18 +286,7 @@ async def get_application(application_id: str, db: AsyncSession = Depends(get_db
                 status_code=status.HTTP_404_NOT_FOUND, detail="Application not found"
             )
 
-        return ApplicationResponse(
-            id=str(application.id),
-            resume_id=str(application.resume_id),
-            jd_id=str(application.jd_id),
-            status=application.status.value,
-            notes=application.notes,
-            match_score=application.match_score,
-            applied_date=application.applied_date,
-            last_updated=application.last_updated,
-            created_at=application.created_at,
-            updated_at=application.updated_at,
-        )
+        return _application_response(application)
 
     except HTTPException:
         raise
@@ -262,7 +334,17 @@ async def update_application(
         # Update fields
         if application.status is not None:
             try:
-                db_application.status = ApplicationStatus(application.status)
+                next_status = ApplicationStatus(application.status)
+                if next_status == ApplicationStatus.MATERIALS_READY:
+                    pending_materials_id = (
+                        parse_uuid(application.materials_id, "materials_id")
+                        if application.materials_id
+                        else db_application.materials_id
+                    )
+                    await _ensure_materials_ready_allowed(
+                        db, db_application, pending_materials_id
+                    )
+                db_application.status = next_status
                 # Update last_updated when status changes
                 from datetime import datetime
 
@@ -273,6 +355,26 @@ async def update_application(
                     detail=f"Invalid status: {application.status}",
                 )
 
+        if application.resume_variant_id is not None:
+            resume_variant_id = parse_uuid(
+                application.resume_variant_id, "resume_variant_id"
+            )
+            await _validate_optional_application_links(
+                db, resume_variant_id=resume_variant_id
+            )
+            db_application.resume_variant_id = resume_variant_id
+
+        if application.materials_id is not None:
+            materials_id = parse_uuid(application.materials_id, "materials_id")
+            await _validate_optional_application_links(db, materials_id=materials_id)
+            db_application.materials_id = materials_id
+
+        if application.platform is not None:
+            db_application.platform = application.platform
+
+        if application.source_url is not None:
+            db_application.source_url = application.source_url
+
         if application.notes is not None:
             db_application.notes = application.notes
 
@@ -282,23 +384,30 @@ async def update_application(
         if application.applied_date is not None:
             db_application.applied_date = application.applied_date
 
+        if application.submitted_manually_at is not None:
+            db_application.submitted_manually_at = application.submitted_manually_at
+
+        if application.next_action is not None:
+            db_application.next_action = application.next_action
+
+        if application.next_action_at is not None:
+            db_application.next_action_at = application.next_action_at
+
+        if application.contact_name is not None:
+            db_application.contact_name = application.contact_name
+
+        if application.contact_channel is not None:
+            db_application.contact_channel = application.contact_channel
+
+        if application.timeline is not None:
+            db_application.timeline_json = dump_json(application.timeline)
+
         await db.commit()
         await db.refresh(db_application)
 
         logger.info(LogCategory.DATA, f"Updated application: {application_id}")
 
-        return ApplicationResponse(
-            id=str(db_application.id),
-            resume_id=str(db_application.resume_id),
-            jd_id=str(db_application.jd_id),
-            status=db_application.status.value,
-            notes=db_application.notes,
-            match_score=db_application.match_score,
-            applied_date=db_application.applied_date,
-            last_updated=db_application.last_updated,
-            created_at=db_application.created_at,
-            updated_at=db_application.updated_at,
-        )
+        return _application_response(db_application)
 
     except HTTPException:
         raise
@@ -403,18 +512,7 @@ async def calculate_match(application_id: str, db: AsyncSession = Depends(get_db
             f"Calculated match score for application {application_id}: {match_score}",
         )
 
-        return ApplicationResponse(
-            id=str(application.id),
-            resume_id=str(application.resume_id),
-            jd_id=str(application.jd_id),
-            status=application.status.value,
-            notes=application.notes,
-            match_score=application.match_score,
-            applied_date=application.applied_date,
-            last_updated=application.last_updated,
-            created_at=application.created_at,
-            updated_at=application.updated_at,
-        )
+        return _application_response(application)
 
     except HTTPException:
         raise
@@ -461,7 +559,10 @@ async def batch_update_applications(
                 application = result.scalar_one_or_none()
 
                 if application and request.status:
-                    application.status = ApplicationStatus(request.status.value)
+                    next_status = ApplicationStatus(request.status.value)
+                    if next_status == ApplicationStatus.MATERIALS_READY:
+                        await _ensure_materials_ready_allowed(db, application)
+                    application.status = next_status
                     from datetime import datetime
 
                     application.last_updated = datetime.utcnow()

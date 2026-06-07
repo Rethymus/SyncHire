@@ -8,6 +8,7 @@ replacing the PostgreSQL-based system with a simpler, zero-config solution.
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import MetaData, text
+from sqlalchemy.engine import Connection
 from app.core.config_lite import get_lite_settings
 
 settings = get_lite_settings()
@@ -44,6 +45,61 @@ AsyncSessionLocal = async_sessionmaker(
     autocommit=False,
     autoflush=False,
 )
+
+
+def _sqlite_column_exists(conn: Connection, table_name: str, column_name: str) -> bool:
+    rows = conn.execute(text(f"PRAGMA table_info({table_name})")).fetchall()
+    return any(row[1] == column_name for row in rows)
+
+
+def _sqlite_table_exists(conn: Connection, table_name: str) -> bool:
+    result = conn.execute(
+        text("SELECT name FROM sqlite_master WHERE type='table' AND name=:table"),
+        {"table": table_name},
+    )
+    return result.scalar_one_or_none() is not None
+
+
+def _add_column_if_missing(
+    conn: Connection, table_name: str, column_name: str, definition: str
+) -> None:
+    if _sqlite_table_exists(conn, table_name) and not _sqlite_column_exists(
+        conn, table_name, column_name
+    ):
+        conn.execute(
+            text(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {definition}")
+        )
+
+
+def _run_lite_schema_migrations(conn: Connection) -> None:
+    """Apply additive SQLite migrations for existing local lite databases."""
+    additive_columns = {
+        "job_descriptions": {
+            "platform": "VARCHAR(50) NOT NULL DEFAULT 'manual'",
+            "source_url": "TEXT",
+            "raw_text": "TEXT",
+            "parsed_json": "TEXT",
+            "language": "VARCHAR(20) NOT NULL DEFAULT 'auto'",
+            "deadline": "DATETIME",
+            "notes": "TEXT",
+        },
+        "applications": {
+            "resume_variant_id": "CHAR(32)",
+            "materials_id": "CHAR(32)",
+            "platform": "VARCHAR(50) NOT NULL DEFAULT 'manual'",
+            "source_url": "TEXT",
+            "submitted_manually_at": "DATETIME",
+            "next_action": "VARCHAR(255)",
+            "next_action_at": "DATETIME",
+            "contact_name": "VARCHAR(255)",
+            "contact_channel": "VARCHAR(255)",
+            "timeline_json": "TEXT",
+        },
+    }
+
+    for table_name, columns in additive_columns.items():
+        for column_name, definition in columns.items():
+            _add_column_if_missing(conn, table_name, column_name, definition)
 
 
 async def get_db() -> AsyncSession:
@@ -83,10 +139,24 @@ async def init_db() -> None:
         await conn.execute(text("PRAGMA temp_store=MEMORY"))
 
         # Import all models to ensure they're registered with Base
-        from app.models import resume_lite, jd_lite, application_lite  # noqa: F401
+        from app.models import (  # noqa: F401
+            ai_provider_settings_lite,
+            application_lite,
+            application_material_lite,
+            candidate_profile_item_lite,
+            candidate_profile_lite,
+            candidate_role_card_lite,
+            extensions,
+            jd_lite,
+            local_profile,
+            resume_export_lite,
+            resume_lite,
+            resume_variant_lite,
+        )
 
         # Create all tables
         await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(_run_lite_schema_migrations)
 
 
 async def close_db() -> None:

@@ -21,6 +21,9 @@ class JobDescription(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
     url = Column(Text)  # Original URL if imported from web
+    platform = Column(String(50), default="manual", nullable=False)
+    source_url = Column(Text)
+    raw_text = Column(Text)
     location = Column(String(255))
     salary_min = Column(Float)
     salary_max = Column(Float)
@@ -31,6 +34,10 @@ class JobDescription(Base):
     benefits = Column(Text)  # JSON-encoded benefits
     embedding = Column(Text)  # JSON-encoded vector for semantic search
     parsed_data = Column(Text)  # JSON-encoded parsed JD data
+    parsed_json = Column(Text)
+    language = Column(String(20), default="auto", nullable=False)
+    deadline = Column(DateTime(timezone=True))
+    notes = Column(Text)
     created_at = Column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -44,6 +51,14 @@ class JobDescription(Base):
     # Relationships
     applications = relationship(
         "Application", back_populates="job_description", cascade="all, delete-orphan"
+    )
+    resume_variants = relationship(
+        "ResumeVariant", back_populates="job_description", cascade="all, delete-orphan"
+    )
+    application_materials = relationship(
+        "ApplicationMaterial",
+        back_populates="job_description",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self):

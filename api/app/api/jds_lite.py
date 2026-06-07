@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import httpx
 
+from app.api.local_first_helpers import dump_json, load_json
 from app.api.utils_lite import parse_uuid
 from app.core.database_lite import get_db, AsyncSessionLocal
 from app.models.jd_lite import JobDescription
@@ -28,6 +29,31 @@ from app.core.config_lite import get_lite_settings
 settings = get_lite_settings()
 
 router = APIRouter(prefix="/jds", tags=["job-descriptions"])
+
+
+def _jd_response(jd: JobDescription) -> JobDescriptionResponse:
+    return JobDescriptionResponse(
+        id=str(jd.id),
+        company=jd.company,
+        title=jd.title,
+        description=jd.description,
+        url=jd.url,
+        platform=jd.platform,
+        source_url=jd.source_url,
+        raw_text=jd.raw_text,
+        location=jd.location,
+        salary_min=jd.salary_min,
+        salary_max=jd.salary_max,
+        currency=jd.currency,
+        employment_type=jd.employment_type,
+        remote=jd.remote,
+        parsed_json=load_json(jd.parsed_json),
+        language=jd.language,
+        deadline=jd.deadline,
+        notes=jd.notes,
+        created_at=jd.created_at,
+        updated_at=jd.updated_at,
+    )
 
 
 @router.post(
@@ -54,12 +80,19 @@ async def create_jd(jd: JobDescriptionCreate, db: AsyncSession = Depends(get_db)
             title=jd.title,
             description=jd.description,
             url=jd.url,
+            platform=jd.platform,
+            source_url=jd.source_url,
+            raw_text=jd.raw_text,
             location=jd.location,
             salary_min=jd.salary_min,
             salary_max=jd.salary_max,
             currency=jd.currency,
             employment_type=jd.employment_type,
             remote=jd.remote,
+            parsed_json=dump_json(jd.parsed_json),
+            language=jd.language,
+            deadline=jd.deadline,
+            notes=jd.notes,
         )
 
         db.add(db_jd)
@@ -68,21 +101,7 @@ async def create_jd(jd: JobDescriptionCreate, db: AsyncSession = Depends(get_db)
 
         logger.info(LogCategory.DATA, f"Created JD: {jd_id}")
 
-        return JobDescriptionResponse(
-            id=str(db_jd.id),
-            company=db_jd.company,
-            title=db_jd.title,
-            description=db_jd.description,
-            url=db_jd.url,
-            location=db_jd.location,
-            salary_min=db_jd.salary_min,
-            salary_max=db_jd.salary_max,
-            currency=db_jd.currency,
-            employment_type=db_jd.employment_type,
-            remote=db_jd.remote,
-            created_at=db_jd.created_at,
-            updated_at=db_jd.updated_at,
-        )
+        return _jd_response(db_jd)
 
     except Exception as e:
         logger.error(LogCategory.DATA, f"Failed to create JD: {str(e)}", exc_info=True)
@@ -114,24 +133,7 @@ async def list_jds(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(g
         )
         jds = result.scalars().all()
 
-        return [
-            JobDescriptionResponse(
-                id=str(jd.id),
-                company=jd.company,
-                title=jd.title,
-                description=jd.description,
-                url=jd.url,
-                location=jd.location,
-                salary_min=jd.salary_min,
-                salary_max=jd.salary_max,
-                currency=jd.currency,
-                employment_type=jd.employment_type,
-                remote=jd.remote,
-                created_at=jd.created_at,
-                updated_at=jd.updated_at,
-            )
-            for jd in jds
-        ]
+        return [_jd_response(jd) for jd in jds]
 
     except Exception as e:
         logger.error(LogCategory.DATA, f"Failed to list JDs: {str(e)}", exc_info=True)
@@ -166,21 +168,7 @@ async def get_jd(jd_id: str, db: AsyncSession = Depends(get_db)):
                 detail="Job description not found",
             )
 
-        return JobDescriptionResponse(
-            id=str(jd.id),
-            company=jd.company,
-            title=jd.title,
-            description=jd.description,
-            url=jd.url,
-            location=jd.location,
-            salary_min=jd.salary_min,
-            salary_max=jd.salary_max,
-            currency=jd.currency,
-            employment_type=jd.employment_type,
-            remote=jd.remote,
-            created_at=jd.created_at,
-            updated_at=jd.updated_at,
-        )
+        return _jd_response(jd)
 
     except HTTPException:
         raise
@@ -231,6 +219,12 @@ async def update_jd(
             db_jd.description = jd.description
         if jd.url is not None:
             db_jd.url = jd.url
+        if jd.platform is not None:
+            db_jd.platform = jd.platform
+        if jd.source_url is not None:
+            db_jd.source_url = jd.source_url
+        if jd.raw_text is not None:
+            db_jd.raw_text = jd.raw_text
         if jd.location is not None:
             db_jd.location = jd.location
         if jd.salary_min is not None:
@@ -243,27 +237,21 @@ async def update_jd(
             db_jd.employment_type = jd.employment_type
         if jd.remote is not None:
             db_jd.remote = jd.remote
+        if jd.parsed_json is not None:
+            db_jd.parsed_json = dump_json(jd.parsed_json)
+        if jd.language is not None:
+            db_jd.language = jd.language
+        if jd.deadline is not None:
+            db_jd.deadline = jd.deadline
+        if jd.notes is not None:
+            db_jd.notes = jd.notes
 
         await db.commit()
         await db.refresh(db_jd)
 
         logger.info(LogCategory.DATA, f"Updated JD: {jd_id}")
 
-        return JobDescriptionResponse(
-            id=str(db_jd.id),
-            company=db_jd.company,
-            title=db_jd.title,
-            description=db_jd.description,
-            url=db_jd.url,
-            location=db_jd.location,
-            salary_min=db_jd.salary_min,
-            salary_max=db_jd.salary_max,
-            currency=db_jd.currency,
-            employment_type=db_jd.employment_type,
-            remote=db_jd.remote,
-            created_at=db_jd.created_at,
-            updated_at=db_jd.updated_at,
-        )
+        return _jd_response(db_jd)
 
     except HTTPException:
         raise
@@ -371,6 +359,9 @@ async def parse_jd(
             title=parsed.get("title") or "Unknown Position",
             description=parsed.get("description", content),
             url=url,
+            platform="manual",
+            source_url=url,
+            raw_text=content,
             location=parsed.get("location"),
             salary_min=parsed.get("salary_min"),
             salary_max=parsed.get("salary_max"),
@@ -380,6 +371,8 @@ async def parse_jd(
             requirements=str(parsed.get("requirements", [])),
             benefits=str(parsed.get("benefits", [])),
             parsed_data=str(parsed),
+            parsed_json=dump_json(parsed),
+            language=parsed.get("language", "auto"),
         )
 
         db.add(db_jd)
@@ -388,21 +381,7 @@ async def parse_jd(
 
         logger.info(LogCategory.AI, f"Parsed JD: {jd_id}")
 
-        return JobDescriptionResponse(
-            id=str(db_jd.id),
-            company=db_jd.company,
-            title=db_jd.title,
-            description=db_jd.description,
-            url=db_jd.url,
-            location=db_jd.location,
-            salary_min=db_jd.salary_min,
-            salary_max=db_jd.salary_max,
-            currency=db_jd.currency,
-            employment_type=db_jd.employment_type,
-            remote=db_jd.remote,
-            created_at=db_jd.created_at,
-            updated_at=db_jd.updated_at,
-        )
+        return _jd_response(db_jd)
 
     except Exception as e:
         logger.error(LogCategory.AI, f"Failed to parse JD: {str(e)}", exc_info=True)
@@ -466,10 +445,15 @@ async def import_jd_from_url(
                     title=parsed.get("title") or "Unknown Position",
                     description=parsed.get("description", content),
                     url=url,
+                    platform="manual",
+                    source_url=url,
+                    raw_text=content,
                     location=parsed.get("location"),
                     salary_min=parsed.get("salary_min"),
                     salary_max=parsed.get("salary_max"),
                     parsed_data=str(parsed),
+                    parsed_json=dump_json(parsed),
+                    language=parsed.get("language", "auto"),
                 )
 
                 async with AsyncSessionLocal() as session:

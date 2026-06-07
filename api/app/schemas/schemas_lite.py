@@ -55,12 +55,19 @@ class JobDescriptionBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     description: str = Field(..., min_length=1)
     url: Optional[str] = None
+    platform: str = "manual"
+    source_url: Optional[str] = None
+    raw_text: Optional[str] = None
     location: Optional[str] = None
     salary_min: Optional[float] = None
     salary_max: Optional[float] = None
     currency: str = "USD"
     employment_type: Optional[str] = None
     remote: str = "onsite"
+    parsed_json: Optional[dict] = None
+    language: str = "auto"
+    deadline: Optional[datetime] = None
+    notes: Optional[str] = None
 
 
 class JobDescriptionCreate(JobDescriptionBase):
@@ -76,12 +83,19 @@ class JobDescriptionUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
     url: Optional[str] = None
+    platform: Optional[str] = None
+    source_url: Optional[str] = None
+    raw_text: Optional[str] = None
     location: Optional[str] = None
     salary_min: Optional[float] = None
     salary_max: Optional[float] = None
     currency: Optional[str] = None
     employment_type: Optional[str] = None
     remote: Optional[str] = None
+    parsed_json: Optional[dict] = None
+    language: Optional[str] = None
+    deadline: Optional[datetime] = None
+    notes: Optional[str] = None
 
 
 class JobDescriptionParseRequest(BaseModel):
@@ -107,12 +121,19 @@ class JobDescriptionResponse(BaseModel):
     title: str
     description: str
     url: Optional[str] = None
+    platform: str = "manual"
+    source_url: Optional[str] = None
+    raw_text: Optional[str] = None
     location: Optional[str] = None
     salary_min: Optional[float] = None
     salary_max: Optional[float] = None
     currency: str
     employment_type: Optional[str] = None
     remote: str
+    parsed_json: Optional[dict] = None
+    language: str = "auto"
+    deadline: Optional[datetime] = None
+    notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -124,6 +145,9 @@ class ApplicationStatus(str, Enum):
     """Application status enum."""
 
     SAVED = "saved"
+    TARGETED = "targeted"
+    MATERIALS_READY = "materials_ready"
+    SUBMITTED = "submitted"
     APPLIED = "applied"
     SCREENING = "screening"
     INTERVIEW = "interview"
@@ -140,6 +164,10 @@ class ApplicationBase(BaseModel):
     resume_id: str
     jd_id: str
     status: ApplicationStatus = ApplicationStatus.SAVED
+    resume_variant_id: Optional[str] = None
+    materials_id: Optional[str] = None
+    platform: str = "manual"
+    source_url: Optional[str] = None
     notes: Optional[str] = None
 
 
@@ -153,9 +181,19 @@ class ApplicationUpdate(BaseModel):
     """Schema for updating an application."""
 
     status: Optional[ApplicationStatus] = None
+    resume_variant_id: Optional[str] = None
+    materials_id: Optional[str] = None
+    platform: Optional[str] = None
+    source_url: Optional[str] = None
     notes: Optional[str] = None
     match_score: Optional[float] = None
     applied_date: Optional[datetime] = None
+    submitted_manually_at: Optional[datetime] = None
+    next_action: Optional[str] = None
+    next_action_at: Optional[datetime] = None
+    contact_name: Optional[str] = None
+    contact_channel: Optional[str] = None
+    timeline: Optional[List[dict]] = None
 
 
 class ApplicationBatchUpdateRequest(BaseModel):
@@ -174,10 +212,454 @@ class ApplicationResponse(BaseModel):
     resume_id: str
     jd_id: str
     status: str
+    resume_variant_id: Optional[str] = None
+    materials_id: Optional[str] = None
+    platform: str = "manual"
+    source_url: Optional[str] = None
     notes: Optional[str] = None
     match_score: Optional[float] = None
     applied_date: Optional[datetime] = None
+    submitted_manually_at: Optional[datetime] = None
+    next_action: Optional[str] = None
+    next_action_at: Optional[datetime] = None
+    contact_name: Optional[str] = None
+    contact_channel: Optional[str] = None
+    timeline: Optional[List[dict]] = None
     last_updated: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+# Local-First Resume Generation Schemas
+
+
+class CandidateProfileBase(BaseModel):
+    """Base candidate profile schema."""
+
+    display_name: str = Field(..., min_length=1, max_length=255)
+    target_title: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    links: Optional[List[dict]] = None
+    summary: Optional[str] = None
+    privacy_settings: Optional[dict] = None
+
+
+class CandidateProfileCreate(CandidateProfileBase):
+    """Schema for creating a candidate profile."""
+
+    pass
+
+
+class CandidateProfileUpdate(BaseModel):
+    """Schema for updating a candidate profile."""
+
+    display_name: Optional[str] = Field(None, min_length=1, max_length=255)
+    target_title: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    links: Optional[List[dict]] = None
+    summary: Optional[str] = None
+    privacy_settings: Optional[dict] = None
+
+
+class CandidateProfileResponse(BaseModel):
+    """Schema for candidate profile response."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    display_name: str
+    target_title: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    links: Optional[List[dict]] = None
+    summary: Optional[str] = None
+    privacy_settings: Optional[dict] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class CandidateProfileItemType(str, Enum):
+    """Candidate profile item type enum."""
+
+    EDUCATION = "education"
+    WORK = "work"
+    PROJECT = "project"
+    SKILL = "skill"
+    CERTIFICATE = "certificate"
+    AWARD = "award"
+    LANGUAGE = "language"
+
+
+class CandidateProfileItemVisibility(str, Enum):
+    """Candidate profile item visibility enum."""
+
+    RESUME = "resume"
+    FORM = "form"
+    INTERNAL = "internal"
+    PRIVATE = "private"
+
+
+class CandidateProfileItemBase(BaseModel):
+    """Base candidate profile item schema."""
+
+    profile_id: str
+    item_type: CandidateProfileItemType
+    title: str = Field(..., min_length=1, max_length=255)
+    organization: Optional[str] = None
+    role: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    description: Optional[str] = None
+    highlights: Optional[List[str]] = None
+    skills: Optional[List[str]] = None
+    metrics: Optional[dict] = None
+    visibility: CandidateProfileItemVisibility = CandidateProfileItemVisibility.RESUME
+    sort_order: int = 0
+
+
+class CandidateProfileItemCreate(CandidateProfileItemBase):
+    """Schema for creating a candidate profile item."""
+
+    pass
+
+
+class CandidateProfileItemUpdate(BaseModel):
+    """Schema for updating a candidate profile item."""
+
+    item_type: Optional[CandidateProfileItemType] = None
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    organization: Optional[str] = None
+    role: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    description: Optional[str] = None
+    highlights: Optional[List[str]] = None
+    skills: Optional[List[str]] = None
+    metrics: Optional[dict] = None
+    visibility: Optional[CandidateProfileItemVisibility] = None
+    sort_order: Optional[int] = None
+
+
+class CandidateProfileItemResponse(BaseModel):
+    """Schema for candidate profile item response."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    profile_id: str
+    item_type: str
+    title: str
+    organization: Optional[str] = None
+    role: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    description: Optional[str] = None
+    highlights: Optional[List[str]] = None
+    skills: Optional[List[str]] = None
+    metrics: Optional[dict] = None
+    visibility: str
+    sort_order: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class CandidateRoleCardBase(BaseModel):
+    """Base candidate role card schema."""
+
+    profile_id: str
+    name: str = Field(..., min_length=1, max_length=255)
+    target_roles: Optional[List[str]] = None
+    strengths: Optional[List[str]] = None
+    weaknesses: Optional[List[str]] = None
+    core_skills: Optional[List[str]] = None
+    proof_points: Optional[List[dict]] = None
+    tone_preferences: Optional[dict] = None
+    generated_from: Optional[dict] = None
+    model_provider: Optional[str] = None
+    model_name: Optional[str] = None
+
+
+class CandidateRoleCardCreate(CandidateRoleCardBase):
+    """Schema for creating a candidate role card."""
+
+    pass
+
+
+class CandidateRoleCardUpdate(BaseModel):
+    """Schema for updating a candidate role card."""
+
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    target_roles: Optional[List[str]] = None
+    strengths: Optional[List[str]] = None
+    weaknesses: Optional[List[str]] = None
+    core_skills: Optional[List[str]] = None
+    proof_points: Optional[List[dict]] = None
+    tone_preferences: Optional[dict] = None
+    generated_from: Optional[dict] = None
+    model_provider: Optional[str] = None
+    model_name: Optional[str] = None
+
+
+class CandidateRoleCardResponse(BaseModel):
+    """Schema for candidate role card response."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    profile_id: str
+    name: str
+    target_roles: Optional[List[str]] = None
+    strengths: Optional[List[str]] = None
+    weaknesses: Optional[List[str]] = None
+    core_skills: Optional[List[str]] = None
+    proof_points: Optional[List[dict]] = None
+    tone_preferences: Optional[dict] = None
+    generated_from: Optional[dict] = None
+    model_provider: Optional[str] = None
+    model_name: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class AIProviderMode(str, Enum):
+    """AI provider mode enum."""
+
+    LOCAL = "local"
+    CLOUD = "cloud"
+    FALLBACK = "fallback"
+
+
+class AIProviderSettingsBase(BaseModel):
+    """Base AI provider settings schema."""
+
+    provider: str = Field(..., min_length=1, max_length=100)
+    mode: AIProviderMode = AIProviderMode.FALLBACK
+    display_name: Optional[str] = None
+    base_url: Optional[str] = None
+    model_name: Optional[str] = None
+    api_key_ref: Optional[str] = None
+    api_key: Optional[str] = None
+    enabled: bool = False
+    send_confirmation_required: bool = True
+
+
+class AIProviderSettingsCreate(AIProviderSettingsBase):
+    """Schema for creating AI provider settings."""
+
+    pass
+
+
+class AIProviderSettingsUpdate(BaseModel):
+    """Schema for updating AI provider settings."""
+
+    provider: Optional[str] = Field(None, min_length=1, max_length=100)
+    mode: Optional[AIProviderMode] = None
+    display_name: Optional[str] = None
+    base_url: Optional[str] = None
+    model_name: Optional[str] = None
+    api_key_ref: Optional[str] = None
+    api_key: Optional[str] = None
+    enabled: Optional[bool] = None
+    send_confirmation_required: Optional[bool] = None
+
+
+class AIProviderSettingsResponse(BaseModel):
+    """Schema for AI provider settings response without plaintext secrets."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    provider: str
+    mode: str
+    display_name: Optional[str] = None
+    base_url: Optional[str] = None
+    model_name: Optional[str] = None
+    enabled: bool
+    send_confirmation_required: bool
+    has_api_key: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class ResumeVariantBase(BaseModel):
+    """Base resume variant schema."""
+
+    profile_id: str
+    role_card_id: Optional[str] = None
+    jd_id: str
+    application_id: Optional[str] = None
+    title: str = Field(..., min_length=1, max_length=255)
+    language: str = "auto"
+    template_id: Optional[str] = None
+    content_markdown: str = Field(..., min_length=1)
+    content_json: Optional[dict] = None
+    match_score: Optional[float] = None
+    keyword_hits: Optional[List[str]] = None
+    gap_warnings: Optional[List[str]] = None
+    generation_rationale: Optional[str] = None
+    ai_provider: Optional[str] = None
+    ai_model: Optional[str] = None
+    status: str = "draft"
+
+
+class ResumeVariantCreate(ResumeVariantBase):
+    """Schema for creating a resume variant."""
+
+    pass
+
+
+class ResumeVariantUpdate(BaseModel):
+    """Schema for updating a resume variant."""
+
+    role_card_id: Optional[str] = None
+    application_id: Optional[str] = None
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    language: Optional[str] = None
+    template_id: Optional[str] = None
+    content_markdown: Optional[str] = Field(None, min_length=1)
+    content_json: Optional[dict] = None
+    match_score: Optional[float] = None
+    keyword_hits: Optional[List[str]] = None
+    gap_warnings: Optional[List[str]] = None
+    generation_rationale: Optional[str] = None
+    ai_provider: Optional[str] = None
+    ai_model: Optional[str] = None
+    status: Optional[str] = None
+
+
+class ResumeVariantResponse(BaseModel):
+    """Schema for resume variant response."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    profile_id: str
+    role_card_id: Optional[str] = None
+    jd_id: str
+    application_id: Optional[str] = None
+    title: str
+    language: str
+    template_id: Optional[str] = None
+    content_markdown: str
+    content_json: Optional[dict] = None
+    match_score: Optional[float] = None
+    keyword_hits: Optional[List[str]] = None
+    gap_warnings: Optional[List[str]] = None
+    generation_rationale: Optional[str] = None
+    ai_provider: Optional[str] = None
+    ai_model: Optional[str] = None
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class ResumeExportBase(BaseModel):
+    """Base resume export schema."""
+
+    resume_variant_id: str
+    export_format: str = "pdf"
+    file_path: str = Field(..., min_length=1)
+    file_name: str = Field(..., min_length=1, max_length=255)
+    checksum: Optional[str] = None
+    byte_size: Optional[int] = None
+    status: str = "created"
+
+
+class ResumeExportCreate(ResumeExportBase):
+    """Schema for creating a resume export."""
+
+    pass
+
+
+class ResumeExportUpdate(BaseModel):
+    """Schema for updating a resume export."""
+
+    export_format: Optional[str] = None
+    file_path: Optional[str] = Field(None, min_length=1)
+    file_name: Optional[str] = Field(None, min_length=1, max_length=255)
+    checksum: Optional[str] = None
+    byte_size: Optional[int] = None
+    status: Optional[str] = None
+
+
+class ResumeExportResponse(BaseModel):
+    """Schema for resume export response."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    resume_variant_id: str
+    export_format: str
+    file_path: str
+    file_name: str
+    checksum: Optional[str] = None
+    byte_size: Optional[int] = None
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class ApplicationMaterialBase(BaseModel):
+    """Base application material pack schema."""
+
+    profile_id: str
+    jd_id: str
+    resume_variant_id: Optional[str] = None
+    application_id: Optional[str] = None
+    language: str = "auto"
+    platform: str = "manual"
+    form_fields: Optional[dict] = None
+    cover_letter: Optional[str] = None
+    opening_message: Optional[str] = None
+    self_introduction: Optional[str] = None
+    checklist: Optional[List[dict]] = None
+    review_status: str = "draft"
+
+
+class ApplicationMaterialCreate(ApplicationMaterialBase):
+    """Schema for creating an application material pack."""
+
+    pass
+
+
+class ApplicationMaterialUpdate(BaseModel):
+    """Schema for updating an application material pack."""
+
+    resume_variant_id: Optional[str] = None
+    application_id: Optional[str] = None
+    language: Optional[str] = None
+    platform: Optional[str] = None
+    form_fields: Optional[dict] = None
+    cover_letter: Optional[str] = None
+    opening_message: Optional[str] = None
+    self_introduction: Optional[str] = None
+    checklist: Optional[List[dict]] = None
+    review_status: Optional[str] = None
+
+
+class ApplicationMaterialResponse(BaseModel):
+    """Schema for application material pack response."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    profile_id: str
+    jd_id: str
+    resume_variant_id: Optional[str] = None
+    application_id: Optional[str] = None
+    language: str
+    platform: str
+    form_fields: Optional[dict] = None
+    cover_letter: Optional[str] = None
+    opening_message: Optional[str] = None
+    self_introduction: Optional[str] = None
+    checklist: Optional[List[dict]] = None
+    review_status: str
     created_at: datetime
     updated_at: datetime
 
