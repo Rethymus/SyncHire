@@ -9,6 +9,7 @@ import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { logger } from "@/lib/logger";
 import { LogCategory } from "@/lib/logger";
+import { formatLiteDate, useLiteCopy } from "@/lib/lite-i18n";
 import {
   Upload,
   FileText,
@@ -24,25 +25,27 @@ import { useToastMessage } from "@/components/ui/toast";
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ALLOWED_RESUME_EXTENSIONS = new Set([".pdf", ".doc", ".docx", ".txt"]);
 
-function getUploadRejectionMessage(rejections: FileRejection[]) {
+type UploadErrorCopy = ReturnType<typeof useLiteCopy>["t"]["upload"]["errors"];
+
+function getUploadRejectionMessage(rejections: FileRejection[], errors: UploadErrorCopy) {
   const firstError = rejections[0]?.errors[0];
 
   if (firstError?.code === "file-too-large") {
-    return "文件大小超过 10MB 限制";
+    return errors.tooLarge;
   }
 
   if (firstError?.code === "too-many-files") {
-    return "最多只能上传 5 个文件";
+    return errors.tooMany;
   }
 
-  return "不支持的文件格式。请上传 PDF、Word 或文本文档。";
+  return errors.invalidType;
 }
 
-function validateResumeFile(file: File) {
+function validateResumeFile(file: File, errors: UploadErrorCopy) {
   if (file.size > MAX_FILE_SIZE) {
     return {
       code: "file-too-large",
-      message: "文件大小超过 10MB 限制",
+      message: errors.tooLarge,
     };
   }
 
@@ -50,7 +53,7 @@ function validateResumeFile(file: File) {
   if (!ALLOWED_RESUME_EXTENSIONS.has(extension)) {
     return {
       code: "file-invalid-type",
-      message: "不支持的文件格式。请上传 PDF、Word 或文本文档。",
+      message: errors.invalidType,
     };
   }
 
@@ -59,6 +62,8 @@ function validateResumeFile(file: File) {
 
 export default function UploadPage() {
   const router = useRouter();
+  const { locale, t } = useLiteCopy();
+  const upload = t.upload;
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { addResume, resumes, setCurrentResume } = useAppStore();
@@ -69,12 +74,12 @@ export default function UploadPage() {
       setError(null);
 
       if (rejectedFiles.length > 0) {
-        setError(getUploadRejectionMessage(rejectedFiles));
+        setError(getUploadRejectionMessage(rejectedFiles, upload.errors));
         return;
       }
 
       if (acceptedFiles.length === 0) {
-        setError("请选择要上传的简历文件。");
+        setError(upload.errors.empty);
         return;
       }
 
@@ -99,25 +104,25 @@ export default function UploadPage() {
         }
 
         // Redirect to editor after successful upload
-        success("简历上传成功", "AI 正在分析您的简历，即将进入编辑器...");
+        success(upload.successTitle, upload.successDescription);
         setTimeout(() => {
           router.push("/editor");
         }, 1000);
       } catch (err) {
         logger.error(LogCategory.API, "Failed to upload resume", err as Error);
-        const errorMsg = "文件上传失败，请重试";
+        const errorMsg = upload.errors.failed;
         setError(errorMsg);
         toastError("上传失败", errorMsg);
       } finally {
         setUploading(false);
       }
     },
-    [addResume, setCurrentResume, router, success, toastError]
+    [addResume, setCurrentResume, router, success, toastError, upload]
   );
 
   const onDropRejected = useCallback((rejectedFiles: FileRejection[]) => {
-    setError(getUploadRejectionMessage(rejectedFiles));
-  }, []);
+    setError(getUploadRejectionMessage(rejectedFiles, upload.errors));
+  }, [upload.errors]);
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } =
     useDropzone({
@@ -134,7 +139,7 @@ export default function UploadPage() {
       maxFiles: 5,
       maxSize: MAX_FILE_SIZE,
       multiple: true,
-      validator: validateResumeFile,
+      validator: (file) => validateResumeFile(file, upload.errors),
     });
 
   const handleDelete = (id: string) => {
@@ -162,10 +167,10 @@ export default function UploadPage() {
 
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            上传您的简历
+            {upload.title}
           </h1>
           <p className="mt-2 text-lg text-gray-700">
-            支持 PDF、Word 文档，AI 将帮助您优化简历内容
+            {upload.subtitle}
           </p>
         </div>
 
@@ -221,13 +226,13 @@ export default function UploadPage() {
                     )}
                   >
                     {isDragReject
-                      ? "不支持的文件格式"
+                      ? upload.dropInvalid
                       : isDragActive
-                      ? "放下文件以上传"
-                      : "拖放文件到此处，或点击选择"}
+                      ? upload.dropActive
+                      : upload.dropIdle}
                   </h3>
                   <p className="mt-2 text-sm text-gray-700">
-                    支持 PDF、DOC、DOCX、TXT 格式，单个文件最大 10MB
+                    {upload.supportedFormats}
                   </p>
                 </div>
               </div>
@@ -237,7 +242,7 @@ export default function UploadPage() {
               <div className="mt-6 text-center">
                 <div className="inline-flex items-center gap-3 text-gray-700">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" />
-                  <span>正在处理简历...</span>
+                  <span>{upload.processing}</span>
                 </div>
               </div>
             )}
@@ -248,13 +253,13 @@ export default function UploadPage() {
             <div className="bg-white rounded-2xl shadow-sm p-8">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">
-                  已上传的简历 ({resumes.length})
+                  {upload.uploadedTitle} ({resumes.length})
                 </h2>
                 <Button
                   variant="outline"
                   onClick={() => router.push("/dashboard")}
                 >
-                  前往控制台
+                  {upload.goDashboard}
                 </Button>
               </div>
 
@@ -273,10 +278,8 @@ export default function UploadPage() {
                           {resume.name}
                         </p>
                         <p className="text-sm text-gray-600">
-                          上传于{" "}
-                          {new Date(resume.uploadedAt).toLocaleDateString(
-                            "zh-CN"
-                          )}
+                          {upload.uploadedAt}{" "}
+                          {formatLiteDate(resume.uploadedAt, locale)}
                         </p>
                       </div>
                     </div>
@@ -288,7 +291,7 @@ export default function UploadPage() {
                         size="sm"
                         onClick={() => handleEdit(resume.id)}
                       >
-                        编辑
+                        {upload.edit}
                       </Button>
                       <Button
                         variant="ghost"
@@ -311,10 +314,10 @@ export default function UploadPage() {
                 <div className="p-2 bg-blue-100 rounded-lg">
                   <FileText className="h-5 w-5 text-blue-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900">智能解析</h3>
+                <h3 className="font-semibold text-gray-900">{upload.features[0].title}</h3>
               </div>
               <p className="text-sm text-gray-700">
-                AI 自动提取简历中的关键信息，识别技能、经历和教育背景
+                {upload.features[0].description}
               </p>
             </div>
 
@@ -323,10 +326,10 @@ export default function UploadPage() {
                 <div className="p-2 bg-green-100 rounded-lg">
                   <CheckCircle2 className="h-5 w-5 text-green-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900">格式兼容</h3>
+                <h3 className="font-semibold text-gray-900">{upload.features[1].title}</h3>
               </div>
               <p className="text-sm text-gray-700">
-                支持 PDF、Word、文本等多种格式，无需手动转换
+                {upload.features[1].description}
               </p>
             </div>
 
@@ -335,10 +338,10 @@ export default function UploadPage() {
                 <div className="p-2 bg-purple-100 rounded-lg">
                   <ArrowRight className="h-5 w-5 text-purple-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900">快速开始</h3>
+                <h3 className="font-semibold text-gray-900">{upload.features[2].title}</h3>
               </div>
               <p className="text-sm text-gray-700">
-                上传后立即进入编辑器，AI 帮助您优化简历内容
+                {upload.features[2].description}
               </p>
             </div>
           </div>

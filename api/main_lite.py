@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config_lite import get_lite_settings
 from app.core.database_lite import init_db, close_db
-from app.core.logger import logger
+from app.core.logger import LogCategory, logger
 from app.api.resumes_lite import router as resumes_router
 from app.api.jds_lite import router as jds_router
 from app.api.applications_lite import router as applications_router
@@ -29,13 +29,13 @@ async def lifespan(app: FastAPI):
     Handles startup and shutdown events for the lightweight application.
     """
     # Startup
-    logger.info("Starting SyncHire Lite...")
-    logger.info(f"Data directory: {settings.DATA_DIR}")
-    logger.info(f"Database: {settings.DATABASE_PATH}")
+    logger.info(LogCategory.API, "Starting SyncHire Lite...")
+    logger.info(LogCategory.API, f"Data directory: {settings.DATA_DIR}")
+    logger.info(LogCategory.API, f"Database: {settings.DATABASE_PATH}")
 
     # Initialize database
     await init_db()
-    logger.info("Database initialized successfully")
+    logger.info(LogCategory.DATABASE, "Database initialized successfully")
 
     # Create necessary directories
     settings.DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -47,9 +47,9 @@ async def lifespan(app: FastAPI):
     yield
 
     # Shutdown
-    logger.info("Shutting down SyncHire Lite...")
+    logger.info(LogCategory.API, "Shutting down SyncHire Lite...")
     await close_db()
-    logger.info("Database connections closed")
+    logger.info(LogCategory.DATABASE, "Database connections closed")
 
 
 # Create FastAPI application
@@ -78,13 +78,11 @@ async def health_check():
 
 
 # Include simplified API routers
-app.include_router(resumes_router, prefix="/api/resumes", tags=["resumes"])
-app.include_router(jds_router, prefix="/api/jds", tags=["job-descriptions"])
-app.include_router(
-    applications_router, prefix="/api/applications", tags=["applications"]
-)
-app.include_router(search_router, prefix="/api/search", tags=["search"])
-app.include_router(portability_router, prefix="/api/portability", tags=["portability"])
+app.include_router(resumes_router, prefix="/api", tags=["resumes"])
+app.include_router(jds_router, prefix="/api", tags=["job-descriptions"])
+app.include_router(applications_router, prefix="/api", tags=["applications"])
+app.include_router(search_router, prefix="/api", tags=["search"])
+app.include_router(portability_router, prefix="/api", tags=["portability"])
 
 
 # Root endpoint

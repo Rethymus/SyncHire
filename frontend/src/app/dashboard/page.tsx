@@ -12,6 +12,7 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { ApplicationCreateDialog } from "@/components/application-create-dialog";
 import { useAppStore } from "@/lib/store";
+import { formatLiteDate, useLiteCopy } from "@/lib/lite-i18n";
 import {
   FileText,
   Briefcase,
@@ -24,40 +25,42 @@ import {
 
 function DashboardPage() {
   const { resumes, jobDescriptions, applications } = useAppStore();
+  const { locale, t } = useLiteCopy();
+  const dashboard = t.dashboard;
   const loading = false;
   const [applicationDialogOpen, setApplicationDialogOpen] = useState(false);
 
   // Memoize stats to avoid recalculation on every render
   const stats = useMemo(() => [
     {
-      name: "Resumes",
+      name: dashboard.stats.resumes,
       value: resumes.length,
       icon: FileText,
       color: "bg-blue-500",
       href: "/upload",
     },
     {
-      name: "Job Descriptions",
+      name: dashboard.stats.jobDescriptions,
       value: jobDescriptions.length,
       icon: Briefcase,
       color: "bg-green-500",
       href: "/jd-input",
     },
     {
-      name: "Applications",
+      name: dashboard.stats.applications,
       value: applications.length,
       icon: BarChart3,
       color: "bg-purple-500",
       href: "/applications",
     },
     {
-      name: "Interviews",
+      name: dashboard.stats.interviews,
       value: applications.filter((a) => a.status === "interview").length,
       icon: CheckCircle2,
       color: "bg-emerald-500",
       href: "/applications?status=interview",
     },
-  ], [resumes.length, jobDescriptions.length, applications]);
+  ], [resumes.length, jobDescriptions.length, applications, dashboard.stats]);
 
   // Memoize recent applications
   const recentApplications = useMemo(() => {
@@ -84,15 +87,19 @@ function DashboardPage() {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "interview":
-        return "Interview";
+        return t.applicationStatus.interview;
       case "applied":
-        return "Applied";
+        return t.applicationStatus.applied;
       case "rejected":
-        return "Rejected";
+        return t.applicationStatus.rejected;
       case "offer":
-        return "Offer";
+        return t.applicationStatus.offer;
       case "draft":
-        return "Draft";
+        return t.applicationStatus.draft;
+      case "pending":
+        return t.applicationStatus.pending;
+      case "optimized":
+        return t.applicationStatus.optimized;
       default:
         return status;
     }
@@ -112,10 +119,10 @@ function DashboardPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Welcome to SyncHire Lite
+              {dashboard.welcome}
             </h1>
             <p className="mt-2 text-gray-600">
-              Your local AI-powered job application assistant
+              {dashboard.subtitle}
             </p>
           </div>
           <Button
@@ -124,7 +131,7 @@ function DashboardPage() {
             className="bg-blue-600 hover:bg-blue-700"
           >
             <Plus className="h-5 w-5 mr-2" />
-            New Application
+            {dashboard.newApplication}
           </Button>
         </div>
 
@@ -167,28 +174,28 @@ function DashboardPage() {
 
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">{dashboard.quickActions}</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link
               href="/upload"
               className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <FileText className="h-5 w-5 text-blue-600" />
-              <span className="font-medium text-gray-700">Manage Resumes</span>
+              <span className="font-medium text-gray-700">{dashboard.manageResumes}</span>
             </Link>
             <Link
               href="/jd-input"
               className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <Briefcase className="h-5 w-5 text-green-600" />
-              <span className="font-medium text-gray-700">Job Descriptions</span>
+              <span className="font-medium text-gray-700">{dashboard.stats.jobDescriptions}</span>
             </Link>
             <Link
               href="/applications"
               className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <BarChart3 className="h-5 w-5 text-purple-600" />
-              <span className="font-medium text-gray-700">Track Applications</span>
+              <span className="font-medium text-gray-700">{dashboard.trackApplications}</span>
             </Link>
           </div>
         </div>
@@ -197,42 +204,22 @@ function DashboardPage() {
         {(resumes.length === 0 || jobDescriptions.length === 0) && (
           <div className="bg-white rounded-lg shadow p-6 mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Getting Started
+              {dashboard.gettingStarted}
             </h2>
             <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                  1
+              {dashboard.steps.map((step, index) => (
+                <div key={step.title} className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    {index + 1}
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900">{step.title}</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {step.description}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-medium text-gray-900">Upload your resume</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Add your resume to get started. Use AI to optimize it for better ATS compatibility.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                  2
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900">Add job descriptions</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Import job descriptions from URLs or paste content. AI will parse and structure the information.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                  3
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900">Create applications</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Pair resumes with job descriptions and track your application status with AI-powered match scores.
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         )}
@@ -241,11 +228,11 @@ function DashboardPage() {
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900">
-              Recent Applications
+              {dashboard.recentApplications}
             </h2>
             {applications.length > 5 && (
               <Link href="/applications" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                View all
+                {dashboard.viewAll}
               </Link>
             )}
           </div>
@@ -262,10 +249,10 @@ function DashboardPage() {
                   >
                     <div>
                       <p className="font-medium text-gray-900">
-                        {jd?.title || "Unknown Position"}
+                        {jd?.title || dashboard.unknownPosition}
                       </p>
                       <p className="text-sm text-gray-700">
-                        {jd?.company || "Unknown Company"} • {resume?.name || "Unknown Resume"}
+                        {jd?.company || dashboard.unknownCompany} • {resume?.name || dashboard.unknownResume}
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
@@ -275,7 +262,7 @@ function DashboardPage() {
                         {getStatusLabel(app.status)}
                       </span>
                       <span className="text-sm text-gray-600">
-                        {new Date(app.createdAt).toLocaleDateString()}
+                        {formatLiteDate(app.createdAt, locale)}
                       </span>
                     </div>
                   </div>
@@ -284,14 +271,14 @@ function DashboardPage() {
             </div>
           ) : (
             <div className="text-center py-8 text-gray-600">
-              No applications yet. Create your first application to get started.
+              {dashboard.emptyApplications}
             </div>
           )}
         </div>
 
         {/* Data Management */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Data Management</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">{dashboard.dataManagement}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Link
               href="/data"
@@ -299,9 +286,9 @@ function DashboardPage() {
             >
               <FolderOpen className="h-5 w-5 text-orange-600" />
               <div>
-                <p className="font-medium text-gray-700">Manage Data</p>
+                <p className="font-medium text-gray-700">{dashboard.manageData}</p>
                 <p className="text-sm text-gray-500">
-                  Export, import, backup your data
+                  {dashboard.manageDataDescription}
                 </p>
               </div>
             </Link>
@@ -311,9 +298,9 @@ function DashboardPage() {
             >
               <TrendingUp className="h-5 w-5 text-indigo-600" />
               <div>
-                <p className="font-medium text-gray-700">Search</p>
+                <p className="font-medium text-gray-700">{dashboard.search}</p>
                 <p className="text-sm text-gray-500">
-                  Full-text and semantic search
+                  {dashboard.searchDescription}
                 </p>
               </div>
             </Link>
@@ -323,17 +310,16 @@ function DashboardPage() {
         {/* Info Banner */}
         <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex">
-            <TrendingUp className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-blue-800">
-                SyncHire Lite - Local & Private
-              </h3>
-              <p className="text-sm text-blue-600 mt-1">
-                All your data is stored locally on your machine. No cloud storage, no authentication
-                required. Your resume and job search data stays private.
-              </p>
+              <TrendingUp className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-blue-800">
+                  {dashboard.privacyTitle}
+                </h3>
+                <p className="text-sm text-blue-600 mt-1">
+                  {dashboard.privacyDescription}
+                </p>
+              </div>
             </div>
-          </div>
         </div>
         <ApplicationCreateDialog
           open={applicationDialogOpen}

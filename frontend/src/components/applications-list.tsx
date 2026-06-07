@@ -19,9 +19,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { rankApplications, getMatchLevel } from "@/lib/match-ranking";
-import { useOptimisticMutation, ArrayUpdateHelper } from "@/lib/optimistic-updates";
-import { useQueryClient } from "@tanstack/react-query";
+import { useOptimisticMutation } from "@/lib/optimistic-updates";
 import { applicationAPI } from "@/lib/api-client-consolidated";
+import { applicationDetailHref, applicationMatchHref } from "@/lib/application-links";
 import { logger, LogCategory } from "@/lib/logger";
 import { useToast } from "@/hooks/use-toast";
 
@@ -79,7 +79,6 @@ export const ApplicationsList = memo(function ApplicationsList({ showRanking = f
   const { applications, updateApplication } = useAppStore();
   const [sortBy, setSortBy] = useState<"matchScore" | "updatedAt">("updatedAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const queryClient = useQueryClient();
   const { crud } = useToast();
 
   // Optimistic mutation for status updates
@@ -303,7 +302,7 @@ export const ApplicationsList = memo(function ApplicationsList({ showRanking = f
             <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
               <div className="flex items-center gap-4 text-sm">
                 <Link
-                  href={`/applications/${application.id}`}
+                  href={applicationDetailHref(application.id)}
                   className="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
                 >
                   查看详情
@@ -312,7 +311,7 @@ export const ApplicationsList = memo(function ApplicationsList({ showRanking = f
               </div>
               <div className="flex items-center gap-2">
                 <Link
-                  href={`/applications/${application.id}/match`}
+                  href={applicationMatchHref(application.id)}
                   className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   查看匹配分析

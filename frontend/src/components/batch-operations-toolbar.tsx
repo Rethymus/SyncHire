@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { JobApplication } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { interpolate, useLiteCopy } from "@/lib/lite-i18n";
 
 interface BatchOperationsToolbarProps {
   selectedIds: Set<string>;
@@ -52,14 +53,14 @@ interface BatchOperationsToolbarProps {
   applications: JobApplication[];
 }
 
-const statusConfig: Record<string, { label: string; color: string }> = {
-  draft: { label: "草稿", color: "bg-gray-100 text-gray-800" },
-  applied: { label: "已申请", color: "bg-blue-100 text-blue-800" },
-  interview: { label: "面试中", color: "bg-purple-100 text-purple-800" },
-  offer: { label: "已录用", color: "bg-green-100 text-green-800" },
-  rejected: { label: "已拒绝", color: "bg-red-100 text-red-800" },
-  optimized: { label: "已优化", color: "bg-green-100 text-green-800" },
-  pending: { label: "处理中", color: "bg-yellow-100 text-yellow-800" },
+const statusColors: Record<string, { color: string }> = {
+  draft: { color: "bg-gray-100 text-gray-800" },
+  applied: { color: "bg-blue-100 text-blue-800" },
+  interview: { color: "bg-purple-100 text-purple-800" },
+  offer: { color: "bg-green-100 text-green-800" },
+  rejected: { color: "bg-red-100 text-red-800" },
+  optimized: { color: "bg-green-100 text-green-800" },
+  pending: { color: "bg-yellow-100 text-yellow-800" },
 };
 
 export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
@@ -70,6 +71,9 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
   totalApplications,
   applications,
 }: BatchOperationsToolbarProps) {
+  const { t } = useLiteCopy();
+  const copy = t.batchApplications;
+  const statusLabels = t.applicationStatus;
   const { updateApplication, deleteApplication } = useAppStore();
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
@@ -166,24 +170,16 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
       );
 
       // Create CSV content
-      const headers = [
-        "公司",
-        "职位",
-        "状态",
-        "匹配度",
-        "创建时间",
-        "更新时间",
-        "标签",
-      ];
+      const headers = [...copy.csvHeaders];
 
       const rows = selectedApps.map((app) => {
-        const statusInfo = statusConfig[app.status] || { label: app.status };
+        const statusLabel = statusLabels[app.status as keyof typeof statusLabels] || app.status;
         const tags = (app as any)?.tags?.join(", ") || "";
 
         return [
           app.companyName,
           app.position,
-          statusInfo.label,
+          statusLabel,
           app.matchScore?.toString() || "N/A",
           app.createdAt.toLocaleDateString(),
           app.updatedAt.toLocaleDateString(),
@@ -215,7 +211,7 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
     } finally {
       setExportProgress(false);
     }
-  }, [selectedIds, applications, onClearSelection]);
+  }, [selectedIds, applications, onClearSelection, copy.csvHeaders, statusLabels]);
 
   if (selectedCount === 0) {
     return (
@@ -224,15 +220,15 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
           <Checkbox
             checked={allSelected}
             onCheckedChange={onSelectAll}
-            aria-label="Select all applications"
+            aria-label={copy.selectAll}
           />
           <span className="text-sm text-gray-600">
-            选择申请进行批量操作
+            {copy.selectForBatch}
           </span>
           <div className="ml-auto">
             <Button variant="outline" size="sm" onClick={onSelectAll}>
               <CheckSquare className="h-4 w-4 mr-2" />
-              全选
+              {copy.selectAll}
             </Button>
           </div>
         </div>
@@ -248,46 +244,43 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
             <Checkbox
               checked={allSelected}
               onCheckedChange={onSelectAll}
-              aria-label="Select all applications"
+              aria-label={copy.selectAll}
             />
             <Badge variant="secondary" className="text-sm font-medium">
-              {selectedCount} 个已选择
+              {interpolate(copy.selectedCount, { count: selectedCount })}
             </Badge>
           </div>
 
           <div className="h-6 w-px bg-gray-300" />
 
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-700">批量操作:</span>
+            <span className="text-sm text-gray-700">{copy.batchActions}</span>
 
             {/* Status Update */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" disabled={processing}>
-                  更新状态
+                  {copy.updateStatus}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={() => setSelectedStatus("draft")}>
-                  <span className={cn("w-2 h-2 rounded-full mr-2 bg-gray-400")} />
-                  设为草稿
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSelectedStatus("applied")}>
-                  <span className={cn("w-2 h-2 rounded-full mr-2 bg-blue-400")} />
-                  设为已申请
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSelectedStatus("interview")}>
-                  <span className={cn("w-2 h-2 rounded-full mr-2 bg-purple-400")} />
-                  设为面试中
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSelectedStatus("offer")}>
-                  <span className={cn("w-2 h-2 rounded-full mr-2 bg-green-400")} />
-                  设为已录用
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSelectedStatus("rejected")}>
-                  <span className={cn("w-2 h-2 rounded-full mr-2 bg-red-400")} />
-                  设为已拒绝
-                </DropdownMenuItem>
+                {(["draft", "applied", "interview", "offer", "rejected"] as const).map((status) => (
+                  <DropdownMenuItem key={status} onClick={() => setSelectedStatus(status)}>
+                    <span
+                      className={cn(
+                        "w-2 h-2 rounded-full mr-2",
+                        status === "draft" && "bg-gray-400",
+                        status === "applied" && "bg-blue-400",
+                        status === "interview" && "bg-purple-400",
+                        status === "offer" && "bg-green-400",
+                        status === "rejected" && "bg-red-400"
+                      )}
+                    />
+                    {interpolate(copy.setStatus, {
+                      status: statusLabels[status],
+                    })}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -299,7 +292,7 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
               disabled={processing}
             >
               <TagIcon className="h-4 w-4 mr-2" />
-              添加标签
+              {copy.addTags}
             </Button>
 
             {/* Export */}
@@ -314,7 +307,7 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
               ) : (
                 <Download className="h-4 w-4 mr-2" />
               )}
-              导出CSV
+              {copy.exportCsv}
             </Button>
 
             {/* Delete */}
@@ -325,14 +318,14 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
               disabled={processing}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              删除
+              {copy.delete}
             </Button>
           </div>
         </div>
 
         <Button variant="ghost" size="sm" onClick={onClearSelection}>
           <X className="h-4 w-4 mr-2" />
-          取消选择
+          {copy.clearSelection}
         </Button>
       </div>
 
@@ -348,13 +341,14 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>确认批量更新状态</DialogTitle>
+            <DialogTitle>{copy.confirmBatchStatusTitle}</DialogTitle>
             <DialogDescription>
-              您确定要将 {selectedCount} 个申请的状态更新为{" "}
-              <strong>
-                {selectedStatus && statusConfig[selectedStatus]?.label}
-              </strong>{" "}
-              吗？
+              {selectedStatus
+                ? interpolate(copy.confirmBatchStatusDescription, {
+                    count: selectedCount,
+                    status: statusLabels[selectedStatus as keyof typeof statusLabels] || selectedStatus,
+                  })
+                : null}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -366,7 +360,7 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
               }}
               disabled={processing}
             >
-              取消
+              {copy.cancel}
             </Button>
             <Button
               onClick={handleBatchStatusUpdate}
@@ -375,10 +369,10 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
               {processing ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  处理中...
+                  {copy.processing}
                 </>
               ) : (
-                "确认更新"
+                copy.confirmUpdate
               )}
             </Button>
           </DialogFooter>
@@ -389,9 +383,9 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
       <Dialog open={tagsDialogOpen} onOpenChange={setTagsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>批量添加标签</DialogTitle>
+            <DialogTitle>{copy.batchTagsTitle}</DialogTitle>
             <DialogDescription>
-              为 {selectedCount} 个申请添加标签。多个标签用逗号分隔。
+              {interpolate(copy.batchTagsDescription, { count: selectedCount })}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -399,12 +393,12 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
               type="text"
               value={newTags}
               onChange={(e) => setNewTags(e.target.value)}
-              placeholder="例如: 高优先级, 待跟进, 已联系"
+              placeholder={copy.tagsPlaceholder}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={processing}
             />
             <p className="text-xs text-gray-500 mt-2">
-              标签将添加到现有标签中，不会覆盖已有标签
+              {copy.tagsHelp}
             </p>
           </div>
           <DialogFooter>
@@ -416,7 +410,7 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
               }}
               disabled={processing}
             >
-              取消
+              {copy.cancel}
             </Button>
             <Button
               onClick={handleBatchTagsUpdate}
@@ -425,10 +419,10 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
               {processing ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  处理中...
+                  {copy.processing}
                 </>
               ) : (
-                "添加标签"
+                copy.confirmAddTags
               )}
             </Button>
           </DialogFooter>
@@ -439,17 +433,17 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确认批量删除</AlertDialogTitle>
+            <AlertDialogTitle>{copy.confirmDeleteTitle}</AlertDialogTitle>
             <AlertDialogDescription>
-              您确定要删除 <strong>{selectedCount}</strong> 个申请吗？
+              {interpolate(copy.confirmDeleteDescription, { count: selectedCount })}
               <br />
               <span className="text-red-600 font-medium">
-                此操作无法撤销，所有相关数据将被永久删除。
+                {copy.destructiveWarning}
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={processing}>取消</AlertDialogCancel>
+            <AlertDialogCancel disabled={processing}>{copy.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleBatchDelete}
               className="bg-red-600 hover:bg-red-700"
@@ -458,10 +452,10 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
               {processing ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  删除中...
+                  {copy.deleting}
                 </>
               ) : (
-                "确认删除"
+                copy.confirmDelete
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -1,17 +1,28 @@
 /**
  * Next.js Configuration - Lightweight Version
  *
- * Simplified configuration without i18n plugin for local-first operation.
+ * Local-first configuration with optional static export for native shells.
  */
 
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+const isStaticExport = process.env.NEXT_OUTPUT === "export";
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   // Output mode: 'standalone' for Docker, 'export' for static/Electron/Capacitor
-  output: process.env.NEXT_OUTPUT === "export" ? "export" : "standalone",
+  output: isStaticExport ? "export" : "standalone",
+
+  // Static shell builds do not have a Next.js server, so route.ts API handlers are ignored.
+  pageExtensions: isStaticExport ? ["tsx", "jsx"] : ["ts", "tsx", "js", "jsx"],
+
+  // Exported HTML works best with directory-style routes in native shells.
+  trailingSlash: isStaticExport,
 
   // Image optimization
   images: {
+    unoptimized: isStaticExport,
     remotePatterns: [
       {
         protocol: "https",
@@ -37,36 +48,40 @@ const nextConfig: NextConfig = {
     NEXT_TELEMETRY_DISABLED: "1",
   },
 
-  // Security headers configuration
-  async headers() {
-    return [
-      {
-        source: "/:path*",
-        headers: [
-          {
-            key: "X-DNS-Prefetch-Control",
-            value: "on",
-          },
-          {
-            key: "X-Frame-Options",
-            value: "DENY",
-          },
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            key: "Referrer-Policy",
-            value: "origin-when-cross-origin",
-          },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
-        ],
-      },
-    ];
-  },
+  ...(isStaticExport
+    ? {}
+    : {
+        // Security headers configuration
+        async headers() {
+          return [
+            {
+              source: "/:path*",
+              headers: [
+                {
+                  key: "X-DNS-Prefetch-Control",
+                  value: "on",
+                },
+                {
+                  key: "X-Frame-Options",
+                  value: "DENY",
+                },
+                {
+                  key: "X-Content-Type-Options",
+                  value: "nosniff",
+                },
+                {
+                  key: "Referrer-Policy",
+                  value: "origin-when-cross-origin",
+                },
+                {
+                  key: "Permissions-Policy",
+                  value: "camera=(), microphone=(), geolocation=()",
+                },
+              ],
+            },
+          ];
+        },
+      }),
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

@@ -5,15 +5,17 @@ Local-first search functionality without authentication.
 Uses SQLite FTS5 for full-text search.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, func
+from sqlalchemy import and_, select, or_, func
 
+from app.api.utils_lite import parse_uuid
 from app.core.database_lite import get_db
 from app.models.resume_lite import Resume
 from app.models.jd_lite import JobDescription
 from app.models.application_lite import Application
 from app.schemas.schemas_lite import (
+    SearchRequest,
     SearchResponse,
     MatchRequest,
     MatchResponse,
@@ -26,7 +28,8 @@ router = APIRouter(prefix="/search", tags=["search"])
 
 @router.post("", response_model=SearchResponse)
 async def search_all(
-    query: str,
+    request: SearchRequest | None = Body(None),
+    query: str | None = None,
     type: str = "all",
     limit: int = 20,
     offset: int = 0,
@@ -46,26 +49,34 @@ async def search_all(
         Search results
     """
     try:
+        if request is not None:
+            query = request.query
+            type = request.type
+            limit = request.limit
+            offset = request.offset
+
         if not query or len(query.strip()) < 2:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Query must be at least 2 characters",
             )
 
-        search_term = f"%{query.strip()}%"
+        terms = [term for term in query.strip().split() if term]
         results = []
         total = 0
 
         # Search resumes
         if type in ["all", "resumes"]:
+            resume_filters = [
+                or_(
+                    Resume.title.ilike(f"%{term}%"),
+                    Resume.content.ilike(f"%{term}%"),
+                )
+                for term in terms
+            ]
             resume_result = await db.execute(
                 select(Resume)
-                .where(
-                    or_(
-                        Resume.title.ilike(search_term),
-                        Resume.content.ilike(search_term),
-                    )
-                )
+                .where(and_(*resume_filters))
                 .offset(offset)
                 .limit(limit)
             )
@@ -90,15 +101,17 @@ async def search_all(
 
         # Search job descriptions
         if type in ["all", "jds"]:
+            jd_filters = [
+                or_(
+                    JobDescription.company.ilike(f"%{term}%"),
+                    JobDescription.title.ilike(f"%{term}%"),
+                    JobDescription.description.ilike(f"%{term}%"),
+                )
+                for term in terms
+            ]
             jd_result = await db.execute(
                 select(JobDescription)
-                .where(
-                    or_(
-                        JobDescription.company.ilike(search_term),
-                        JobDescription.title.ilike(search_term),
-                        JobDescription.description.ilike(search_term),
-                    )
-                )
+                .where(and_(*jd_filters))
                 .offset(offset)
                 .limit(limit)
             )
@@ -136,7 +149,11 @@ async def search_all(
 
 @router.post("/semantic", response_model=SearchResponse)
 async def semantic_search(
-    query: str, type: str = "all", limit: int = 20, db: AsyncSession = Depends(get_db)
+    request: SearchRequest | None = Body(None),
+    query: str | None = None,
+    type: str = "all",
+    limit: int = 20,
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Semantic search using vector embeddings (stored as JSON).
@@ -151,9 +168,14 @@ async def semantic_search(
         Semantic search results
     """
     try:
+        if request is not None:
+            query = request.query
+            type = request.type
+            limit = request.limit
+
         # For now, fallback to keyword search
         # TODO: Implement proper vector similarity search
-        return await search_all(query, type, limit, 0, db)
+        return await search_all(None, query, type, limit, 0, db)
 
     except Exception as e:
         logger.error(
@@ -178,9 +200,12 @@ async def match_resume_jd(request: MatchRequest, db: AsyncSession = Depends(get_
         Match score and insights
     """
     try:
+        resume_id = parse_uuid(request.resume_id, "resume_id")
+        jd_id = parse_uuid(request.jd_id, "jd_id")
+
         # Get resume
         resume_result = await db.execute(
-            select(Resume).where(Resume.id == request.resume_id)
+            select(Resume).where(Resume.id == resume_id)
         )
         resume = resume_result.scalar_one_or_none()
 
@@ -191,7 +216,7 @@ async def match_resume_jd(request: MatchRequest, db: AsyncSession = Depends(get_
 
         # Get JD
         jd_result = await db.execute(
-            select(JobDescription).where(JobDescription.id == request.jd_id)
+            select(JobDescription).where(JobDescription.id == jd_id)
         )
         jd = jd_result.scalar_one_or_none()
 

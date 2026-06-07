@@ -22,6 +22,10 @@ export default getRequestConfig(async ({ requestLocale }) => {
 
   return {
     locale,
-    messages: (await import(`@/locales/${locale}/common.json`)).default
+    messages: {
+      ...(await import(`@/locales/${locale}/common.json`)).default,
+      home: (await import(`@/locales/${locale}/home.json`)).default,
+      welcome: (await import(`@/locales/${locale}/welcome.json`)).default.welcome,
+    }
   };
 });

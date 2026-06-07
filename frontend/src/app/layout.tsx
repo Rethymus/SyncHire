@@ -29,10 +29,10 @@ export default function RootLayout({
         <Providers>
           <SearchProvider>
             <ToastProvider>
-
-              <main className="min-h-screen bg-gray-50">
+              <Navigation />
+              <div className="min-h-screen bg-gray-50">
                 {children}
-              </main>
+              </div>
             </ToastProvider>
           </SearchProvider>
         </Providers>

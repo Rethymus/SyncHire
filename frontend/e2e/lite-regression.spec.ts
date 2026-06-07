@@ -50,7 +50,8 @@ function buildSeedStorage() {
 const routes = [
   '/dashboard',
   '/applications',
-  '/applications/app-seed-1',
+  '/applications/detail?id=app-seed-1',
+  '/applications/match?id=app-seed-1',
   '/search',
   '/search/applications',
   '/search/resumes',
@@ -65,6 +66,8 @@ const routes = [
 
 test.describe('Lite route regression coverage', () => {
   test('key pages load with seeded local data and no console errors', async ({ page }) => {
+    test.setTimeout(routes.length * 10_000)
+
     await page.addInitScript((storage) => {
       window.localStorage.setItem('synchire-storage', JSON.stringify(storage))
     }, buildSeedStorage())
@@ -82,8 +85,8 @@ test.describe('Lite route regression coverage', () => {
     for (const route of routes) {
       signals.length = 0
 
-      const response = await page.goto(route)
-      await page.waitForLoadState('networkidle')
+      const response = await page.goto(route, { waitUntil: 'domcontentloaded' })
+      await page.locator('main').first().waitFor({ state: 'visible', timeout: 10_000 })
       await page.waitForTimeout(200)
 
       expect(response?.status(), `${route} should return a non-error status`).toBeLessThan(400)

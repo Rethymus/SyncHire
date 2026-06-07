@@ -15,8 +15,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SearchResult as APISearchResult } from "@/lib/api/search";
 import { sanitizeHighlight } from "@/lib/sanitize";
+import { applicationDetailHref } from "@/lib/application-links";
 
 interface SearchResultItem {
   id: string;
@@ -231,7 +231,7 @@ export const SearchResults = memo(function SearchResults({
                 )}
                 {searchType === "application" && (
                   <>
-                    <Link href={`/applications/${result.id}`}>
+                    <Link href={applicationDetailHref(result.id)}>
                       <Button variant="outline" size="sm">
                         <ExternalLink className="h-4 w-4 mr-2" />
                         Details

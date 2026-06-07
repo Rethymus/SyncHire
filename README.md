@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-  <img src="dogfood-output/screenshots/final-desktop-dashboard.png" alt="SyncHire dashboard preview" width="860" />
+  <img src="docs/assets/readme/en-linux-dashboard.png" alt="SyncHire Lite English Linux dashboard preview" width="860" />
 </p>
 
 ## The Product Pitch
@@ -52,6 +52,18 @@ Use SyncHire in local-first Lite mode when you want a private, fast, no-backend 
 - Track application status, notes, search views, interviews, analytics, and saved searches.
 - Export, import, and back up your data from a dedicated data management console.
 - Connect a full backend for AI-powered resume analysis, job matching, interview prep, authentication, storage, and vector search.
+
+## English Linux Dogfood Showcase
+
+These screenshots come from the June 7, 2026 Linux production-static validation run. SyncHire was launched locally with seeded fresh-graduate job-search data, switched to English, and exercised across the core Lite workflow: dashboard, resumes, job descriptions, and application tracking.
+
+| Dashboard | Resumes |
+| --------- | ------- |
+| <img src="docs/assets/readme/en-linux-dashboard.png" alt="SyncHire Lite English dashboard after Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-resumes.png" alt="SyncHire Lite English resume management screen from Linux validation" width="420" /> |
+
+| Job Descriptions | Applications |
+| ---------------- | ------------ |
+| <img src="docs/assets/readme/en-linux-job-descriptions.png" alt="SyncHire Lite English job descriptions screen from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-applications.png" alt="SyncHire Lite English applications screen from Linux validation" width="420" /> |
 
 ## Product Modes
 

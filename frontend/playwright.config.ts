@@ -31,6 +31,9 @@ const allBrowserProjects = [
   },
 ]
 
+const port = process.env.PLAYWRIGHT_PORT ?? '3000'
+const baseURL = `http://localhost:${port}`
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -44,7 +47,7 @@ export default defineConfig({
   ],
 
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -53,8 +56,8 @@ export default defineConfig({
   projects: process.env.PLAYWRIGHT_ALL_BROWSERS === 'true' ? allBrowserProjects : chromiumProjects,
 
   webServer: {
-    command: 'env -u NO_COLOR npm run dev',
-    url: 'http://localhost:3000',
+    command: `env -u NO_COLOR PORT=${port} npm run dev`,
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

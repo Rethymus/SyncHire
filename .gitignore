@@ -5,6 +5,9 @@ node_modules/
 
 # Testing
 /coverage
+dogfood-output/
+frontend/playwright-report/
+frontend/test-results/
 
 # Next.js
 /.next/
@@ -12,6 +15,13 @@ node_modules/
 
 # Production
 /build
+
+# Native build outputs
+src-tauri/target/
+src-tauri/gen/schemas/
+android/.gradle/
+android/**/build/
+android/local.properties
 
 # Misc
 .DS_Store

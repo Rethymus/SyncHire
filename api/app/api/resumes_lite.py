@@ -4,15 +4,17 @@ Resumes API - Lightweight Version
 Local-first resume management without authentication.
 """
 
+from pathlib import Path
 from uuid import uuid4
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Request, status, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from app.api.utils_lite import parse_uuid
 from app.core.database_lite import get_db
 from app.models.resume_lite import Resume
-from app.schemas.resume import ResumeCreate, ResumeUpdate, ResumeResponse
+from app.schemas.schemas_lite import ResumeUpdate, ResumeResponse
 from app.services.ai_service_lite import ai_service
 from app.services.file_storage_lite import file_storage
 from app.core.logger import logger, LogCategory
@@ -22,22 +24,49 @@ router = APIRouter(prefix="/resumes", tags=["resumes"])
 
 @router.post("", response_model=ResumeResponse, status_code=status.HTTP_201_CREATED)
 async def create_resume(
-    resume: ResumeCreate,
-    file: UploadFile = File(None),
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """
     Create a new resume.
 
     Args:
-        resume: Resume data
-        file: Optional resume file (PDF, DOC, DOCX, TXT)
+        request: JSON or multipart form request with title/content/file
         db: Database session
 
     Returns:
         Created resume
     """
     try:
+        title: Optional[str] = None
+        content: Optional[str] = None
+        file: Optional[UploadFile] = None
+
+        content_type = request.headers.get("content-type", "")
+        if "multipart/form-data" in content_type:
+            form = await request.form()
+            title = str(form.get("title") or "").strip() or None
+            content_value = form.get("content")
+            content = str(content_value) if content_value is not None else None
+            form_file = form.get("file")
+            if form_file is not None and hasattr(form_file, "filename"):
+                file = form_file
+        else:
+            data = await request.json()
+            resume_data = data.get("resume", data) if isinstance(data, dict) else {}
+            title = str(resume_data.get("title") or "").strip() or None
+            content_value = resume_data.get("content")
+            content = str(content_value) if content_value is not None else None
+
+        if not title and file and file.filename:
+            title = Path(file.filename).stem
+
+        if not title:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Resume title is required",
+            )
+
         # Generate ID
         resume_id = uuid4()
 
@@ -57,14 +86,14 @@ async def create_resume(
             file_name = file.filename
 
             # Parse file content if not provided
-            if not resume.content:
-                resume.content = await file_storage.extract_text(file_path)
+            if not content:
+                content = await file_storage.extract_text(file_path)
 
         # Create resume record
         db_resume = Resume(
             id=resume_id,
-            title=resume.title,
-            content=resume.content or "",
+            title=title,
+            content=content or "",
             file_path=file_path,
             file_name=file_name,
         )
@@ -152,7 +181,8 @@ async def get_resume(resume_id: str, db: AsyncSession = Depends(get_db)):
         Resume details
     """
     try:
-        result = await db.execute(select(Resume).where(Resume.id == resume_id))
+        resume_uuid = parse_uuid(resume_id, "resume_id")
+        result = await db.execute(select(Resume).where(Resume.id == resume_uuid))
         resume = result.scalar_one_or_none()
 
         if not resume:
@@ -199,7 +229,8 @@ async def update_resume(
         Updated resume
     """
     try:
-        result = await db.execute(select(Resume).where(Resume.id == resume_id))
+        resume_uuid = parse_uuid(resume_id, "resume_id")
+        result = await db.execute(select(Resume).where(Resume.id == resume_uuid))
         db_resume = result.scalar_one_or_none()
 
         if not db_resume:
@@ -254,7 +285,8 @@ async def delete_resume(resume_id: str, db: AsyncSession = Depends(get_db)):
         No content on success
     """
     try:
-        result = await db.execute(select(Resume).where(Resume.id == resume_id))
+        resume_uuid = parse_uuid(resume_id, "resume_id")
+        result = await db.execute(select(Resume).where(Resume.id == resume_uuid))
         resume = result.scalar_one_or_none()
 
         if not resume:
@@ -301,7 +333,8 @@ async def optimize_resume(resume_id: str, db: AsyncSession = Depends(get_db)):
         Optimized resume
     """
     try:
-        result = await db.execute(select(Resume).where(Resume.id == resume_id))
+        resume_uuid = parse_uuid(resume_id, "resume_id")
+        result = await db.execute(select(Resume).where(Resume.id == resume_uuid))
         resume = result.scalar_one_or_none()
 
         if not resume:
@@ -355,7 +388,8 @@ async def download_resume_file(resume_id: str, db: AsyncSession = Depends(get_db
         Resume file
     """
     try:
-        result = await db.execute(select(Resume).where(Resume.id == resume_id))
+        resume_uuid = parse_uuid(resume_id, "resume_id")
+        result = await db.execute(select(Resume).where(Resume.id == resume_uuid))
         resume = result.scalar_one_or_none()
 
         if not resume:

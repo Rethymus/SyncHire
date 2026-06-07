@@ -8,6 +8,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLiteCopy, type LiteLocale } from "@/lib/lite-i18n";
 import {
   FileText,
   Briefcase,
@@ -18,47 +19,52 @@ import {
   BarChart3
 } from "lucide-react";
 
-const navItems = [
-  {
-    name: "Dashboard",
-    href: "/dashboard",
-    icon: Home,
-    current: /^\/dashboard/,
-  },
-  {
-    name: "Resumes",
-    href: "/upload",
-    icon: FileText,
-    current: /^\/(upload|resumes)/,
-  },
-  {
-    name: "Job Descriptions",
-    href: "/jd-input",
-    icon: Briefcase,
-    current: /^\/(jd-input|job-descriptions)/,
-  },
-  {
-    name: "Applications",
-    href: "/applications",
-    icon: BarChart3,
-    current: /^\/applications/,
-  },
-  {
-    name: "Search",
-    href: "/search",
-    icon: Search,
-    current: /^\/search/,
-  },
-  {
-    name: "Data Management",
-    href: "/data",
-    icon: FolderOpen,
-    current: /^\/data/,
-  },
-];
-
 export function Navigation() {
   const pathname = usePathname();
+  const { locale, setLocale, t } = useLiteCopy();
+
+  const navItems = [
+    {
+      name: t.nav.dashboard,
+      href: "/dashboard",
+      icon: Home,
+      current: /^\/dashboard/,
+    },
+    {
+      name: t.nav.resumes,
+      href: "/upload",
+      icon: FileText,
+      current: /^\/(upload|resumes)/,
+    },
+    {
+      name: t.nav.jobDescriptions,
+      href: "/jd-input",
+      icon: Briefcase,
+      current: /^\/(jd-input|job-descriptions)/,
+    },
+    {
+      name: t.nav.applications,
+      href: "/applications",
+      icon: BarChart3,
+      current: /^\/applications/,
+    },
+    {
+      name: t.nav.search,
+      href: "/search",
+      icon: Search,
+      current: /^\/search/,
+    },
+    {
+      name: t.nav.dataManagement,
+      href: "/data",
+      icon: FolderOpen,
+      current: /^\/data/,
+    },
+  ];
+
+  const switchLocale = (nextLocale: LiteLocale) => {
+    setLocale(nextLocale);
+  };
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -75,7 +81,7 @@ export function Navigation() {
           </div>
 
           {/* Navigation links */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-3">
             {navItems.map((item) => {
               const isActive = item.current.test(pathname);
               const Icon = item.icon;
@@ -96,6 +102,26 @@ export function Navigation() {
                 </Link>
               );
             })}
+            <div className="ml-1 flex items-center rounded-md border border-gray-200 bg-gray-50 p-1">
+              {([
+                ["en-US", t.nav.english],
+                ["zh-CN", t.nav.chinese],
+              ] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => switchLocale(value)}
+                  className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
+                    locale === value
+                      ? "bg-white text-blue-700 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                  aria-pressed={locale === value}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Mobile menu button */}
@@ -105,7 +131,7 @@ export function Navigation() {
               className="inline-flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               <Settings className="h-5 w-5" />
-              <span className="sr-only">Settings</span>
+              <span className="sr-only">{t.nav.settings}</span>
             </Link>
           </div>
         </div>

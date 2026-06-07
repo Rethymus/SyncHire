@@ -138,6 +138,18 @@ export const routes: Record<string, RouteConfig> = {
     parent: "/applications",
     icon: BarChart3,
   },
+  "/applications/detail": {
+    path: "/applications/detail",
+    title: "Application Details",
+    parent: "/applications",
+    icon: BarChart3,
+  },
+  "/applications/match": {
+    path: "/applications/match",
+    title: "Match Analysis",
+    parent: "/applications",
+    icon: Target,
+  },
   "/applications/[id]": {
     path: "/applications/[id]",
     title: "Application Details",

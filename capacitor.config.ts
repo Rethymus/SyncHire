@@ -2,10 +2,12 @@
  * Capacitor Configuration
  *
  * Configuration for building the Android APK with embedded frontend.
- * The backend runs as a local service within the app.
+ * Production builds load bundled static files and keep cloud/backend access optional.
  */
 
 import type { CapacitorConfig } from '@capacitor/cli';
+
+const isDev = process.env.CAPACITOR_DEV === 'true';
 
 const config: CapacitorConfig = {
   appId: 'com.synchire.app',
@@ -14,8 +16,8 @@ const config: CapacitorConfig = {
   server: {
     // In production, the app loads from the bundled static files
     // In development, it can point to a local dev server
-    url: process.env.CAPACITOR_DEV === 'true' ? 'http://localhost:3000' : undefined,
-    cleartext: true, // Allow HTTP for local backend communication
+    url: isDev ? 'http://localhost:3000' : undefined,
+    cleartext: isDev,
   },
   android: {
     buildOptions: {
@@ -25,7 +27,7 @@ const config: CapacitorConfig = {
       keystoreAliasPassword: undefined,
       releaseType: 'APK', // Build APK instead of AAB
     },
-    allowMixedContent: true, // Allow mixed content for local API calls
+    allowMixedContent: isDev,
     backgroundColor: '#ffffff',
   },
   plugins: {

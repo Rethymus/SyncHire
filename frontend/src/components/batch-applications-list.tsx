@@ -24,51 +24,45 @@ import {
 import { cn } from "@/lib/utils";
 import { rankApplications, getMatchLevel } from "@/lib/match-ranking";
 import { JobApplication } from "@/lib/store";
+import { applicationDetailHref, applicationMatchHref } from "@/lib/application-links";
+import { formatLiteDate, useLiteCopy } from "@/lib/lite-i18n";
 
-const statusConfig: Record<string, {
-  label: string;
+const statusStyles: Record<string, {
   icon: any;
   color: string;
   borderColor: string;
 }> = {
   draft: {
-    label: "草稿",
     icon: FileText,
     color: "bg-gray-100 text-gray-800",
     borderColor: "border-gray-200",
   },
   applied: {
-    label: "已申请",
     icon: Clock,
     color: "bg-blue-100 text-blue-800",
     borderColor: "border-blue-200",
   },
   interview: {
-    label: "面试中",
     icon: MessageSquare,
     color: "bg-purple-100 text-purple-800",
     borderColor: "border-purple-200",
   },
   offer: {
-    label: "已录用",
     icon: CheckCircle2,
     color: "bg-green-100 text-green-800",
     borderColor: "border-green-200",
   },
   rejected: {
-    label: "已拒绝",
     icon: XCircle,
     color: "bg-red-100 text-red-800",
     borderColor: "border-red-200",
   },
   optimized: {
-    label: "已优化",
     icon: TrendingUp,
     color: "bg-green-100 text-green-800",
     borderColor: "border-green-200",
   },
   pending: {
-    label: "处理中",
     icon: Clock,
     color: "bg-yellow-100 text-yellow-800",
     borderColor: "border-yellow-200",
@@ -90,9 +84,15 @@ const ApplicationItem = memo(function ApplicationItem({
   onStatusUpdate,
   sortBy,
 }: ApplicationItemProps) {
-  const config = statusConfig[application.status];
+  const { locale, t } = useLiteCopy();
+  const copy = t.batchApplications;
+  const statusLabels = t.applicationStatus;
+  const config = statusStyles[application.status] ?? statusStyles.pending;
   const StatusIcon = config.icon;
   const tags = (application as any)?.tags || [];
+  const matchLevel = application.matchScore !== undefined
+    ? getMatchLevel(application.matchScore)
+    : undefined;
 
   return (
     <div
@@ -110,7 +110,7 @@ const ApplicationItem = memo(function ApplicationItem({
               onCheckedChange={(checked) =>
                 onSelectChange(application.id, checked as boolean)
               }
-              aria-label={`Select ${application.position} at ${application.companyName}`}
+              aria-label={`${copy.selectAll}: ${application.position} at ${application.companyName}`}
             />
           </div>
 
@@ -127,7 +127,7 @@ const ApplicationItem = memo(function ApplicationItem({
                 )}
               >
                 <StatusIcon className="h-3 w-3" />
-                {config.label}
+                {statusLabels[application.status as keyof typeof statusLabels] ?? application.status}
               </span>
               {/* Tags */}
               {tags.length > 0 && (
@@ -169,26 +169,23 @@ const ApplicationItem = memo(function ApplicationItem({
                 <div className="flex items-center gap-1.5">
                   <Target className="h-4 w-4 text-blue-600" />
                   <span className="text-gray-700">
-                    匹配度: <span className="font-semibold">{application.matchScore}%</span>
+                    {copy.match}: <span className="font-semibold">{application.matchScore}%</span>
                   </span>
                   <span className={cn(
                     "px-2 py-0.5 text-xs font-medium rounded",
-                    getMatchLevel(application.matchScore) === "excellent" && "bg-green-100 text-green-800",
-                    getMatchLevel(application.matchScore) === "good" && "bg-blue-100 text-blue-800",
-                    getMatchLevel(application.matchScore) === "fair" && "bg-yellow-100 text-yellow-800",
-                    getMatchLevel(application.matchScore) === "poor" && "bg-red-100 text-red-800"
+                    matchLevel === "excellent" && "bg-green-100 text-green-800",
+                    matchLevel === "good" && "bg-blue-100 text-blue-800",
+                    matchLevel === "fair" && "bg-yellow-100 text-yellow-800",
+                    matchLevel === "poor" && "bg-red-100 text-red-800"
                   )}>
-                    {getMatchLevel(application.matchScore) === "excellent" && "优秀"}
-                    {getMatchLevel(application.matchScore) === "good" && "良好"}
-                    {getMatchLevel(application.matchScore) === "fair" && "一般"}
-                    {getMatchLevel(application.matchScore) === "poor" && "较差"}
+                    {matchLevel ? copy.levels[matchLevel] : null}
                   </span>
                 </div>
               )}
               <div className="flex items-center gap-1.5">
                 <Clock className="h-4 w-4 text-gray-500" />
                 <span className="text-gray-600">
-                  {application.updatedAt.toLocaleDateString()}
+                  {formatLiteDate(application.updatedAt, locale)}
                 </span>
               </div>
             </div>
@@ -203,13 +200,13 @@ const ApplicationItem = memo(function ApplicationItem({
             <Link href={`/editor?applicationId=${application.id}`}>
               <Button variant="outline" size="sm">
                 <FileText className="h-4 w-4 mr-2" />
-                编辑简历
+                {copy.editResume}
               </Button>
             </Link>
             <Link href={`/interview-prep?applicationId=${application.id}`}>
               <Button size="sm" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
                 <MessageSquare className="h-4 w-4 mr-2" />
-                面试准备
+                {copy.interviewPrep}
               </Button>
             </Link>
           </div>
@@ -220,26 +217,26 @@ const ApplicationItem = memo(function ApplicationItem({
       <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
         <div className="flex items-center gap-4 text-sm">
           <Link
-            href={`/applications/${application.id}`}
+            href={applicationDetailHref(application.id)}
             className="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
           >
-            查看详情
+            {copy.viewDetails}
             <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href={`/applications/${application.id}/match`}
+            href={applicationMatchHref(application.id)}
             className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
           >
-            查看匹配分析
+            {copy.viewMatchAnalysis}
           </Link>
           <span className="text-gray-300">|</span>
           <Link
             href={`/interview-prep?applicationId=${application.id}`}
             className="text-sm text-purple-600 hover:text-purple-800 transition-colors font-medium"
           >
-            生成面试准备
+            {copy.generateInterviewPrep}
           </Link>
         </div>
       </div>
@@ -251,6 +248,8 @@ export const BatchApplicationsList = memo(function BatchApplicationsList({
   showRanking = false,
 }: { showRanking?: boolean }) {
   const { applications, updateApplication } = useAppStore();
+  const { t } = useLiteCopy();
+  const copy = t.batchApplications;
   const [sortBy, setSortBy] = useState<"matchScore" | "updatedAt">("updatedAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -313,12 +312,12 @@ export const BatchApplicationsList = memo(function BatchApplicationsList({
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
         <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">暂无申请</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{copy.emptyTitle}</h3>
         <p className="text-sm text-gray-600 mb-6">
-          创建您的第一个职位申请来开始求职之旅
+          {copy.emptyDescription}
         </p>
         <Button asChild>
-          <Link href="/dashboard">创建申请</Link>
+          <Link href="/dashboard">{copy.createApplication}</Link>
         </Button>
       </div>
     );
@@ -330,7 +329,7 @@ export const BatchApplicationsList = memo(function BatchApplicationsList({
       {showRanking && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-gray-700">排序方式:</span>
+            <span className="text-sm font-medium text-gray-700">{copy.sortBy}</span>
             <div className="flex gap-2">
               <Button
                 variant={sortBy === "matchScore" ? "default" : "outline"}
@@ -338,7 +337,7 @@ export const BatchApplicationsList = memo(function BatchApplicationsList({
                 onClick={() => toggleSort("matchScore")}
               >
                 <Target className="h-4 w-4 mr-2" />
-                匹配度
+                {copy.matchScore}
                 {sortBy === "matchScore" && (
                   <ArrowUpDown className="h-3 w-3 ml-2" />
                 )}
@@ -349,14 +348,14 @@ export const BatchApplicationsList = memo(function BatchApplicationsList({
                 onClick={() => toggleSort("updatedAt")}
               >
                 <Clock className="h-4 w-4 mr-2" />
-                更新时间
+                {copy.updatedAt}
                 {sortBy === "updatedAt" && (
                   <ArrowUpDown className="h-3 w-3 ml-2" />
                 )}
               </Button>
             </div>
             <div className="ml-auto text-sm text-gray-600">
-              显示 {sortedApplications.length} 个结果
+              {copy.showingResults.replace("{count}", String(sortedApplications.length))}
             </div>
           </div>
         </div>

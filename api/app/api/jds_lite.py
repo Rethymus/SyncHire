@@ -6,17 +6,20 @@ Local-first job description management without authentication.
 
 from uuid import uuid4
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Body, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import httpx
 
+from app.api.utils_lite import parse_uuid
 from app.core.database_lite import get_db, AsyncSessionLocal
 from app.models.jd_lite import JobDescription
 from app.schemas.schemas_lite import (
     JobDescriptionCreate,
+    JobDescriptionParseRequest,
     JobDescriptionUpdate,
     JobDescriptionResponse,
+    UrlImportRequest,
 )
 from app.services.ai_service_lite import ai_service
 from app.core.logger import logger, LogCategory
@@ -151,8 +154,9 @@ async def get_jd(jd_id: str, db: AsyncSession = Depends(get_db)):
         Job description details
     """
     try:
+        jd_uuid = parse_uuid(jd_id, "jd_id")
         result = await db.execute(
-            select(JobDescription).where(JobDescription.id == jd_id)
+            select(JobDescription).where(JobDescription.id == jd_uuid)
         )
         jd = result.scalar_one_or_none()
 
@@ -206,8 +210,9 @@ async def update_jd(
         Updated job description
     """
     try:
+        jd_uuid = parse_uuid(jd_id, "jd_id")
         result = await db.execute(
-            select(JobDescription).where(JobDescription.id == jd_id)
+            select(JobDescription).where(JobDescription.id == jd_uuid)
         )
         db_jd = result.scalar_one_or_none()
 
@@ -285,8 +290,9 @@ async def delete_jd(jd_id: str, db: AsyncSession = Depends(get_db)):
         No content on success
     """
     try:
+        jd_uuid = parse_uuid(jd_id, "jd_id")
         result = await db.execute(
-            select(JobDescription).where(JobDescription.id == jd_id)
+            select(JobDescription).where(JobDescription.id == jd_uuid)
         )
         jd = result.scalar_one_or_none()
 
@@ -317,8 +323,9 @@ async def delete_jd(jd_id: str, db: AsyncSession = Depends(get_db)):
 
 @router.post("/parse", response_model=JobDescriptionResponse)
 async def parse_jd(
-    content: str,
-    url: str = None,
+    request: JobDescriptionParseRequest | None = Body(None),
+    content: str | None = None,
+    url: str | None = None,
     background_tasks: BackgroundTasks = None,
     db: AsyncSession = Depends(get_db),
 ):
@@ -335,6 +342,16 @@ async def parse_jd(
         Parsed job description
     """
     try:
+        if request is not None:
+            content = request.content
+            url = request.url or url
+
+        if not content:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Job description content is required",
+            )
+
         # If content is a URL, fetch the content
         if content.startswith("http"):
             url = content
@@ -350,8 +367,8 @@ async def parse_jd(
         jd_id = uuid4()
         db_jd = JobDescription(
             id=jd_id,
-            company=parsed.get("company", "Unknown Company"),
-            title=parsed.get("title", "Unknown Position"),
+            company=parsed.get("company") or "Unknown Company",
+            title=parsed.get("title") or "Unknown Position",
             description=parsed.get("description", content),
             url=url,
             location=parsed.get("location"),
@@ -397,7 +414,10 @@ async def parse_jd(
 
 @router.post("/import")
 async def import_jd_from_url(
-    url: str, background_tasks: BackgroundTasks, db: AsyncSession = Depends(get_db)
+    request: UrlImportRequest | None = Body(None),
+    url: str | None = None,
+    background_tasks: BackgroundTasks = None,
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Import job description from URL.
@@ -411,6 +431,15 @@ async def import_jd_from_url(
         Import job ID for tracking
     """
     try:
+        if request is not None:
+            url = request.url
+
+        if not url:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="URL is required",
+            )
+
         # Validate URL
         if not url.startswith("http"):
             raise HTTPException(
@@ -433,8 +462,8 @@ async def import_jd_from_url(
                 # Create JD record
                 db_jd = JobDescription(
                     id=job_id,
-                    company=parsed.get("company", "Unknown Company"),
-                    title=parsed.get("title", "Unknown Position"),
+                    company=parsed.get("company") or "Unknown Company",
+                    title=parsed.get("title") or "Unknown Position",
                     description=parsed.get("description", content),
                     url=url,
                     location=parsed.get("location"),
@@ -453,6 +482,12 @@ async def import_jd_from_url(
                 logger.error(
                     LogCategory.DATA, f"Failed to import JD: {str(e)}", exc_info=True
                 )
+
+        if background_tasks is None:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Background task runner is unavailable",
+            )
 
         background_tasks.add_task(fetch_and_parse)
 

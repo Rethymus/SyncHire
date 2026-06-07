@@ -11,13 +11,18 @@ import {
   Shield,
   Users,
 } from "lucide-react";
-import React from "react";
 import Link from "next/link";
-import { useTranslations } from 'next-intl';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-function Home() {
-  const t = useTranslations('home');
-  const tCommon = useTranslations('common');
+export default async function Home({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: 'home' });
+  const tApp = await getTranslations({ locale, namespace: 'app' });
 
   const features = [
     {
@@ -192,7 +197,7 @@ function Home() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center gap-2">
               <Sparkles className="h-6 w-6 text-blue-600" />
-              <span className="text-lg font-semibold text-gray-900">{t('app.name')}</span>
+              <span className="text-lg font-semibold text-gray-900">{tApp('name')}</span>
             </div>
             <div className="mt-4 md:mt-0 text-sm text-gray-700">
               {t('footer.copyright')}
@@ -203,6 +208,3 @@ function Home() {
     </div>
   );
 }
-
-// Memoize HomePage to prevent unnecessary re-renders
-export default React.memo(Home);

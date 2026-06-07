@@ -17,6 +17,7 @@ import { usePathname } from "next/navigation";
 import { ChevronRight, Home } from "lucide-react";
 import { generateBreadcrumbs, getRouteConfig } from "@/lib/routes";
 import { cn } from "@/lib/utils";
+import { useLiteCopy } from "@/lib/lite-i18n";
 
 export interface BreadcrumbProps {
   /**
@@ -53,6 +54,7 @@ export function Breadcrumb({
   showIcons = true,
 }: BreadcrumbProps) {
   const pathname = usePathname();
+  const { locale, t } = useLiteCopy();
 
   // Generate breadcrumbs using useMemo for performance
   const breadcrumbs = useMemo(() => {
@@ -63,8 +65,28 @@ export function Breadcrumb({
       crumbs[crumbs.length - 1].title = currentTitle;
     }
 
-    return crumbs;
-  }, [pathname, dynamicParams, currentTitle]);
+    const titleOverrides: Record<string, string> = {
+      Home: locale === "zh-CN" ? "首页" : "Home",
+      Dashboard: t.nav.dashboard,
+      Resumes: t.nav.resumes,
+      Upload: t.nav.resumes,
+      "Job Descriptions": t.nav.jobDescriptions,
+      Applications: t.nav.applications,
+      Search: t.nav.search,
+      "Search Applications": locale === "zh-CN" ? "搜索申请" : "Search Applications",
+      "Data Management": t.nav.dataManagement,
+      Settings: t.nav.settings,
+      Analytics: locale === "zh-CN" ? "分析" : "Analytics",
+      Interviews: locale === "zh-CN" ? "面试" : "Interviews",
+      "Match Analysis": locale === "zh-CN" ? "匹配分析" : "Match Analysis",
+      "Application Details": locale === "zh-CN" ? "申请详情" : "Application Details",
+    };
+
+    return crumbs.map((crumb) => ({
+      ...crumb,
+      title: titleOverrides[crumb.title] ?? crumb.title,
+    }));
+  }, [pathname, dynamicParams, currentTitle, locale, t]);
 
   // Don't show breadcrumbs if there's only one item (home)
   if (breadcrumbs.length <= 1) {
@@ -101,7 +123,7 @@ export function Breadcrumb({
                 <Link
                   href={crumb.path}
                   className="truncate hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
-                  aria-label={`Navigate to ${crumb.title}`}
+                  aria-label={locale === "zh-CN" ? `前往${crumb.title}` : `Navigate to ${crumb.title}`}
                 >
                   {crumb.title}
                 </Link>
@@ -141,6 +163,7 @@ export function CompactBreadcrumb({
   className,
 }: Pick<BreadcrumbProps, "currentTitle" | "dynamicParams" | "className">) {
   const pathname = usePathname();
+  const { locale, t } = useLiteCopy();
 
   const breadcrumbs = useMemo(() => {
     const crumbs = generateBreadcrumbs(pathname, dynamicParams);
@@ -149,8 +172,23 @@ export function CompactBreadcrumb({
       crumbs[crumbs.length - 1].title = currentTitle;
     }
 
-    return crumbs;
-  }, [pathname, dynamicParams, currentTitle]);
+    const titleOverrides: Record<string, string> = {
+      Home: locale === "zh-CN" ? "首页" : "Home",
+      Dashboard: t.nav.dashboard,
+      Resumes: t.nav.resumes,
+      Upload: t.nav.resumes,
+      "Job Descriptions": t.nav.jobDescriptions,
+      Applications: t.nav.applications,
+      Search: t.nav.search,
+      "Data Management": t.nav.dataManagement,
+      Settings: t.nav.settings,
+    };
+
+    return crumbs.map((crumb) => ({
+      ...crumb,
+      title: titleOverrides[crumb.title] ?? crumb.title,
+    }));
+  }, [pathname, dynamicParams, currentTitle, locale, t]);
 
   if (breadcrumbs.length <= 1) {
     return null;
@@ -166,7 +204,7 @@ export function CompactBreadcrumb({
           <Link
             href={firstCrumb.path}
             className="flex items-center space-x-1 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-            aria-label="Navigate to home"
+            aria-label={locale === "zh-CN" ? "前往首页" : "Navigate to home"}
           >
             <Home className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">{firstCrumb.title}</span>
@@ -189,6 +227,7 @@ export function BreadcrumbWithSeparator({
   ...props
 }: BreadcrumbProps & { separator?: React.ReactNode }) {
   const pathname = usePathname();
+  const { locale, t } = useLiteCopy();
 
   const breadcrumbs = useMemo(() => {
     const crumbs = generateBreadcrumbs(pathname, props.dynamicParams);
@@ -197,8 +236,23 @@ export function BreadcrumbWithSeparator({
       crumbs[crumbs.length - 1].title = props.currentTitle;
     }
 
-    return crumbs;
-  }, [pathname, props.dynamicParams, props.currentTitle]);
+    const titleOverrides: Record<string, string> = {
+      Home: locale === "zh-CN" ? "首页" : "Home",
+      Dashboard: t.nav.dashboard,
+      Resumes: t.nav.resumes,
+      Upload: t.nav.resumes,
+      "Job Descriptions": t.nav.jobDescriptions,
+      Applications: t.nav.applications,
+      Search: t.nav.search,
+      "Data Management": t.nav.dataManagement,
+      Settings: t.nav.settings,
+    };
+
+    return crumbs.map((crumb) => ({
+      ...crumb,
+      title: titleOverrides[crumb.title] ?? crumb.title,
+    }));
+  }, [pathname, props.dynamicParams, props.currentTitle, locale, t]);
 
   if (breadcrumbs.length <= 1) {
     return null;
@@ -232,7 +286,7 @@ export function BreadcrumbWithSeparator({
                 <Link
                   href={crumb.path}
                   className="truncate hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-                  aria-label={`Navigate to ${crumb.title}`}
+                  aria-label={locale === "zh-CN" ? `前往${crumb.title}` : `Navigate to ${crumb.title}`}
                 >
                   {crumb.title}
                 </Link>

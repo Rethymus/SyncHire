@@ -17,6 +17,7 @@ import { JobApplication } from "@/lib/store";
 import { rankApplications, getMatchStatistics, type MatchRankingOptions } from "@/lib/match-ranking";
 import { ArrowUpDown, Filter, TrendingUp, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLiteCopy } from "@/lib/lite-i18n";
 
 interface MatchRankingControlsProps {
   applications: JobApplication[];
@@ -29,6 +30,8 @@ export function MatchRankingControls({
   onRankingChange,
   children,
 }: MatchRankingControlsProps) {
+  const { t } = useLiteCopy();
+  const copy = t.matchControls;
   const [options, setOptions] = useState<MatchRankingOptions>({
     sortBy: "matchScore",
     sortOrder: "desc",
@@ -66,28 +69,28 @@ export function MatchRankingControls({
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-1">
             <TrendingUp className="h-4 w-4 text-blue-600" />
-            <span className="text-xs text-gray-600">平均匹配度</span>
+            <span className="text-xs text-gray-600">{copy.averageMatch}</span>
           </div>
           <div className="text-2xl font-bold text-gray-900">{stats.average}%</div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-1">
             <Award className="h-4 w-4 text-green-600" />
-            <span className="text-xs text-gray-600">最高匹配度</span>
+            <span className="text-xs text-gray-600">{copy.highestMatch}</span>
           </div>
           <div className="text-2xl font-bold text-gray-900">{stats.max}%</div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-1">
             <div className="h-4 w-4 rounded-full bg-green-600" />
-            <span className="text-xs text-gray-600">优秀匹配</span>
+            <span className="text-xs text-gray-600">{copy.excellentMatch}</span>
           </div>
           <div className="text-2xl font-bold text-gray-900">{stats.excellent}</div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-1">
             <div className="h-4 w-4 rounded-full bg-blue-600" />
-            <span className="text-xs text-gray-600">良好匹配</span>
+            <span className="text-xs text-gray-600">{copy.goodMatch}</span>
           </div>
           <div className="text-2xl font-bold text-gray-900">{stats.good}</div>
         </Card>
@@ -97,13 +100,13 @@ export function MatchRankingControls({
       <Card className="p-4">
         <div className="flex items-center gap-2 mb-4">
           <Filter className="h-4 w-4 text-gray-600" />
-          <h3 className="font-semibold text-gray-900">排序和筛选</h3>
+          <h3 className="font-semibold text-gray-900">{copy.sortAndFilter}</h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Sort By */}
           <div className="space-y-2">
-            <Label>排序方式</Label>
+            <Label>{copy.sortBy}</Label>
             <Select
               value={options.sortBy}
               onValueChange={(value) =>
@@ -111,20 +114,20 @@ export function MatchRankingControls({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="排序方式" />
+                <SelectValue placeholder={copy.sortByPlaceholder} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="matchScore">匹配度</SelectItem>
-                <SelectItem value="updatedAt">更新时间</SelectItem>
-                <SelectItem value="createdAt">创建时间</SelectItem>
-                <SelectItem value="position">职位名称</SelectItem>
+                <SelectItem value="matchScore">{copy.sortOptions.matchScore}</SelectItem>
+                <SelectItem value="updatedAt">{copy.sortOptions.updatedAt}</SelectItem>
+                <SelectItem value="createdAt">{copy.sortOptions.createdAt}</SelectItem>
+                <SelectItem value="position">{copy.sortOptions.position}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Sort Order */}
           <div className="space-y-2">
-            <Label>排序顺序</Label>
+            <Label>{copy.sortOrder}</Label>
             <Select
               value={options.sortOrder}
               onValueChange={(value) =>
@@ -132,18 +135,18 @@ export function MatchRankingControls({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="排序顺序" />
+                <SelectValue placeholder={copy.sortOrderPlaceholder} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="desc">降序</SelectItem>
-                <SelectItem value="asc">升序</SelectItem>
+                <SelectItem value="desc">{copy.descending}</SelectItem>
+                <SelectItem value="asc">{copy.ascending}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Match Level Filter */}
           <div className="space-y-2">
-            <Label>匹配等级</Label>
+            <Label>{copy.matchLevel}</Label>
             <Select
               value={options.filterBy?.matchLevel ?? "all"}
               onValueChange={(value) =>
@@ -153,14 +156,14 @@ export function MatchRankingControls({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="匹配等级" />
+                <SelectValue placeholder={copy.matchLevelPlaceholder} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">全部</SelectItem>
-                <SelectItem value="excellent">优秀 (80%+)</SelectItem>
-                <SelectItem value="good">良好 (60%+)</SelectItem>
-                <SelectItem value="fair">一般 (40%+)</SelectItem>
-                <SelectItem value="poor">较差 (&lt;40%)</SelectItem>
+                <SelectItem value="all">{copy.levels.all}</SelectItem>
+                <SelectItem value="excellent">{copy.levels.excellent}</SelectItem>
+                <SelectItem value="good">{copy.levels.good}</SelectItem>
+                <SelectItem value="fair">{copy.levels.fair}</SelectItem>
+                <SelectItem value="poor">{copy.levels.poor}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -169,13 +172,13 @@ export function MatchRankingControls({
         {/* Minimum Match Score Slider */}
         <div className="mt-4 space-y-2">
           <div className="flex items-center justify-between">
-            <Label>最低匹配度: {(options.filterBy?.minMatchScore ?? 0)}%</Label>
+            <Label>{copy.minimumMatch}: {(options.filterBy?.minMatchScore ?? 0)}%</Label>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => updateOptions({ filterBy: { minMatchScore: 0 } })}
             >
-              重置
+              {copy.reset}
             </Button>
           </div>
           <Slider
@@ -194,15 +197,15 @@ export function MatchRankingControls({
           (options.filterBy?.minMatchScore ?? 0) > 0) && (
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm text-gray-600">活跃筛选:</span>
+              <span className="text-sm text-gray-600">{copy.activeFilters}</span>
               {options.filterBy?.matchLevel !== "all" && options.filterBy && (
                 <Badge variant="secondary">
-                  匹配等级: {options.filterBy.matchLevel}
+                  {copy.matchLevelFilter}: {options.filterBy.matchLevel}
                 </Badge>
               )}
               {(options.filterBy?.minMatchScore ?? 0) > 0 && options.filterBy && (
                 <Badge variant="secondary">
-                  最低匹配度: {options.filterBy.minMatchScore}%
+                  {copy.minimumMatchFilter}: {options.filterBy.minMatchScore}%
                 </Badge>
               )}
               <Button
@@ -214,7 +217,7 @@ export function MatchRankingControls({
                   })
                 }
               >
-                清除筛选
+                {copy.clearFilters}
               </Button>
             </div>
           </div>
@@ -223,8 +226,8 @@ export function MatchRankingControls({
         {/* Results Count */}
         <div className="mt-4 pt-4 border-t border-gray-200">
           <p className="text-sm text-gray-600">
-            显示 <span className="font-semibold text-gray-900">{ranked.length}</span> 个结果，
-            共 {applications.length} 个申请
+            {copy.showing} <span className="font-semibold text-gray-900">{ranked.length}</span> {copy.results},
+            {" "}{applications.length} {copy.total}
           </p>
         </div>
       </Card>

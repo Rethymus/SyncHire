@@ -7,7 +7,7 @@ replacing the PostgreSQL-based system with a simpler, zero-config solution.
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, text
 from app.core.config_lite import get_lite_settings
 
 settings = get_lite_settings()
@@ -77,13 +77,13 @@ async def init_db() -> None:
     """
     async with engine.begin() as conn:
         # Enable SQLite performance optimizations
-        await conn.execute("PRAGMA journal_mode=WAL")
-        await conn.execute("PRAGMA synchronous=NORMAL")
-        await conn.execute("PRAGMA cache_size=-64000")  # 64MB cache
-        await conn.execute("PRAGMA temp_store=MEMORY")
+        await conn.execute(text("PRAGMA journal_mode=WAL"))
+        await conn.execute(text("PRAGMA synchronous=NORMAL"))
+        await conn.execute(text("PRAGMA cache_size=-64000"))  # 64MB cache
+        await conn.execute(text("PRAGMA temp_store=MEMORY"))
 
         # Import all models to ensure they're registered with Base
-        from app.models import resume, jd, application  # noqa: F401
+        from app.models import resume_lite, jd_lite, application_lite  # noqa: F401
 
         # Create all tables
         await conn.run_sync(Base.metadata.create_all)

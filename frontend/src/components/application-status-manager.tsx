@@ -23,6 +23,7 @@ import { Loader2, Save, History } from "lucide-react";
 import { applicationAPI } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
 import { cn } from "@/lib/utils";
+import { formatLiteDate, interpolate, useLiteCopy } from "@/lib/lite-i18n";
 
 interface StatusHistoryEntry {
   id: string;
@@ -40,18 +41,13 @@ interface ApplicationStatusManagerProps {
 }
 
 const STATUS_OPTIONS = [
-  { value: "pending", label: "待处理", color: "text-gray-600" },
-  { value: "optimized", label: "已优化", color: "text-blue-600" },
-  { value: "applied", label: "已申请", color: "text-green-600" },
-  { value: "interview", label: "面试中", color: "text-purple-600" },
-  { value: "offer", label: "已录用", color: "text-emerald-600" },
-  { value: "rejected", label: "已拒绝", color: "text-red-600" },
-];
-
-const STATUS_LABELS: Record<string, string> = STATUS_OPTIONS.reduce(
-  (acc, option) => ({ ...acc, [option.value]: option.label }),
-  {}
-);
+  { value: "pending", color: "text-gray-600" },
+  { value: "optimized", color: "text-blue-600" },
+  { value: "applied", color: "text-green-600" },
+  { value: "interview", color: "text-purple-600" },
+  { value: "offer", color: "text-emerald-600" },
+  { value: "rejected", color: "text-red-600" },
+] as const;
 
 export const ApplicationStatusManager = memo(function ApplicationStatusManager({
   applicationId,
@@ -59,6 +55,8 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
   onStatusUpdate,
   className,
 }: ApplicationStatusManagerProps) {
+  const { locale, t } = useLiteCopy();
+  const copy = t.applicationStatus;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState(currentStatus);
   const [notes, setNotes] = useState("");
@@ -130,7 +128,7 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
     loadHistory();
   }, [loadHistory]);
 
-  const currentLabel = STATUS_LABELS[currentStatus] || currentStatus;
+  const currentLabel = copy[currentStatus as keyof typeof copy] || currentStatus;
 
   return (
     <>
@@ -148,7 +146,7 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
           <SelectContent>
             {STATUS_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value}>
-                {option.label}
+                {copy[option.value]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -161,7 +159,7 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
           disabled={isLoadingHistory}
         >
           <History className="h-4 w-4 mr-2" />
-          历史
+          {copy.history}
         </Button>
       </div>
 
@@ -169,19 +167,21 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>更新申请状态</DialogTitle>
+            <DialogTitle>{copy.updateTitle}</DialogTitle>
             <DialogDescription>
-              将申请状态从 &ldquo;{STATUS_LABELS[currentStatus]}&rdquo; 更新为 &ldquo;
-              {STATUS_LABELS[selectedStatus]}&rdquo;
+              {interpolate(copy.updateDescription, {
+                from: copy[currentStatus as keyof typeof copy] || currentStatus,
+                to: copy[selectedStatus as keyof typeof copy] || selectedStatus,
+              })}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="notes">备注 (可选)</Label>
+              <Label htmlFor="notes">{copy.notes}</Label>
               <Textarea
                 id="notes"
-                placeholder="添加关于此状态变更的备注..."
+                placeholder={copy.notesPlaceholder}
                 value={notes}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
                 rows={3}
@@ -198,7 +198,7 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
               }}
               disabled={isUpdating}
             >
-              取消
+              {copy.cancel}
             </Button>
             <Button
               onClick={() => handleStatusChange(selectedStatus)}
@@ -207,12 +207,12 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
               {isUpdating ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  更新中...
+                  {copy.updating}
                 </>
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  确认更新
+                  {copy.confirm}
                 </>
               )}
             </Button>
@@ -224,9 +224,9 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
       <Dialog open={showHistory} onOpenChange={setShowHistory}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>状态变更历史</DialogTitle>
+            <DialogTitle>{copy.historyTitle}</DialogTitle>
             <DialogDescription>
-              查看此申请的所有状态变更记录
+              {copy.historyDescription}
             </DialogDescription>
           </DialogHeader>
 
@@ -237,7 +237,7 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
               </div>
             ) : history.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                暂无状态变更历史
+                {copy.emptyHistory}
               </div>
             ) : (
               <div className="space-y-4">
@@ -251,17 +251,17 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
                         {entry.old_status && (
                           <>
                             <span className="text-sm font-medium text-gray-600">
-                              {STATUS_LABELS[entry.old_status]}
+                              {copy[entry.old_status as keyof typeof copy] || entry.old_status}
                             </span>
                             <span className="text-gray-400">→</span>
                           </>
                         )}
                         <span className="text-sm font-semibold text-gray-900">
-                          {STATUS_LABELS[entry.new_status]}
+                          {copy[entry.new_status as keyof typeof copy] || entry.new_status}
                         </span>
                       </div>
                       <span className="text-xs text-gray-500">
-                        {new Date(entry.changed_at).toLocaleString("zh-CN")}
+                        {formatLiteDate(entry.changed_at, locale)}
                       </span>
                     </div>
                     {entry.notes && (
@@ -274,7 +274,7 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
           </div>
 
           <DialogFooter>
-            <Button onClick={() => setShowHistory(false)}>关闭</Button>
+            <Button onClick={() => setShowHistory(false)}>{copy.close}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

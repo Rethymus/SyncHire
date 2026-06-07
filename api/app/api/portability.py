@@ -5,27 +5,41 @@ Export and import functionality for local data backup and migration.
 """
 
 from datetime import datetime
+from pathlib import Path
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import delete, select, func
 from sqlalchemy.orm import selectinload
 import json
 import csv
 import zipfile
 from io import StringIO
 
+from app.api.utils_lite import parse_uuid
 from app.core.database_lite import get_db, get_db_size
 from app.core.config_lite import get_lite_settings
 from app.models.resume_lite import Resume
 from app.models.jd_lite import JobDescription
-from app.models.application_lite import Application
+from app.models.application_lite import Application, ApplicationStatus
 from app.models.local_profile import LocalProfile
 from app.core.logger import logger, LogCategory
 
 settings = get_lite_settings()
 
 router = APIRouter(prefix="/portability", tags=["portability"])
+
+
+def _find_backup_file(backup_id: str) -> Path | None:
+    """Find a backup by full filename or short timestamp/id fragment."""
+    safe_id = Path(backup_id).name
+    direct_path = settings.BACKUPS_DIR / safe_id
+    if direct_path.is_file() and direct_path.suffix == ".json":
+        return direct_path
+
+    pattern = f"*{safe_id}*" if safe_id.endswith(".json") else f"*{safe_id}*.json"
+    backup_files = list(settings.BACKUPS_DIR.glob(pattern))
+    return backup_files[0] if backup_files else None
 
 
 @router.get("/export/json")
@@ -406,10 +420,10 @@ async def import_data(
         if mode == "replace" or overwrite:
             logger.info(LogCategory.DATA, "Replace mode: deleting existing data")
             # Delete existing data
-            await db.execute(select(Application).delete())
-            await db.execute(select(JobDescription).delete())
-            await db.execute(select(Resume).delete())
-            await db.execute(select(LocalProfile).delete())
+            await db.execute(delete(Application))
+            await db.execute(delete(JobDescription))
+            await db.execute(delete(Resume))
+            await db.execute(delete(LocalProfile))
             await db.commit()
 
         # Import profile
@@ -425,7 +439,7 @@ async def import_data(
                                 continue
                             elif conflict_resolution == "overwrite":
                                 # Delete existing profile
-                                await db.execute(select(LocalProfile).delete())
+                                await db.execute(delete(LocalProfile))
 
                     profile = LocalProfile(
                         id=profile_data.get("id"),
@@ -450,10 +464,11 @@ async def import_data(
         if "resumes" in data and data["resumes"]:
             for resume_data in data["resumes"]:
                 try:
+                    resume_id = parse_uuid(resume_data["id"], "resume_id")
                     if mode == "merge":
                         # Check if resume exists
                         existing = await db.execute(
-                            select(Resume).where(Resume.id == resume_data["id"])
+                            select(Resume).where(Resume.id == resume_id)
                         )
                         if existing.scalar_one_or_none():
                             if conflict_resolution == "skip":
@@ -462,13 +477,11 @@ async def import_data(
                             elif conflict_resolution == "overwrite":
                                 # Delete existing resume
                                 await db.execute(
-                                    select(Resume)
-                                    .where(Resume.id == resume_data["id"])
-                                    .delete()
+                                    delete(Resume).where(Resume.id == resume_id)
                                 )
 
                     resume = Resume(
-                        id=resume_data["id"],
+                        id=resume_id,
                         title=resume_data["title"],
                         content=resume_data["content"],
                         file_name=resume_data.get("file_name"),
@@ -484,11 +497,12 @@ async def import_data(
         if "job_descriptions" in data and data["job_descriptions"]:
             for jd_data in data["job_descriptions"]:
                 try:
+                    jd_id = parse_uuid(jd_data["id"], "jd_id")
                     if mode == "merge":
                         # Check if JD exists
                         existing = await db.execute(
                             select(JobDescription).where(
-                                JobDescription.id == jd_data["id"]
+                                JobDescription.id == jd_id
                             )
                         )
                         if existing.scalar_one_or_none():
@@ -498,13 +512,13 @@ async def import_data(
                             elif conflict_resolution == "overwrite":
                                 # Delete existing JD
                                 await db.execute(
-                                    select(JobDescription)
-                                    .where(JobDescription.id == jd_data["id"])
-                                    .delete()
+                                    delete(JobDescription).where(
+                                        JobDescription.id == jd_id
+                                    )
                                 )
 
                     jd = JobDescription(
-                        id=jd_data["id"],
+                        id=jd_id,
                         company=jd_data["company"],
                         title=jd_data["title"],
                         description=jd_data["description"],
@@ -527,10 +541,13 @@ async def import_data(
         if "applications" in data and data["applications"]:
             for app_data in data["applications"]:
                 try:
+                    application_id = parse_uuid(app_data["id"], "application_id")
+                    resume_id = parse_uuid(app_data["resume_id"], "resume_id")
+                    jd_id = parse_uuid(app_data["jd_id"], "jd_id")
                     if mode == "merge":
                         # Check if application exists
                         existing = await db.execute(
-                            select(Application).where(Application.id == app_data["id"])
+                            select(Application).where(Application.id == application_id)
                         )
                         if existing.scalar_one_or_none():
                             if conflict_resolution == "skip":
@@ -539,16 +556,16 @@ async def import_data(
                             elif conflict_resolution == "overwrite":
                                 # Delete existing application
                                 await db.execute(
-                                    select(Application)
-                                    .where(Application.id == app_data["id"])
-                                    .delete()
+                                    delete(Application).where(
+                                        Application.id == application_id
+                                    )
                                 )
 
                     application = Application(
-                        id=app_data["id"],
-                        resume_id=app_data["resume_id"],
-                        jd_id=app_data["jd_id"],
-                        status=app_data["status"],
+                        id=application_id,
+                        resume_id=resume_id,
+                        jd_id=jd_id,
+                        status=ApplicationStatus(app_data["status"]),
                         notes=app_data.get("notes"),
                         match_score=app_data.get("match_score"),
                         applied_date=(
@@ -793,8 +810,9 @@ async def import_preview(
             if "resumes" in data:
                 for resume_data in data["resumes"]:
                     if "id" in resume_data:
+                        resume_id = parse_uuid(resume_data["id"], "resume_id")
                         existing = await db.execute(
-                            select(Resume).where(Resume.id == resume_data["id"])
+                            select(Resume).where(Resume.id == resume_id)
                         )
                         if existing.scalar_one_or_none():
                             conflicts.append(
@@ -810,10 +828,9 @@ async def import_preview(
             if "job_descriptions" in data:
                 for jd_data in data["job_descriptions"]:
                     if "id" in jd_data:
+                        jd_id = parse_uuid(jd_data["id"], "jd_id")
                         existing = await db.execute(
-                            select(JobDescription).where(
-                                JobDescription.id == jd_data["id"]
-                            )
+                            select(JobDescription).where(JobDescription.id == jd_id)
                         )
                         if existing.scalar_one_or_none():
                             conflicts.append(
@@ -829,8 +846,11 @@ async def import_preview(
             if "applications" in data:
                 for app_data in data["applications"]:
                     if "id" in app_data:
+                        application_id = parse_uuid(
+                            app_data["id"], "application_id"
+                        )
                         existing = await db.execute(
-                            select(Application).where(Application.id == app_data["id"])
+                            select(Application).where(Application.id == application_id)
                         )
                         if existing.scalar_one_or_none():
                             conflicts.append(
@@ -884,34 +904,95 @@ async def restore_backup(backup_id: str, db: AsyncSession = Depends(get_db)):
     """
     try:
         # Find backup file
-        backup_files = list(settings.BACKUPS_DIR.glob(f"*{backup_id}*.json"))
-        if not backup_files:
+        backup_path = _find_backup_file(backup_id)
+        if backup_path is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Backup not found"
             )
 
-        backup_path = backup_files[0]
-
         # Read backup file
         with open(backup_path, "r", encoding="utf-8") as f:
-            json.load(f)
+            data = json.load(f)
 
-        # Import data (similar to import endpoint)
+        await db.execute(delete(Application))
+        await db.execute(delete(JobDescription))
+        await db.execute(delete(Resume))
+        await db.execute(delete(LocalProfile))
+
         imported = 0
-        skipped = 0
-        failed = 0
         errors = []
 
-        # This would use the same logic as import_data
-        # For now, return success
-        logger.info(LogCategory.DATA, f"Backup restore initiated: {backup_id}")
+        for resume_data in data.get("resumes", []):
+            try:
+                db.add(
+                    Resume(
+                        id=parse_uuid(resume_data["id"], "resume_id"),
+                        title=resume_data["title"],
+                        content=resume_data["content"],
+                        file_name=resume_data.get("file_name"),
+                    )
+                )
+                imported += 1
+            except Exception as e:
+                errors.append(f"Resume restore failed: {str(e)}")
+
+        for jd_data in data.get("job_descriptions", []):
+            try:
+                db.add(
+                    JobDescription(
+                        id=parse_uuid(jd_data["id"], "jd_id"),
+                        company=jd_data["company"],
+                        title=jd_data["title"],
+                        description=jd_data["description"],
+                        url=jd_data.get("url"),
+                        location=jd_data.get("location"),
+                        salary_min=jd_data.get("salary_min"),
+                        salary_max=jd_data.get("salary_max"),
+                        currency=jd_data.get("currency", "USD"),
+                        employment_type=jd_data.get("employment_type"),
+                        remote=jd_data.get("remote", "onsite"),
+                    )
+                )
+                imported += 1
+            except Exception as e:
+                errors.append(f"JD restore failed: {str(e)}")
+
+        for app_data in data.get("applications", []):
+            try:
+                db.add(
+                    Application(
+                        id=parse_uuid(app_data["id"], "application_id"),
+                        resume_id=parse_uuid(app_data["resume_id"], "resume_id"),
+                        jd_id=parse_uuid(app_data["jd_id"], "jd_id"),
+                        status=ApplicationStatus(app_data["status"]),
+                        notes=app_data.get("notes"),
+                        match_score=app_data.get("match_score"),
+                        applied_date=(
+                            datetime.fromisoformat(app_data["applied_date"])
+                            if app_data.get("applied_date")
+                            else None
+                        ),
+                        last_updated=(
+                            datetime.fromisoformat(app_data["last_updated"])
+                            if app_data.get("last_updated")
+                            else None
+                        ),
+                    )
+                )
+                imported += 1
+            except Exception as e:
+                errors.append(f"Application restore failed: {str(e)}")
+
+        await db.commit()
+
+        logger.info(LogCategory.DATA, f"Backup restored: {backup_path.name}")
 
         return {
-            "success": True,
+            "success": len(errors) == 0,
             "imported": imported,
-            "skipped": skipped,
-            "failed": failed,
-            "errors": errors,
+            "skipped": 0,
+            "failed": len(errors),
+            "errors": errors[:10],
         }
 
     except HTTPException:
@@ -939,13 +1020,11 @@ async def delete_backup(backup_id: str):
     """
     try:
         # Find backup file
-        backup_files = list(settings.BACKUPS_DIR.glob(f"*{backup_id}*.json"))
-        if not backup_files:
+        backup_path = _find_backup_file(backup_id)
+        if backup_path is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Backup not found"
             )
-
-        backup_path = backup_files[0]
 
         # Delete backup file
         backup_path.unlink()

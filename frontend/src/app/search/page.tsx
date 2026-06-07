@@ -6,12 +6,12 @@
 
 "use client";
 
-export const dynamic = 'force-dynamic';
 
 import { useState, useCallback, memo, useEffect } from "react";
 // import { Navigation } from "@/components/navigation-unified";
 import { Button } from "@/components/ui/button";
 import { useSearch, type SearchResult } from "@/hooks/use-search";
+import { applicationDetailHref } from "@/lib/application-links";
 import { sanitizeHighlight } from "@/lib/sanitize";
 import {
   Search as SearchIcon,
@@ -86,7 +86,7 @@ function SearchPage() {
       case "jd":
         return `/job-descriptions/${result.id}`;
       case "application":
-        return `/applications/${result.id}`;
+        return applicationDetailHref(result.id);
       default:
         return "#";
     }

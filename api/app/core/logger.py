@@ -11,6 +11,7 @@ class LogCategory(Enum):
     """Log categories for structured logging."""
 
     STORAGE = "storage"
+    DATA = "data"
     DATABASE = "database"
     API = "api"
     AUTH = "auth"
@@ -61,9 +62,19 @@ class StructuredLogger:
         self, level: int, category: LogCategory, message: str, **kwargs
     ):
         """Log a message with category context."""
+        exc_info = kwargs.pop("exc_info", None)
+        stack_info = kwargs.pop("stack_info", False)
+        stacklevel = kwargs.pop("stacklevel", 1)
         extra = {"category": category.value}
         extra.update(kwargs)
-        self.logger.log(level, message, extra=extra)
+        self.logger.log(
+            level,
+            message,
+            extra=extra,
+            exc_info=exc_info,
+            stack_info=stack_info,
+            stacklevel=stacklevel,
+        )
 
     def debug(self, category: LogCategory, message: str, **kwargs):
         """Log debug message with category."""
@@ -91,9 +102,18 @@ class StructuredLogger:
 
     def exception(self, category: LogCategory, message: str, **kwargs):
         """Log exception with category."""
+        exc_info = kwargs.pop("exc_info", True)
+        stack_info = kwargs.pop("stack_info", False)
+        stacklevel = kwargs.pop("stacklevel", 1)
         extra = {"category": category.value}
         extra.update(kwargs)
-        self.logger.exception(message, extra=extra)
+        self.logger.exception(
+            message,
+            extra=extra,
+            exc_info=exc_info,
+            stack_info=stack_info,
+            stacklevel=stacklevel,
+        )
 
 
 # Global logger instance

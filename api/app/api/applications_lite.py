@@ -6,16 +6,18 @@ Local-first application tracking without authentication.
 
 from uuid import uuid4, UUID
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Body, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from app.api.utils_lite import parse_uuid
 from app.core.database_lite import get_db
 from app.models.application_lite import Application, ApplicationStatus
 from app.models.resume_lite import Resume
 from app.models.jd_lite import JobDescription
 from app.schemas.schemas_lite import (
+    ApplicationBatchUpdateRequest,
     ApplicationCreate,
     ApplicationUpdate,
     ApplicationResponse,
@@ -43,9 +45,12 @@ async def create_application(
         Created application
     """
     try:
+        resume_id = parse_uuid(application.resume_id, "resume_id")
+        jd_id = parse_uuid(application.jd_id, "jd_id")
+
         # Validate resume exists
         resume_result = await db.execute(
-            select(Resume).where(Resume.id == application.resume_id)
+            select(Resume).where(Resume.id == resume_id)
         )
         if not resume_result.scalar_one_or_none():
             raise HTTPException(
@@ -54,7 +59,7 @@ async def create_application(
 
         # Validate JD exists
         jd_result = await db.execute(
-            select(JobDescription).where(JobDescription.id == application.jd_id)
+            select(JobDescription).where(JobDescription.id == jd_id)
         )
         if not jd_result.scalar_one_or_none():
             raise HTTPException(
@@ -66,9 +71,11 @@ async def create_application(
         application_id = uuid4()
         db_application = Application(
             id=application_id,
-            resume_id=UUID(application.resume_id),
-            jd_id=UUID(application.jd_id),
-            status=application.status or ApplicationStatus.SAVED,
+            resume_id=resume_id,
+            jd_id=jd_id,
+            status=ApplicationStatus(
+                (application.status or ApplicationStatus.SAVED).value
+            ),
             notes=application.notes,
         )
 
@@ -182,13 +189,14 @@ async def get_application(application_id: str, db: AsyncSession = Depends(get_db
         Application details
     """
     try:
+        application_uuid = parse_uuid(application_id, "application_id")
         result = await db.execute(
             select(Application)
             .options(
                 selectinload(Application.resume),
                 selectinload(Application.job_description),
             )
-            .where(Application.id == application_id)
+            .where(Application.id == application_uuid)
         )
         application = result.scalar_one_or_none()
 
@@ -242,8 +250,9 @@ async def update_application(
         Updated application
     """
     try:
+        application_uuid = parse_uuid(application_id, "application_id")
         result = await db.execute(
-            select(Application).where(Application.id == application_id)
+            select(Application).where(Application.id == application_uuid)
         )
         db_application = result.scalar_one_or_none()
 
@@ -320,8 +329,9 @@ async def delete_application(application_id: str, db: AsyncSession = Depends(get
         No content on success
     """
     try:
+        application_uuid = parse_uuid(application_id, "application_id")
         result = await db.execute(
-            select(Application).where(Application.id == application_id)
+            select(Application).where(Application.id == application_uuid)
         )
         application = result.scalar_one_or_none()
 
@@ -364,13 +374,14 @@ async def calculate_match(application_id: str, db: AsyncSession = Depends(get_db
         Updated application with match score
     """
     try:
+        application_uuid = parse_uuid(application_id, "application_id")
         result = await db.execute(
             select(Application)
             .options(
                 selectinload(Application.resume),
                 selectinload(Application.job_description),
             )
-            .where(Application.id == application_id)
+            .where(Application.id == application_uuid)
         )
         application = result.scalar_one_or_none()
 
@@ -423,8 +434,7 @@ async def calculate_match(application_id: str, db: AsyncSession = Depends(get_db
 
 @router.post("/batch-update")
 async def batch_update_applications(
-    application_ids: List[str],
-    status: str = None,
+    request: ApplicationBatchUpdateRequest = Body(...),
     background_tasks: BackgroundTasks = None,
     db: AsyncSession = Depends(get_db),
 ):
@@ -432,8 +442,7 @@ async def batch_update_applications(
     Batch update applications.
 
     Args:
-        application_ids: List of application IDs to update
-        status: New status (optional)
+        request: Application IDs and optional new status
         background_tasks: FastAPI background tasks
         db: Database session
 
@@ -445,15 +454,16 @@ async def batch_update_applications(
         failed = 0
         errors = []
 
-        for app_id in application_ids:
+        for app_id in request.application_ids:
             try:
+                app_uuid = parse_uuid(app_id, "application_id")
                 result = await db.execute(
-                    select(Application).where(Application.id == app_id)
+                    select(Application).where(Application.id == app_uuid)
                 )
                 application = result.scalar_one_or_none()
 
-                if application and status:
-                    application.status = ApplicationStatus(status)
+                if application and request.status:
+                    application.status = ApplicationStatus(request.status.value)
                     from datetime import datetime
 
                     application.last_updated = datetime.utcnow()

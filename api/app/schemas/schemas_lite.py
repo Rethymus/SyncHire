@@ -5,6 +5,7 @@ Pydantic models for API request/response validation without user dependencies.
 """
 
 from datetime import datetime
+from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List
 
@@ -83,6 +84,19 @@ class JobDescriptionUpdate(BaseModel):
     remote: Optional[str] = None
 
 
+class JobDescriptionParseRequest(BaseModel):
+    """Schema for parsing a raw job description."""
+
+    content: str = Field(..., min_length=1)
+    url: Optional[str] = None
+
+
+class UrlImportRequest(BaseModel):
+    """Schema for importing content from a URL."""
+
+    url: str = Field(..., min_length=1)
+
+
 class JobDescriptionResponse(BaseModel):
     """Schema for job description response."""
 
@@ -106,7 +120,7 @@ class JobDescriptionResponse(BaseModel):
 # Application Schemas
 
 
-class ApplicationStatus(str):
+class ApplicationStatus(str, Enum):
     """Application status enum."""
 
     SAVED = "saved"
@@ -142,6 +156,13 @@ class ApplicationUpdate(BaseModel):
     notes: Optional[str] = None
     match_score: Optional[float] = None
     applied_date: Optional[datetime] = None
+
+
+class ApplicationBatchUpdateRequest(BaseModel):
+    """Schema for batch-updating applications."""
+
+    application_ids: List[str]
+    status: Optional[ApplicationStatus] = None
 
 
 class ApplicationResponse(BaseModel):

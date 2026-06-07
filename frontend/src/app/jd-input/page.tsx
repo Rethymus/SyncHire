@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { logger } from "@/lib/logger";
 import { LogCategory } from "@/lib/logger";
 import { TIMING } from "@/lib/constants";
+import { useLiteCopy } from "@/lib/lite-i18n";
 import {
   Briefcase,
   CheckCircle2,
@@ -18,6 +19,8 @@ import {
 
 export default function JDInputPage() {
   const router = useRouter();
+  const { t } = useLiteCopy();
+  const jdCopy = t.jd;
   const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
@@ -79,12 +82,12 @@ export default function JDInputPage() {
       // TODO: Implement URL import API
 
       setImportMessage(
-        "暂不支持自动导入该链接。链接已保留，请将职位信息粘贴到下方表单。"
+        jdCopy.importUnsupported
       );
     } catch (error) {
       logger.error(LogCategory.API, "Import error", error as Error);
       setImportMessage(
-        "导入失败。链接已保留，请将职位信息手动粘贴到下方表单。"
+        jdCopy.importFailed
       );
     } finally {
       setImporting(false);
@@ -111,10 +114,10 @@ export default function JDInputPage() {
       <div className="max-w-4xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            输入职位描述
+            {jdCopy.title}
           </h1>
           <p className="mt-2 text-lg text-gray-700">
-            AI 将帮助您分析职位要求并优化您的简历
+            {jdCopy.subtitle}
           </p>
         </div>
 
@@ -127,10 +130,10 @@ export default function JDInputPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">
-                  从招聘网站导入
+                  {jdCopy.importTitle}
                 </h3>
                 <p className="text-sm text-gray-700">
-                  粘贴招聘网站的职位链接，自动提取职位信息
+                  {jdCopy.importSubtitle}
                 </p>
               </div>
             </div>
@@ -143,7 +146,7 @@ export default function JDInputPage() {
                   setUrl(e.target.value);
                   setImportMessage(null);
                 }}
-                placeholder="https://www.example.com/job/123456"
+                placeholder={jdCopy.importPlaceholder}
                 aria-describedby={importMessage ? "job-url-import-message" : undefined}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
@@ -152,7 +155,7 @@ export default function JDInputPage() {
                 onClick={handleImportFromURL}
                 disabled={!url.trim() || importing}
               >
-                {importing ? "导入中..." : "导入"}
+                {importing ? jdCopy.importingButton : jdCopy.importButton}
               </Button>
             </div>
             {importMessage && (
@@ -174,9 +177,9 @@ export default function JDInputPage() {
                 <Briefcase className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">手动输入</h3>
+                <h3 className="font-semibold text-gray-900">{jdCopy.manualTitle}</h3>
                 <p className="text-sm text-gray-700">
-                  粘贴或输入职位描述信息
+                  {jdCopy.manualSubtitle}
                 </p>
               </div>
             </div>
@@ -188,7 +191,7 @@ export default function JDInputPage() {
                     htmlFor="title"
                     className="block text-sm font-medium text-gray-900"
                   >
-                    职位名称 *
+                    {jdCopy.titleLabel}
                   </label>
                   <input
                     type="text"
@@ -196,7 +199,7 @@ export default function JDInputPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="例如：高级前端工程师"
+                    placeholder={jdCopy.titlePlaceholder}
                     required
                   />
                 </div>
@@ -206,7 +209,7 @@ export default function JDInputPage() {
                     htmlFor="company"
                     className="block text-sm font-medium text-gray-900"
                   >
-                    公司名称 *
+                    {jdCopy.companyLabel}
                   </label>
                   <input
                     type="text"
@@ -214,7 +217,7 @@ export default function JDInputPage() {
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="例如：字节跳动"
+                    placeholder={jdCopy.companyPlaceholder}
                     required
                   />
                 </div>
@@ -225,7 +228,7 @@ export default function JDInputPage() {
                   htmlFor="description"
                   className="block text-sm font-medium text-gray-900"
                 >
-                  职位描述 *
+                  {jdCopy.descriptionLabel}
                 </label>
                 <textarea
                   id="description"
@@ -233,11 +236,11 @@ export default function JDInputPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   rows={10}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                  placeholder="粘贴完整的职位描述，包括岗位职责、任职要求等..."
+                  placeholder={jdCopy.descriptionPlaceholder}
                   required
                 />
                 <p className="text-xs text-gray-600">
-                  请尽可能提供完整的职位描述，以便更准确地分析匹配度
+                  {jdCopy.descriptionHelp}
                 </p>
               </div>
 
@@ -246,7 +249,7 @@ export default function JDInputPage() {
                   htmlFor="requirements"
                   className="block text-sm font-medium text-gray-900"
                 >
-                  任职要求（可选）
+                  {jdCopy.requirementsLabel}
                 </label>
                 <textarea
                   id="requirements"
@@ -254,10 +257,10 @@ export default function JDInputPage() {
                   onChange={(e) => setRequirements(e.target.value)}
                   rows={6}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                  placeholder="每行一个要求，例如：&#10;- 3年以上前端开发经验&#10;- 精通 React 和 TypeScript&#10;- 有大型项目经验"
+                  placeholder={jdCopy.requirementsPlaceholder}
                 />
                 <p className="text-xs text-gray-600">
-                  每行一个要求，AI 将帮您逐一匹配
+                  {jdCopy.requirementsHelp}
                 </p>
               </div>
 
@@ -268,7 +271,7 @@ export default function JDInputPage() {
                   className="flex-1"
                   disabled={loading}
                 >
-                  {loading ? "处理中..." : "继续下一步"}
+                  {loading ? jdCopy.loading : jdCopy.submit}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
                 <Button
@@ -277,7 +280,7 @@ export default function JDInputPage() {
                   size="lg"
                   onClick={() => router.push("/dashboard")}
                 >
-                  取消
+                  {jdCopy.cancel}
                 </Button>
               </div>
             </form>
@@ -287,7 +290,7 @@ export default function JDInputPage() {
           {jobDescriptions.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                已保存的职位描述 ({jobDescriptions.length})
+                {jdCopy.savedTitle} ({jobDescriptions.length})
               </h2>
 
               <div className="space-y-3">
@@ -322,13 +325,12 @@ export default function JDInputPage() {
               <Sparkles className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
                 <h4 className="font-medium text-blue-900 mb-2">
-                  提示：如何获得最佳分析结果
+                  {jdCopy.tipsTitle}
                 </h4>
                 <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• 提供完整的职位描述，不要遗漏任何信息</li>
-                  <li>• 包含具体的技能要求和技术栈</li>
-                  <li>• 添加公司福利和团队文化信息</li>
-                  <li>• 如果有薪资范围，也一并提供</li>
+                  {jdCopy.tips.map((tip) => (
+                    <li key={tip}>• {tip}</li>
+                  ))}
                 </ul>
               </div>
             </div>

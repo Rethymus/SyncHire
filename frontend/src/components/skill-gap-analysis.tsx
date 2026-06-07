@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,7 @@ export function SkillGapAnalysis({
   missingOptionalSkills,
   onSkillClick,
 }: SkillGapAnalysisProps) {
-  const [filter, setFilter] = React.useState<FilterType>("all");
+  const [filter, setFilter] = useState<FilterType>("all");
 
   const filteredSkills = useMemo(() => {
     switch (filter) {

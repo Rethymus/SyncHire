@@ -4,6 +4,7 @@
  */
 
 import { ApplicationStatus, StatusTransition } from './workflow-engine';
+import { applicationDetailHref } from './application-links';
 
 export interface NotificationMessage {
   id: string;
@@ -176,7 +177,7 @@ export class WorkflowNotificationService {
       applicationId,
       applicationName,
       status: transition.to,
-      actionUrl: `/applications/${applicationId}`,
+      actionUrl: applicationDetailHref(applicationId),
       actionLabel: '查看详情',
     });
 
@@ -203,7 +204,7 @@ export class WorkflowNotificationService {
       applicationId,
       applicationName,
       status: transition.to,
-      actionUrl: `/applications/${applicationId}`,
+      actionUrl: applicationDetailHref(applicationId),
       actionLabel: '查看建议',
     });
 
@@ -235,7 +236,7 @@ export class WorkflowNotificationService {
       applicationId,
       applicationName,
       status: transition.to,
-      actionUrl: `/applications/${applicationId}`,
+      actionUrl: applicationDetailHref(applicationId),
       actionLabel: '查看详情',
     });
 
@@ -295,7 +296,7 @@ export class WorkflowNotificationService {
       message,
       applicationId,
       applicationName,
-      actionUrl: `/applications/${applicationId}`,
+      actionUrl: applicationDetailHref(applicationId),
       actionLabel: '查看建议',
     });
 
@@ -344,7 +345,7 @@ export class WorkflowNotificationService {
       message,
       applicationId,
       applicationName,
-      actionUrl: `/applications/${applicationId}`,
+      actionUrl: applicationDetailHref(applicationId),
       actionLabel: '查看详情',
     });
 
