@@ -147,4 +147,50 @@ test.describe('Lite route regression coverage', () => {
     const body = await response.body()
     expect(body.subarray(0, 8).toString()).toBe('%PDF-1.4')
   })
+
+  test('AI runtime settings support providers, skills, MCPs, discovery, and local persistence', async ({ page }) => {
+    const signals: string[] = []
+    page.on('console', (message) => {
+      if (message.type() === 'error' || message.type() === 'warning') {
+        signals.push(`${message.type()}: ${message.text()}`)
+      }
+    })
+    page.on('pageerror', (error) => {
+      signals.push(`pageerror: ${error.message}`)
+    })
+
+    await page.goto('/settings?locale=en-US', { waitUntil: 'domcontentloaded' })
+    await page.locator('body').waitFor({ state: 'visible', timeout: 10_000 })
+
+    await expect(page.getByRole('heading', { name: 'AI Runtime Settings' })).toBeVisible()
+    await page.getByTestId('openai-api-key').fill('sk-test-local-runtime-key')
+    await page.getByRole('button', { name: 'Save AI settings' }).first().click()
+    await expect(page.getByText('AI runtime settings saved locally.')).toBeVisible()
+
+    await page.getByRole('tab', { name: /Skills/ }).click()
+    await expect(page.getByRole('heading', { name: 'Skill switchboard' })).toBeVisible()
+    await page.getByLabel('Search skills and MCPs').fill('recruiter')
+    await page.getByRole('button', { name: 'Add' }).click()
+    await expect(page.getByText('Installed').first()).toBeVisible()
+
+    await page.getByRole('tab', { name: /^MCP$/ }).click()
+    await expect(page.getByRole('heading', { name: 'MCP switchboard' })).toBeVisible()
+    await expect(page.getByText('Review-Only WebBridge')).toBeVisible()
+
+    await page.getByRole('tab', { name: /Discover/ }).click()
+    await page.getByRole('button', { name: 'Refresh metadata' }).first().click()
+    await expect(page.getByText('Catalog metadata refreshed locally.')).toBeVisible()
+    await page.getByLabel('Repository name').fill('Private Job Search Catalog')
+    await page.getByLabel('Repository URL').fill('https://example.com/synchire/catalog.json')
+    await page.getByRole('button', { name: 'Add source' }).click()
+    await expect(page.getByText('Private Job Search Catalog')).toBeVisible()
+
+    const runtimeSettings = await page.evaluate(() =>
+      window.localStorage.getItem('synchire-ai-runtime-settings')
+    )
+    expect(runtimeSettings).toContain('sk-test-local-runtime-key')
+    expect(runtimeSettings).toContain('recruiter-message-writer')
+    expect(runtimeSettings).toContain('Private Job Search Catalog')
+    expect(signals).toEqual([])
+  })
 })
