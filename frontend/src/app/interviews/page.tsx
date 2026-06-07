@@ -42,6 +42,7 @@ import { InterviewQuickSchedule } from "@/components/interview-quick-schedule";
 import { apiClient } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
 import { toast } from "sonner";
+import { useLiteCopy, type LiteLocale } from "@/lib/lite-i18n";
 
 interface InterviewEvent {
   id: string;
@@ -111,14 +112,124 @@ const statusColors = {
   rescheduled: "bg-orange-100 text-orange-800 border-orange-200",
 };
 
-const typeLabels = {
-  screening: "Screening",
-  technical: "Technical",
-  behavioral: "Behavioral",
-  panel: "Panel",
-  onsite: "Onsite",
-  final: "Final",
-};
+const INTERVIEW_PAGE_COPY = {
+  "en-US": {
+    loading: "Loading interviews...",
+    initialLoading: "Loading...",
+    title: "Interviews",
+    subtitle: "Schedule and manage your job interviews",
+    schedule: "Schedule Interview",
+    stats: {
+      upcoming: "Upcoming Interviews",
+      completed: "Completed Interviews",
+      averageRating: "Average Rating",
+      thisMonth: "This Month",
+      scheduledConfirmed: "Scheduled & confirmed",
+      notAvailable: "N/A",
+    },
+    nextInterview: "Next Interview",
+    tabs: {
+      quick: "Quick Schedule",
+      dragDrop: "Drag & Drop",
+      enhancedCalendar: "Enhanced Calendar",
+      basicCalendar: "Basic Calendar",
+      list: "List",
+    },
+    statusFilter: {
+      all: "All Statuses",
+      scheduled: "Scheduled",
+      confirmed: "Confirmed",
+      completed: "Completed",
+      cancelled: "Cancelled",
+      rescheduled: "Rescheduled",
+    },
+    typeFilter: {
+      all: "All Types",
+      screening: "Screening",
+      technical: "Technical",
+      behavioral: "Behavioral",
+      panel: "Panel",
+      onsite: "Onsite",
+      final: "Final",
+    },
+    locationLabels: {
+      remote: "Remote",
+      in_person: "In person",
+      phone: "Phone",
+      video: "Video",
+    },
+    emptyTitle: "No interviews found",
+    emptyFiltered: "Try adjusting your filters to see more interviews.",
+    emptyDefault: "Get started by scheduling your first interview.",
+    deleteConfirm: "Are you sure you want to delete this interview? This action cannot be undone.",
+    retryDeleteConfirm: "Failed to delete interview. Retry?",
+    deleteSuccess: "Interview deleted successfully",
+    deleteFailure: "Failed to delete interview",
+    deleteRetryFailure: "Failed to delete interview after retry",
+    editAria: "Edit interview",
+    deleteAria: "Delete interview",
+    todayAt: (time: string) => `Today at ${time}`,
+  },
+  "zh-CN": {
+    loading: "正在加载面试...",
+    initialLoading: "正在加载...",
+    title: "面试管理",
+    subtitle: "集中安排、追踪和复盘你的求职面试",
+    schedule: "预约面试",
+    stats: {
+      upcoming: "待参加面试",
+      completed: "已完成面试",
+      averageRating: "平均评分",
+      thisMonth: "本月面试",
+      scheduledConfirmed: "已预约与已确认",
+      notAvailable: "暂无",
+    },
+    nextInterview: "下一场面试",
+    tabs: {
+      quick: "快速预约",
+      dragDrop: "拖放排期",
+      enhancedCalendar: "增强日历",
+      basicCalendar: "基础日历",
+      list: "列表",
+    },
+    statusFilter: {
+      all: "全部状态",
+      scheduled: "已预约",
+      confirmed: "已确认",
+      completed: "已完成",
+      cancelled: "已取消",
+      rescheduled: "已改期",
+    },
+    typeFilter: {
+      all: "全部类型",
+      screening: "初筛",
+      technical: "技术面",
+      behavioral: "行为面",
+      panel: "小组面",
+      onsite: "现场面",
+      final: "终面",
+    },
+    locationLabels: {
+      remote: "远程",
+      in_person: "现场",
+      phone: "电话",
+      video: "视频",
+    },
+    emptyTitle: "暂无面试",
+    emptyFiltered: "调整筛选条件，查看更多面试记录。",
+    emptyDefault: "先预约第一场面试，SyncHire 会帮你追踪准备节奏。",
+    deleteConfirm: "确定要删除这场面试吗？此操作无法撤销。",
+    retryDeleteConfirm: "删除面试失败，是否重试？",
+    deleteSuccess: "面试已删除",
+    deleteFailure: "删除面试失败",
+    deleteRetryFailure: "重试后仍无法删除面试",
+    editAria: "编辑面试",
+    deleteAria: "删除面试",
+    todayAt: (time: string) => `今天 ${time}`,
+  },
+} as const;
+
+type InterviewPageCopy = (typeof INTERVIEW_PAGE_COPY)[LiteLocale];
 
 const EMPTY_INTERVIEW_STATS: InterviewStats = {
   total_interviews: 0,
@@ -128,6 +239,95 @@ const EMPTY_INTERVIEW_STATS: InterviewStats = {
   interviews_by_type: {},
   interviews_this_month: 0,
 };
+
+const LOCAL_INTERVIEWS_KEY = "synchire-interviews";
+
+function readLocalInterviews(): Interview[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const stored = window.localStorage.getItem(LOCAL_INTERVIEWS_KEY);
+    const parsed = stored ? JSON.parse(stored) : [];
+
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is Interview =>
+          typeof item?.id === "string" &&
+          typeof item?.title === "string" &&
+          typeof item?.interview_type === "string" &&
+          typeof item?.status === "string" &&
+          typeof item?.scheduled_date === "string" &&
+          typeof item?.duration_minutes === "number" &&
+          typeof item?.location_type === "string"
+        )
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function buildLocalInterviewStats(interviews: Interview[]): InterviewStats {
+  const now = new Date();
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+  const upcoming = interviews.filter((interview) =>
+    ["scheduled", "confirmed"].includes(interview.status) &&
+    new Date(interview.scheduled_date) >= now
+  );
+  const completed = interviews.filter((interview) => interview.status === "completed");
+  const cancelled = interviews.filter((interview) => interview.status === "cancelled");
+  const rated = interviews.filter((interview) => typeof interview.rating === "number");
+  const nextInterview = upcoming
+    .toSorted((a, b) => new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime())
+    .at(0);
+
+  return {
+    total_interviews: interviews.length,
+    upcoming_interviews: upcoming.length,
+    completed_interviews: completed.length,
+    cancelled_interviews: cancelled.length,
+    average_rating: rated.length
+      ? rated.reduce((total, interview) => total + (interview.rating ?? 0), 0) / rated.length
+      : undefined,
+    interviews_by_type: interviews.reduce<Record<string, number>>((totals, interview) => {
+      totals[interview.interview_type] = (totals[interview.interview_type] ?? 0) + 1;
+      return totals;
+    }, {}),
+    interviews_this_month: interviews.filter((interview) => {
+      const scheduled = new Date(interview.scheduled_date);
+      return scheduled.getFullYear() === thisYear && scheduled.getMonth() === thisMonth;
+    }).length,
+    next_interview: nextInterview,
+  };
+}
+
+function buildLocalCalendarEvents(interviews: Interview[]): InterviewEvent[] {
+  return interviews.map((interview) => {
+    const start = new Date(interview.scheduled_date);
+    const end = new Date(start.getTime() + interview.duration_minutes * 60_000);
+
+    return {
+      id: interview.id,
+      title: interview.title,
+      interview_type: interview.interview_type,
+      status: interview.status,
+      start,
+      end,
+      location_type: interview.location_type,
+      company_name: interview.company_name,
+      job_title: interview.job_title,
+    };
+  });
+}
+
+function filterLocalInterviews(interviews: Interview[], status: string, type: string) {
+  return interviews.filter((interview) => {
+    const statusMatches = status === "all" || interview.status === status;
+    const typeMatches = type === "all" || interview.interview_type === type;
+    return statusMatches && typeMatches;
+  });
+}
 
 // Stats Card Component
 const StatsCard = memo(function StatsCard({
@@ -167,11 +367,15 @@ const InterviewListItem = memo(function InterviewListItem({
   onView,
   onEdit,
   onDelete,
+  copy,
+  locale,
 }: {
   interview: Interview;
   onView: (interview: Interview) => void;
   onEdit: (interview: Interview) => void;
   onDelete: (interview: Interview) => void;
+  copy: InterviewPageCopy;
+  locale: LiteLocale;
 }) {
   const StatusIcon = statusIcons[interview.status as keyof typeof statusIcons];
   const locationIcon: typeof Video | typeof MapPin | typeof Phone = {
@@ -184,6 +388,15 @@ const InterviewListItem = memo(function InterviewListItem({
   const interviewDate = new Date(interview.scheduled_date);
   const isPast = interviewDate < new Date();
   const isToday = interviewDate.toDateString() === new Date().toDateString();
+  const formattedTime = interviewDate.toLocaleTimeString(locale, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  const formattedDate = interviewDate.toLocaleDateString(locale, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
 
   return (
     <div
@@ -203,7 +416,7 @@ const InterviewListItem = memo(function InterviewListItem({
                 statusColors[interview.status as keyof typeof statusColors]
               )}
             >
-              {interview.status}
+              {copy.statusFilter[interview.status as keyof typeof copy.statusFilter] ?? interview.status}
             </span>
           </div>
 
@@ -212,11 +425,10 @@ const InterviewListItem = memo(function InterviewListItem({
               <Clock className="h-4 w-4" />
               <span>
                 {isToday ? (
-                  <span className="font-medium text-blue-600">Today at {interviewDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
+                  <span className="font-medium text-blue-600">{copy.todayAt(formattedTime)}</span>
                 ) : (
                   <>
-                    {interviewDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                    {interviewDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                    {formattedDate} {formattedTime}
                   </>
                 )}
               </span>
@@ -224,12 +436,12 @@ const InterviewListItem = memo(function InterviewListItem({
 
             <div className="flex items-center gap-1">
               <LocationIcon className="h-4 w-4" />
-              <span className="capitalize">{interview.location_type.replace('_', ' ')}</span>
+              <span>{copy.locationLabels[interview.location_type as keyof typeof copy.locationLabels] ?? interview.location_type.replace("_", " ")}</span>
             </div>
 
             <div className="flex items-center gap-1">
               <Star className="h-4 w-4" />
-              <span>{typeLabels[interview.interview_type as keyof typeof typeLabels]}</span>
+              <span>{copy.typeFilter[interview.interview_type as keyof typeof copy.typeFilter] ?? interview.interview_type}</span>
             </div>
           </div>
 
@@ -250,7 +462,7 @@ const InterviewListItem = memo(function InterviewListItem({
               e?.stopPropagation();
               onEdit(interview);
             }}
-            aria-label="Edit interview"
+            aria-label={copy.editAria}
           >
             <Edit className="h-4 w-4" />
           </Button>
@@ -261,7 +473,7 @@ const InterviewListItem = memo(function InterviewListItem({
               e?.stopPropagation();
               onDelete(interview);
             }}
-            aria-label="Delete interview"
+            aria-label={copy.deleteAria}
             className="text-red-600 hover:text-red-700"
           >
             <Trash2 className="h-4 w-4" />
@@ -289,6 +501,8 @@ const InterviewListItem = memo(function InterviewListItem({
 function InterviewsContent() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { locale } = useLiteCopy();
+  const copy = INTERVIEW_PAGE_COPY[locale];
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [viewMode, setViewMode] = useState<'dashboard' | 'drag-drop' | 'calendar' | 'enhanced-calendar' | 'list'>('list');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -298,7 +512,7 @@ function InterviewsContent() {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['interviews', 'stats'],
     queryFn: async () => {
-      return EMPTY_INTERVIEW_STATS;
+      return buildLocalInterviewStats(readLocalInterviews());
     },
   });
 
@@ -306,7 +520,7 @@ function InterviewsContent() {
   const { data: calendarData, isLoading: calendarLoading } = useQuery({
     queryKey: ['interviews', 'calendar', new Date().getFullYear(), new Date().getMonth() + 1],
     queryFn: async () => {
-      return { events: [] };
+      return { events: buildLocalCalendarEvents(readLocalInterviews()) };
     },
   });
 
@@ -314,7 +528,8 @@ function InterviewsContent() {
   const { data: interviewsData, isLoading: interviewsLoading, refetch } = useQuery({
     queryKey: ['interviews', 'list', filterStatus, filterType],
     queryFn: async () => {
-      return { interviews: [], total: 0 };
+      const interviews = filterLocalInterviews(readLocalInterviews(), filterStatus, filterType);
+      return { interviews, total: interviews.length };
     },
   });
 
@@ -361,7 +576,7 @@ function InterviewsContent() {
 
   // Handle delete interview
   const handleDeleteInterview = useCallback(async (interview: Interview) => {
-    if (!confirm('Are you sure you want to delete this interview? This action cannot be undone.')) {
+    if (!confirm(copy.deleteConfirm)) {
       return;
     }
 
@@ -370,27 +585,27 @@ function InterviewsContent() {
       if (response.error) throw new Error(response.error);
 
       logger.info(LogCategory.UI, 'Interview deleted', { interviewId: interview.id });
-      toast.success('Interview deleted successfully');
+      toast.success(copy.deleteSuccess);
       refetch();
     } catch (error) {
       logger.error(LogCategory.UI, 'Failed to delete interview', error as Error);
-      toast.error('Failed to delete interview');
+      toast.error(copy.deleteFailure);
       // Simple retry without cyclic dependency
-      if (confirm('Failed to delete interview. Retry?')) {
+      if (confirm(copy.retryDeleteConfirm)) {
         // Direct retry without useCallback dependency
         try {
           const retryResponse = await apiClient.delete(`/interviews/${interview.id}`);
           if (retryResponse.error) throw new Error(retryResponse.error);
           logger.info(LogCategory.UI, 'Interview deleted on retry', { interviewId: interview.id });
-          toast.success('Interview deleted successfully');
+          toast.success(copy.deleteSuccess);
           refetch();
         } catch (retryError) {
           logger.error(LogCategory.UI, 'Retry delete failed', retryError as Error);
-          toast.error('Failed to delete interview after retry');
+          toast.error(copy.deleteRetryFailure);
         }
       }
     }
-  }, [refetch]);
+  }, [copy.deleteConfirm, copy.deleteFailure, copy.deleteRetryFailure, copy.deleteSuccess, copy.retryDeleteConfirm, refetch]);
 
   // Handle event drop (reschedule interview)
   const handleEventDrop = useCallback(async (event: InterviewEvent, newStart: Date, newEnd: Date) => {
@@ -440,7 +655,7 @@ function InterviewsContent() {
         <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
           <div className="text-center">
             <Clock className="h-12 w-12 text-purple-600 mx-auto mb-4 animate-spin" />
-            <p className="text-lg font-medium text-gray-900">Loading interviews...</p>
+            <p className="text-lg font-medium text-gray-900">{copy.loading}</p>
           </div>
         </div>
       </div>
@@ -456,9 +671,9 @@ function InterviewsContent() {
         <div className="mb-8">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Interviews</h1>
+              <h1 className="text-3xl font-bold text-gray-900">{copy.title}</h1>
               <p className="mt-2 text-lg text-gray-700">
-                Schedule and manage your job interviews
+                {copy.subtitle}
               </p>
             </div>
             <Button
@@ -467,7 +682,7 @@ function InterviewsContent() {
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Schedule Interview
+              {copy.schedule}
             </Button>
           </div>
         </div>
@@ -475,26 +690,26 @@ function InterviewsContent() {
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <StatsCard
-            title="Upcoming Interviews"
+            title={copy.stats.upcoming}
             value={stats?.upcoming_interviews || 0}
             icon={Clock}
             color="bg-yellow-500"
-            trend="Scheduled & confirmed"
+            trend={copy.stats.scheduledConfirmed}
           />
           <StatsCard
-            title="Completed Interviews"
+            title={copy.stats.completed}
             value={stats?.completed_interviews || 0}
             icon={CheckCircle2}
             color="bg-green-500"
           />
           <StatsCard
-            title="Average Rating"
-            value={stats?.average_rating?.toFixed(1) || 'N/A'}
+            title={copy.stats.averageRating}
+            value={stats?.average_rating?.toFixed(1) || copy.stats.notAvailable}
             icon={Star}
             color="bg-purple-500"
           />
           <StatsCard
-            title="This Month"
+            title={copy.stats.thisMonth}
             value={stats?.interviews_this_month || 0}
             icon={Calendar}
             color="bg-blue-500"
@@ -506,13 +721,15 @@ function InterviewsContent() {
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-6 mb-8">
             <div className="flex items-center gap-2 mb-4">
               <Clock className="h-5 w-5 text-purple-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Next Interview</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{copy.nextInterview}</h3>
             </div>
             <InterviewListItem
               interview={stats.next_interview}
               onView={handleViewInterview}
               onEdit={handleEditInterview}
               onDelete={handleDeleteInterview}
+              copy={copy}
+              locale={locale}
             />
           </div>
         )}
@@ -531,7 +748,7 @@ function InterviewsContent() {
                 )}
               >
                 <Plus className="h-4 w-4 inline mr-2" />
-                Quick Schedule
+                {copy.tabs.quick}
               </button>
               <button
                 onClick={() => setViewMode('drag-drop')}
@@ -543,7 +760,7 @@ function InterviewsContent() {
                 )}
               >
                 <GripVertical className="h-4 w-4 inline mr-2" />
-                Drag & Drop
+                {copy.tabs.dragDrop}
               </button>
               <button
                 onClick={() => setViewMode('enhanced-calendar')}
@@ -555,7 +772,7 @@ function InterviewsContent() {
                 )}
               >
                 <Calendar className="h-4 w-4 inline mr-2" />
-                Enhanced Calendar
+                {copy.tabs.enhancedCalendar}
               </button>
               <button
                 onClick={() => setViewMode('calendar')}
@@ -567,7 +784,7 @@ function InterviewsContent() {
                 )}
               >
                 <Calendar className="h-4 w-4 inline mr-2" />
-                Basic Calendar
+                {copy.tabs.basicCalendar}
               </button>
               <button
                 onClick={() => setViewMode('list')}
@@ -579,7 +796,7 @@ function InterviewsContent() {
                 )}
               >
                 <Filter className="h-4 w-4 inline mr-2" />
-                List
+                {copy.tabs.list}
               </button>
             </div>
 
@@ -589,11 +806,11 @@ function InterviewsContent() {
               onChange={(e) => setFilterStatus(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="all">All Statuses</option>
-              <option value="scheduled">Scheduled</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="all">{copy.statusFilter.all}</option>
+              <option value="scheduled">{copy.statusFilter.scheduled}</option>
+              <option value="confirmed">{copy.statusFilter.confirmed}</option>
+              <option value="completed">{copy.statusFilter.completed}</option>
+              <option value="cancelled">{copy.statusFilter.cancelled}</option>
             </select>
 
             {/* Type Filter */}
@@ -602,13 +819,13 @@ function InterviewsContent() {
               onChange={(e) => setFilterType(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="all">All Types</option>
-              <option value="screening">Screening</option>
-              <option value="technical">Technical</option>
-              <option value="behavioral">Behavioral</option>
-              <option value="panel">Panel</option>
-              <option value="onsite">Onsite</option>
-              <option value="final">Final</option>
+              <option value="all">{copy.typeFilter.all}</option>
+              <option value="screening">{copy.typeFilter.screening}</option>
+              <option value="technical">{copy.typeFilter.technical}</option>
+              <option value="behavioral">{copy.typeFilter.behavioral}</option>
+              <option value="panel">{copy.typeFilter.panel}</option>
+              <option value="onsite">{copy.typeFilter.onsite}</option>
+              <option value="final">{copy.typeFilter.final}</option>
             </select>
           </div>
         </div>
@@ -649,21 +866,23 @@ function InterviewsContent() {
                   onView={handleViewInterview}
                   onEdit={handleEditInterview}
                   onDelete={handleDeleteInterview}
+                  copy={copy}
+                  locale={locale}
                 />
               ))
             ) : (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
                 <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No interviews found</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{copy.emptyTitle}</h3>
                 <p className="text-gray-600 mb-4">
                   {filterStatus !== 'all' || filterType !== 'all'
-                    ? 'Try adjusting your filters to see more interviews.'
-                    : 'Get started by scheduling your first interview.'}
+                    ? copy.emptyFiltered
+                    : copy.emptyDefault}
                 </p>
                 {filterStatus === 'all' && filterType === 'all' && (
                   <Button onClick={handleScheduleInterview}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Schedule Interview
+                    {copy.schedule}
                   </Button>
                 )}
               </div>
@@ -677,13 +896,15 @@ function InterviewsContent() {
 
 export default function InterviewsPage() {
   const isClient = useClientOnly();
+  const { locale } = useLiteCopy();
+  const copy = INTERVIEW_PAGE_COPY[locale];
 
   if (!isClient) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{copy.initialLoading}</p>
         </div>
       </div>
     );

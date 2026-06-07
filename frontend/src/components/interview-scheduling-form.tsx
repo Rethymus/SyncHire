@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
+import { useLiteCopy, type LiteLocale } from "@/lib/lite-i18n";
 
 // Interview type options
 const interviewTypes = [
@@ -42,6 +43,177 @@ const locationTypes = [
   { value: "in_person", label: "In-Person", icon: Building },
   { value: "phone", label: "Phone Call", icon: Phone },
 ];
+
+const INTERVIEW_FORM_COPY = {
+  "en-US": {
+    loading: "Loading interview...",
+    editTitle: "Edit Interview",
+    createTitle: "Schedule New Interview",
+    subtitle: "Fill in the details to schedule your interview",
+    basicInformation: "Basic Information",
+    titleLabel: "Interview Title *",
+    titlePlaceholder: "e.g., Technical Interview - Frontend Engineer",
+    descriptionLabel: "Description",
+    descriptionPlaceholder: "Additional details about the interview...",
+    interviewTypeLabel: "Interview Type *",
+    interviewTypes: {
+      screening: { label: "Screening Call", description: "Initial phone screening" },
+      technical: { label: "Technical Interview", description: "Deep technical assessment" },
+      behavioral: { label: "Behavioral Interview", description: "Cultural fit and behavior" },
+      panel: { label: "Panel Interview", description: "Interview with multiple people" },
+      onsite: { label: "Onsite Interview", description: "In-person at company office" },
+      final: { label: "Final Interview", description: "Final decision-making interview" },
+    },
+    scheduling: "Scheduling",
+    dateTime: "Date & Time *",
+    duration: "Duration (minutes) *",
+    durations: {
+      minutes30: "30 minutes",
+      minutes45: "45 minutes",
+      hour1: "1 hour",
+      hours15: "1.5 hours",
+      hours2: "2 hours",
+      hours3: "3 hours",
+      hours4: "4 hours",
+    },
+    timezone: "Timezone",
+    timezones: {
+      eastern: "Eastern Time (ET)",
+      central: "Central Time (CT)",
+      mountain: "Mountain Time (MT)",
+      pacific: "Pacific Time (PT)",
+      london: "London (GMT)",
+      europe: "Central European (CET)",
+      japan: "Japan (JST)",
+      china: "China (CST)",
+    },
+    location: "Location",
+    locationType: "Location Type *",
+    locationTypes: {
+      remote: "Remote/Video",
+      in_person: "In-Person",
+      phone: "Phone Call",
+    },
+    meetingPlatform: "Meeting Platform",
+    selectPlatform: "Select platform",
+    meetingUrl: "Meeting URL",
+    meetingId: "Meeting ID",
+    meetingPassword: "Meeting Password",
+    optionalPassword: "Optional password",
+    address: "Address *",
+    addressPlaceholder: "Full address including street, city, state, and zip code",
+    interviewers: "Interviewers",
+    interviewer: (index: number) => `Interviewer ${index}`,
+    namePlaceholder: "Name *",
+    rolePlaceholder: "Role (e.g., Hiring Manager)",
+    emailPlaceholder: "Email",
+    addInterviewer: "Add Interviewer",
+    preparation: "Preparation",
+    preparationNotes: "Preparation Notes",
+    preparationPlaceholder: "Key points to prepare, questions to ask, topics to review...",
+    reminders: "Reminders",
+    enableReminders: "Enable interview reminders",
+    remindedBefore: "Get reminded before the interview:",
+    reminderOptions: {
+      hours24: "24 hours",
+      hours2: "2 hours",
+      hour1: "1 hour",
+      minutes30: "30 minutes",
+    },
+    linkToApplication: "Link to Application",
+    relatedApplication: "Related Application (Optional)",
+    selectApplication: "Select an application...",
+    unknownCompany: "Unknown Company",
+    unknownPosition: "Unknown Position",
+    cancel: "Cancel",
+    saving: "Saving...",
+    defaultSubmit: "Schedule Interview",
+  },
+  "zh-CN": {
+    loading: "正在加载面试...",
+    editTitle: "编辑面试",
+    createTitle: "预约新面试",
+    subtitle: "填写面试细节，SyncHire 会帮你管理日程和准备事项",
+    basicInformation: "基础信息",
+    titleLabel: "面试标题 *",
+    titlePlaceholder: "例如：技术面试 - 前端工程师",
+    descriptionLabel: "说明",
+    descriptionPlaceholder: "补充面试背景、考察重点或注意事项...",
+    interviewTypeLabel: "面试类型 *",
+    interviewTypes: {
+      screening: { label: "初筛电话", description: "HR 或招聘方的初步沟通" },
+      technical: { label: "技术面试", description: "深入技术能力与项目经验评估" },
+      behavioral: { label: "行为面试", description: "文化匹配、沟通和行为问题" },
+      panel: { label: "小组面试", description: "与多位面试官同时沟通" },
+      onsite: { label: "现场面试", description: "到公司办公室参加线下面试" },
+      final: { label: "终面", description: "进入最终决策阶段的面试" },
+    },
+    scheduling: "日程安排",
+    dateTime: "日期与时间 *",
+    duration: "时长（分钟）*",
+    durations: {
+      minutes30: "30 分钟",
+      minutes45: "45 分钟",
+      hour1: "1 小时",
+      hours15: "1.5 小时",
+      hours2: "2 小时",
+      hours3: "3 小时",
+      hours4: "4 小时",
+    },
+    timezone: "时区",
+    timezones: {
+      eastern: "美国东部时间 (ET)",
+      central: "美国中部时间 (CT)",
+      mountain: "美国山地时间 (MT)",
+      pacific: "美国太平洋时间 (PT)",
+      london: "伦敦 (GMT)",
+      europe: "中欧时间 (CET)",
+      japan: "日本 (JST)",
+      china: "中国 (CST)",
+    },
+    location: "面试地点",
+    locationType: "地点类型 *",
+    locationTypes: {
+      remote: "远程/视频",
+      in_person: "线下现场",
+      phone: "电话沟通",
+    },
+    meetingPlatform: "会议平台",
+    selectPlatform: "选择平台",
+    meetingUrl: "会议链接",
+    meetingId: "会议 ID",
+    meetingPassword: "会议密码",
+    optionalPassword: "可选密码",
+    address: "地址 *",
+    addressPlaceholder: "填写街道、城市、省市和邮编等完整地址",
+    interviewers: "面试官",
+    interviewer: (index: number) => `面试官 ${index}`,
+    namePlaceholder: "姓名 *",
+    rolePlaceholder: "角色（例如：招聘经理）",
+    emailPlaceholder: "邮箱",
+    addInterviewer: "添加面试官",
+    preparation: "准备事项",
+    preparationNotes: "准备备注",
+    preparationPlaceholder: "记录需要复习的主题、想提的问题和关键项目证据...",
+    reminders: "提醒",
+    enableReminders: "开启面试提醒",
+    remindedBefore: "在面试前提醒我：",
+    reminderOptions: {
+      hours24: "24 小时",
+      hours2: "2 小时",
+      hour1: "1 小时",
+      minutes30: "30 分钟",
+    },
+    linkToApplication: "关联申请",
+    relatedApplication: "相关申请（可选）",
+    selectApplication: "选择一条申请...",
+    unknownCompany: "未知公司",
+    unknownPosition: "未知岗位",
+    cancel: "取消",
+    saving: "保存中...",
+    defaultSubmit: "预约面试",
+  },
+} as const;
 
 // Form schema
 const interviewSchema = z.object({
@@ -140,10 +312,12 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
   onSubmit,
   onSuccess,
   onCancel,
-  submitLabel = "Schedule Interview",
+  submitLabel,
   className,
 }: InterviewSchedulingFormProps) {
   const router = useRouter();
+  const { locale } = useLiteCopy();
+  const copy = INTERVIEW_FORM_COPY[locale];
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -324,7 +498,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
     return (
       <div className="flex items-center justify-center p-12">
         <Loader2 className="h-8 w-8 text-purple-600 animate-spin" />
-        <span className="ml-3 text-lg font-medium text-gray-900">Loading interview...</span>
+        <span className="ml-3 text-lg font-medium text-gray-900">{copy.loading}</span>
       </div>
     );
   }
@@ -333,10 +507,10 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
     <div className={cn("bg-white rounded-xl shadow-sm border border-gray-200", className)}>
       <div className="p-6 border-b border-gray-200">
         <h2 className="text-2xl font-bold text-gray-900">
-          {interviewId ? "Edit Interview" : "Schedule New Interview"}
+          {interviewId ? copy.editTitle : copy.createTitle}
         </h2>
         <p className="mt-2 text-sm text-gray-600">
-          Fill in the details to schedule your interview
+          {copy.subtitle}
         </p>
       </div>
 
@@ -350,18 +524,18 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
 
         {/* Basic Information */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{copy.basicInformation}</h3>
 
         {/* Title */}
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-            Interview Title *
+            {copy.titleLabel}
           </label>
           <input
             id="title"
             type="text"
             {...register("title")}
-            placeholder="e.g., Technical Interview - Frontend Engineer"
+            placeholder={copy.titlePlaceholder}
             className={cn(
               "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
               errors.title && "border-red-500"
@@ -375,13 +549,13 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
         {/* Description */}
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-            Description
+            {copy.descriptionLabel}
           </label>
           <textarea
             id="description"
             {...register("description")}
             rows={3}
-            placeholder="Additional details about the interview..."
+            placeholder={copy.descriptionPlaceholder}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -389,31 +563,34 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
         {/* Interview Type */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Interview Type *
+            {copy.interviewTypeLabel}
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {interviewTypes.map(type => (
-              <label
-                key={type.value}
-                className={cn(
-                  "flex items-start p-3 border rounded-lg cursor-pointer transition-colors",
-                  watch("interview_type") === type.value
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-300 hover:border-gray-400"
-                )}
-              >
-                <input
-                  type="radio"
-                  value={type.value}
-                  {...register("interview_type")}
-                  className="mt-1 mr-3"
-                />
-                <div>
-                  <div className="font-medium text-gray-900">{type.label}</div>
-                  <div className="text-sm text-gray-600">{type.description}</div>
-                </div>
-              </label>
-            ))}
+            {interviewTypes.map(type => {
+              const typeCopy = copy.interviewTypes[type.value as keyof typeof copy.interviewTypes];
+              return (
+                <label
+                  key={type.value}
+                  className={cn(
+                    "flex items-start p-3 border rounded-lg cursor-pointer transition-colors",
+                    watch("interview_type") === type.value
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-300 hover:border-gray-400"
+                  )}
+                >
+                  <input
+                    type="radio"
+                    value={type.value}
+                    {...register("interview_type")}
+                    className="mt-1 mr-3"
+                  />
+                  <div>
+                    <div className="font-medium text-gray-900">{typeCopy.label}</div>
+                    <div className="text-sm text-gray-600">{typeCopy.description}</div>
+                  </div>
+                </label>
+              );
+            })}
           </div>
           {errors.interview_type && (
             <p className="mt-1 text-sm text-red-600">{errors.interview_type.message}</p>
@@ -425,14 +602,14 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <Calendar className="h-5 w-5" />
-          Scheduling
+          {copy.scheduling}
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Date */}
           <div>
             <label htmlFor="scheduled_date" className="block text-sm font-medium text-gray-700 mb-1">
-              Date & Time *
+              {copy.dateTime}
             </label>
             <input
               id="scheduled_date"
@@ -451,7 +628,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
           {/* Duration */}
           <div>
             <label htmlFor="duration_minutes" className="block text-sm font-medium text-gray-700 mb-1">
-              Duration (minutes) *
+              {copy.duration}
             </label>
             <select
               id="duration_minutes"
@@ -461,13 +638,13 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                 errors.duration_minutes && "border-red-500"
               )}
             >
-              <option value={30}>30 minutes</option>
-              <option value={45}>45 minutes</option>
-              <option value={60}>1 hour</option>
-              <option value={90}>1.5 hours</option>
-              <option value={120}>2 hours</option>
-              <option value={180}>3 hours</option>
-              <option value={240}>4 hours</option>
+              <option value={30}>{copy.durations.minutes30}</option>
+              <option value={45}>{copy.durations.minutes45}</option>
+              <option value={60}>{copy.durations.hour1}</option>
+              <option value={90}>{copy.durations.hours15}</option>
+              <option value={120}>{copy.durations.hours2}</option>
+              <option value={180}>{copy.durations.hours3}</option>
+              <option value={240}>{copy.durations.hours4}</option>
             </select>
             {errors.duration_minutes && (
               <p className="mt-1 text-sm text-red-600">{errors.duration_minutes.message}</p>
@@ -478,7 +655,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
         {/* Timezone */}
         <div>
           <label htmlFor="timezone" className="block text-sm font-medium text-gray-700 mb-1">
-            Timezone
+            {copy.timezone}
           </label>
           <select
             id="timezone"
@@ -486,14 +663,14 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="UTC">UTC</option>
-            <option value="America/New_York">Eastern Time (ET)</option>
-            <option value="America/Chicago">Central Time (CT)</option>
-            <option value="America/Denver">Mountain Time (MT)</option>
-            <option value="America/Los_Angeles">Pacific Time (PT)</option>
-            <option value="Europe/London">London (GMT)</option>
-            <option value="Europe/Paris">Central European (CET)</option>
-            <option value="Asia/Tokyo">Japan (JST)</option>
-            <option value="Asia/Shanghai">China (CST)</option>
+            <option value="America/New_York">{copy.timezones.eastern}</option>
+            <option value="America/Chicago">{copy.timezones.central}</option>
+            <option value="America/Denver">{copy.timezones.mountain}</option>
+            <option value="America/Los_Angeles">{copy.timezones.pacific}</option>
+            <option value="Europe/London">{copy.timezones.london}</option>
+            <option value="Europe/Paris">{copy.timezones.europe}</option>
+            <option value="Asia/Tokyo">{copy.timezones.japan}</option>
+            <option value="Asia/Shanghai">{copy.timezones.china}</option>
           </select>
         </div>
       </div>
@@ -502,13 +679,13 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <MapPin className="h-5 w-5" />
-          Location
+          {copy.location}
         </h3>
 
         {/* Location Type */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Location Type *
+            {copy.locationType}
           </label>
           <div className="flex gap-3">
             {locationTypes.map(type => {
@@ -530,7 +707,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                     className="sr-only"
                   />
                   <Icon className="h-5 w-5" />
-                  <span className="font-medium">{type.label}</span>
+                  <span className="font-medium">{copy.locationTypes[type.value as keyof typeof copy.locationTypes]}</span>
                 </label>
               );
             })}
@@ -542,14 +719,14 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
           <div className="space-y-4">
             <div>
               <label htmlFor="meeting_platform" className="block text-sm font-medium text-gray-700 mb-1">
-                Meeting Platform
+                {copy.meetingPlatform}
               </label>
               <select
                 id="meeting_platform"
                 {...register("meeting_platform")}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">Select platform</option>
+                <option value="">{copy.selectPlatform}</option>
                 <option value="zoom">Zoom</option>
                 <option value="google_meet">Google Meet</option>
                 <option value="teams">Microsoft Teams</option>
@@ -560,7 +737,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
 
             <div>
               <label htmlFor="location_url" className="block text-sm font-medium text-gray-700 mb-1">
-                Meeting URL
+                {copy.meetingUrl}
               </label>
               <input
                 id="location_url"
@@ -577,7 +754,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="meeting_id" className="block text-sm font-medium text-gray-700 mb-1">
-                  Meeting ID
+                  {copy.meetingId}
                 </label>
                 <input
                   id="meeting_id"
@@ -590,13 +767,13 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
 
               <div>
                 <label htmlFor="meeting_password" className="block text-sm font-medium text-gray-700 mb-1">
-                  Meeting Password
+                  {copy.meetingPassword}
                 </label>
                 <input
                   id="meeting_password"
                   type="text"
                   {...register("meeting_password")}
-                  placeholder="Optional password"
+                  placeholder={copy.optionalPassword}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -608,13 +785,13 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
         {locationType === "in_person" && (
           <div>
             <label htmlFor="location_address" className="block text-sm font-medium text-gray-700 mb-1">
-              Address *
+              {copy.address}
             </label>
             <textarea
               id="location_address"
               {...register("location_address")}
               rows={3}
-              placeholder="Full address including street, city, state, and zip code"
+              placeholder={copy.addressPlaceholder}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -625,13 +802,13 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <Users className="h-5 w-5" />
-          Interviewers
+          {copy.interviewers}
         </h3>
 
         {interviewers.map((interviewer, index) => (
           <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Interviewer {index + 1}</span>
+              <span className="text-sm font-medium text-gray-700">{copy.interviewer(index + 1)}</span>
               <button
                 type="button"
                 onClick={() => removeInterviewer(index)}
@@ -647,7 +824,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                   type="text"
                   value={interviewer.name}
                   onChange={(e) => updateInterviewer(index, "name", e.target.value)}
-                  placeholder="Name *"
+                  placeholder={copy.namePlaceholder}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -657,7 +834,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                   type="text"
                   value={interviewer.role || ""}
                   onChange={(e) => updateInterviewer(index, "role", e.target.value)}
-                  placeholder="Role (e.g., Hiring Manager)"
+                  placeholder={copy.rolePlaceholder}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -667,7 +844,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                   type="email"
                   value={interviewer.email || ""}
                   onChange={(e) => updateInterviewer(index, "email", e.target.value)}
-                  placeholder="Email"
+                  placeholder={copy.emailPlaceholder}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -682,7 +859,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
           className="w-full"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Add Interviewer
+          {copy.addInterviewer}
         </Button>
       </div>
 
@@ -690,18 +867,18 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Preparation
+          {copy.preparation}
         </h3>
 
         <div>
           <label htmlFor="preparation_notes" className="block text-sm font-medium text-gray-700 mb-1">
-            Preparation Notes
+            {copy.preparationNotes}
           </label>
           <textarea
             id="preparation_notes"
             {...register("preparation_notes")}
             rows={4}
-            placeholder="Key points to prepare, questions to ask, topics to review..."
+            placeholder={copy.preparationPlaceholder}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -711,7 +888,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <Bell className="h-5 w-5" />
-          Reminders
+          {copy.reminders}
         </h3>
 
         <div className="flex items-center gap-2">
@@ -722,19 +899,19 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
             className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           />
           <label htmlFor="reminder_enabled" className="text-sm font-medium text-gray-700">
-            Enable interview reminders
+            {copy.enableReminders}
           </label>
         </div>
 
         {reminderEnabled && (
           <div className="ml-6 space-y-2">
-            <p className="text-sm text-gray-600">Get reminded before the interview:</p>
+            <p className="text-sm text-gray-600">{copy.remindedBefore}</p>
             <div className="flex flex-wrap gap-2">
               {[
-                { value: 24, label: "24 hours" },
-                { value: 2, label: "2 hours" },
-                { value: 1, label: "1 hour" },
-                { value: 0.5, label: "30 minutes" },
+                { value: 24, label: copy.reminderOptions.hours24 },
+                { value: 2, label: copy.reminderOptions.hours2 },
+                { value: 1, label: copy.reminderOptions.hour1 },
+                { value: 0.5, label: copy.reminderOptions.minutes30 },
               ].map(option => (
                 <label key={option.value} className="flex items-center gap-2">
                   <input
@@ -757,21 +934,21 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
 
         {/* Link to Application */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Link to Application</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{copy.linkToApplication}</h3>
 
           <div>
             <label htmlFor="application_id" className="block text-sm font-medium text-gray-700 mb-1">
-              Related Application (Optional)
+              {copy.relatedApplication}
             </label>
             <select
               id="application_id"
               {...register("application_id")}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">Select an application...</option>
+              <option value="">{copy.selectApplication}</option>
               {applications.map((app) => (
                 <option key={app.id} value={app.id}>
-                  {app.company_name || "Unknown Company"} - {app.job_title || "Unknown Position"}
+                  {app.company_name || copy.unknownCompany} - {app.job_title || copy.unknownPosition}
                 </option>
               ))}
             </select>
@@ -788,7 +965,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
             onClick={onCancel}
             disabled={isSubmitting}
           >
-            Cancel
+            {copy.cancel}
           </Button>
         )}
         <Button
@@ -799,12 +976,12 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
           {isSubmitting ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Saving...
+              {copy.saving}
             </>
           ) : (
             <>
               <Save className="h-4 w-4 mr-2" />
-              {submitLabel}
+              {submitLabel ?? copy.defaultSubmit}
             </>
           )}
         </Button>

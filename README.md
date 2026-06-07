@@ -60,7 +60,7 @@ Use SyncHire in local-first Lite mode when you want a private, fast, no-backend 
 
 ## English Linux Dogfood Showcase
 
-These screenshots come from the June 8, 2026 Linux standalone production validation run. SyncHire was launched locally with seeded fresh-graduate job-search data, switched to English, and exercised across the complete Lite workflow: dashboard, resumes, job descriptions, applications, role-specific resume generation, local PDF export, role-card assisted browser filling, match analysis, interview prep, analytics, search, data management, and settings.
+These screenshots come from the June 8, 2026 Linux standalone production validation run. SyncHire was launched locally with seeded fresh-graduate job-search data, switched to English, and exercised across the complete Lite workflow: dashboard, resumes, job descriptions, applications, role-specific resume generation, local PDF export, role-card assisted browser filling, match analysis, interview prep, interview scheduling, saved searches, notification settings and history, analytics, search, data management, AI provider/model settings, Skill and MCP switchboards, discovery, and repository management.
 
 ### Core Workflow
 
@@ -92,13 +92,43 @@ These screenshots come from the June 8, 2026 Linux standalone production validat
 | ------ | --------------- |
 | <img src="docs/assets/readme/en-linux-search.png" alt="SyncHire Lite English local search screen from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-data-management.png" alt="SyncHire Lite English data management screen from Linux validation" width="420" /> |
 
+### Interviews And Alerts
+
+| Interview Pipeline | Interview Scheduling |
+| ------------------ | -------------------- |
+| <img src="docs/assets/readme/en-linux-interviews.png" alt="SyncHire Lite English interview pipeline with upcoming and completed interviews from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-interview-schedule.png" alt="SyncHire Lite English interview scheduling form from Linux validation" width="420" /> |
+
+| Saved Searches | Notification Settings |
+| -------------- | --------------------- |
+| <img src="docs/assets/readme/en-linux-saved-searches.png" alt="SyncHire Lite English saved search cards with filters and match notifications from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-settings-notifications.png" alt="SyncHire Lite English local notification settings from Linux validation" width="420" /> |
+
+| Notification History |
+| -------------------- |
+| <img src="docs/assets/readme/en-linux-settings-history.png" alt="SyncHire Lite English local notification history from Linux validation" width="860" /> |
+
+### Focused Search Views
+
 | Resume Search | Job Description Search |
 | ------------- | ---------------------- |
 | <img src="docs/assets/readme/en-linux-search-resumes.png" alt="SyncHire Lite English resume search results from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-search-jds.png" alt="SyncHire Lite English job description search results from Linux validation" width="420" /> |
 
-| Application Search | Settings |
-| ------------------ | -------- |
-| <img src="docs/assets/readme/en-linux-search-applications.png" alt="SyncHire Lite English application search results from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-settings.png" alt="SyncHire Lite English settings screen from Linux validation" width="420" /> |
+| Application Search | Settings Overview |
+| ------------------ | ----------------- |
+| <img src="docs/assets/readme/en-linux-search-applications.png" alt="SyncHire Lite English application search results from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-settings.png" alt="SyncHire Lite English AI runtime settings overview from Linux validation" width="420" /> |
+
+### AI Runtime Control
+
+| AI Provider & Model Routing | Skill Switchboard |
+| --------------------------- | ----------------- |
+| <img src="docs/assets/readme/en-linux-settings-ai.png" alt="SyncHire Lite English AI provider API key and model routing settings from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-settings-skills.png" alt="SyncHire Lite English Skill switchboard filtered for resume capabilities from Linux validation" width="420" /> |
+
+| MCP Switchboard | Discovery Search |
+| --------------- | ---------------- |
+| <img src="docs/assets/readme/en-linux-settings-mcp.png" alt="SyncHire Lite English MCP switchboard filtered for browser bridge capabilities from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-settings-discover.png" alt="SyncHire Lite English Skill and MCP discovery search from Linux validation" width="420" /> |
+
+| Repository Management |
+| --------------------- |
+| <img src="docs/assets/readme/en-linux-settings-repositories.png" alt="SyncHire Lite English runtime repository management with a private metadata catalog from Linux validation" width="860" /> |
 
 ## Product Modes
 

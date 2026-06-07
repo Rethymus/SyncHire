@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import InterviewSchedulingForm from "@/components/interview-scheduling-form";
 import { apiClient } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
+import { useLiteCopy } from "@/lib/lite-i18n";
 
 interface Application {
   id: string;
@@ -17,9 +18,50 @@ interface Application {
   company_name?: string;
 }
 
+const NEW_INTERVIEW_COPY = {
+  "en-US": {
+    title: "Schedule Interview",
+    subtitle: "Add a new interview to your calendar",
+    companyFallback: "Company",
+    positionFallback: "Position",
+    titleSuffix: "Interview",
+    createError: "Failed to create interview",
+    errorTitle: "Error",
+    scheduling: "Scheduling...",
+    submit: "Schedule Interview",
+    tipsTitle: "Tips for Scheduling Interviews",
+    tips: [
+      "Schedule interviews at least 24 hours in advance to allow proper preparation",
+      "Include interviewer information to help you prepare for who you'll be meeting",
+      "Set reminders to ensure you don't miss any scheduled interviews",
+      "Add preparation notes with key topics to review and questions to ask",
+    ],
+  },
+  "zh-CN": {
+    title: "预约面试",
+    subtitle: "把新的面试加入日程，并沉淀准备事项",
+    companyFallback: "公司",
+    positionFallback: "岗位",
+    titleSuffix: "面试",
+    createError: "创建面试失败",
+    errorTitle: "错误",
+    scheduling: "预约中...",
+    submit: "预约面试",
+    tipsTitle: "面试预约建议",
+    tips: [
+      "尽量提前 24 小时以上安排面试，给自己留出充分准备时间",
+      "记录面试官信息，方便提前了解对方职责和关注点",
+      "开启提醒，避免错过任何已安排的面试",
+      "补充准备备注，把需要复习的主题和想问的问题放在一起",
+    ],
+  },
+} as const;
+
 function NewInterviewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { locale } = useLiteCopy();
+  const copy = NEW_INTERVIEW_COPY[locale];
   const applicationId = searchParams.get('applicationId');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +80,7 @@ function NewInterviewContent() {
 
   // Generate default title from application
   const defaultTitle = application
-    ? `${application.company_name || 'Company'} - ${application.job_title || 'Position'} Interview`
+    ? `${application.company_name || copy.companyFallback} - ${application.job_title || copy.positionFallback} ${copy.titleSuffix}`
     : '';
 
   // Handle form submission
@@ -72,13 +114,13 @@ function NewInterviewContent() {
         router.push('/interviews');
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to create interview';
+      const errorMsg = err instanceof Error ? err.message : copy.createError;
       setError(errorMsg);
       logger.error(LogCategory.UI, 'Failed to create interview', err as Error);
     } finally {
       setIsSubmitting(false);
     }
-  }, [applicationId, router]);
+  }, [applicationId, copy.createError, router]);
 
   // Handle cancel
   const handleCancel = useCallback(() => {
@@ -101,9 +143,9 @@ function NewInterviewContent() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Schedule Interview</h1>
+              <h1 className="text-3xl font-bold text-gray-900">{copy.title}</h1>
               <p className="mt-2 text-lg text-gray-700">
-                Add a new interview to your calendar
+                {copy.subtitle}
               </p>
             </div>
           </div>
@@ -118,7 +160,7 @@ function NewInterviewContent() {
               </svg>
             </div>
             <div className="flex-1">
-              <h3 className="text-sm font-medium text-red-900">Error</h3>
+              <h3 className="text-sm font-medium text-red-900">{copy.errorTitle}</h3>
               <p className="mt-1 text-sm text-red-700">{error}</p>
             </div>
             <button
@@ -141,18 +183,17 @@ function NewInterviewContent() {
             }}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
-            submitLabel={isSubmitting ? "Scheduling..." : "Schedule Interview"}
+            submitLabel={isSubmitting ? copy.scheduling : copy.submit}
           />
         </div>
 
         {/* Info Card */}
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-blue-900 mb-2">Tips for Scheduling Interviews</h3>
+          <h3 className="text-sm font-semibold text-blue-900 mb-2">{copy.tipsTitle}</h3>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Schedule interviews at least 24 hours in advance to allow proper preparation</li>
-            <li>• Include interviewer information to help you prepare for who you&apos;ll be meeting</li>
-            <li>• Set reminders to ensure you don&apos;t miss any scheduled interviews</li>
-            <li>• Add preparation notes with key topics to review and questions to ask</li>
+            {copy.tips.map((tip) => (
+              <li key={tip}>- {tip}</li>
+            ))}
           </ul>
         </div>
       </div>

@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useId } from "react";
 import { useLiteCopy } from "@/lib/lite-i18n";
+import { addLocalNotification } from "@/lib/local-notifications";
 
 interface NotificationPreferences {
   email_enabled: boolean;
@@ -274,6 +275,31 @@ export function NotificationSettings() {
   const handleTestNotification = async (type: "application_status" | "interview_reminder" | "weekly_digest") => {
     try {
       setTestLoading(true);
+      const testCopy = {
+        application_status: {
+          notificationType: "info" as const,
+          title: copy.applicationStatus,
+          message: copy.applicationStatusDescription,
+        },
+        interview_reminder: {
+          notificationType: "warning" as const,
+          title: copy.interviewReminders,
+          message: copy.interviewRemindersDescription,
+        },
+        weekly_digest: {
+          notificationType: "success" as const,
+          title: copy.weeklyDigest,
+          message: copy.weeklyDigestDescription,
+        },
+      }[type];
+
+      addLocalNotification({
+        type: testCopy.notificationType,
+        title: testCopy.title,
+        message: testCopy.message,
+        action_url: "/applications",
+        metadata: { source: "notification-settings-test", notificationType: type },
+      });
       showMessage("success", copy.testRecorded);
     } catch (error) {
       showMessage("error", copy.testFailed);
