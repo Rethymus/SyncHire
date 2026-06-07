@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, memo } from "react";
+import Link from "next/link";
 import { Bell, X, Clock, Calendar, CheckCircle, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -204,10 +205,10 @@ const InterviewReminders = memo(function InterviewReminders({
                       asChild
                       className="flex-1"
                     >
-                      <a href={`/interviews/${reminder.interview_id}`}>
+                      <Link href={`/interviews/${reminder.interview_id}`}>
                         <CheckCircle className="h-3 w-3 mr-1" />
                         View Details
-                      </a>
+                      </Link>
                     </Button>
                   )}
                 </div>
@@ -218,13 +219,13 @@ const InterviewReminders = memo(function InterviewReminders({
 
         {/* Footer */}
         <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
-          <a
+          <Link
             href="/interviews"
             className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center justify-center gap-1"
           >
             View All Interviews
             <ExternalLink className="h-3 w-3" />
-          </a>
+          </Link>
         </div>
       </div>
     </div>

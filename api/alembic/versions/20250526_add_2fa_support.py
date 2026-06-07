@@ -10,7 +10,6 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import ARRAY
 
-
 # revision identifiers, used by Alembic.
 revision = "20250526_add_2fa_support"
 down_revision = "20250526_add_password_reset_tokens"

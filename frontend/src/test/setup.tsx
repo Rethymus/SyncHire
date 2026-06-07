@@ -1,6 +1,13 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 
+// Keep test output clean while preserving mock call assertions.
+console.debug = vi.fn()
+console.error = vi.fn()
+console.info = vi.fn()
+console.log = vi.fn()
+console.warn = vi.fn()
+
 // Mock Next.js modules
 vi.mock('next/navigation', () => ({
   useRouter: () => ({

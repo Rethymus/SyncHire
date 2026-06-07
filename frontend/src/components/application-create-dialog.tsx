@@ -341,7 +341,7 @@ export function ApplicationCreateDialog({
       setLoading(false);
       setIsRetrying(false);
     }
-  }, [selectedResumeId, selectedJDId, notes, canProceed, addApplication, onSuccess, onOpenChange, resetForm, analyzeError, retryWithBackoff, isRetrying, api, crud, createApplicationMutation]);
+  }, [selectedResumeId, selectedJDId, notes, canProceed, analyzeError, retryWithBackoff, isRetrying, api, createApplicationMutation]);
 
   const handleRetry = useCallback(async () => {
     if (retryCount >= 3) {

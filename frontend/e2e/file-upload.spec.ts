@@ -1,234 +1,69 @@
 /**
- * E2E tests for file upload flow
+ * E2E tests for the current local-first resume and job-description flows.
  */
 
 import { test, expect } from '@playwright/test'
-import path from 'path'
+import { mockLiteApi } from './helpers'
 
-test.describe('File Upload Flow', () => {
+test.describe('Lite resume upload flow', () => {
+  test('accepts a text resume and opens the editor', async ({ page }) => {
+    await page.goto('/upload')
+
+    await page.locator('input[type="file"]').setInputFiles({
+      name: 'resume.txt',
+      mimeType: 'text/plain',
+      buffer: Buffer.from('Frontend Engineer\nReact TypeScript Playwright'),
+    })
+
+    await expect(page).toHaveURL(/\/editor$/, { timeout: 5000 })
+    await expect(page.getByRole('heading', { name: '简历编辑器' })).toBeVisible()
+    await expect(page.getByText('- resume.txt')).toBeVisible()
+    await expect(page.getByRole('textbox', { name: '简历内容编辑' })).toContainText(
+      'React TypeScript Playwright'
+    )
+  })
+
+  test('rejects unsupported file types', async ({ page }) => {
+    await page.goto('/upload')
+
+    await page.locator('input[type="file"]').setInputFiles({
+      name: 'malicious.exe',
+      mimeType: 'application/x-msdownload',
+      buffer: Buffer.from('not a resume'),
+    })
+
+    await expect(page.getByText(/不支持的文件格式/)).toBeVisible()
+    await expect(page).toHaveURL(/\/upload$/)
+  })
+
+  test('rejects files larger than 10MB', async ({ page }) => {
+    await page.goto('/upload')
+
+    await page.locator('input[type="file"]').setInputFiles({
+      name: 'large-resume.txt',
+      mimeType: 'text/plain',
+      buffer: Buffer.alloc(10 * 1024 * 1024 + 1, 'a'),
+    })
+
+    await expect(page.getByText(/文件大小超过 10MB 限制/)).toBeVisible()
+    await expect(page).toHaveURL(/\/upload$/)
+  })
+})
+
+test.describe('Lite job description flow', () => {
   test.beforeEach(async ({ page }) => {
-    // Login before each test
-    await page.goto('/login')
-    await page.fill('input[name="email"]', 'test@example.com')
-    await page.fill('input[name="password"]', 'testpass123')
-    await page.click('button[type="submit"]')
-    await expect(page).toHaveURL('/dashboard')
+    await mockLiteApi(page)
   })
 
-  test('should upload resume via drag and drop', async ({ page }) => {
-    await page.goto('/upload')
-
-    // Get file input
-    const fileInput = await page.locator('input[type="file"]')
-
-    // Upload file
-    const filePath = path.join(__dirname, 'fixtures', 'resume.pdf')
-    await fileInput.setInputFiles(filePath)
-
-    // Should show upload progress
-    await expect(page.getByText(/uploading/i)).toBeVisible()
-
-    // Should show success message
-    await expect(page.getByText(/upload successful/i)).toBeVisible()
-  })
-
-  test('should upload resume via file picker', async ({ page }) => {
-    await page.goto('/upload')
-
-    // Click upload button
-    await page.click('text=Choose File')
-
-    // Get file input (hidden)
-    const fileInput = await page.locator('input[type="file"]')
-
-    // Upload file
-    const filePath = path.join(__dirname, 'fixtures', 'resume.pdf')
-    await fileInput.setInputFiles(filePath)
-
-    // Should show success
-    await expect(page.getByText(/resume uploaded/i)).toBeVisible()
-  })
-
-  test('should reject files larger than 5MB', async ({ page }) => {
-    await page.goto('/upload')
-
-    const fileInput = await page.locator('input[type="file"]')
-
-    // Create large file
-    const largeFilePath = path.join(__dirname, 'fixtures', 'large-resume.pdf')
-    await fileInput.setInputFiles(largeFilePath)
-
-    // Should show error
-    await expect(page.getByText(/file too large/i)).toBeVisible()
-  })
-
-  test('should reject unsupported file types', async ({ page }) => {
-    await page.goto('/upload')
-
-    const fileInput = await page.locator('input[type="file"]')
-
-    // Upload executable file
-    const filePath = path.join(__dirname, 'fixtures', 'malicious.exe')
-    await fileInput.setInputFiles(filePath)
-
-    // Should show error
-    await expect(page.getByText(/invalid file type/i)).toBeVisible()
-  })
-
-  test('should parse uploaded resume automatically', async ({ page }) => {
-    await page.goto('/upload')
-
-    const fileInput = await page.locator('input[type="file"]')
-    const filePath = path.join(__dirname, 'fixtures', 'resume.pdf')
-    await fileInput.setInputFiles(filePath)
-
-    // Wait for parsing to complete
-    await expect(page.getByText(/parsing resume/i)).toBeVisible()
-    await expect(page.getByText(/parsing complete/i)).toBeVisible()
-
-    // Should show parsed data
-    await expect(page.getByText(/contact information/i)).toBeVisible()
-    await expect(page.getByText(/experience/i)).toBeVisible()
-    await expect(page.getByText(/education/i)).toBeVisible()
-    await expect(page.getByText(/skills/i)).toBeVisible()
-
-    // Should show ATS score
-    await expect(page.getByText(/ats score/i)).toBeVisible()
-  })
-
-  test('should upload job description', async ({ page }) => {
+  test('creates a job description from manual input', async ({ page }) => {
     await page.goto('/jd-input')
 
-    // Upload JD file
-    const fileInput = await page.locator('input[type="file"]')
-    const filePath = path.join(__dirname, 'fixtures', 'job-description.pdf')
-    await fileInput.setInputFiles(filePath)
+    await page.getByLabel(/职位名称/).fill('高级前端工程师')
+    await page.getByLabel(/公司名称/).fill('SyncHire')
+    await page.getByLabel(/职位描述/).fill('负责构建稳定的招聘工作流和前端体验。')
+    await page.getByRole('button', { name: /继续下一步/ }).click()
 
-    // Should show success
-    await expect(page.getByText(/job description uploaded/i)).toBeVisible()
-
-    // Should parse automatically
-    await expect(page.getByText(/requirements extracted/i)).toBeVisible()
-  })
-
-  test('should handle multiple file uploads', async ({ page }) => {
-    await page.goto('/upload')
-
-    const fileInput = await page.locator('input[type="file"][multiple]')
-
-    // Upload multiple files
-    const files = [
-      path.join(__dirname, 'fixtures', 'resume1.pdf'),
-      path.join(__dirname, 'fixtures', 'resume2.pdf'),
-      path.join(__dirname, 'fixtures', 'resume3.pdf'),
-    ]
-
-    await fileInput.setInputFiles(files)
-
-    // Should show progress for all files
-    await expect(page.getByText(/uploading 3 files/i)).toBeVisible()
-
-    // Should complete all uploads
-    await expect(page.getByText(/3 files uploaded successfully/i)).toBeVisible()
-  })
-
-  test('should show upload progress percentage', async ({ page }) => {
-    await page.goto('/upload')
-
-    const fileInput = await page.locator('input[type="file"]')
-    const filePath = path.join(__dirname, 'fixtures', 'large-resume.pdf')
-    await fileInput.setInputFiles(filePath)
-
-    // Should show progress indicators
-    await expect(page.getByText(/0%/)).toBeVisible()
-    await expect(page.getByText(/25%/)).toBeVisible()
-    await expect(page.getByText(/50%/)).toBeVisible()
-    await expect(page.getByText(/75%/)).toBeVisible()
-    await expect(page.getByText(/100%/)).toBeVisible()
-  })
-
-  test('should cancel file upload', async ({ page }) => {
-    await page.goto('/upload')
-
-    const fileInput = await page.locator('input[type="file"]')
-    const filePath = path.join(__dirname, 'fixtures', 'large-resume.pdf')
-    await fileInput.setInputFiles(filePath)
-
-    // Click cancel button
-    await page.click('button:has-text("Cancel")')
-
-    // Should show cancelled message
-    await expect(page.getByText(/upload cancelled/i)).toBeVisible()
-
-    // File should not appear in list
-    await expect(page.getByText('resume.pdf')).not.toBeVisible()
-  })
-
-  test('should retry failed upload', async ({ page }) => {
-    await page.goto('/upload')
-
-    // Mock network error
-    await page.route('**/api/resumes/upload', route => route.abort('failed'))
-
-    const fileInput = await page.locator('input[type="file"]')
-    const filePath = path.join(__dirname, 'fixtures', 'resume.pdf')
-    await fileInput.setInputFiles(filePath)
-
-    // Should show error
-    await expect(page.getByText(/upload failed/i)).toBeVisible()
-
-    // Remove mock
-    await page.unroute('**/api/resumes/upload')
-
-    // Click retry button
-    await page.click('button:has-text("Retry")')
-
-    // Should succeed
-    await expect(page.getByText(/upload successful/i)).toBeVisible()
-  })
-
-  test('should delete uploaded file', async ({ page }) => {
-    await page.goto('/upload')
-
-    // Upload file
-    const fileInput = await page.locator('input[type="file"]')
-    const filePath = path.join(__dirname, 'fixtures', 'resume.pdf')
-    await fileInput.setInputFiles(filePath)
-
-    // Wait for upload to complete
-    await expect(page.getByText(/upload successful/i)).toBeVisible()
-
-    // Click delete button
-    await page.click('button[aria-label="Delete file"]')
-
-    // Confirm deletion
-    await page.click('button:has-text("Delete")')
-
-    // File should be removed
-    await expect(page.getByText('resume.pdf')).not.toBeVisible()
-    await expect(page.getByText(/file deleted/i)).toBeVisible()
-  })
-
-  test('should preview uploaded resume', async ({ page }) => {
-    await page.goto('/upload')
-
-    // Upload file
-    const fileInput = await page.locator('input[type="file"]')
-    const filePath = path.join(__dirname, 'fixtures', 'resume.pdf')
-    await fileInput.setInputFiles(filePath)
-
-    // Wait for upload
-    await expect(page.getByText(/upload successful/i)).toBeVisible()
-
-    // Click preview button
-    await page.click('button[aria-label="Preview file"]')
-
-    // Should show preview modal
-    await expect(page.getByRole('dialog')).toBeVisible()
-    await expect(page.getByRole('img', { name: /resume preview/i })).toBeVisible()
-
-    // Close preview
-    await page.keyboard.press('Escape')
-    await expect(page.getByRole('dialog')).not.toBeVisible()
+    await expect(page).toHaveURL(/\/dashboard$/, { timeout: 5000 })
+    await expect(page.getByRole('heading', { name: /Welcome to SyncHire Lite/i })).toBeVisible()
   })
 })

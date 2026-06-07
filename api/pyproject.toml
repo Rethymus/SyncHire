@@ -1,4 +1,5 @@
 [tool.pytest.ini_options]
+pythonpath = ["."]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
@@ -13,6 +14,10 @@ markers = [
     "integration: Integration tests",
     "e2e: End-to-end tests",
     "slow: Slow running tests",
+]
+filterwarnings = [
+    "ignore:Please use `import python_multipart` instead\\.:PendingDeprecationWarning:starlette\\.formparsers",
+    "ignore:Use 'content=<\\.\\.\\.>' to upload raw bytes/text content\\.:DeprecationWarning:httpx\\._models",
 ]
 
 [tool.coverage.run]

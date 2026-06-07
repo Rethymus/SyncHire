@@ -41,7 +41,7 @@ export default function WorkflowAnalyticsPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const workflowEngine = getWorkflowEngine();
+  const workflowEngine = React.useMemo(() => getWorkflowEngine(), []);
 
   // Load data on mount
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function WorkflowAnalyticsPage() {
     };
 
     loadAnalyticsData();
-  }, [applications.length, loadStatistics, loadAllSuggestions]);
+  }, [applications, workflowEngine, loadStatistics, loadAllSuggestions]);
 
   // Expose loadAnalyticsData for refresh button
   const loadAnalyticsData = useCallback(async () => {
@@ -81,7 +81,7 @@ export default function WorkflowAnalyticsPage() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [applications.length, loadStatistics, loadAllSuggestions]);
+  }, [applications, workflowEngine, loadStatistics, loadAllSuggestions]);
 
   // Get all history for the timeline
   const allHistory = React.useMemo(() => {

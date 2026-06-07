@@ -212,6 +212,10 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         # Check if this is a protected method
         if request.method in self.PROTECTED_METHODS:
+            auth_header = request.headers.get("authorization", "")
+            if auth_header.lower().startswith("bearer "):
+                return await call_next(request)
+
             # Check if path is exempt
             if not any(request.url.path.startswith(path) for path in self.EXEMPT_PATHS):
                 # Validate CSRF token
@@ -407,7 +411,7 @@ class ContentLengthMiddleware(BaseHTTPMiddleware):
                             "warning",
                         )
                         return JSONResponse(
-                            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
                             content={"error": "Payload too large"},
                         )
                 except ValueError:

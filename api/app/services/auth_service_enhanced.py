@@ -14,6 +14,7 @@ from sqlalchemy import select
 from typing import Optional
 from datetime import datetime
 import logging
+import secrets
 
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserResponse
@@ -525,8 +526,7 @@ class AuthServiceEnhanced:
             user: User object
         """
         try:
-            # Generate verification token (in production, use proper token generation)
-            verification_token = "verification_token_placeholder"
+            verification_token = secrets.token_urlsafe(32)
 
             # Send email
             await email_service.send_email(

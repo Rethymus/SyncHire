@@ -8,11 +8,14 @@ for local-only operation while preserving AI functionality.
 import os
 from pathlib import Path
 from secrets import token_urlsafe
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
 
 class LiteSettings(BaseSettings):
+    model_config = ConfigDict(env_file=".env.lite", case_sensitive=True)
+
     # Application
     APP_NAME: str = "SyncHire Lite"
     DEBUG: bool = False
@@ -61,10 +64,6 @@ class LiteSettings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_FILE: Path = DATA_DIR / "synchire.log"
-
-    class Config:
-        env_file = ".env.lite"
-        case_sensitive = True
 
     @property
     def database_url(self) -> str:

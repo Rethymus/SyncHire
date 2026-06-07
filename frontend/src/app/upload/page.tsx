@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { useDropzone, type FileRejection } from "react-dropzone";
 // import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb } from "@/components/breadcrumb";
@@ -21,6 +21,22 @@ import {
 import { cn } from "@/lib/utils";
 import { useToastMessage } from "@/components/ui/toast";
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+function getUploadRejectionMessage(rejections: FileRejection[]) {
+  const firstError = rejections[0]?.errors[0];
+
+  if (firstError?.code === "file-too-large") {
+    return "文件大小超过 10MB 限制";
+  }
+
+  if (firstError?.code === "too-many-files") {
+    return "最多只能上传 5 个文件";
+  }
+
+  return "不支持的文件格式。请上传 PDF、Word 或文本文档。";
+}
+
 export default function UploadPage() {
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
@@ -29,13 +45,16 @@ export default function UploadPage() {
   const { success, error: toastError } = useToastMessage();
 
   const onDrop = useCallback(
-    async (acceptedFiles: File[]) => {
+    async (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
       setError(null);
 
+      if (rejectedFiles.length > 0) {
+        setError(getUploadRejectionMessage(rejectedFiles));
+        return;
+      }
+
       if (acceptedFiles.length === 0) {
-        setError(
-          `不支持的文件格式。请上传 PDF、Word 或文本文档。`
-        );
+        setError("请选择要上传的简历文件。");
         return;
       }
 
@@ -88,6 +107,7 @@ export default function UploadPage() {
         "text/plain": [".txt"],
       },
       maxFiles: 5,
+      maxSize: MAX_FILE_SIZE,
       multiple: true,
     });
 

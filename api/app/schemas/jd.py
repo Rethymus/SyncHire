@@ -1,4 +1,6 @@
-from pydantic import BaseModel, Field
+import json
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from datetime import datetime
 import uuid
 from typing import List, Dict
@@ -25,14 +27,23 @@ class JDUpdate(BaseModel):
 
 
 class JDResponse(JDBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     user_id: uuid.UUID
     parsed_data: dict | None
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    @field_validator("parsed_data", mode="before")
+    @classmethod
+    def parse_json_data(cls, value):
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except json.JSONDecodeError:
+                return None
+        return value
 
 
 class JDParseResponse(BaseModel):
@@ -49,9 +60,23 @@ class JDFileUploadResponse(BaseModel):
     updated_at: datetime
     message: str
 
+    @field_validator("parsed_data", mode="before")
+    @classmethod
+    def parse_json_data(cls, value):
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except json.JSONDecodeError:
+                return None
+        return value
+
 
 class BulkDeleteRequest(BaseModel):
     """Request schema for bulk delete operations"""
+
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"ids": ["uuid1", "uuid2", "uuid3"]}}
+    )
 
     ids: List[uuid.UUID] = Field(
         ...,
@@ -60,24 +85,22 @@ class BulkDeleteRequest(BaseModel):
         description="List of IDs to delete (max 100 at once)",
     )
 
-    class Config:
-        json_schema_extra = {"example": {"ids": ["uuid1", "uuid2", "uuid3"]}}
-
 
 class BulkDeleteResponse(BaseModel):
     """Response schema for bulk delete operations"""
 
-    success_count: int = Field(..., description="Number of successfully deleted items")
-    failed_count: int = Field(..., description="Number of items that failed to delete")
-    errors: List[Dict[str, str]] = Field(
-        default_factory=list, description="List of errors for failed deletions"
-    )
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "success_count": 2,
                 "failed_count": 1,
                 "errors": [{"id": "uuid3", "error": "JD not found"}],
             }
         }
+    )
+
+    success_count: int = Field(..., description="Number of successfully deleted items")
+    failed_count: int = Field(..., description="Number of items that failed to delete")
+    errors: List[Dict[str, str]] = Field(
+        default_factory=list, description="List of errors for failed deletions"
+    )

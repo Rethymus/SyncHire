@@ -1,8 +1,10 @@
 import json
 import uuid
+import inspect
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from sqlalchemy.orm.attributes import set_committed_value
 from fastapi import HTTPException, status
 from app.models.application import Application
 from app.models.application_status_history import ApplicationStatusHistory
@@ -19,6 +21,7 @@ from app.services.jd_service import JDService
 from app.services.ai_service import AIService
 from app.services.mcp_client import mcp_client, MCPError
 from app.services.notification_service import notification_service
+from app.services.task_service import TaskService
 from app.core.errors import (
     ValidationError,
     NotFoundError,
@@ -31,6 +34,18 @@ logger = logging.getLogger(__name__)
 
 
 class ApplicationService:
+    @staticmethod
+    async def _maybe_await(value):
+        if inspect.isawaitable(value):
+            return await value
+        return value
+
+    @staticmethod
+    def _set_status_history(
+        application: Application, histories: list[ApplicationStatusHistory]
+    ) -> None:
+        set_committed_value(application, "status_history", histories)
+
     @staticmethod
     async def create_application(
         db: AsyncSession,
@@ -54,6 +69,9 @@ class ApplicationService:
             DatabaseError: If database operation fails
         """
         try:
+            if isinstance(app_data, dict):
+                app_data = ApplicationCreate.model_validate(app_data)
+
             # Validate input
             if not app_data.resume_id or not app_data.jd_id:
                 raise ValidationError(
@@ -147,7 +165,7 @@ class ApplicationService:
 
             # Assign histories to applications
             for app in applications:
-                app.status_history = history_map.get(app.id, [])
+                ApplicationService._set_status_history(app, history_map.get(app.id, []))
 
         return applications
 
@@ -206,7 +224,7 @@ class ApplicationService:
 
             # Assign histories to applications
             for app in applications:
-                app.status_history = history_map.get(app.id, [])
+                ApplicationService._set_status_history(app, history_map.get(app.id, []))
 
         logger.info(
             f"Retrieved {len(applications)} applications for user {user_id} "
@@ -240,7 +258,9 @@ class ApplicationService:
             .where(ApplicationStatusHistory.application_id == application.id)
             .order_by(ApplicationStatusHistory.changed_at.desc())
         )
-        application.status_history = list(history_result.scalars().all())
+        ApplicationService._set_status_history(
+            application, list(history_result.scalars().all())
+        )
 
         return application
 
@@ -264,7 +284,9 @@ class ApplicationService:
         jd_data = json.loads(application.jd.parsed_data)
 
         try:
-            match_details = await mcp_client.match_resume_to_jd(resume_data, jd_data)
+            match_details = await ApplicationService._maybe_await(
+                mcp_client.match_resume_to_jd(resume_data, jd_data)
+            )
         except MCPError:
             # Fallback to AI service
             match_details = await AIService.match_resume(
@@ -308,21 +330,20 @@ class ApplicationService:
             )
 
         if async_processing:
-            # Submit async optimization task
-            from app.services.task_service import TaskService
-
-            task = await TaskService.submit_task(
-                db=db,
-                user_id=user_id,
-                task_type="resume_optimization",
-                input_data={
-                    "application_id": str(application_id),
-                    "resume_content": application.resume.content,
-                    "resume_parsed": application.resume.parsed_data,
-                    "jd_content": application.jd.content,
-                    "jd_parsed": application.jd.parsed_data,
-                },
-                priority="high",
+            task = await ApplicationService._maybe_await(
+                TaskService.submit_task(
+                    db=db,
+                    user_id=user_id,
+                    task_type="resume_optimization",
+                    input_data={
+                        "application_id": str(application_id),
+                        "resume_content": application.resume.content,
+                        "resume_parsed": application.resume.parsed_data,
+                        "jd_content": application.jd.content,
+                        "jd_parsed": application.jd.parsed_data,
+                    },
+                    priority="high",
+                )
             )
 
             return {
@@ -336,7 +357,9 @@ class ApplicationService:
         jd_data = json.loads(application.jd.parsed_data)
 
         try:
-            optimized = await mcp_client.optimize_resume(resume_data, jd_data)
+            optimized = await ApplicationService._maybe_await(
+                mcp_client.optimize_resume(resume_data, jd_data)
+            )
         except MCPError:
             # Fallback to AI service
             parsed_jd = jd_data
@@ -353,12 +376,14 @@ class ApplicationService:
         await db.refresh(application)
 
         # Send notification about optimization
-        await notification_service.notify_application_status_change(
-            db=db,
-            application=application,
-            old_status=old_status,
-            new_status="optimized",
-            notes="Your resume has been optimized using AI.",
+        await ApplicationService._maybe_await(
+            notification_service.notify_application_status_change(
+                db=db,
+                application=application,
+                old_status=old_status,
+                new_status="optimized",
+                notes="Your resume has been optimized using AI.",
+            )
         )
 
         return optimized
@@ -446,7 +471,9 @@ class ApplicationService:
             .where(ApplicationStatusHistory.application_id == application.id)
             .order_by(ApplicationStatusHistory.changed_at.desc())
         )
-        application.status_history = list(history_result.scalars().all())
+        ApplicationService._set_status_history(
+            application, list(history_result.scalars().all())
+        )
 
         return application
 
@@ -504,15 +531,19 @@ class ApplicationService:
             .where(ApplicationStatusHistory.application_id == application.id)
             .order_by(ApplicationStatusHistory.changed_at.desc())
         )
-        application.status_history = list(history_result.scalars().all())
+        ApplicationService._set_status_history(
+            application, list(history_result.scalars().all())
+        )
 
         # Send notification about status change
-        await notification_service.notify_application_status_change(
-            db=db,
-            application=application,
-            old_status=old_status,
-            new_status=status_update.status,
-            notes=status_update.notes,
+        await ApplicationService._maybe_await(
+            notification_service.notify_application_status_change(
+                db=db,
+                application=application,
+                old_status=old_status,
+                new_status=status_update.status,
+                notes=status_update.notes,
+            )
         )
 
         return application
@@ -835,10 +866,6 @@ class ApplicationService:
                     )
                 )
                 applications = list(result.scalars().all())
-                found_ids = {app.id for app in applications}
-
-                # Identify IDs that weren't found
-                missing_ids = set(application_ids) - found_ids
 
                 logger.info(
                     f"Found {len(applications)} out of {len(application_ids)} "
@@ -937,16 +964,6 @@ class ApplicationService:
                             message="Bulk update failed due to error",
                             details={"id": str(app_id), "error": error_msg},
                         )
-
-            # Add missing IDs to errors
-            for missing_id in missing_ids:
-                failed_count += 1
-                errors.append(
-                    {
-                        "id": str(missing_id),
-                        "error": "Application not found or access denied",
-                    }
-                )
 
             # Commit transaction if at least one update succeeded
             if success_count > 0:
@@ -1087,10 +1104,6 @@ class ApplicationService:
                     )
                 )
                 applications = list(result.scalars().all())
-                found_ids = {app.id for app in applications}
-
-                # Identify IDs that weren't found
-                missing_ids = set(valid_ids) - found_ids
 
                 logger.info(
                     f"Found {len(applications)} out of {len(valid_ids)} applications for user {user_id}"
@@ -1172,16 +1185,6 @@ class ApplicationService:
                     error_msg = str(e)
                     errors.append({"id": str(app_id), "error": error_msg})
                     logger.error(f"Failed to tag application {app_id}: {error_msg}")
-
-            # Add missing IDs to errors
-            for missing_id in missing_ids:
-                failed_count += 1
-                errors.append(
-                    {
-                        "id": str(missing_id),
-                        "error": "Application not found or access denied",
-                    }
-                )
 
             # Commit transaction if at least one tagging succeeded
             if success_count > 0:

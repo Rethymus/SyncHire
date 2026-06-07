@@ -6,6 +6,7 @@
  */
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Briefcase, XCircle } from 'lucide-react';
 import {
   ErrorRecoveryStrategy,
@@ -260,12 +261,12 @@ export function ErrorRecoveryDialog({
         <div className="border-t px-6 py-4 bg-gray-50 flex justify-between items-center">
           <p className="text-sm text-gray-600">
             需要帮助？
-            <a
+            <Link
               href="/support"
               className="text-blue-600 hover:underline ml-1"
             >
               联系客服
-            </a>
+            </Link>
           </p>
           <button
             onClick={onClose}

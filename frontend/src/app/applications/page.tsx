@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useAppStore } from "@/lib/store";
 import { BatchApplicationsList } from "@/components/batch-applications-list";
 import { MatchRankingControls } from "@/components/match-ranking-controls";
@@ -28,6 +28,7 @@ export default function ApplicationsPage() {
 
   const stats = useMemo(() => getMatchStatistics(applications), [applications]);
   const recommended = useMemo(() => getRecommendedApplications(applications, 3), [applications]);
+  const handleRankingChange = useCallback(() => {}, []);
 
   // Filter out dismissed suggestions
   const activeSuggestions = useMemo(() => {
@@ -263,10 +264,7 @@ export default function ApplicationsPage() {
         {/* Ranking Controls and Applications List */}
         <MatchRankingControls
           applications={applications}
-          onRankingChange={(ranked) => {
-            // The applications list will use its own ranking
-            console.log("Ranked applications:", ranked.length);
-          }}
+          onRankingChange={handleRankingChange}
         >
           <BatchApplicationsList showRanking={true} />
         </MatchRankingControls>

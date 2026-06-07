@@ -12,6 +12,7 @@ Implements comprehensive file upload security:
 import os
 import magic
 import hashlib
+import tempfile
 from typing import Optional, Tuple, List
 from pathlib import Path
 from fastapi import UploadFile
@@ -430,7 +431,9 @@ class SecureFileStorage:
         Returns:
             Storage path for user
         """
-        base_storage = getattr(settings, "UPLOAD_DIR", "/tmp/uploads")
+        base_storage = getattr(settings, "UPLOAD_DIR", None) or os.fspath(
+            Path(tempfile.gettempdir()) / "synchire" / "uploads"
+        )
         user_storage = os.path.join(base_storage, user_id)
         os.makedirs(user_storage, exist_ok=True)
         return user_storage

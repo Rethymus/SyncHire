@@ -18,7 +18,7 @@ from app.services.audit_service import (
     get_audit_statistics,
     get_user_audit_history,
 )
-from app.services.auth_service_enhanced import get_current_user
+from app.core.deps import get_current_user
 from app.models.user import User
 from app.models.audit_log import AuditAction, ResourceType
 
@@ -210,7 +210,7 @@ async def get_audit_logs_endpoint(
                     "request_id": log.request_id,
                     "old_values": log.old_values,
                     "new_values": log.new_values,
-                    "metadata": log.metadata,
+                    "metadata": getattr(log, "request_metadata", None),
                     "timestamp": log.timestamp.isoformat(),
                 }
                 for log in logs

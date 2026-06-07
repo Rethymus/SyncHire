@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 // import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { logger } from "@/lib/logger";
@@ -208,9 +209,9 @@ export default function LoginPage() {
                     记住我
                   </label>
                 </div>
-                <a href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-500">
+                <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-500">
                   忘记密码？
-                </a>
+                </Link>
               </div>
 
               <Button
@@ -293,9 +294,9 @@ export default function LoginPage() {
 
             <p className="mt-8 text-center text-sm text-gray-700">
               还没有账户？{" "}
-              <a href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
+              <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
                 立即注册
-              </a>
+              </Link>
             </p>
           </div>
         </div>

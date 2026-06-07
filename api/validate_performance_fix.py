@@ -5,6 +5,7 @@ Performance Fix Validation Script
 This script validates that database performance optimizations actually improve query performance.
 It runs before and after applying migrations to measure impact.
 """
+
 import asyncio
 import time
 import uuid
@@ -191,14 +192,12 @@ class PerformanceValidator:
         ]
 
         result = await self.db.execute(
-            text(
-                """
+            text("""
             SELECT indexname
             FROM pg_indexes
             WHERE schemaname = 'public'
             AND indexname = ANY(:indexes)
-        """
-            ),
+        """),
             {"indexes": indexes_to_check},
         )
 

@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import React from "react";
+import Link from "next/link";
 import { useTranslations } from 'next-intl';
 
 function Home() {
@@ -85,13 +86,13 @@ function Home() {
                 </p>
                 <div className="mt-10 flex items-center justify-center gap-x-6">
                   <Button size="lg" className="text-base" asChild>
-                    <a href="/signup">
+                    <Link href="/signup">
                       {t('hero.cta.primary')}
                       <ArrowRight className="ml-2 h-5 w-5" />
-                    </a>
+                    </Link>
                   </Button>
                   <Button size="lg" variant="outline" className="text-base" asChild>
-                    <a href="/demo">{t('hero.cta.secondary')}</a>
+                    <Link href="/demo">{t('hero.cta.secondary')}</Link>
                   </Button>
                 </div>
                 <div className="mt-8 flex items-center justify-center gap-x-6 text-sm text-gray-700">
@@ -174,10 +175,10 @@ function Home() {
               </p>
               <div className="mt-10 flex items-center justify-center gap-x-6">
                 <Button size="lg" variant="secondary" className="text-base" asChild>
-                  <a href="/signup">
+                  <Link href="/signup">
                     {t('cta.button')}
                     <ArrowRight className="ml-2 h-5 w-5" />
-                  </a>
+                  </Link>
                 </Button>
               </div>
             </div>

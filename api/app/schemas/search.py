@@ -5,7 +5,7 @@ Search history and saved searches schemas.
 import uuid
 from datetime import datetime
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SearchHistoryCreate(BaseModel):
@@ -21,6 +21,8 @@ class SearchHistoryCreate(BaseModel):
 class SearchHistoryResponse(BaseModel):
     """Schema for search history response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     query: str
     search_type: str
@@ -28,9 +30,6 @@ class SearchHistoryResponse(BaseModel):
     result_count: int
     search_timestamp: datetime
     is_sensitive: bool
-
-    class Config:
-        from_attributes = True
 
 
 class SearchHistoryListResponse(BaseModel):
@@ -68,6 +67,8 @@ class SavedSearchUpdate(BaseModel):
 class SavedSearchResponse(BaseModel):
     """Schema for saved search response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     name: str
     description: Optional[str]
@@ -80,9 +81,6 @@ class SavedSearchResponse(BaseModel):
     is_favorite: bool
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class SavedSearchListResponse(BaseModel):

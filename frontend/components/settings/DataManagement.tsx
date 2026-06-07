@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -162,7 +163,7 @@ export default function DataManagement({ userId }: DataManagementProps) {
                 </div>
               </div>
               <Button variant="outline" size="sm" asChild>
-                <a href="/settings/profile">Edit Profile</a>
+                <Link href="/settings/profile">Edit Profile</Link>
               </Button>
             </div>
 

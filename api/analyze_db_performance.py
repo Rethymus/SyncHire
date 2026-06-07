@@ -5,6 +5,7 @@ Database Performance Analysis Script
 This script analyzes database queries to identify performance bottlenecks
 and validates the impact of performance optimizations.
 """
+
 import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text, func
@@ -31,9 +32,7 @@ class PerformanceAnalyzer:
         logger.info("🔍 Checking for missing indexes...")
 
         # Check current indexes
-        result = await self.db.execute(
-            text(
-                """
+        result = await self.db.execute(text("""
             SELECT
                 schemaname,
                 tablename,
@@ -44,9 +43,7 @@ class PerformanceAnalyzer:
             FROM pg_stat_user_indexes
             WHERE schemaname = 'public'
             ORDER BY idx_scan ASC
-        """
-            )
-        )
+        """))
 
         indexes = result.fetchall()
         unused_indexes = [idx for idx in indexes if idx.index_scans == 0]
@@ -64,9 +61,7 @@ class PerformanceAnalyzer:
         """Analyze table sizes to identify large tables that need optimization."""
         logger.info("📊 Analyzing table sizes...")
 
-        result = await self.db.execute(
-            text(
-                """
+        result = await self.db.execute(text("""
             SELECT
                 schemaname,
                 tablename,
@@ -76,9 +71,7 @@ class PerformanceAnalyzer:
             FROM pg_stat_user_tables
             WHERE schemaname = 'public'
             ORDER BY size_bytes DESC
-        """
-            )
-        )
+        """))
 
         tables = result.fetchall()
 
@@ -219,18 +212,14 @@ class PerformanceAnalyzer:
         """Analyze connection pool usage."""
         logger.info("🔗 Checking connection pool status...")
 
-        result = await self.db.execute(
-            text(
-                """
+        result = await self.db.execute(text("""
             SELECT
                 count(*) as total_connections,
                 count(*) FILTER (WHERE state = 'active') as active_connections,
                 count(*) FILTER (WHERE state = 'idle') as idle_connections
             FROM pg_stat_activity
             WHERE datname = current_database()
-        """
-            )
-        )
+        """))
 
         stats = result.fetchone()
         logger.info(f"  Total connections: {stats.total_connections}")

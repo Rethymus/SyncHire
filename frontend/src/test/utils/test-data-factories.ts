@@ -10,7 +10,7 @@ export function createMockUser(overrides = {}) {
   return {
     id: faker.string.uuid(),
     email: faker.internet.email(),
-    username: faker.internet.userName(),
+    username: faker.internet.username(),
     full_name: faker.person.fullName(),
     avatar_url: faker.image.avatar(),
     created_at: faker.date.past().toISOString(),
@@ -186,7 +186,7 @@ export function createMockLoginForm(overrides = {}) {
 export function createMockSignupForm(overrides = {}) {
   return {
     email: faker.internet.email(),
-    username: faker.internet.userName(),
+    username: faker.internet.username(),
     password: faker.string.alphanumeric(12),
     full_name: faker.person.fullName(),
     ...overrides,

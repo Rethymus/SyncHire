@@ -14,7 +14,7 @@ from sqlalchemy import (
     CheckConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, synonym
 from sqlalchemy.sql import func
 import uuid
 
@@ -33,11 +33,11 @@ class Interview(Base):
         nullable=False,
     )
     user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True
     )
 
     # Interview details
-    title = Column(String(255), nullable=False)
+    title = Column(String(255), nullable=False, default="Interview")
     description = Column(Text, nullable=True)
     interview_type = Column(String(50), nullable=False, default="screening")
     status = Column(String(50), nullable=False, default="scheduled")
@@ -60,6 +60,7 @@ class Interview(Base):
 
     # Preparation
     preparation_notes = Column(Text, nullable=True)
+    notes = synonym("preparation_notes")
     resume_version_id = Column(UUID(as_uuid=True), nullable=True)
 
     # Follow-up
@@ -100,6 +101,8 @@ class Interview(Base):
     events = relationship(
         "InterviewEvent", back_populates="interview", cascade="all, delete-orphan"
     )
+
+    scheduled_at = synonym("scheduled_date")
 
 
 class InterviewReminder(Base):

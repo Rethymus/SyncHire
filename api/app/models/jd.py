@@ -9,10 +9,11 @@ from sqlalchemy import (
     ForeignKey,
     Boolean,
     Numeric,
+    JSON,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from pgvector.sqlalchemy import Vector
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, synonym
 from app.core.database import Base
 
 
@@ -24,7 +25,9 @@ class JD(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     title = Column(String, nullable=False)
+    position = synonym("title")
     company = Column(String)
+    company_name = synonym("company")
     content = Column(Text, nullable=False)
     parsed_data = Column(Text)  # JSON string
     embedding = Column(Vector(1536))
@@ -36,6 +39,7 @@ class JD(Base):
     salary_period = Column(String(20), default="yearly")
 
     location_city = Column(String(255))
+    location = Column(String(500))
     location_state = Column(String(255))
     location_country = Column(String(255), default="USA")
     location_remote = Column(Boolean, default=False)
@@ -44,6 +48,7 @@ class JD(Base):
 
     experience_level = Column(String(20))
     employment_type = Column(String(20), default="full-time")
+    skills_required = Column(JSON)
     industry = Column(String(255))
     company_size = Column(String(50))
     company_industry = Column(String(255))

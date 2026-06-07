@@ -320,7 +320,7 @@ function DataManagementPage() {
   }, []);
 
   // Enhanced Import Functions
-  const handleGeneratePreview = async (file: File) => {
+  const handleGeneratePreview = useCallback(async (file: File) => {
     setLoading(true);
     try {
       const formData = new FormData();
@@ -355,7 +355,7 @@ function DataManagementPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showMessage]);
 
   const handleImportFileSelect = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -383,7 +383,7 @@ function DataManagementPage() {
       // Generate preview
       handleGeneratePreview(file);
     },
-    [showMessage]
+    [handleGeneratePreview, showMessage]
   );
 
   const handleImport = useCallback(async () => {

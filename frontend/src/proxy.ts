@@ -1,5 +1,5 @@
 /**
- * Next.js Middleware - Configurable for both auth and lite modes
+ * Next.js Proxy - Configurable for both auth and lite modes
  *
  * Applies security headers and handles route redirects based on configuration.
  */
@@ -95,9 +95,9 @@ function shouldRedirectRoute(pathname: string): string | null {
 }
 
 /**
- * Middleware to apply security headers and handle route redirects
+ * Proxy to apply security headers and handle route redirects
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Check if route should be redirected

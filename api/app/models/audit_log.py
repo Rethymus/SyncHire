@@ -6,7 +6,7 @@ This model tracks all data access and modifications for compliance requirements.
 
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Text, Boolean
+from sqlalchemy import Column, String, DateTime, Text, Boolean, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -24,8 +24,9 @@ class AuditAction(str, enum.Enum):
     AUTH_LOGIN = "AUTH_LOGIN"
     AUTH_LOGOUT = "AUTH_LOGOUT"
     AUTH_FAILED = "AUTH_FAILED"
-    PASSWORD_CHANGE = "PASSWORD_CHANGE"
-    PASSWORD_RESET = "PASSWORD_RESET"
+    # Audit event names, not secrets.
+    PASSWORD_CHANGE = "PASSWORD_CHANGE"  # nosec B105
+    PASSWORD_RESET = "PASSWORD_RESET"  # nosec B105
     DATA_DOWNLOAD = "DATA_DOWNLOAD"
     DATA_DELETION = "DATA_DELETION"
     CONSENT_GRANTED = "CONSENT_GRANTED"
@@ -62,7 +63,10 @@ class AuditLog(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(
-        UUID(as_uuid=True), nullable=True, index=True
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )  # nullable for system actions
     action = Column(String, nullable=False, index=True)  # AuditAction enum
     resource_type = Column(String, nullable=False, index=True)  # ResourceType enum

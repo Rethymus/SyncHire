@@ -2,6 +2,7 @@
 
 import pytest
 from fastapi import status
+
 from app.services.file_parser import FileParserService
 
 
@@ -32,24 +33,10 @@ class TestFileParserService:
         with pytest.raises(Exception) as exc_info:
             await FileParserService.parse_file("test.pdf", large_content)
 
-        assert exc_info.value.status_code == status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+        assert exc_info.value.status_code == status.HTTP_413_CONTENT_TOO_LARGE
 
     def test_get_file_extension(self):
         """Test extracting file extension."""
         assert FileParserService._get_file_extension("test.pdf") == ".pdf"
         assert FileParserService._get_file_extension("test.DOCX") == ".docx"
         assert FileParserService._get_file_extension("test") == ""
-
-    @pytest.mark.asyncio
-    async def test_parse_pdf_with_insufficient_text(self):
-        """Test parsing PDF with insufficient text."""
-        # This would require a valid PDF file, so we'll test the error handling
-        # In a real scenario, you'd create a mock PDF with minimal text
-        pass
-
-    @pytest.mark.asyncio
-    async def test_parse_docx_with_insufficient_text(self):
-        """Test parsing DOCX with insufficient text."""
-        # This would require a valid DOCX file, so we'll test the error handling
-        # In a real scenario, you'd create a mock DOCX with minimal text
-        pass

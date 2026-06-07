@@ -9,18 +9,22 @@ import { SearchResults } from "@/components/search-results";
 import { searchApi, SearchFilters as APISearchFilters } from "@/lib/api/search";
 import { Briefcase } from "lucide-react";
 
+const DEFAULT_APPLICATION_SEARCH_FILTERS: APISearchFilters = {
+  page: 1,
+  pageSize: 10,
+  sortBy: "updated_at",
+  sortOrder: "desc",
+};
+
 export default function ApplicationSearchPage() {
   const [results, setResults] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [currentQuery, setCurrentQuery] = useState("");
-  const [currentFilters, setCurrentFilters] = useState<APISearchFilters>({
-    page: 1,
-    pageSize: 10,
-    sortBy: "updated_at",
-    sortOrder: "desc",
-  });
+  const [currentFilters, setCurrentFilters] = useState<APISearchFilters>(
+    DEFAULT_APPLICATION_SEARCH_FILTERS
+  );
 
   const handleSearch = useCallback(async (query: string, filters: APISearchFilters) => {
     setLoading(true);
@@ -58,9 +62,18 @@ export default function ApplicationSearchPage() {
 
   // Load initial results
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
-    handleSearch("", currentFilters);
-  }, []);
+    let cancelled = false;
+
+    void Promise.resolve().then(() => {
+      if (!cancelled) {
+        void handleSearch("", DEFAULT_APPLICATION_SEARCH_FILTERS);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [handleSearch]);
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -5,9 +5,8 @@ Pydantic models for API request/response validation without user dependencies.
 """
 
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List
-
 
 # Resume Schemas
 
@@ -35,15 +34,14 @@ class ResumeUpdate(BaseModel):
 class ResumeResponse(BaseModel):
     """Schema for resume response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     title: str
     content: str
     file_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 # Job Description Schemas
@@ -88,6 +86,8 @@ class JobDescriptionUpdate(BaseModel):
 class JobDescriptionResponse(BaseModel):
     """Schema for job description response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     company: str
     title: str
@@ -101,9 +101,6 @@ class JobDescriptionResponse(BaseModel):
     remote: str
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 # Application Schemas
@@ -150,6 +147,8 @@ class ApplicationUpdate(BaseModel):
 class ApplicationResponse(BaseModel):
     """Schema for application response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     resume_id: str
     jd_id: str
@@ -160,9 +159,6 @@ class ApplicationResponse(BaseModel):
     last_updated: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 # Search Schemas
@@ -252,6 +248,8 @@ class LocalProfileUpdate(LocalProfileBase):
 class LocalProfileResponse(BaseModel):
     """Schema for local profile response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     name: Optional[str] = None
     email: Optional[str] = None
@@ -260,9 +258,6 @@ class LocalProfileResponse(BaseModel):
     default_resume_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 # Extension Schemas
@@ -293,6 +288,8 @@ class ExtensionUpdate(BaseModel):
 class ExtensionResponse(BaseModel):
     """Schema for extension response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     name: str
     display_name: str
@@ -303,9 +300,6 @@ class ExtensionResponse(BaseModel):
     last_sync: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 # Health Check Schema

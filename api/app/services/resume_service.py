@@ -2,6 +2,7 @@ import json
 import uuid
 import tempfile
 import os
+import inspect
 from pathlib import Path
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,9 +32,20 @@ settings = get_settings()
 
 
 class ResumeService:
+    StorageService = StorageService
+    FileParserService = FileParserService
+    mcp_client = mcp_client
+    AIService = AIService
+
     # Allowed file extensions for resume upload
     ALLOWED_EXTENSIONS = {".pdf", ".doc", ".docx", ".txt"}
     MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10MB
+
+    @staticmethod
+    async def _maybe_await(value):
+        if inspect.isawaitable(value):
+            return await value
+        return value
 
     @staticmethod
     async def create_resume(
@@ -107,10 +119,12 @@ class ResumeService:
 
             # Upload to storage with error handling
             try:
-                s3_key = await StorageService.upload_file(
-                    file_content=content,
-                    file_name=file.filename,
-                    content_type=content_type,
+                s3_key = await ResumeService._maybe_await(
+                    ResumeService.StorageService.upload_file(
+                        file_content=content,
+                        file_name=file.filename,
+                        content_type=content_type,
+                    )
                 )
                 logger.info(f"File uploaded to storage: {s3_key}")
             except Exception as e:
@@ -128,8 +142,10 @@ class ResumeService:
             try:
                 # Extract text from file using FileParserService
                 try:
-                    extracted_text = await FileParserService.parse_file(
-                        file.filename, content
+                    extracted_text = await ResumeService._maybe_await(
+                        ResumeService.FileParserService.parse_file(
+                            file.filename, content
+                        )
                     )
                     resume_content = extracted_text
                 except Exception as e:
@@ -146,8 +162,10 @@ class ResumeService:
                         tmp_file_path = tmp_file.name
 
                     try:
-                        parsed_data = await mcp_client.parse_resume(
-                            tmp_file_path, content
+                        parsed_data = await ResumeService._maybe_await(
+                            ResumeService.mcp_client.parse_resume(
+                                tmp_file_path, content
+                            )
                         )
 
                         # Generate embedding for semantic search
@@ -156,8 +174,10 @@ class ResumeService:
                         )
                         if text_for_embedding:
                             try:
-                                embedding = await AIService.generate_embedding(
-                                    text_for_embedding
+                                embedding = await ResumeService._maybe_await(
+                                    ResumeService.AIService.generate_embedding(
+                                        text_for_embedding
+                                    )
                                 )
                             except Exception as e:
                                 logger.warning(f"Embedding generation failed: {str(e)}")
@@ -174,8 +194,10 @@ class ResumeService:
                     # Still generate embedding from extracted text
                     if resume_content:
                         try:
-                            embedding = await AIService.generate_embedding(
-                                resume_content
+                            embedding = await ResumeService._maybe_await(
+                                ResumeService.AIService.generate_embedding(
+                                    resume_content
+                                )
                             )
                         except Exception as e:
                             logger.warning(
@@ -213,7 +235,9 @@ class ResumeService:
                 # Clean up uploaded file if database insert fails
                 if s3_key:
                     try:
-                        await StorageService.delete_file(s3_key)
+                        await ResumeService._maybe_await(
+                            ResumeService.StorageService.delete_file(s3_key)
+                        )
                     except Exception as cleanup_error:
                         logger.error(f"Failed to cleanup storage file: {cleanup_error}")
 
@@ -450,7 +474,9 @@ class ResumeService:
             # Delete file from storage with error handling
             if resume.file_path:
                 try:
-                    await StorageService.delete_file(resume.file_path)
+                    await ResumeService._maybe_await(
+                        ResumeService.StorageService.delete_file(resume.file_path)
+                    )
                     logger.info(f"Deleted file from storage: {resume.file_path}")
                 except Exception as e:
                     logger.error(f"Failed to delete file from storage: {str(e)}")
@@ -506,7 +532,9 @@ class ResumeService:
 
             # Download file from storage
             try:
-                content = await StorageService.download_file(resume.file_path)
+                content = await ResumeService._maybe_await(
+                    ResumeService.StorageService.download_file(resume.file_path)
+                )
                 if content is None:
                     raise NotFoundError(
                         resource="Resume file", details={"file_path": resume.file_path}
@@ -533,8 +561,10 @@ class ResumeService:
                 try:
                     # Parse with MCP client
                     try:
-                        parsed_data = await mcp_client.parse_resume(
-                            tmp_file_path, content
+                        parsed_data = await ResumeService._maybe_await(
+                            ResumeService.mcp_client.parse_resume(
+                                tmp_file_path, content
+                            )
                         )
                     except MCPError as e:
                         logger.error(f"MCP parsing failed: {str(e)}")
@@ -548,8 +578,10 @@ class ResumeService:
                     embedding = None
                     if parsed_data.get("text_content"):
                         try:
-                            embedding = await AIService.generate_embedding(
-                                parsed_data["text_content"]
+                            embedding = await ResumeService._maybe_await(
+                                ResumeService.AIService.generate_embedding(
+                                    parsed_data["text_content"]
+                                )
                             )
                         except Exception as e:
                             logger.warning(f"Embedding generation failed: {str(e)}")
@@ -689,7 +721,11 @@ class ResumeService:
                     # Delete file from storage
                     if resume.file_path:
                         try:
-                            await StorageService.delete_file(resume.file_path)
+                            await ResumeService._maybe_await(
+                                ResumeService.StorageService.delete_file(
+                                    resume.file_path
+                                )
+                            )
                             logger.debug(
                                 f"Deleted file from storage: {resume.file_path}"
                             )

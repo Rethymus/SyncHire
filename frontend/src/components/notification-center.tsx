@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, useId } from "react";
+import Link from "next/link";
 import { apiClient } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
 import {
@@ -373,9 +374,9 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                 asChild
                 className="w-full text-sm"
               >
-                <a href="/settings?tab=notifications">
+                <Link href="/settings?tab=notifications">
                   View notification settings
-                </a>
+                </Link>
               </Button>
             </div>
           </div>

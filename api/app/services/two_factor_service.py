@@ -11,6 +11,7 @@ import io
 import base64
 import secrets
 import string
+import inspect
 from datetime import datetime
 from typing import Tuple, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,6 +24,12 @@ logger = logging.getLogger(__name__)
 
 class TwoFactorService:
     """Service for managing two-factor authentication"""
+
+    @staticmethod
+    async def _add(db: AsyncSession, instance: User) -> None:
+        result = db.add(instance)
+        if inspect.isawaitable(result):
+            await result
 
     @staticmethod
     def generate_totp_secret() -> str:
@@ -193,7 +200,7 @@ class TwoFactorService:
 
             # Save to database
             try:
-                db.add(user)
+                await TwoFactorService._add(db, user)
                 await db.commit()
                 await db.refresh(user)
                 logger.info(f"Two-factor authentication enabled for user: {user.id}")
@@ -239,7 +246,7 @@ class TwoFactorService:
 
             # Save to database
             try:
-                db.add(user)
+                await TwoFactorService._add(db, user)
                 await db.commit()
                 await db.refresh(user)
             except Exception as e:
@@ -315,7 +322,7 @@ class TwoFactorService:
 
             # Save to database
             try:
-                db.add(user)
+                await TwoFactorService._add(db, user)
                 await db.commit()
                 await db.refresh(user)
                 logger.info(f"Two-factor authentication disabled for user: {user.id}")
@@ -373,7 +380,7 @@ class TwoFactorService:
             if TwoFactorService.verify_backup_code(user, code):
                 # Save the updated backup codes (remove used one)
                 try:
-                    db.add(user)
+                    await TwoFactorService._add(db, user)
                     await db.commit()
                     logger.info(
                         f"Backup code verification successful for user: {user.id}"

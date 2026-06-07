@@ -263,7 +263,7 @@ class OAuthService:
             new_user = User(
                 email=email,
                 full_name=name,
-                hashed_password="",  # No password for OAuth users
+                hashed_password=uuid.uuid4().hex,
                 is_active=True,
             )
 

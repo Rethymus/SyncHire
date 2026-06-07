@@ -6,7 +6,7 @@ Defines message types, schemas, and data structures for WebSocket communication.
 
 from enum import Enum
 from typing import Dict, Any, Optional, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 import uuid
 
@@ -59,13 +59,12 @@ class MessageType(str, Enum):
 class WebSocketMessage(BaseModel):
     """Standard WebSocket message format"""
 
+    model_config = ConfigDict(use_enum_values=True)
+
     type: MessageType
     data: Dict[str, Any]
     timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-
-    class Config:
-        use_enum_values = True
 
 
 class NotificationData(BaseModel):

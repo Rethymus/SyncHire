@@ -1,11 +1,11 @@
 import uuid
 from typing import List
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
-from app.core.logger import logger
+from app.core.logger import LogCategory, logger
 from app.schemas.application import (
     ApplicationCreate,
     ApplicationUpdate,
@@ -35,6 +35,55 @@ class PaginatedApplicationResponse(BaseModel):
 
 
 router = APIRouter(prefix="/applications", tags=["applications"])
+
+VALID_APPLICATION_STATUSES = {
+    "applied",
+    "interview",
+    "rejected",
+    "offer",
+    "optimized",
+    "pending",
+}
+VALID_TAG_OPERATIONS = {"add", "remove", "replace"}
+MAX_BULK_ITEMS = 100
+MAX_TAG_LENGTH = 50
+
+
+def _raise_bulk_validation_error(message: str, field: str) -> None:
+    raise HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        detail={"field": field, "message": message},
+    )
+
+
+def _validate_bulk_ids(ids: List[uuid.UUID], field: str = "ids") -> None:
+    if not ids:
+        _raise_bulk_validation_error("At least one application ID is required", field)
+    if len(ids) > MAX_BULK_ITEMS:
+        _raise_bulk_validation_error(
+            f"Cannot process more than {MAX_BULK_ITEMS} applications at once",
+            field,
+        )
+
+
+def _validate_bulk_tags(tags: List[str]) -> None:
+    if not tags:
+        _raise_bulk_validation_error("At least one tag is required", "tags")
+
+    has_non_empty_tag = False
+    for tag in tags:
+        stripped_tag = tag.strip()
+        if not stripped_tag:
+            continue
+        has_non_empty_tag = True
+        if len(stripped_tag) > MAX_TAG_LENGTH:
+            _raise_bulk_validation_error(
+                f"Tags cannot exceed {MAX_TAG_LENGTH} characters",
+                "tags",
+            )
+
+    if not has_non_empty_tag:
+        _raise_bulk_validation_error("At least one non-empty tag is required", "tags")
 
 
 @router.post(
@@ -179,7 +228,8 @@ async def bulk_delete_applications(
     - **errors**: List of errors for failed deletions with ID and error message
     """
     logger.info(
-        f"Bulk delete request for {len(request.ids)} applications by user {current_user.id}"
+        LogCategory.API,
+        f"Bulk delete request for {len(request.ids)} applications by user {current_user.id}",
     )
     return await ApplicationService.bulk_delete_applications(
         db, current_user.id, request.ids
@@ -204,7 +254,8 @@ async def bulk_update_applications(
     - **errors**: List of errors for failed updates with ID and error message
     """
     logger.info(
-        f"Bulk update request for {len(request.updates)} applications by user {current_user.id}"
+        LogCategory.API,
+        f"Bulk update request for {len(request.updates)} applications by user {current_user.id}",
     )
     return await ApplicationService.bulk_update_applications(
         db, current_user.id, request.updates
@@ -230,9 +281,18 @@ async def bulk_update_application_status(
     - **failed_count**: Number of applications that failed to update
     - **errors**: List of errors for failed updates with ID and error message
     """
+    _validate_bulk_ids(request.ids)
+    if request.status not in VALID_APPLICATION_STATUSES:
+        _raise_bulk_validation_error(
+            "Invalid status. Must be one of: "
+            f"{', '.join(sorted(VALID_APPLICATION_STATUSES))}",
+            "status",
+        )
+
     logger.info(
+        LogCategory.API,
         f"Bulk status update request for {len(request.ids)} applications "
-        f"to status '{request.status}' by user {current_user.id}"
+        f"to status '{request.status}' by user {current_user.id}",
     )
 
     # Convert bulk status update to bulk update format
@@ -267,9 +327,12 @@ async def bulk_update_application_notes(
     - **failed_count**: Number of applications that failed to update
     - **errors**: List of errors for failed updates with ID and error message
     """
+    _validate_bulk_ids(request.ids)
+
     logger.info(
+        LogCategory.API,
         f"Bulk notes update request for {len(request.ids)} applications "
-        f"(append={request.append}) by user {current_user.id}"
+        f"(append={request.append}) by user {current_user.id}",
     )
 
     # For append mode, we need to fetch current notes first
@@ -327,9 +390,19 @@ async def bulk_tag_applications(
     - **failed_count**: Number of applications that failed to update
     - **errors**: List of errors for failed updates with ID and error message
     """
+    _validate_bulk_ids(request.ids)
+    _validate_bulk_tags(request.tags)
+    if request.operation not in VALID_TAG_OPERATIONS:
+        _raise_bulk_validation_error(
+            "Invalid operation. Must be one of: "
+            f"{', '.join(sorted(VALID_TAG_OPERATIONS))}",
+            "operation",
+        )
+
     logger.info(
+        LogCategory.API,
         f"Bulk {request.operation} tag request for {len(request.ids)} applications "
-        f"with tags {request.tags} by user {current_user.id}"
+        f"with tags {request.tags} by user {current_user.id}",
     )
 
     return await ApplicationService.bulk_tag_applications(db, current_user.id, request)

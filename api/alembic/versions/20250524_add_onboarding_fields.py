@@ -9,7 +9,6 @@ Create Date: 2026-05-24 23:45:00.000000
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
 revision = "20250524_add_onboarding_fields"
 down_revision = "20250521_performance_indexes"

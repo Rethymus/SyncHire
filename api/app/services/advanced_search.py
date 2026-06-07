@@ -25,7 +25,7 @@ from sqlalchemy import (
     or_,
     desc,
     asc,
-    cast,
+    literal,
 )
 from sqlalchemy.sql import Select
 import json
@@ -75,6 +75,8 @@ class SearchFilters:
         # Match score filters
         min_match_score: Optional[float] = None,
         max_match_score: Optional[float] = None,
+        created_from: Optional[date_type] = None,
+        created_to: Optional[date_type] = None,
     ):
         self.location_city = location_city
         self.location_state = location_state
@@ -98,6 +100,8 @@ class SearchFilters:
         self.status = status
         self.min_match_score = min_match_score
         self.max_match_score = max_match_score
+        self.created_from = created_from
+        self.created_to = created_to
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert filters to dictionary for storage"""
@@ -136,6 +140,10 @@ class SearchFilters:
             "status": self.status,
             "min_match_score": self.min_match_score,
             "max_match_score": self.max_match_score,
+            "created_from": (
+                self.created_from.isoformat() if self.created_from else None
+            ),
+            "created_to": self.created_to.isoformat() if self.created_to else None,
         }
 
     @classmethod
@@ -147,6 +155,8 @@ class SearchFilters:
             "posted_date_to",
             "application_deadline_from",
             "application_deadline_to",
+            "created_from",
+            "created_to",
         ]:
             if data.get(key) and isinstance(data[key], str):
                 data[key] = date.fromisoformat(data[key])
@@ -424,8 +434,8 @@ class AdvancedSearchService:
         query_without_fuzzy = re.sub(r"\w+~", "", query)
 
         # Get remaining terms
-        terms = query_without_phrases.lower().split()
-        terms = [t for t in terms if t not in ["AND", "OR", "NOT", ""]]
+        terms = query_without_phrases.split()
+        terms = [t for t in terms if t.upper() not in ["AND", "OR", "NOT", ""]]
 
         return {
             "original_query": query,
@@ -456,7 +466,7 @@ class AdvancedSearchService:
                 Resume.title,
                 Resume.content,
                 Resume.created_at,
-                cast(1.0, type(float)).label("relevance_score"),
+                literal(1.0).label("relevance_score"),
             ).where(Resume.user_id == user_id)
         else:
             # Use full-text search
@@ -465,22 +475,16 @@ class AdvancedSearchService:
                 Resume.title,
                 Resume.content,
                 Resume.created_at,
-                cast(1.0, type(float)).label("relevance_score"),
+                literal(1.0).label("relevance_score"),
             ).where(Resume.user_id == user_id)
 
         # Apply full-text search if query exists
         if search_config["original_query"]:
-            # Build tsquery from search config
-            tsquery = self._build_tsquery(search_config)
-            if tsquery:
-                # Add full-text search condition with ranking
-                query_builder = query_builder.where(
-                    Resume.search_tsvector.op("@@")(tsquery)
-                )
-                # Add ranking score
-                query_builder = query_builder.add_columns(
-                    ts_rank(Resume.search_tsvector, tsquery).label("rank_score")
-                )
+            condition = self._build_text_search_condition(
+                [Resume.title, Resume.content], search_config
+            )
+            if condition is not None:
+                query_builder = query_builder.where(condition)
 
         # Apply filters
         if filters:
@@ -520,22 +524,16 @@ class AdvancedSearchService:
             JD.company_size,
             JD.posted_date,
             JD.application_deadline,
-            cast(1.0, type(float)).label("relevance_score"),
+            literal(1.0).label("relevance_score"),
         ).where(JD.user_id == user_id)
 
         # Apply full-text search if query exists
         if search_config["original_query"]:
-            # Build tsquery from search config
-            tsquery = self._build_tsquery(search_config)
-            if tsquery:
-                # Add full-text search condition with ranking
-                query_builder = query_builder.where(
-                    JD.search_tsvector.op("@@")(tsquery)
-                )
-                # Add ranking score
-                query_builder = query_builder.add_columns(
-                    func.ts_rank(JD.search_tsvector, tsquery).label("rank_score")
-                )
+            condition = self._build_text_search_condition(
+                [JD.title, JD.company, JD.content], search_config
+            )
+            if condition is not None:
+                query_builder = query_builder.where(condition)
 
         # Apply filters
         if filters:
@@ -621,6 +619,28 @@ class AdvancedSearchService:
         tsquery_string = separator.join(query_parts) if query_parts else None
 
         return tsquery_string
+
+    def _build_text_search_condition(self, columns, search_config: Dict[str, Any]):
+        """Build a portable text search condition for SQLite and PostgreSQL tests."""
+        search_values = (
+            search_config["phrases"]
+            + search_config["terms"]
+            + search_config["fuzzy_terms"]
+        )
+        search_values = [value for value in search_values if value]
+
+        if not search_values:
+            return None
+
+        value_conditions = []
+        for value in search_values:
+            pattern = f"%{value}%"
+            value_conditions.append(or_(*(column.ilike(pattern) for column in columns)))
+
+        if search_config.get("has_or"):
+            return or_(*value_conditions)
+
+        return and_(*value_conditions)
 
     def _apply_resume_filters(
         self, query_builder: Select, filters: SearchFilters
@@ -743,7 +763,11 @@ class AdvancedSearchService:
         """Apply sorting to search query"""
         order_func = desc if sort_order == "desc" else asc
 
-        if sort_by == "relevance" and use_semantic:
+        if search_type == "application" and sort_by in {"date", "created_at"}:
+            query_builder = query_builder.order_by(order_func(Application.created_at))
+        elif search_type == "application" and sort_by == "updated_at":
+            query_builder = query_builder.order_by(order_func(Application.updated_at))
+        elif sort_by == "relevance" and use_semantic:
             # Sort by relevance score
             query_builder = query_builder.order_by(order_func(text("relevance_score")))
         elif sort_by == "date" or sort_by == "created_at":
@@ -919,23 +943,24 @@ class AdvancedSearchService:
 
             if analytics:
                 # Update existing analytics
-                analytics.total_searches += 1
-                analytics.total_results += results_count
-                if results_count == 0:
-                    analytics.zero_result_searches += 1
-                analytics.avg_results_per_search = (
-                    analytics.total_results / analytics.total_searches
+                previous_count = analytics.search_count or 0
+                analytics.search_count = previous_count + 1
+                previous_average = analytics.avg_result_count or 0
+                analytics.avg_result_count = int(
+                    (previous_average * previous_count + results_count)
+                    / analytics.search_count
                 )
+                analytics.avg_search_duration = search_duration_ms
                 analytics.last_searched_at = datetime.utcnow()
             else:
                 # Create new analytics entry
                 analytics = SearchAnalytics(
+                    user_id=user_id,
                     search_term=normalized_query,
                     search_type=search_type,
-                    total_searches=1,
-                    total_results=results_count,
-                    zero_result_searches=1 if results_count == 0 else 0,
-                    avg_results_per_search=float(results_count),
+                    search_count=1,
+                    avg_result_count=results_count,
+                    avg_search_duration=search_duration_ms,
                 )
                 self.db.add(analytics)
 

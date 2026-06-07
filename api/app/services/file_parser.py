@@ -40,7 +40,7 @@ class FileParserService:
         # Validate file size
         if len(file_content) > FileParserService.MAX_FILE_SIZE:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
                 detail=f"File too large. Maximum size: {FileParserService.MAX_FILE_SIZE / (1024 * 1024):.0f}MB",
             )
 
@@ -51,7 +51,7 @@ class FileParserService:
                 return await FileParserService._parse_docx(file_content)
         except Exception as e:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"Failed to parse file: {str(e)}",
             )
 
@@ -78,7 +78,7 @@ class FileParserService:
 
             if not text or len(text.strip()) < 50:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                     detail="Could not extract sufficient text from PDF. Please ensure the PDF contains text.",
                 )
 
@@ -88,7 +88,7 @@ class FileParserService:
             if isinstance(e, HTTPException):
                 raise
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"Failed to parse PDF: {str(e)}",
             )
 
@@ -108,7 +108,7 @@ class FileParserService:
 
             if not text or len(text.strip()) < 50:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                     detail="Could not extract sufficient text from DOCX. Please ensure the document contains text.",
                 )
 
@@ -118,6 +118,6 @@ class FileParserService:
             if isinstance(e, HTTPException):
                 raise
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"Failed to parse DOCX: {str(e)}",
             )

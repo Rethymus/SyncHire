@@ -1,5 +1,6 @@
 import uuid
 import io
+import json
 from typing import Optional, List, Dict
 from fastapi import (
     APIRouter,
@@ -18,15 +19,39 @@ import logging
 
 from app.core.database import get_db
 from app.core.deps import get_current_user
+from app.core.redis import redis_client as app_redis_client
 from app.models.user import User
 from app.services.csv_export_service import CSVExportService
 from app.services.csv_import_service import CSVImportService
-from app.services.task_service import task_service
 from app.core.errors import ValidationError
 
 logger = logging.getLogger(__name__)
+_progress_store: Dict[str, Dict] = {}
 
 router = APIRouter(prefix="/api/csv", tags=["csv"])
+
+
+async def _set_progress(key: str, progress_data: Dict) -> None:
+    if app_redis_client.redis is not None:
+        try:
+            await app_redis_client.set(key, json.dumps(progress_data), ex=3600)
+            return
+        except Exception as e:
+            logger.warning(f"Redis unavailable, using in-memory storage: {e}")
+
+    _progress_store[key] = progress_data
+
+
+async def _get_progress(key: str) -> Optional[Dict]:
+    if app_redis_client.redis is not None:
+        try:
+            data = await app_redis_client.get(key)
+            if data:
+                return json.loads(data)
+        except Exception as e:
+            logger.warning(f"Redis unavailable: {e}")
+
+    return _progress_store.get(key)
 
 
 # Schemas for request/response
@@ -68,53 +93,12 @@ class ExportProgressTracker:
     @staticmethod
     async def update_progress(job_id: str, progress_data: Dict):
         """Update progress in Redis"""
-        import json
-        from app.core.config import settings
-
-        try:
-            # Try to use Redis if available
-            import redis
-
-            redis_client = redis.from_url(settings.REDIS_URL)
-            await redis_client.setex(
-                f"export_progress:{job_id}",
-                3600,  # 1 hour expiry
-                json.dumps(progress_data),
-            )
-            await redis_client.close()
-        except Exception as e:
-            logger.warning(f"Redis unavailable, using in-memory storage: {e}")
-            # Fallback to task service storage
-            await task_service.update_task_status(job_id, progress_data)
+        await _set_progress(f"export_progress:{job_id}", progress_data)
 
     @staticmethod
     async def get_progress(job_id: str) -> Optional[Dict]:
         """Get progress from Redis"""
-        import json
-        from app.core.config import settings
-
-        try:
-            import redis
-
-            redis_client = redis.from_url(settings.REDIS_URL)
-            data = await redis_client.get(f"export_progress:{job_id}")
-            await redis_client.close()
-            if data:
-                return json.loads(data)
-        except Exception as e:
-            logger.warning(f"Redis unavailable: {e}")
-
-        # Fallback to task service
-        task = await task_service.get_task_status(job_id)
-        if task:
-            return {
-                "status": task.get("status"),
-                "progress": task.get("progress", 0),
-                "processed": task.get("processed", 0),
-                "total": task.get("total", 0),
-                "message": task.get("message"),
-            }
-        return None
+        return await _get_progress(f"export_progress:{job_id}")
 
 
 class ImportProgressTracker:
@@ -123,54 +107,12 @@ class ImportProgressTracker:
     @staticmethod
     async def update_progress(job_id: str, progress_data: Dict):
         """Update progress in Redis"""
-        import json
-        from app.core.config import settings
-
-        try:
-            import redis
-
-            redis_client = redis.from_url(settings.REDIS_URL)
-            await redis_client.setex(
-                f"import_progress:{job_id}",
-                3600,  # 1 hour expiry
-                json.dumps(progress_data),
-            )
-            await redis_client.close()
-        except Exception as e:
-            logger.warning(f"Redis unavailable, using in-memory storage: {e}")
-            # Fallback to task service storage
-            await task_service.update_task_status(job_id, progress_data)
+        await _set_progress(f"import_progress:{job_id}", progress_data)
 
     @staticmethod
     async def get_progress(job_id: str) -> Optional[Dict]:
         """Get progress from Redis"""
-        import json
-        from app.core.config import settings
-
-        try:
-            import redis
-
-            redis_client = redis.from_url(settings.REDIS_URL)
-            data = await redis_client.get(f"import_progress:{job_id}")
-            await redis_client.close()
-            if data:
-                return json.loads(data)
-        except Exception as e:
-            logger.warning(f"Redis unavailable: {e}")
-
-        # Fallback to task service
-        task = await task_service.get_task_status(job_id)
-        if task:
-            return {
-                "status": task.get("status"),
-                "progress": task.get("progress", 0),
-                "processed": task.get("processed", 0),
-                "total": task.get("total", 0),
-                "message": task.get("message"),
-                "success": task.get("success", 0),
-                "errors": task.get("errors", 0),
-            }
-        return None
+        return await _get_progress(f"import_progress:{job_id}")
 
 
 async def run_export_job(

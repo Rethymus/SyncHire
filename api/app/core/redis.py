@@ -1,4 +1,5 @@
 import redis.asyncio as aioredis
+import inspect
 from app.core.config import get_settings
 
 settings = get_settings()
@@ -19,7 +20,10 @@ class RedisClient:
 
     async def disconnect(self):
         if self.redis:
-            await self.redis.close()
+            close = getattr(self.redis, "aclose", self.redis.close)
+            result = close()
+            if inspect.isawaitable(result):
+                await result
             self._connected = False
 
     def is_connected(self) -> bool:

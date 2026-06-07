@@ -5,6 +5,7 @@
 
 "use client";
 
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Lock, User, Mail, AlertCircle, CheckCircle2 } from "lucide-react";
@@ -251,13 +252,13 @@ export function TermsCheckbox({ checked, onChange, error }: TermsCheckboxProps) 
         />
         <label htmlFor="terms" className="ml-2 text-sm text-gray-700 leading-tight">
           我同意
-          <a href="/terms" className="text-blue-600 hover:underline mx-1">
+          <Link href="/terms" className="text-blue-600 hover:underline mx-1">
             服务条款
-          </a>
+          </Link>
           和
-          <a href="/privacy" className="text-blue-600 hover:underline mx-1">
+          <Link href="/privacy" className="text-blue-600 hover:underline mx-1">
             隐私政策
-          </a>
+          </Link>
         </label>
       </div>
       {error && (

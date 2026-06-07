@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Float, ForeignKey, Text, ARRAY
+from sqlalchemy import Column, String, DateTime, Float, ForeignKey, Text, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -26,7 +26,7 @@ class Application(Base):
         String, default="pending"
     )  # pending, optimized, applied, interview, offer, rejected
     notes = Column(Text)
-    tags = Column(ARRAY(String), default=list)  # Array of tags for categorization
+    tags = Column(JSON, default=list)  # Array of tags for categorization
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

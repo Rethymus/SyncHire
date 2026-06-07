@@ -5,6 +5,7 @@ from app.core.security import create_access_token, create_refresh_token, verify_
 from app.core.deps import get_current_user
 from app.core.errors import (
     AuthenticationError,
+    ConflictError,
     ValidationError,
     RateLimitError,
 )
@@ -55,7 +56,7 @@ async def register(
         user = await AuthService.register(db, user_data)
         return user
 
-    except (ValidationError, RateLimitError):
+    except (ValidationError, ConflictError, RateLimitError):
         # Re-raise our custom errors
         raise
     except HTTPException:
@@ -106,7 +107,8 @@ async def login(
 
         if not user:
             # Generic error message for security (prevents email enumeration)
-            raise AuthenticationError(message="Invalid email or password")
+            logger.error("Authentication failed for supplied credentials")
+            raise AuthenticationError(message="Invalid credentials")
 
         # Check if user is active
         if not user.is_active:

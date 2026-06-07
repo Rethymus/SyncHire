@@ -1,4 +1,5 @@
 import uuid
+import logging
 from typing import List, Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, Query
@@ -15,6 +16,7 @@ from app.middleware.rate_limit import rate_limit, RateLimitType
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/search", tags=["search"])
+logger = logging.getLogger(__name__)
 
 
 class SearchResult(BaseModel):
@@ -661,6 +663,7 @@ def highlight_search_terms(text: str, query: str) -> str:
 
         # Find and highlight matches (case-insensitive)
 
+        original_highlighted = highlighted
         try:
             # Security: Use literal string matching instead of regex for safety
             # This prevents ReDoS while maintaining functionality
@@ -692,9 +695,10 @@ def highlight_search_terms(text: str, query: str) -> str:
             result_parts.append(highlighted[last_pos:])
             highlighted = "".join(result_parts)
 
-        except Exception:
+        except Exception as exc:
             # If highlighting fails, return original text
-            continue
+            highlighted = original_highlighted
+            logger.debug("Search highlighting failed for term %r: %s", term, exc)
 
     return highlighted
 

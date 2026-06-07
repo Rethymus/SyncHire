@@ -17,13 +17,15 @@ from app.models.user import User, NotificationFrequency
 from app.models.notification import Notification, NotificationType
 from app.services.email_service import email_service
 from app.core.logger import logger, LogCategory
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
 
 # Pydantic models for request/response
 class NotificationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     type: str
     title: str
@@ -32,9 +34,6 @@ class NotificationResponse(BaseModel):
     created_at: str
     action_url: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
-
-    class Config:
-        from_attributes = True
 
 
 class NotificationsListResponse(BaseModel):

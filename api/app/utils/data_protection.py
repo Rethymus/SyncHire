@@ -489,7 +489,7 @@ class DataEraser:
             # Anonymize user account (instead of deleting, for data integrity)
             user.email = f"deleted_{user_id}@deleted.local"
             user.full_name = "Deleted User"
-            user.hashed_password = "DELETED"
+            user.hashed_password = f"deleted:{user_id}"
             user.is_active = False
             user.deleted_at = datetime.utcnow()
 

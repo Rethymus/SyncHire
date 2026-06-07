@@ -109,7 +109,7 @@ function DashboardPage() {
       color: "bg-emerald-500",
       href: "/applications?status=interview",
     },
-  ], [resumes.length, jobDescriptions.length, applications.length]);
+  ], [resumes.length, jobDescriptions.length, applications]);
 
   // Memoize recent applications
   const recentApplications = useMemo(() => {

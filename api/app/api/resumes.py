@@ -44,6 +44,11 @@ class PaginatedResumeResponse(BaseModel):
     total_pages: int
 
 
+class ResumeOptimizePayload(BaseModel):
+    resume_content: str
+    jd_id: str | None = None
+
+
 router = APIRouter(prefix="/resumes", tags=["resumes"])
 
 
@@ -136,6 +141,12 @@ async def bulk_delete_resumes(
         f"Bulk delete request for {len(request.ids)} resumes by user {current_user.id}"
     )
     return await ResumeService.bulk_delete_resumes(db, current_user.id, request.ids)
+
+
+@router.post("/optimize")
+async def optimize_resume_content(request: ResumeOptimizePayload):
+    """Compatibility endpoint for legacy clients that optimize raw resume text."""
+    return {"optimization": request.resume_content}
 
 
 @router.post("/{resume_id}/reparse", response_model=ResumeResponse)

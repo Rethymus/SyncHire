@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 import uuid
 from typing import Optional, List, Dict, Any
@@ -17,6 +17,8 @@ class ResumeUpdate(BaseModel):
 
 
 class ResumeResponse(ResumeBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     user_id: uuid.UUID
     content: str | None
@@ -24,12 +26,13 @@ class ResumeResponse(ResumeBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 class ResumeExportRequest(BaseModel):
     """Request schema for PDF export"""
+
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"template": "professional", "dpi": 300}}
+    )
 
     template: str = Field(
         default="minimal",
@@ -38,9 +41,6 @@ class ResumeExportRequest(BaseModel):
     dpi: int | None = Field(
         default=300, ge=72, le=600, description="DPI for PDF generation (72-600)"
     )
-
-    class Config:
-        json_schema_extra = {"example": {"template": "professional", "dpi": 300}}
 
 
 class ResumeExport(BaseModel):
@@ -84,6 +84,10 @@ class ResumeExport(BaseModel):
 class BulkDeleteRequest(BaseModel):
     """Request schema for bulk delete operations"""
 
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"ids": ["uuid1", "uuid2", "uuid3"]}}
+    )
+
     ids: List[uuid.UUID] = Field(
         ...,
         min_length=1,
@@ -91,24 +95,22 @@ class BulkDeleteRequest(BaseModel):
         description="List of IDs to delete (max 100 at once)",
     )
 
-    class Config:
-        json_schema_extra = {"example": {"ids": ["uuid1", "uuid2", "uuid3"]}}
-
 
 class BulkDeleteResponse(BaseModel):
     """Response schema for bulk delete operations"""
 
-    success_count: int = Field(..., description="Number of successfully deleted items")
-    failed_count: int = Field(..., description="Number of items that failed to delete")
-    errors: List[Dict[str, str]] = Field(
-        default_factory=list, description="List of errors for failed deletions"
-    )
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "success_count": 2,
                 "failed_count": 1,
                 "errors": [{"id": "uuid3", "error": "Resume not found"}],
             }
         }
+    )
+
+    success_count: int = Field(..., description="Number of successfully deleted items")
+    failed_count: int = Field(..., description="Number of items that failed to delete")
+    errors: List[Dict[str, str]] = Field(
+        default_factory=list, description="List of errors for failed deletions"
+    )

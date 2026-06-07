@@ -10,12 +10,12 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:api\"",
     "dev:frontend": "npm run dev --workspace=frontend",
-    "dev:api": "npm run dev --workspace=api",
+    "dev:api": "uvicorn main:app --reload --app-dir api --host 0.0.0.0 --port 8000",
     "dev:mcp": "./scripts/mcp-start.sh",
     "stop:mcp": "./scripts/mcp-stop.sh",
     "build": "npm run build --workspaces",
-    "test": "npm run test --workspaces",
-    "lint": "eslint . --ext .ts,.tsx",
+    "test": "npm run --workspaces --if-present test",
+    "lint": "npm run --workspaces --if-present lint",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "db:migrate": "./scripts/migrate.sh",
     "db:seed": "npm run db:seed --workspace=api",
@@ -29,18 +29,21 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
     "@types/node": "^20.11.0",
-    "@typescript-eslint/eslint-plugin": "^6.20.0",
-    "@typescript-eslint/parser": "^6.20.0",
-    "@vitest/ui": "^4.1.7",
+    "@typescript-eslint/eslint-plugin": "^8.60.1",
+    "@typescript-eslint/parser": "^8.60.1",
+    "@vitest/ui": "^4.1.8",
     "concurrently": "^8.2.2",
-    "eslint": "^8.56.0",
+    "eslint": "^9.39.4",
     "jest-axe": "^10.0.0",
+    "jsdom": "^29.1.1",
     "prettier": "^3.2.4",
     "typescript": "^5.3.3",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.8"
   },
   "overrides": {
-    "vite": "^5.4.21"
+    "esbuild": "^0.28.0",
+    "postcss": "^8.5.15",
+    "vite": "^8.0.16"
   },
   "engines": {
     "node": ">=22.0.0",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,10 +41,12 @@ export function MatchRankingControls({
   const stats = useMemo(() => getMatchStatistics(applications), [applications]);
 
   const ranked = useMemo(() => {
-    const result = rankApplications(applications, options);
-    onRankingChange(result);
-    return result;
-  }, [applications, options, onRankingChange]);
+    return rankApplications(applications, options);
+  }, [applications, options]);
+
+  useEffect(() => {
+    onRankingChange(ranked);
+  }, [onRankingChange, ranked]);
 
   const updateOptions = (updates: Partial<MatchRankingOptions>) => {
     setOptions((prev) => ({

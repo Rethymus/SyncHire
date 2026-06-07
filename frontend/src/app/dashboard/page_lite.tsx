@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Navigation } from "@/components/navigation-lite";
 import { apiClient } from "@/lib/api-client-lite";
 import {
@@ -109,7 +110,7 @@ export default function DashboardPage() {
             {statsCards.map((card) => {
               const Icon = card.icon;
               return (
-                <a
+                <Link
                   key={card.title}
                   href={card.href}
                   className={`${card.bgColor} rounded-lg shadow p-6 hover:shadow-md transition-shadow`}
@@ -123,7 +124,7 @@ export default function DashboardPage() {
                     </div>
                     <Icon className={`h-8 w-8 ${card.color} opacity-80`} />
                   </div>
-                </a>
+                </Link>
               );
             })}
           </div>
@@ -133,27 +134,27 @@ export default function DashboardPage() {
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a
+            <Link
               href="/resumes"
               className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <FileText className="h-5 w-5 text-blue-600" />
               <span className="font-medium text-gray-700">Create Resume</span>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/job-descriptions"
               className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <Briefcase className="h-5 w-5 text-green-600" />
               <span className="font-medium text-gray-700">Add Job Description</span>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/applications"
               className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <BarChart3 className="h-5 w-5 text-purple-600" />
               <span className="font-medium text-gray-700">Track Application</span>
-            </a>
+            </Link>
           </div>
         </div>
 
@@ -218,7 +219,7 @@ export default function DashboardPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Data Management</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <a
+            <Link
               href="/data"
               className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
@@ -229,8 +230,8 @@ export default function DashboardPage() {
                   Export, import, backup your data
                 </p>
               </div>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/search"
               className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
@@ -241,7 +242,7 @@ export default function DashboardPage() {
                   Full-text and semantic search
                 </p>
               </div>
-            </a>
+            </Link>
           </div>
         </div>
 

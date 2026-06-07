@@ -13,7 +13,7 @@ import uuid
 import json
 from typing import List, Optional, Dict, Any
 from datetime import datetime, date
-from fastapi import APIRouter, Depends, Query, HTTPException, Body
+from fastapi import APIRouter, Depends, Query, HTTPException, Body, Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field, field_validator
 
@@ -448,7 +448,7 @@ async def get_search_suggestions(
 )
 @rate_limit(RateLimitType.DEFAULT)
 async def get_popular_searches(
-    search_type: str = Query(..., pattern="^(resume|jd|application)$"),
+    search_type: str = Path(..., pattern="^(resume|jd|application)$"),
     limit: int = Query(10, ge=1, le=100, description="Number of results"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),

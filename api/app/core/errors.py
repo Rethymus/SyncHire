@@ -141,6 +141,8 @@ class FileSizeError(FileUploadError):
         max_size: int,
         actual_size: int,
     ):
+        self.max_size = max_size
+        self.actual_size = actual_size
         super().__init__(
             message=f"File too large. Maximum size: {max_size / (1024 * 1024):.1f}MB",
             details={
@@ -159,8 +161,13 @@ class FileTypeError(FileUploadError):
         allowed_types: list[str],
         actual_type: str,
     ):
+        self.allowed_types = allowed_types
+        self.actual_type = actual_type
         super().__init__(
-            message=f"Invalid file type. Allowed types: {', '.join(allowed_types)}",
+            message=(
+                f"Invalid file type {actual_type}. "
+                f"Allowed types: {', '.join(allowed_types)}"
+            ),
             details={
                 "allowed_types": allowed_types,
                 "actual_type": actual_type,
@@ -287,6 +294,7 @@ class ErrorFormatter:
     ) -> Dict[str, Any]:
         """Format HTTP errors"""
         return {
+            "detail": error.detail,
             "error": {
                 "code": error.status_code,
                 "message": error.detail,
@@ -335,8 +343,14 @@ async def validation_error_handler(
         },
     )
 
+    status_code = (
+        status.HTTP_422_UNPROCESSABLE_CONTENT
+        if any(error.get("type") == "json_invalid" for error in exc.errors())
+        else status.HTTP_400_BAD_REQUEST
+    )
+
     return JSONResponse(
-        status_code=status.HTTP_400_BAD_REQUEST,
+        status_code=status_code,
         content=ErrorFormatter.format_validation_error(exc, request),
     )
 

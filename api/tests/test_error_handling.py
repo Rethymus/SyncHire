@@ -195,11 +195,11 @@ class TestAPIErrorScenarios:
         """Test request with malformed JSON"""
         response = client.post(
             "/api/auth/login",
-            data="invalid json",
+            content="invalid json",
             headers={"Content-Type": "application/json"},
         )
 
-        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
     def test_unauthorized_resource_access(self, client: TestClient):
         """Test accessing protected resource without auth"""

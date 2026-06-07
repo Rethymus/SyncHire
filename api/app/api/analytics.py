@@ -220,6 +220,277 @@ def generate_insights(
     return insights
 
 
+async def get_application_statistics(user_id: str, db: AsyncSession) -> Dict[str, Any]:
+    """Return all-time application counts and offer success rate for a user."""
+    result = await db.execute(
+        select(Application.status, func.count(Application.id))
+        .where(Application.user_id == user_id)
+        .group_by(Application.status)
+    )
+    by_status = {status: count for status, count in result.all()}
+    total = sum(by_status.values())
+    offers = by_status.get("offer", 0)
+
+    return {
+        "total_applications": total,
+        "by_status": by_status,
+        "success_rate": round((offers / total) * 100, 2) if total else 0.0,
+    }
+
+
+async def get_application_timeline(
+    user_id: str,
+    db: AsyncSession,
+    days: int = 30,
+    page: int = 1,
+    page_size: Optional[int] = None,
+) -> List[Dict[str, Any]]:
+    """Return daily application counts for the requested lookback window."""
+    start_date = datetime.utcnow() - timedelta(days=days)
+    result = await db.execute(
+        select(Application)
+        .where(
+            and_(
+                Application.user_id == user_id,
+                Application.created_at >= start_date,
+            )
+        )
+        .order_by(Application.created_at.asc())
+    )
+
+    counts: Dict[str, int] = {}
+    for application in result.scalars().all():
+        day = application.created_at.date().isoformat()
+        counts[day] = counts.get(day, 0) + 1
+
+    timeline = [{"date": day, "count": count} for day, count in sorted(counts.items())]
+    if page_size is not None:
+        start = max(page - 1, 0) * page_size
+        return timeline[start : start + page_size]
+    return timeline
+
+
+async def get_status_transition_funnel(
+    user_id: str, db: AsyncSession
+) -> Dict[str, int]:
+    """Return application counts by pipeline status."""
+    result = await db.execute(
+        select(Application.status, func.count(Application.id))
+        .where(Application.user_id == user_id)
+        .group_by(Application.status)
+    )
+    return {status: count for status, count in result.all()}
+
+
+async def get_user_activity_summary(user_id: str, db: AsyncSession) -> Dict[str, Any]:
+    """Return high-level activity counts and most recent activity timestamp."""
+    resume_count = (
+        await db.execute(select(func.count(Resume.id)).where(Resume.user_id == user_id))
+    ).scalar() or 0
+    jd_count = (
+        await db.execute(select(func.count(JD.id)).where(JD.user_id == user_id))
+    ).scalar() or 0
+    application_count = (
+        await db.execute(
+            select(func.count(Application.id)).where(Application.user_id == user_id)
+        )
+    ).scalar() or 0
+
+    timestamps: List[datetime] = []
+    for model in (Resume, JD, Application):
+        result = await db.execute(
+            select(model.created_at)
+            .where(model.user_id == user_id)
+            .order_by(model.created_at.desc())
+            .limit(1)
+        )
+        timestamp = result.scalar_one_or_none()
+        if timestamp is not None:
+            timestamps.append(timestamp)
+
+    return {
+        "total_resumes": resume_count,
+        "total_jds": jd_count,
+        "total_applications": application_count,
+        "last_activity": max(timestamps).isoformat() if timestamps else None,
+    }
+
+
+async def get_weekly_activity(user_id: str, db: AsyncSession) -> List[Dict[str, Any]]:
+    """Return a seven-day activity histogram across resumes, JDs, and applications."""
+    today = datetime.utcnow().date()
+    counts = {
+        (today - timedelta(days=offset)).isoformat(): 0 for offset in range(6, -1, -1)
+    }
+    start = datetime.combine(today - timedelta(days=6), datetime.min.time())
+
+    for model in (Resume, JD, Application):
+        result = await db.execute(
+            select(model.created_at).where(
+                and_(model.user_id == user_id, model.created_at >= start)
+            )
+        )
+        for created_at in result.scalars().all():
+            key = created_at.date().isoformat()
+            if key in counts:
+                counts[key] += 1
+
+    return [{"date": day, "count": count} for day, count in counts.items()]
+
+
+async def get_application_velocity(user_id: str, db: AsyncSession) -> Dict[str, float]:
+    """Estimate response velocity from applications that reached a response status."""
+    result = await db.execute(
+        select(Application).where(
+            and_(
+                Application.user_id == user_id,
+                Application.status.in_(["interview", "offer", "rejected"]),
+            )
+        )
+    )
+    now = datetime.utcnow()
+    response_times = [
+        max((now - application.created_at).days, 0)
+        for application in result.scalars().all()
+        if application.created_at is not None
+    ]
+
+    if not response_times:
+        return {
+            "average_response_time_days": 0.0,
+            "fastest_response_days": 0,
+            "slowest_response_days": 0,
+        }
+
+    return {
+        "average_response_time_days": round(
+            sum(response_times) / len(response_times), 2
+        ),
+        "fastest_response_days": min(response_times),
+        "slowest_response_days": max(response_times),
+    }
+
+
+async def get_match_score_distribution(
+    user_id: str, db: AsyncSession
+) -> Dict[str, Any]:
+    """Return summary statistics and buckets for application match scores."""
+    result = await db.execute(
+        select(Application.match_score).where(
+            and_(Application.user_id == user_id, Application.match_score.isnot(None))
+        )
+    )
+    scores = sorted(float(score) for score in result.scalars().all())
+    if not scores:
+        return {
+            "average_match_score": 0.0,
+            "median_match_score": 0.0,
+            "distribution": {},
+        }
+
+    midpoint = len(scores) // 2
+    if len(scores) % 2:
+        median = scores[midpoint]
+    else:
+        median = (scores[midpoint - 1] + scores[midpoint]) / 2
+
+    distribution = {
+        "0-20": 0,
+        "21-40": 0,
+        "41-60": 0,
+        "61-80": 0,
+        "81-100": 0,
+    }
+    for score in scores:
+        normalized = score * 100 if score <= 1 else score
+        if normalized <= 20:
+            distribution["0-20"] += 1
+        elif normalized <= 40:
+            distribution["21-40"] += 1
+        elif normalized <= 60:
+            distribution["41-60"] += 1
+        elif normalized <= 80:
+            distribution["61-80"] += 1
+        else:
+            distribution["81-100"] += 1
+
+    return {
+        "average_match_score": round(sum(scores) / len(scores), 2),
+        "median_match_score": round(median, 2),
+        "distribution": distribution,
+    }
+
+
+async def get_actionable_insights(
+    user_id: str, db: AsyncSession
+) -> List[Dict[str, str]]:
+    """Generate simple, user-facing analytics insights."""
+    stats = await get_application_statistics(user_id=user_id, db=db)
+    total = stats["total_applications"]
+    if total == 0:
+        return []
+
+    by_status = stats["by_status"]
+    interview_count = by_status.get("interview", 0) + by_status.get("offer", 0)
+    interview_rate = (interview_count / total) * 100
+
+    insights: List[Dict[str, str]] = []
+    if interview_rate < 15:
+        insights.append(
+            {
+                "type": "optimization",
+                "message": "Interview rate is low; tailor resumes and cover letters for higher-fit roles.",
+                "priority": "high",
+            }
+        )
+    if by_status.get("applied", 0) >= 10 and by_status.get("offer", 0) == 0:
+        insights.append(
+            {
+                "type": "pipeline",
+                "message": "Many applications have not converted to offers yet; review follow-up timing and role targeting.",
+                "priority": "medium",
+            }
+        )
+    if not insights:
+        insights.append(
+            {
+                "type": "status",
+                "message": "Application pipeline is active; keep monitoring conversion by stage.",
+                "priority": "low",
+            }
+        )
+    return insights
+
+
+async def get_stagnation_alerts(
+    user_id: str, db: AsyncSession, threshold_days: int = 30
+) -> List[Dict[str, Any]]:
+    """Return active applications that have not changed recently."""
+    cutoff = datetime.utcnow() - timedelta(days=threshold_days)
+    result = await db.execute(
+        select(Application).where(
+            and_(
+                Application.user_id == user_id,
+                Application.status.in_(["applied", "pending"]),
+                Application.updated_at <= cutoff,
+            )
+        )
+    )
+
+    alerts = []
+    now = datetime.utcnow()
+    for application in result.scalars().all():
+        updated_at = application.updated_at or application.created_at
+        alerts.append(
+            {
+                "application_id": str(application.id),
+                "days_stagnant": max((now - updated_at).days, 0),
+                "status": application.status,
+            }
+        )
+    return alerts
+
+
 @router.get("/analytics", response_model=AnalyticsResponse)
 async def get_analytics(
     days: int = Query(

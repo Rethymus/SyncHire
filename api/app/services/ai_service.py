@@ -18,6 +18,10 @@ class AIService:
 
     @staticmethod
     async def parse_jd(content: str) -> dict[str, Any]:
+        return await AIService.analyze_jd(content)
+
+    @staticmethod
+    async def analyze_jd(content: str) -> dict[str, Any]:
         prompt = f"""Extract structured information from this job description:
 
 {content}

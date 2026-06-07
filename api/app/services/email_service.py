@@ -8,8 +8,10 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional, Dict, Any, List
 from datetime import datetime
+from pathlib import Path
 from jinja2 import Template
 import json
+import inspect
 import aiosmtplib
 import redis.asyncio as redis
 from app.core.config import get_settings
@@ -28,10 +30,13 @@ class EmailTemplate:
     def _load_template(self) -> Template:
         """Load template from file or use default."""
         template_path = (
-            f"/home/re/code/SyncHire/api/app/templates/email/{self.template_name}.html"
+            Path(__file__).resolve().parents[1]
+            / "templates"
+            / "email"
+            / f"{self.template_name}.html"
         )
         try:
-            with open(template_path, "r", encoding="utf-8") as f:
+            with template_path.open("r", encoding="utf-8") as f:
                 return Template(f.read())
         except FileNotFoundError:
             logger.warning(
@@ -42,8 +47,7 @@ class EmailTemplate:
 
     def get_default_template(self) -> Template:
         """Fallback template if file not found."""
-        return Template(
-            """
+        return Template("""
             <!DOCTYPE html>
             <html>
             <head>
@@ -74,8 +78,7 @@ class EmailTemplate:
                 </div>
             </body>
             </html>
-            """
-        )
+            """)
 
     def render(self, context: Dict[str, Any]) -> str:
         """Render template with context."""
@@ -89,8 +92,7 @@ class ApplicationStatusTemplate(EmailTemplate):
         super().__init__("application_status")
 
     def get_default_template(self) -> Template:
-        return Template(
-            """
+        return Template("""
             <!DOCTYPE html>
             <html>
             <head>
@@ -152,8 +154,7 @@ class ApplicationStatusTemplate(EmailTemplate):
                 </div>
             </body>
             </html>
-            """
-        )
+            """)
 
 
 class InterviewReminderTemplate(EmailTemplate):
@@ -163,8 +164,7 @@ class InterviewReminderTemplate(EmailTemplate):
         super().__init__("interview_reminder")
 
     def get_default_template(self) -> Template:
-        return Template(
-            """
+        return Template("""
             <!DOCTYPE html>
             <html>
             <head>
@@ -243,8 +243,7 @@ class InterviewReminderTemplate(EmailTemplate):
                 </div>
             </body>
             </html>
-            """
-        )
+            """)
 
 
 class PasswordResetTemplate(EmailTemplate):
@@ -254,8 +253,7 @@ class PasswordResetTemplate(EmailTemplate):
         super().__init__("password_reset")
 
     def get_default_template(self) -> Template:
-        return Template(
-            """
+        return Template("""
             <!DOCTYPE html>
             <html>
             <head>
@@ -306,8 +304,7 @@ class PasswordResetTemplate(EmailTemplate):
                 </div>
             </body>
             </html>
-            """
-        )
+            """)
 
 
 class WeeklyDigestTemplate(EmailTemplate):
@@ -317,8 +314,7 @@ class WeeklyDigestTemplate(EmailTemplate):
         super().__init__("weekly_digest")
 
     def get_default_template(self) -> Template:
-        return Template(
-            """
+        return Template("""
             <!DOCTYPE html>
             <html>
             <head>
@@ -395,8 +391,7 @@ class WeeklyDigestTemplate(EmailTemplate):
                 </div>
             </body>
             </html>
-            """
-        )
+            """)
 
 
 class EmailService:
@@ -437,7 +432,10 @@ class EmailService:
     async def close_redis(self):
         """Close Redis connection."""
         if self.redis_client:
-            await self.redis_client.close()
+            close = getattr(self.redis_client, "aclose", self.redis_client.close)
+            result = close()
+            if inspect.isawaitable(result):
+                await result
             logger.info(LogCategory.API, "Email service Redis connection closed")
 
     def _render_template(self, template_name: str, context: Dict[str, Any]) -> str:

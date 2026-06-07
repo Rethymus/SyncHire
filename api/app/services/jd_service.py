@@ -1,5 +1,6 @@
 import uuid
 import json
+import inspect
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
@@ -8,20 +9,50 @@ from app.models.jd import JD
 from app.schemas.jd import JDCreate, JDUpdate, BulkDeleteResponse
 from app.services.ai_service import AIService
 from app.services.mcp_client import mcp_client, MCPError
+from app.services.task_service import TaskService
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 class JDService:
+    AIService = AIService
+
+    @staticmethod
+    async def _maybe_await(value):
+        if inspect.isawaitable(value):
+            return await value
+        return value
+
     @staticmethod
     async def parse_jd(content: str) -> dict:
         """Parse JD using MCP client with fallback to AI service."""
         try:
-            return await mcp_client.parse_jd(content)
+            return await JDService._maybe_await(mcp_client.parse_jd(content))
         except MCPError:
             # Fallback to AI service if MCP is unavailable
-            return await AIService.parse_jd(content)
+            try:
+                return await JDService._maybe_await(
+                    JDService.AIService.parse_jd(content)
+                )
+            except Exception as e:
+                logger.warning(f"Failed to parse JD with AI fallback: {e}")
+                return {
+                    "skills": [],
+                    "experience_level": None,
+                    "requirements": [],
+                    "responsibilities": [],
+                    "nice_to_have": [],
+                }
+
+    @staticmethod
+    async def generate_embedding(content: str) -> list[float] | None:
+        """Generate an embedding, returning None when the external service fails."""
+        try:
+            return await JDService._maybe_await(AIService.generate_embedding(content))
+        except Exception as e:
+            logger.warning(f"Failed to generate embedding: {e}")
+            return None
 
     @staticmethod
     async def create_jd(
@@ -44,18 +75,18 @@ class JDService:
         """
         if async_processing:
             # Submit async parsing task
-            from app.services.task_service import TaskService
-
-            task = await TaskService.submit_task(
-                db=db,
-                user_id=user_id,
-                task_type="jd_parsing",
-                input_data={
-                    "title": jd_data.title,
-                    "company": jd_data.company,
-                    "content": jd_data.content,
-                },
-                priority="normal",
+            task = await JDService._maybe_await(
+                TaskService.submit_task(
+                    db=db,
+                    user_id=user_id,
+                    task_type="jd_parsing",
+                    input_data={
+                        "title": jd_data.title,
+                        "company": jd_data.company,
+                        "content": jd_data.content,
+                    },
+                    priority="normal",
+                )
             )
 
             # Create JD record immediately with pending status
@@ -84,9 +115,9 @@ class JDService:
         # Generate embedding for semantic search
         embedding = None
         try:
-            embedding = await AIService.generate_embedding(jd_data.content)
+            embedding = await JDService.generate_embedding(jd_data.content)
         except Exception as e:
-            print(f"Failed to generate embedding: {e}")
+            logger.warning(f"Failed to generate embedding: {e}")
 
         db_jd = JD(
             user_id=user_id,
@@ -185,10 +216,9 @@ class JDService:
             jd.parsed_data = json.dumps(parsed_data, ensure_ascii=False)
 
             try:
-                embedding = await AIService.generate_embedding(jd_data.content)
-                jd.embedding = embedding
+                jd.embedding = await JDService.generate_embedding(jd_data.content)
             except Exception as e:
-                print(f"Failed to generate embedding: {e}")
+                logger.warning(f"Failed to generate embedding: {e}")
 
         await db.commit()
         await db.refresh(jd)

@@ -8,6 +8,8 @@ and recombining them into complete files when all chunks are received.
 import uuid
 import shutil
 import logging
+import os
+import tempfile
 from pathlib import Path
 from typing import Optional
 from fastapi import (
@@ -33,8 +35,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/upload", tags=["upload"])
 
 # Configuration
-CHUNK_DIR = Path("/tmp/chunks")
-UPLOAD_DIR = Path("/tmp/uploads")
+TEMP_UPLOAD_ROOT = (
+    Path(os.environ.get("SYNCHIRE_UPLOAD_TMP_DIR", tempfile.gettempdir())) / "synchire"
+)
+CHUNK_DIR = TEMP_UPLOAD_ROOT / "chunks"
+UPLOAD_DIR = TEMP_UPLOAD_ROOT / "uploads"
 MAX_CHUNK_SIZE = 10 * 1024 * 1024  # 10MB max chunk size
 MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB max file size
 
@@ -104,7 +109,7 @@ async def upload_chunk(
 
         if fileSize > MAX_FILE_SIZE:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
                 detail=f"File size exceeds maximum allowed size of {MAX_FILE_SIZE} bytes",
             )
 
@@ -119,7 +124,7 @@ async def upload_chunk(
         chunk_content = await chunk.read()
         if len(chunk_content) > MAX_CHUNK_SIZE:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
                 detail=f"Chunk size exceeds maximum allowed size of {MAX_CHUNK_SIZE} bytes",
             )
 

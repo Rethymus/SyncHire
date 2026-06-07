@@ -27,37 +27,3 @@ __all__ = [
     "ConsentLog",
     "Task",
 ]
-
-# Import after all models to establish relationships
-from sqlalchemy.orm import relationship
-
-# Add back_populates to User
-User.resumes = relationship(
-    "Resume", back_populates="user", cascade="all, delete-orphan"
-)
-User.jds = relationship("JD", back_populates="user", cascade="all, delete-orphan")
-User.applications = relationship(
-    "Application", back_populates="user", cascade="all, delete-orphan"
-)
-User.notifications = relationship(
-    "Notification", back_populates="user", cascade="all, delete-orphan"
-)
-User.search_history = relationship(
-    "SearchHistory", back_populates="user", cascade="all, delete-orphan"
-)
-User.saved_searches = relationship(
-    "SavedSearch", back_populates="user", cascade="all, delete-orphan"
-)
-User.search_analytics = relationship(
-    "SearchAnalytics", back_populates="user", cascade="all, delete-orphan"
-)
-User.interviews = relationship(
-    "Interview", back_populates="user", cascade="all, delete-orphan"
-)
-User.interview_reminders = relationship(
-    "InterviewReminder", back_populates="user", cascade="all, delete-orphan"
-)
-User.interview_events = relationship(
-    "InterviewEvent", back_populates="user", cascade="all, delete-orphan"
-)
-User.tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")

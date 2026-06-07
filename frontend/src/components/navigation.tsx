@@ -101,10 +101,10 @@ function NavigationComponent() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
       <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
         <div className="flex lg:flex-1">
-          <a href="/" className="flex items-center gap-2 -m-1.5 p-1.5">
+          <Link href="/" className="flex items-center gap-2 -m-1.5 p-1.5">
             <Sparkles className="h-8 w-8 text-blue-600" aria-hidden="true" />
             <span className="text-xl font-bold text-gray-900">SyncHire 知遇</span>
-          </a>
+          </Link>
         </div>
 
         <div className="flex lg:hidden">
@@ -141,16 +141,16 @@ function NavigationComponent() {
               </span>
               <NotificationCenter />
               <Button variant="ghost" asChild>
-                <a href="/dashboard">{t('dashboard')}</a>
+                <Link href="/dashboard">{t('dashboard')}</Link>
               </Button>
               <Button variant="ghost" asChild>
-                <a href="/analytics">{t('applications')}</a>
+                <Link href="/analytics">{t('applications')}</Link>
               </Button>
               <Button variant="ghost" asChild>
-                <a href="/settings">
+                <Link href="/settings">
                   <Settings className="h-4 w-4 mr-2" />
                   {t('settings')}
-                </a>
+                </Link>
               </Button>
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
@@ -160,10 +160,10 @@ function NavigationComponent() {
           ) : (
             <>
               <Button variant="ghost" asChild>
-                <a href="/login">{t('login')}</a>
+                <Link href="/login">{t('login')}</Link>
               </Button>
               <Button asChild>
-                <a href="/signup">{t('signup')}</a>
+                <Link href="/signup">{t('signup')}</Link>
               </Button>
             </>
           )}
@@ -183,14 +183,14 @@ function NavigationComponent() {
             className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10"
           >
             <div className="flex items-center justify-between">
-              <a
+              <Link
                 href="/"
                 className="flex items-center gap-2 -m-1.5 p-1.5"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Sparkles className="h-8 w-8 text-blue-600" aria-hidden="true" />
                 <span className="text-xl font-bold text-gray-900">SyncHire 知遇</span>
-              </a>
+              </Link>
               <button
                 ref={closeButtonRef}
                 type="button"
@@ -225,32 +225,32 @@ function NavigationComponent() {
                         <NotificationCenter />
                       </div>
                       <Button variant="ghost" className="w-full justify-start" asChild>
-                        <a
+                        <Link
                           href="/dashboard"
                           onClick={() => setMobileMenuOpen(false)}
                           className="focus:outline-none focus:ring-2 focus:ring-blue-600"
                         >
                           {t('dashboard')}
-                        </a>
+                        </Link>
                       </Button>
                       <Button variant="ghost" className="w-full justify-start" asChild>
-                        <a
+                        <Link
                           href="/analytics"
                           onClick={() => setMobileMenuOpen(false)}
                           className="focus:outline-none focus:ring-2 focus:ring-blue-600"
                         >
                           {t('applications')}
-                        </a>
+                        </Link>
                       </Button>
                       <Button variant="ghost" className="w-full justify-start" asChild>
-                        <a
+                        <Link
                           href="/settings"
                           onClick={() => setMobileMenuOpen(false)}
                           className="focus:outline-none focus:ring-2 focus:ring-blue-600"
                         >
                           <Settings className="h-4 w-4 mr-2" />
                           {t('settings')}
-                        </a>
+                        </Link>
                       </Button>
                       <Button variant="outline" className="w-full" onClick={handleLogout}>
                         <LogOut className="h-4 w-4 mr-2" />
@@ -260,22 +260,22 @@ function NavigationComponent() {
                   ) : (
                     <>
                       <Button variant="ghost" className="w-full justify-start" asChild>
-                        <a
+                        <Link
                           href="/login"
                           onClick={() => setMobileMenuOpen(false)}
                           className="focus:outline-none focus:ring-2 focus:ring-blue-600"
                         >
                           {t('login')}
-                        </a>
+                        </Link>
                       </Button>
                       <Button className="w-full" asChild>
-                        <a
+                        <Link
                           href="/signup"
                           onClick={() => setMobileMenuOpen(false)}
                           className="focus:outline-none focus:ring-2 focus:ring-blue-600"
                         >
                           {t('signup')}
-                        </a>
+                        </Link>
                       </Button>
                     </>
                   )}

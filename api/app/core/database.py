@@ -1,7 +1,16 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import MetaData
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.pool import StaticPool
 from app.core.config import get_settings
+
+
+@compiles(JSONB, "sqlite")
+def _compile_jsonb_for_sqlite(type_, compiler, **kw):
+    return "JSON"
+
 
 settings = get_settings()
 metadata = MetaData(
@@ -16,13 +25,20 @@ metadata = MetaData(
 
 Base = declarative_base(metadata=metadata)
 
-engine = create_async_engine(
-    settings.async_database_url,
-    echo=settings.DEBUG if hasattr(settings, "DEBUG") else False,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
-)
+engine_options = {
+    "echo": settings.DEBUG if hasattr(settings, "DEBUG") else False,
+    "pool_pre_ping": True,
+}
+
+if settings.async_database_url.startswith("sqlite"):
+    engine_options["connect_args"] = {"check_same_thread": False}
+    if ":memory:" in settings.async_database_url:
+        engine_options["poolclass"] = StaticPool
+else:
+    engine_options["pool_size"] = 10
+    engine_options["max_overflow"] = 20
+
+engine = create_async_engine(settings.async_database_url, **engine_options)
 
 AsyncSessionLocal = async_sessionmaker(
     engine,

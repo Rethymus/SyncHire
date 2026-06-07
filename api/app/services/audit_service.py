@@ -22,7 +22,7 @@ from app.models.audit_log import (
     DataRetentionLog,
     ConsentLog,
 )
-from app.core.logger import logger
+from app.core.logger import logger, LogCategory
 
 
 class AuditService:
@@ -75,7 +75,7 @@ class AuditService:
                 user_agent=user_agent,
                 request_id=request_id,
                 description=description,
-                metadata=metadata,
+                request_metadata=metadata,
                 timestamp=datetime.utcnow(),
             )
 
@@ -84,12 +84,13 @@ class AuditService:
             await db.refresh(audit_log)
 
             logger.info(
-                f"Audit log created: {action.value} on {resource_type.value}:{resource_id} by user:{user_id}"
+                LogCategory.SECURITY,
+                f"Audit log created: {action.value} on {resource_type.value}:{resource_id} by user:{user_id}",
             )
             return audit_log
 
         except Exception as e:
-            logger.error(f"Failed to create audit log: {str(e)}")
+            logger.error(LogCategory.SECURITY, f"Failed to create audit log: {str(e)}")
             await db.rollback()
             raise HTTPException(status_code=500, detail="Failed to create audit log")
 
@@ -142,11 +143,16 @@ class AuditService:
             result = await db.execute(query)
             audit_logs = result.scalars().all()
 
-            logger.info(f"Retrieved {len(audit_logs)} audit logs for user {user_id}")
+            logger.info(
+                LogCategory.SECURITY,
+                f"Retrieved {len(audit_logs)} audit logs for user {user_id}",
+            )
             return audit_logs
 
         except Exception as e:
-            logger.error(f"Failed to retrieve audit history: {str(e)}")
+            logger.error(
+                LogCategory.SECURITY, f"Failed to retrieve audit history: {str(e)}"
+            )
             raise HTTPException(
                 status_code=500, detail="Failed to retrieve audit history"
             )
@@ -202,11 +208,13 @@ class AuditService:
             result = await db.execute(query)
             audit_logs = result.scalars().all()
 
-            logger.info(f"Retrieved {len(audit_logs)} audit logs")
+            logger.info(LogCategory.SECURITY, f"Retrieved {len(audit_logs)} audit logs")
             return audit_logs
 
         except Exception as e:
-            logger.error(f"Failed to retrieve audit logs: {str(e)}")
+            logger.error(
+                LogCategory.SECURITY, f"Failed to retrieve audit logs: {str(e)}"
+            )
             raise HTTPException(status_code=500, detail="Failed to retrieve audit logs")
 
     @staticmethod
@@ -255,7 +263,7 @@ class AuditService:
                 raise HTTPException(status_code=400, detail="Invalid export format")
 
         except Exception as e:
-            logger.error(f"Failed to export audit logs: {str(e)}")
+            logger.error(LogCategory.SECURITY, f"Failed to export audit logs: {str(e)}")
             raise HTTPException(status_code=500, detail="Failed to export audit logs")
 
     @staticmethod
@@ -283,6 +291,7 @@ class AuditService:
 
         # Write data rows
         for log in audit_logs:
+            request_metadata = getattr(log, "request_metadata", None)
             writer.writerow(
                 [
                     log.timestamp.isoformat(),
@@ -295,7 +304,7 @@ class AuditService:
                     log.request_id or "",
                     json.dumps(log.old_values) if log.old_values else "",
                     json.dumps(log.new_values) if log.new_values else "",
-                    json.dumps(log.metadata) if log.metadata else "",
+                    json.dumps(request_metadata) if request_metadata else "",
                 ]
             )
 
@@ -314,6 +323,7 @@ class AuditService:
         """Export audit logs as JSON file."""
         data = []
         for log in audit_logs:
+            request_metadata = getattr(log, "request_metadata", None)
             data.append(
                 {
                     "timestamp": log.timestamp.isoformat(),
@@ -326,7 +336,7 @@ class AuditService:
                     "request_id": log.request_id,
                     "old_values": log.old_values,
                     "new_values": log.new_values,
-                    "metadata": log.metadata,
+                    "metadata": request_metadata,
                 }
             )
 
@@ -384,12 +394,13 @@ class AuditService:
             await db.refresh(retention_log)
 
             logger.info(
-                f"Data deletion logged: {resource_type}:{resource_id} for user {user_id}, reason: {deletion_reason}"
+                LogCategory.SECURITY,
+                f"Data deletion logged: {resource_type}:{resource_id} for user {user_id}, reason: {deletion_reason}",
             )
             return retention_log
 
         except Exception as e:
-            logger.error(f"Failed to log data deletion: {str(e)}")
+            logger.error(LogCategory.SECURITY, f"Failed to log data deletion: {str(e)}")
             await db.rollback()
             raise HTTPException(status_code=500, detail="Failed to log data deletion")
 
@@ -438,12 +449,13 @@ class AuditService:
             await db.refresh(consent_log)
 
             logger.info(
-                f"Consent logged: {consent_type} {'granted' if granted else 'revoked'} by user {user_id}"
+                LogCategory.SECURITY,
+                f"Consent logged: {consent_type} {'granted' if granted else 'revoked'} by user {user_id}",
             )
             return consent_log
 
         except Exception as e:
-            logger.error(f"Failed to log consent: {str(e)}")
+            logger.error(LogCategory.SECURITY, f"Failed to log consent: {str(e)}")
             await db.rollback()
             raise HTTPException(status_code=500, detail="Failed to log consent")
 
@@ -476,12 +488,15 @@ class AuditService:
             consent_logs = result.scalars().all()
 
             logger.info(
-                f"Retrieved {len(consent_logs)} consent logs for user {user_id}"
+                LogCategory.SECURITY,
+                f"Retrieved {len(consent_logs)} consent logs for user {user_id}",
             )
             return consent_logs
 
         except Exception as e:
-            logger.error(f"Failed to retrieve consent history: {str(e)}")
+            logger.error(
+                LogCategory.SECURITY, f"Failed to retrieve consent history: {str(e)}"
+            )
             raise HTTPException(
                 status_code=500, detail="Failed to retrieve consent history"
             )
@@ -542,11 +557,16 @@ class AuditService:
                     user_str = str(log.user_id)
                     stats["by_user"][user_str] = stats["by_user"].get(user_str, 0) + 1
 
-            logger.info(f"Generated audit statistics for {start_date} to {end_date}")
+            logger.info(
+                LogCategory.SECURITY,
+                f"Generated audit statistics for {start_date} to {end_date}",
+            )
             return stats
 
         except Exception as e:
-            logger.error(f"Failed to generate audit statistics: {str(e)}")
+            logger.error(
+                LogCategory.SECURITY, f"Failed to generate audit statistics: {str(e)}"
+            )
             raise HTTPException(
                 status_code=500, detail="Failed to generate audit statistics"
             )
@@ -708,4 +728,93 @@ async def log_from_request_metadata(
         new_values=new_values,
         description=description,
         metadata=metadata,
+    )
+
+
+async def get_audit_logs(
+    db: AsyncSession,
+    skip: int = 0,
+    limit: int = 100,
+    user_id: Optional[uuid.UUID] = None,
+    action_type: Optional[AuditAction] = None,
+    resource_type: Optional[ResourceType] = None,
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+) -> List[AuditLog]:
+    """Backward-compatible module-level proxy for AuditService.get_audit_logs."""
+    return await AuditService.get_audit_logs(
+        db=db,
+        skip=skip,
+        limit=limit,
+        user_id=user_id,
+        action_type=action_type,
+        resource_type=resource_type,
+        start_date=start_date,
+        end_date=end_date,
+    )
+
+
+async def export_audit_log(
+    db: AsyncSession,
+    start_date: datetime,
+    end_date: datetime,
+    user_id: Optional[uuid.UUID] = None,
+    format: str = "csv",
+) -> Response:
+    """Backward-compatible module-level proxy for AuditService.export_audit_log."""
+    return await AuditService.export_audit_log(
+        db=db,
+        start_date=start_date,
+        end_date=end_date,
+        user_id=user_id,
+        format=format,
+    )
+
+
+async def get_audit_statistics(
+    db: AsyncSession,
+    start_date: datetime,
+    end_date: datetime,
+) -> Dict[str, Any]:
+    """Backward-compatible module-level proxy for AuditService.get_audit_statistics."""
+    return await AuditService.get_audit_statistics(
+        db=db,
+        start_date=start_date,
+        end_date=end_date,
+    )
+
+
+async def get_user_audit_history(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    skip: int = 0,
+    limit: int = 100,
+    action_type: Optional[AuditAction] = None,
+    resource_type: Optional[ResourceType] = None,
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+) -> List[AuditLog]:
+    """Backward-compatible module-level proxy for AuditService.get_user_audit_history."""
+    return await AuditService.get_user_audit_history(
+        db=db,
+        user_id=user_id,
+        skip=skip,
+        limit=limit,
+        action_type=action_type,
+        resource_type=resource_type,
+        start_date=start_date,
+        end_date=end_date,
+    )
+
+
+async def get_user_consent_history(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    consent_type: Optional[str] = None,
+) -> List[ConsentLog]:
+    """Backward-compatible module-level proxy for AuditService.get_user_consent_history."""
+    return await AuditService.get_user_consent_history(
+        db=db,
+        user_id=user_id,
+        consent_type=consent_type,
     )

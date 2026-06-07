@@ -104,12 +104,12 @@ class ConnectionManager:
             ),
         )
 
-        # Start background tasks if not running
-        if self._heartbeat_task is None:
-            self._heartbeat_task = asyncio.create_task(self._heartbeat_monitor())
+        # Start background tasks only if the connection survived welcome delivery.
+        async with self._lock:
+            is_connected = connection_id in self._connection_info
 
-        if self._cleanup_task is None:
-            self._cleanup_task = asyncio.create_task(self._cleanup_stale_connections())
+        if is_connected:
+            await self._ensure_background_tasks()
 
         logger.info(
             LogCategory.WEBSOCKET,
@@ -142,10 +142,43 @@ class ConnectionManager:
             # Remove heartbeat tracking
             self._last_heartbeat.pop(connection_id, None)
 
+            has_connections = bool(self._connections)
+
         logger.info(
             LogCategory.WEBSOCKET,
             f"WebSocket connection closed: {connection_id} for user {user_id}",
         )
+
+        if not has_connections:
+            await self._stop_background_tasks()
+
+    async def _ensure_background_tasks(self):
+        """Start background maintenance tasks when at least one connection exists."""
+        if self._heartbeat_task is None or self._heartbeat_task.done():
+            self._heartbeat_task = asyncio.create_task(self._heartbeat_monitor())
+
+        if self._cleanup_task is None or self._cleanup_task.done():
+            self._cleanup_task = asyncio.create_task(self._cleanup_stale_connections())
+
+    async def _stop_background_tasks(self):
+        """Cancel and await background maintenance tasks."""
+        current_task = asyncio.current_task()
+        tasks = []
+
+        for attr in ("_heartbeat_task", "_cleanup_task"):
+            task = getattr(self, attr)
+            if task is None:
+                continue
+
+            setattr(self, attr, None)
+            if task.done() or task is current_task:
+                continue
+
+            task.cancel()
+            tasks.append(task)
+
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
 
     async def send_personal_message(
         self, user_id: str, message: WebSocketMessage
@@ -391,8 +424,11 @@ class ConnectionManager:
                 try:
                     message = WebSocketMessage.model_validate_json(msg_json)
                     messages.append(message)
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug(
+                        LogCategory.WEBSOCKET,
+                        f"Skipping malformed queued websocket message: {exc}",
+                    )
         except Exception as e:
             logger.error(LogCategory.WEBSOCKET, f"Failed to get queued messages: {e}")
 
@@ -483,10 +519,7 @@ class ConnectionManager:
     async def shutdown(self):
         """Shutdown the connection manager and clean up resources."""
         # Cancel background tasks
-        if self._heartbeat_task:
-            self._heartbeat_task.cancel()
-        if self._cleanup_task:
-            self._cleanup_task.cancel()
+        await self._stop_background_tasks()
 
         # Close all connections and clean up
         async with self._lock:
@@ -494,8 +527,11 @@ class ConnectionManager:
                 for conn_id, websocket in list(connections.items()):
                     try:
                         await websocket.close()
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        logger.debug(
+                            LogCategory.WEBSOCKET,
+                            f"Failed to close websocket {conn_id} during shutdown: {exc}",
+                        )
 
             # Clear all internal structures
             self._connections.clear()
