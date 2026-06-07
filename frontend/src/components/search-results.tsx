@@ -44,15 +44,67 @@ interface SearchResultsProps {
   onPageChange: (page: number) => void;
   loading?: boolean;
   searchType: "resume" | "jd" | "application";
+  copy?: Partial<SearchResultsCopy>;
 }
 
-const statusConfig = {
-  draft: { label: "Draft", color: "bg-gray-100 text-gray-800" },
-  applied: { label: "Applied", color: "bg-blue-100 text-blue-800" },
-  interview: { label: "Interview", color: "bg-purple-100 text-purple-800" },
-  offer: { label: "Offer", color: "bg-green-100 text-green-800" },
-  rejected: { label: "Rejected", color: "bg-red-100 text-red-800" },
-  pending: { label: "Pending", color: "bg-yellow-100 text-yellow-800" },
+interface SearchResultsCopy {
+  noResults: string;
+  noQuery: string;
+  noQueryPrefix: string;
+  noQuerySuffix: string;
+  found: string;
+  result: string;
+  results: string;
+  forQuery: string;
+  match: string;
+  resume: string;
+  view: string;
+  details: string;
+  prep: string;
+  previous: string;
+  next: string;
+  page: string;
+  of: string;
+  status: Record<string, string>;
+}
+
+const DEFAULT_COPY: SearchResultsCopy = {
+  noResults: "No results found",
+  noQuery: "Enter a search query to find results.",
+  noQueryPrefix: "No results match",
+  noQuerySuffix: "Try different keywords or filters.",
+  found: "Found",
+  result: "result",
+  results: "results",
+  forQuery: "for",
+  match: "Match",
+  resume: "Resume",
+  view: "View",
+  details: "Details",
+  prep: "Prep",
+  previous: "Previous",
+  next: "Next",
+  page: "Page",
+  of: "of",
+  status: {
+    draft: "Draft",
+    applied: "Applied",
+    interview: "Interview",
+    offer: "Offer",
+    rejected: "Rejected",
+    pending: "Pending",
+    optimized: "Optimized",
+  },
+};
+
+const statusColors = {
+  draft: "bg-gray-100 text-gray-800",
+  applied: "bg-blue-100 text-blue-800",
+  interview: "bg-purple-100 text-purple-800",
+  offer: "bg-green-100 text-green-800",
+  rejected: "bg-red-100 text-red-800",
+  pending: "bg-yellow-100 text-yellow-800",
+  optimized: "bg-green-100 text-green-800",
 };
 
 export const SearchResults = memo(function SearchResults({
@@ -64,7 +116,9 @@ export const SearchResults = memo(function SearchResults({
   onPageChange,
   loading = false,
   searchType,
+  copy: copyOverrides,
 }: SearchResultsProps) {
+  const copy = { ...DEFAULT_COPY, ...copyOverrides, status: { ...DEFAULT_COPY.status, ...copyOverrides?.status } };
   const totalPages = Math.ceil(total / pageSize);
 
   const highlightText = useMemo(() => {
@@ -109,11 +163,11 @@ export const SearchResults = memo(function SearchResults({
         {searchType === "jd" && <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />}
         {searchType === "application" && <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />}
 
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No results found</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{copy.noResults}</h3>
         <p className="text-sm text-gray-600 mb-6">
           {query
-            ? `No results match &quot;${query}&quot;. Try different keywords or filters.`
-            : "Enter a search query to find results."}
+            ? `${copy.noQueryPrefix} "${query}". ${copy.noQuerySuffix}`
+            : copy.noQuery}
         </p>
       </div>
     );
@@ -124,11 +178,11 @@ export const SearchResults = memo(function SearchResults({
       {/* Results Summary */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-600">
-          Found <span className="font-semibold text-gray-900">{total}</span>{" "}
-          {total === 1 ? "result" : "results"}
+          {copy.found} <span className="font-semibold text-gray-900">{total}</span>{" "}
+          {total === 1 ? copy.result : copy.results}
           {query && (
             <span>
-              {" "}for &apos;<span className="font-medium">{query}</span>&apos;
+              {" "}{copy.forQuery} &apos;<span className="font-medium">{query}</span>&apos;
             </span>
           )}
         </p>
@@ -158,8 +212,8 @@ export const SearchResults = memo(function SearchResults({
                     </Badge>
                   )}
                   {result.status && (
-                    <Badge className={statusConfig[result.status as keyof typeof statusConfig]?.color}>
-                      {statusConfig[result.status as keyof typeof statusConfig]?.label || result.status}
+                    <Badge className={statusColors[result.status as keyof typeof statusColors]}>
+                      {copy.status[result.status] || result.status}
                     </Badge>
                   )}
                 </div>
@@ -175,7 +229,7 @@ export const SearchResults = memo(function SearchResults({
                       <div className="flex items-center gap-1">
                         <TrendingUp className="h-4 w-4 text-blue-600" />
                         <span className="text-gray-700">
-                          Match: <span className="font-semibold">{result.match_score}%</span>
+                          {copy.match}: <span className="font-semibold">{result.match_score}%</span>
                         </span>
                       </div>
                     )}
@@ -205,7 +259,7 @@ export const SearchResults = memo(function SearchResults({
                   {searchType === "application" && result.resume_title && (
                     <div className="flex items-center gap-1">
                       <FileText className="h-3 w-3" />
-                      Resume: {result.resume_title}
+                      {copy.resume}: {result.resume_title}
                     </div>
                   )}
                 </div>
@@ -217,7 +271,7 @@ export const SearchResults = memo(function SearchResults({
                   <Link href={`/editor?resumeId=${result.id}`}>
                     <Button variant="outline" size="sm">
                       <FileText className="h-4 w-4 mr-2" />
-                      View
+                      {copy.view}
                     </Button>
                   </Link>
                 )}
@@ -225,7 +279,7 @@ export const SearchResults = memo(function SearchResults({
                   <Link href={`/dashboard?jdId=${result.id}`}>
                     <Button variant="outline" size="sm">
                       <Briefcase className="h-4 w-4 mr-2" />
-                      View
+                      {copy.view}
                     </Button>
                   </Link>
                 )}
@@ -234,13 +288,13 @@ export const SearchResults = memo(function SearchResults({
                     <Link href={applicationDetailHref(result.id)}>
                       <Button variant="outline" size="sm">
                         <ExternalLink className="h-4 w-4 mr-2" />
-                        Details
+                        {copy.details}
                       </Button>
                     </Link>
                     <Link href={`/interview-prep?applicationId=${result.id}`}>
                       <Button size="sm">
                         <TrendingUp className="h-4 w-4 mr-2" />
-                        Prep
+                        {copy.prep}
                       </Button>
                     </Link>
                   </>
@@ -259,9 +313,9 @@ export const SearchResults = memo(function SearchResults({
             size="sm"
             onClick={() => onPageChange(page - 1)}
             disabled={page === 1}
-            aria-label="Previous page"
+            aria-label={copy.previous}
           >
-            Previous
+            {copy.previous}
           </Button>
 
           <div className="flex items-center gap-1">
@@ -286,7 +340,7 @@ export const SearchResults = memo(function SearchResults({
                       size="sm"
                       onClick={() => onPageChange(p)}
                       className="min-w-[40px]"
-                      aria-label={`Page ${p}`}
+                      aria-label={`${copy.page} ${p}`}
                       aria-current={p === page ? "page" : undefined}
                     >
                       {p}
@@ -301,9 +355,9 @@ export const SearchResults = memo(function SearchResults({
             size="sm"
             onClick={() => onPageChange(page + 1)}
             disabled={page === totalPages}
-            aria-label="Next page"
+            aria-label={copy.next}
           >
-            Next
+            {copy.next}
           </Button>
         </div>
       )}

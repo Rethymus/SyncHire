@@ -9,10 +9,21 @@
 import { useState } from "react";
 import { NotificationSettings } from "@/components/settings/notification-settings";
 import { NotificationHistory } from "@/components/notification-history";
+import { useLiteCopy } from "@/lib/lite-i18n";
 
 type TabType = "settings" | "history";
 
 export default function SettingsPage() {
+  const { locale } = useLiteCopy();
+  const copy = locale === "zh-CN"
+    ? {
+        settings: "通知设置",
+        history: "通知历史",
+      }
+    : {
+        settings: "Notification Settings",
+        history: "Notification History",
+      };
   const [activeTab, setActiveTab] = useState<TabType>("settings");
 
   return (
@@ -30,7 +41,7 @@ export default function SettingsPage() {
               }`}
               aria-current={activeTab === "settings" ? "page" : undefined}
             >
-              Notification Settings
+              {copy.settings}
             </button>
             <button
               onClick={() => setActiveTab("history")}
@@ -41,7 +52,7 @@ export default function SettingsPage() {
               }`}
               aria-current={activeTab === "history" ? "page" : undefined}
             >
-              Notification History
+              {copy.history}
             </button>
           </nav>
         </div>

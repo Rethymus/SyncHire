@@ -40,7 +40,64 @@ interface UniversalSearchProps {
   searchType: "resume" | "jd" | "application";
   className?: string;
   showFilters?: boolean;
+  copy?: Partial<UniversalSearchCopy>;
 }
+
+interface UniversalSearchCopy {
+  ariaLabel: string;
+  clearSearch: string;
+  recentSearches: string;
+  filters: string;
+  active: string;
+  clearFilters: string;
+  sortBy: string;
+  recent: string;
+  created: string;
+  matchScore: string;
+  title: string;
+  descending: string;
+  ascending: string;
+  status: string;
+  allStatuses: string;
+  draft: string;
+  applied: string;
+  interview: string;
+  offer: string;
+  rejected: string;
+  matchScoreFilter: string;
+  minPercent: string;
+  maxPercent: string;
+  dateRange: string;
+  to: string;
+}
+
+const DEFAULT_COPY: UniversalSearchCopy = {
+  ariaLabel: "Search",
+  clearSearch: "Clear search",
+  recentSearches: "Recent searches",
+  filters: "Filters",
+  active: "Active",
+  clearFilters: "Clear filters",
+  sortBy: "Sort by:",
+  recent: "Recent",
+  created: "Created",
+  matchScore: "Match Score",
+  title: "Title",
+  descending: "Descending",
+  ascending: "Ascending",
+  status: "Status",
+  allStatuses: "All statuses",
+  draft: "Draft",
+  applied: "Applied",
+  interview: "Interview",
+  offer: "Offer",
+  rejected: "Rejected",
+  matchScoreFilter: "Match Score",
+  minPercent: "Min %",
+  maxPercent: "Max %",
+  dateRange: "Date Range",
+  to: "to",
+};
 
 export const UniversalSearch = memo(function UniversalSearch({
   onSearch,
@@ -48,7 +105,9 @@ export const UniversalSearch = memo(function UniversalSearch({
   searchType,
   className,
   showFilters = true,
+  copy: copyOverrides,
 }: UniversalSearchProps) {
+  const copy = { ...DEFAULT_COPY, ...copyOverrides };
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -168,7 +227,7 @@ export const UniversalSearch = memo(function UniversalSearch({
           onFocus={() => setShowSuggestions(query.length > 0)}
           placeholder={placeholder}
           className="pl-10 pr-10 min-h-[44px] text-base"
-          aria-label="Search"
+          aria-label={copy.ariaLabel}
           aria-expanded={showSuggestions}
           aria-controls="search-suggestions"
           aria-autocomplete="list"
@@ -178,7 +237,7 @@ export const UniversalSearch = memo(function UniversalSearch({
           <button
             onClick={handleClearSearch}
             className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label="Clear search"
+            aria-label={copy.clearSearch}
           >
             <X className="h-5 w-5" />
           </button>
@@ -196,7 +255,7 @@ export const UniversalSearch = memo(function UniversalSearch({
             <div className="px-3 py-2">
               <div className="flex items-center gap-2 text-xs font-medium text-gray-500 mb-2">
                 <Clock className="h-3 w-3" />
-                Recent searches
+                {copy.recentSearches}
               </div>
               <div className="space-y-1">
                 {recentSearchesList.map((recentQuery) => (
@@ -233,10 +292,10 @@ export const UniversalSearch = memo(function UniversalSearch({
               aria-controls="advanced-filters"
             >
               <SlidersHorizontal className="h-4 w-4" />
-              Filters
+              {copy.filters}
               {hasActiveFilters && (
                 <Badge variant="secondary" className="ml-1">
-                  Active
+                  {copy.active}
                 </Badge>
               )}
               <ChevronDown
@@ -249,14 +308,14 @@ export const UniversalSearch = memo(function UniversalSearch({
 
             {hasActiveFilters && (
               <Button variant="ghost" size="sm" onClick={clearFilters}>
-                Clear filters
+                {copy.clearFilters}
               </Button>
             )}
 
             {/* Sort Options */}
             <div className="flex items-center gap-2">
               <label htmlFor="sort-by" className="text-sm text-gray-600">
-                Sort by:
+                {copy.sortBy}
               </label>
               <select
                 id="sort-by"
@@ -264,16 +323,16 @@ export const UniversalSearch = memo(function UniversalSearch({
                 onChange={(e) => handleFilterChange("sortBy", e.target.value)}
                 className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="updated_at">Recent</option>
-                <option value="created_at">Created</option>
+                <option value="updated_at">{copy.recent}</option>
+                <option value="created_at">{copy.created}</option>
                 {searchType === "application" && (
-                  <option value="match_score">Match Score</option>
+                  <option value="match_score">{copy.matchScore}</option>
                 )}
                 {searchType === "resume" && (
-                  <option value="title">Title</option>
+                  <option value="title">{copy.title}</option>
                 )}
                 {searchType === "jd" && (
-                  <option value="title">Title</option>
+                  <option value="title">{copy.title}</option>
                 )}
               </select>
 
@@ -282,8 +341,8 @@ export const UniversalSearch = memo(function UniversalSearch({
                 onChange={(e) => handleFilterChange("sortOrder", e.target.value)}
                 className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="desc">Descending</option>
-                <option value="asc">Ascending</option>
+                <option value="desc">{copy.descending}</option>
+                <option value="asc">{copy.ascending}</option>
               </select>
             </div>
           </div>
@@ -301,7 +360,7 @@ export const UniversalSearch = memo(function UniversalSearch({
                     htmlFor="status-filter"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Status
+                    {copy.status}
                   </label>
                   <select
                     id="status-filter"
@@ -314,12 +373,12 @@ export const UniversalSearch = memo(function UniversalSearch({
                     }
                     className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all">All statuses</option>
-                    <option value="draft">Draft</option>
-                    <option value="applied">Applied</option>
-                    <option value="interview">Interview</option>
-                    <option value="offer">Offer</option>
-                    <option value="rejected">Rejected</option>
+                    <option value="all">{copy.allStatuses}</option>
+                    <option value="draft">{copy.draft}</option>
+                    <option value="applied">{copy.applied}</option>
+                    <option value="interview">{copy.interview}</option>
+                    <option value="offer">{copy.offer}</option>
+                    <option value="rejected">{copy.rejected}</option>
                   </select>
                 </div>
               )}
@@ -331,7 +390,7 @@ export const UniversalSearch = memo(function UniversalSearch({
                     htmlFor="match-score-filter"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Match Score
+                    {copy.matchScoreFilter}
                   </label>
                   <div className="flex items-center gap-2">
                     <Input
@@ -339,7 +398,7 @@ export const UniversalSearch = memo(function UniversalSearch({
                       type="number"
                       min="0"
                       max="100"
-                      placeholder="Min %"
+                      placeholder={copy.minPercent}
                       value={filters.minMatchScore || ""}
                       onChange={(e) =>
                         handleFilterChange(
@@ -354,7 +413,7 @@ export const UniversalSearch = memo(function UniversalSearch({
                       type="number"
                       min="0"
                       max="100"
-                      placeholder="Max %"
+                      placeholder={copy.maxPercent}
                       value={filters.maxMatchScore || ""}
                       onChange={(e) =>
                         handleFilterChange(
@@ -374,7 +433,7 @@ export const UniversalSearch = memo(function UniversalSearch({
                   htmlFor="date-from-filter"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Date Range
+                  {copy.dateRange}
                 </label>
                 <div className="flex items-center gap-2">
                   <Input
@@ -393,7 +452,7 @@ export const UniversalSearch = memo(function UniversalSearch({
                     }
                     className="flex-1 h-9"
                   />
-                  <span className="text-gray-500">to</span>
+                  <span className="text-gray-500">{copy.to}</span>
                   <Input
                     type="date"
                     value={

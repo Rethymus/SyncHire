@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useId } from "react";
+import { useLiteCopy } from "@/lib/lite-i18n";
 
 interface NotificationPreferences {
   email_enabled: boolean;
@@ -43,7 +44,98 @@ const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   notification_frequency: "immediate",
 };
 
+const COPY = {
+  "en-US": {
+    title: "Notification Settings",
+    subtitle: "Manage how and when you receive local job-search notifications",
+    emailNotifications: "Email Notifications",
+    emailDescription: "Enable or disable all email notifications",
+    notificationTypes: "Notification Types",
+    applicationStatus: "Application Status Updates",
+    applicationStatusDescription: "Get notified when your application status changes",
+    interviewReminders: "Interview Reminders",
+    interviewRemindersDescription: "Receive reminders before your scheduled interviews",
+    weeklyDigest: "Weekly Digest",
+    weeklyDigestDescription: "Receive a weekly summary of your job search activity",
+    jobRecommendations: "Job Recommendations",
+    jobRecommendationsDescription: "Get notified about new job matches based on your profile",
+    profileViews: "Profile Views",
+    profileViewsDescription: "Get notified when recruiters view your profile",
+    frequency: "Notification Frequency",
+    frequencyDescription: "Choose how often you want to receive email notifications",
+    immediate: "Immediate (as they happen)",
+    daily: "Daily digest",
+    weekly: "Weekly digest",
+    never: "Never",
+    unsubscribe: "Unsubscribe from all emails",
+    saving: "Saving...",
+    save: "Save Changes",
+    testTitle: "Test Notifications",
+    testDescription: "Record test notifications locally to verify your settings.",
+    testStatus: "Test Status Update",
+    testInterview: "Test Interview Reminder",
+    testWeekly: "Test Weekly Digest",
+    saved: "Notification preferences updated successfully",
+    saveFailed: "Failed to update notification preferences",
+    confirmUnsubscribe: "Are you sure you want to unsubscribe from all email notifications?",
+    unsubscribed: "You have been unsubscribed from all email notifications",
+    unsubscribeFailed: "Failed to unsubscribe",
+    resubscribed: "You have been resubscribed to email notifications",
+    resubscribeFailed: "Failed to resubscribe",
+    currentUnsubscribed: "You are currently unsubscribed from all email notifications.",
+    resubscribeCta: "Click here to resubscribe",
+    bounced: "Previous emails have bounced. Please update your email address or contact support.",
+    testRecorded: "Test notification recorded locally",
+    testFailed: "Failed to send test notification",
+  },
+  "zh-CN": {
+    title: "通知设置",
+    subtitle: "管理本地求职提醒的接收方式和频率",
+    emailNotifications: "邮件通知",
+    emailDescription: "启用或关闭所有邮件通知",
+    notificationTypes: "通知类型",
+    applicationStatus: "申请状态更新",
+    applicationStatusDescription: "当申请状态变化时提醒你",
+    interviewReminders: "面试提醒",
+    interviewRemindersDescription: "在已安排的面试前提醒你",
+    weeklyDigest: "每周摘要",
+    weeklyDigestDescription: "每周汇总你的求职活动",
+    jobRecommendations: "岗位推荐",
+    jobRecommendationsDescription: "根据角色卡提醒新的岗位匹配",
+    profileViews: "资料浏览",
+    profileViewsDescription: "当招聘方查看你的资料时提醒你",
+    frequency: "通知频率",
+    frequencyDescription: "选择接收邮件通知的频率",
+    immediate: "立即通知",
+    daily: "每日摘要",
+    weekly: "每周摘要",
+    never: "从不",
+    unsubscribe: "取消订阅所有邮件",
+    saving: "保存中...",
+    save: "保存更改",
+    testTitle: "测试通知",
+    testDescription: "在本地记录测试通知，用于验证当前设置。",
+    testStatus: "测试状态更新",
+    testInterview: "测试面试提醒",
+    testWeekly: "测试每周摘要",
+    saved: "通知偏好已更新",
+    saveFailed: "更新通知偏好失败",
+    confirmUnsubscribe: "确定要取消订阅所有邮件通知吗？",
+    unsubscribed: "已取消订阅所有邮件通知",
+    unsubscribeFailed: "取消订阅失败",
+    resubscribed: "已重新订阅邮件通知",
+    resubscribeFailed: "重新订阅失败",
+    currentUnsubscribed: "你当前已取消订阅所有邮件通知。",
+    resubscribeCta: "点击这里重新订阅",
+    bounced: "之前的邮件发生退信，请更新邮箱或联系支持。",
+    testRecorded: "测试通知已在本地记录",
+    testFailed: "发送测试通知失败",
+  },
+} as const;
+
 export function NotificationSettings() {
+  const { locale } = useLiteCopy();
+  const copy = COPY[locale];
   const [preferences, setPreferences] = useState<NotificationPreferences>(
     DEFAULT_NOTIFICATION_PREFERENCES
   );
@@ -121,16 +213,16 @@ export function NotificationSettings() {
         email_bounced: false,
         email_address: "local@sync-hire.local",
       });
-      showMessage("success", "Notification preferences updated successfully");
+      showMessage("success", copy.saved);
     } catch (error) {
-      showMessage("error", "Failed to update notification preferences");
+      showMessage("error", copy.saveFailed);
     } finally {
       setSaving(false);
     }
   };
 
   const handleUnsubscribe = async () => {
-    if (!confirm("Are you sure you want to unsubscribe from all email notifications?")) {
+    if (!confirm(copy.confirmUnsubscribe)) {
       return;
     }
 
@@ -148,9 +240,9 @@ export function NotificationSettings() {
         email_bounced: false,
         email_address: "local@sync-hire.local",
       });
-      showMessage("success", "You have been unsubscribed from all email notifications");
+      showMessage("success", copy.unsubscribed);
     } catch (error) {
-      showMessage("error", "Failed to unsubscribe");
+      showMessage("error", copy.unsubscribeFailed);
     } finally {
       setSaving(false);
     }
@@ -171,9 +263,9 @@ export function NotificationSettings() {
         email_bounced: false,
         email_address: "local@sync-hire.local",
       });
-      showMessage("success", "You have been resubscribed to email notifications");
+      showMessage("success", copy.resubscribed);
     } catch (error) {
-      showMessage("error", "Failed to resubscribe");
+      showMessage("error", copy.resubscribeFailed);
     } finally {
       setSaving(false);
     }
@@ -182,9 +274,9 @@ export function NotificationSettings() {
   const handleTestNotification = async (type: "application_status" | "interview_reminder" | "weekly_digest") => {
     try {
       setTestLoading(true);
-      showMessage("success", `Test ${type.replace("_", " ")} notification recorded locally`);
+      showMessage("success", copy.testRecorded);
     } catch (error) {
-      showMessage("error", "Failed to send test notification");
+      showMessage("error", copy.testFailed);
     } finally {
       setTestLoading(false);
     }
@@ -201,9 +293,9 @@ export function NotificationSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Notification Settings</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{copy.title}</h2>
         <p className="text-gray-600 mt-1">
-          Manage how and when you receive email notifications
+          {copy.subtitle}
         </p>
       </div>
 
@@ -238,13 +330,13 @@ export function NotificationSettings() {
             </div>
             <div className="ml-3">
               <p className="text-sm text-yellow-700">
-                You are currently unsubscribed from all email notifications.{" "}
+                {copy.currentUnsubscribed}{" "}
                 <button
                   onClick={handleResubscribe}
                   disabled={saving}
                   className="font-medium underline hover:text-yellow-800 disabled:opacity-50"
                 >
-                  Click here to resubscribe
+                  {copy.resubscribeCta}
                 </button>
               </p>
             </div>
@@ -270,7 +362,7 @@ export function NotificationSettings() {
             </div>
             <div className="ml-3">
               <p className="text-sm text-red-700">
-                Previous emails to {status?.email_address} have bounced. Please update your email address or contact support.
+                {copy.bounced}
               </p>
             </div>
           </div>
@@ -283,10 +375,10 @@ export function NotificationSettings() {
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <label htmlFor={emailEnabledId} className="text-base font-medium text-gray-900">
-                Email Notifications
+                {copy.emailNotifications}
               </label>
               <p className="text-sm text-gray-500 mt-1">
-                Enable or disable all email notifications
+                {copy.emailDescription}
               </p>
             </div>
             <button
@@ -313,15 +405,15 @@ export function NotificationSettings() {
 
           {/* Individual Notification Types */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Notification Types</h3>
+            <h3 className="text-lg font-medium text-gray-900">{copy.notificationTypes}</h3>
 
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <label htmlFor={applicationStatusId} className="text-sm font-medium text-gray-900">
-                  Application Status Updates
+                  {copy.applicationStatus}
                 </label>
                 <p className="text-sm text-gray-500 mt-1">
-                  Get notified when your application status changes
+                  {copy.applicationStatusDescription}
                 </p>
               </div>
               <button
@@ -347,10 +439,10 @@ export function NotificationSettings() {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <label htmlFor={interviewRemindersId} className="text-sm font-medium text-gray-900">
-                  Interview Reminders
+                  {copy.interviewReminders}
                 </label>
                 <p className="text-sm text-gray-500 mt-1">
-                  Receive reminders before your scheduled interviews
+                  {copy.interviewRemindersDescription}
                 </p>
               </div>
               <button
@@ -376,10 +468,10 @@ export function NotificationSettings() {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <label htmlFor={weeklyDigestId} className="text-sm font-medium text-gray-900">
-                  Weekly Digest
+                  {copy.weeklyDigest}
                 </label>
                 <p className="text-sm text-gray-500 mt-1">
-                  Receive a weekly summary of your job search activity
+                  {copy.weeklyDigestDescription}
                 </p>
               </div>
               <button
@@ -405,10 +497,10 @@ export function NotificationSettings() {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <label htmlFor={jobRecommendationsId} className="text-sm font-medium text-gray-900">
-                  Job Recommendations
+                  {copy.jobRecommendations}
                 </label>
                 <p className="text-sm text-gray-500 mt-1">
-                  Get notified about new job matches based on your profile
+                  {copy.jobRecommendationsDescription}
                 </p>
               </div>
               <button
@@ -434,10 +526,10 @@ export function NotificationSettings() {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <label htmlFor={profileViewsId} className="text-sm font-medium text-gray-900">
-                  Profile Views
+                  {copy.profileViews}
                 </label>
                 <p className="text-sm text-gray-500 mt-1">
-                  Get notified when recruiters view your profile
+                  {copy.profileViewsDescription}
                 </p>
               </div>
               <button
@@ -466,10 +558,10 @@ export function NotificationSettings() {
           {/* Notification Frequency */}
           <div>
             <label htmlFor={notificationFrequencyId} className="text-base font-medium text-gray-900">
-              Notification Frequency
+              {copy.frequency}
             </label>
             <p className="text-sm text-gray-500 mt-1 mb-3">
-              Choose how often you want to receive email notifications
+              {copy.frequencyDescription}
             </p>
             <select
               id={notificationFrequencyId}
@@ -478,10 +570,10 @@ export function NotificationSettings() {
               disabled={!preferences.email_enabled || status?.email_unsubscribed}
               className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
-              <option value="immediate">Immediate (as they happen)</option>
-              <option value="daily">Daily digest</option>
-              <option value="weekly">Weekly digest</option>
-              <option value="never">Never</option>
+              <option value="immediate">{copy.immediate}</option>
+              <option value="daily">{copy.daily}</option>
+              <option value="weekly">{copy.weekly}</option>
+              <option value="never">{copy.never}</option>
             </select>
           </div>
         </div>
@@ -494,7 +586,7 @@ export function NotificationSettings() {
             disabled={status?.email_unsubscribed || saving}
             className="text-sm text-red-600 hover:text-red-900 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Unsubscribe from all emails
+            {copy.unsubscribe}
           </button>
           <div className="flex space-x-3">
             <button
@@ -503,7 +595,7 @@ export function NotificationSettings() {
               disabled={saving}
               className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? copy.saving : copy.save}
             </button>
           </div>
         </div>
@@ -512,9 +604,9 @@ export function NotificationSettings() {
       {/* Test Notifications */}
       <div className="bg-white shadow rounded-lg">
         <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Test Notifications</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">{copy.testTitle}</h3>
           <p className="text-sm text-gray-500 mb-4">
-            Send test notifications to verify your email settings are working correctly.
+            {copy.testDescription}
           </p>
           <div className="flex flex-wrap gap-3">
             <button
@@ -523,7 +615,7 @@ export function NotificationSettings() {
               disabled={testLoading || status?.email_unsubscribed || !preferences.email_enabled}
               className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Test Status Update
+              {copy.testStatus}
             </button>
             <button
               type="button"
@@ -531,7 +623,7 @@ export function NotificationSettings() {
               disabled={testLoading || status?.email_unsubscribed || !preferences.email_enabled}
               className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Test Interview Reminder
+              {copy.testInterview}
             </button>
             <button
               type="button"
@@ -539,7 +631,7 @@ export function NotificationSettings() {
               disabled={testLoading || status?.email_unsubscribed || !preferences.email_enabled}
               className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Test Weekly Digest
+              {copy.testWeekly}
             </button>
           </div>
         </div>

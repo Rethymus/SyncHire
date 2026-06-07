@@ -5,6 +5,8 @@ import {
   createBrowserAgentInstruction,
   createBrowserFillPlan,
   createDefaultCandidateRoleCard,
+  mergeReviewedFieldReport,
+  parseBrowserReviewedFieldReport,
   type BrowserFormField,
 } from "../browser-fill-assistant";
 
@@ -50,6 +52,7 @@ describe("browser fill assistant", () => {
 
     expect(instruction).toContain("Never click Submit");
     expect(instruction).toContain("Stop after filling fields");
+    expect(instruction).toContain("return a JSON field report");
     expect(instruction).toContain("https://jobs.example.com/apply");
   });
 
@@ -93,5 +96,38 @@ describe("browser fill assistant", () => {
     expect(profile.email).toBe("chenyu@example.com");
     expect(nextProfile.skills).toEqual(profile.skills);
     expect(nextProfile.skills).not.toBe(profile.skills);
+  });
+
+  it("parses browser-agent reviewed reports and merges them by safe field IDs", () => {
+    const session = createBrowserFillPlan({
+      profile: createDefaultCandidateRoleCard(),
+      targetUrl: "https://jobs.example.com/apply",
+    });
+    const currentValues = Object.fromEntries(
+      session.suggestions.map((suggestion) => [suggestion.fieldId, suggestion.value])
+    );
+    const parsed = parseBrowserReviewedFieldReport(JSON.stringify({
+      fields: [
+        {
+          fieldId: "phone",
+          inputName: "phone",
+          fieldLabel: "Phone",
+          value: "+86 139 1111 2222",
+        },
+      ],
+    }));
+    const merged = mergeReviewedFieldReport(
+      session.suggestions,
+      currentValues,
+      parsed
+    );
+
+    expect(merged.phone).toBe("+86 139 1111 2222");
+  });
+
+  it("accepts a simple key-value reviewed report for browser agents without JSON output", () => {
+    const parsed = parseBrowserReviewedFieldReport("phone=+86 139 1111 2222\nunknown=ignored");
+
+    expect(parsed.phone).toBe("+86 139 1111 2222");
   });
 });

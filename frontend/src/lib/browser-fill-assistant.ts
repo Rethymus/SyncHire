@@ -79,6 +79,13 @@ export interface ProfileLearningUpdate {
   confidence: number;
 }
 
+export interface BrowserReviewedFieldReport {
+  fieldId?: string;
+  inputName?: string;
+  fieldLabel?: string;
+  value: string;
+}
+
 const FIELD_MAP: Array<{
   key: ProfileFieldKey;
   labels: string[];
@@ -321,6 +328,93 @@ export function collectProfileLearningUpdates(
   });
 }
 
+export function parseBrowserReviewedFieldReport(report: string): Record<string, string> {
+  const trimmed = report.trim();
+
+  if (!trimmed) {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    const entries = Array.isArray(parsed)
+      ? parsed
+      : parsed && typeof parsed === "object" && "fields" in parsed
+        ? (parsed as { fields?: unknown }).fields
+        : parsed;
+
+    if (Array.isArray(entries)) {
+      return Object.fromEntries(
+        entries.flatMap((entry) => {
+          if (!entry || typeof entry !== "object") {
+            return [];
+          }
+
+          const field = entry as Partial<BrowserReviewedFieldReport>;
+          const key = field.fieldId || field.inputName || field.fieldLabel;
+
+          if (!key || typeof field.value !== "string") {
+            return [];
+          }
+
+          return [[key, field.value]];
+        })
+      );
+    }
+
+    if (entries && typeof entries === "object") {
+      return Object.fromEntries(
+        Object.entries(entries as Record<string, unknown>)
+          .filter(([, value]) => typeof value === "string")
+          .map(([key, value]) => [key, value as string])
+      );
+    }
+  } catch {
+    // Fall back to a simple key=value report for agent implementations that
+    // cannot return JSON from arbitrary application pages.
+  }
+
+  return Object.fromEntries(
+    trimmed
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .flatMap((line) => {
+        const separatorIndex = line.search(/[:=]/);
+
+        if (separatorIndex <= 0) {
+          return [];
+        }
+
+        const key = line.slice(0, separatorIndex).trim();
+        const value = line.slice(separatorIndex + 1).trim();
+
+        return key && value ? [[key, value]] : [];
+      })
+  );
+}
+
+export function mergeReviewedFieldReport(
+  suggestions: BrowserFillSuggestion[],
+  currentValues: Record<string, string>,
+  reviewedReport: Record<string, string>
+) {
+  const nextValues = { ...currentValues };
+
+  for (const suggestion of suggestions) {
+    const reviewedValue =
+      reviewedReport[suggestion.fieldId] ??
+      reviewedReport[suggestion.inputName] ??
+      reviewedReport[suggestion.fieldLabel];
+
+    if (typeof reviewedValue === "string") {
+      nextValues[suggestion.fieldId] = reviewedValue;
+    }
+  }
+
+  return nextValues;
+}
+
 export function applyApprovedProfileLearning(
   profile: CandidateRoleCard,
   updates: ProfileLearningUpdate[]
@@ -350,6 +444,7 @@ export function createBrowserAgentInstruction(session: BrowserFillSession) {
     "2. Never click Submit, Apply, Send, Finish, Next step, or any destructive/irreversible control.",
     "3. Stop after filling fields and leave the page for user review.",
     "4. If a value is missing or confidence is low, leave the field unchanged.",
+    "5. After the user reviews or edits the page, return a JSON field report to SyncHire. Do not learn from edits unless the user approves inside SyncHire.",
     "",
     `Target URL: ${session.targetUrl}`,
     `Role: ${session.position || "Not specified"}`,
@@ -360,6 +455,9 @@ export function createBrowserAgentInstruction(session: BrowserFillSession) {
       (suggestion) =>
         `- ${suggestion.fieldLabel} (${suggestion.inputName}): ${suggestion.value}`
     ),
+    "",
+    "Reviewed field report format:",
+    '{"fields":[{"fieldId":"phone","inputName":"phone","fieldLabel":"Phone","value":"+86 139 1111 2222"}]}',
   ];
 
   return lines.join("\n");

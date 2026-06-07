@@ -115,6 +115,18 @@ export function useSearch() {
     setError(null);
 
     try {
+      const state = useAppStore.getState();
+
+      if (!state.isAuthenticated) {
+        const localResults = buildLocalSearchResults(options);
+        setResults(localResults);
+        logger.info(
+          LogCategory.API,
+          `Lite local search completed: ${localResults.length} results`
+        );
+        return;
+      }
+
       const searchFn = options.semanticMode ? apiClient.search.semantic : apiClient.search.search;
       const data = await searchFn(options.query, options.type, options.limit ?? 20, options.offset ?? 0);
 

@@ -60,7 +60,9 @@ Use SyncHire in local-first Lite mode when you want a private, fast, no-backend 
 
 ## English Linux Dogfood Showcase
 
-These screenshots come from the June 8, 2026 Linux standalone production validation run. SyncHire was launched locally with seeded fresh-graduate job-search data, switched to English, and exercised across the core Lite workflow: dashboard, resumes, job descriptions, role card assisted filling, application tracking, match analysis, search, and data management.
+These screenshots come from the June 8, 2026 Linux standalone production validation run. SyncHire was launched locally with seeded fresh-graduate job-search data, switched to English, and exercised across the complete Lite workflow: dashboard, resumes, job descriptions, applications, role-specific resume generation, local PDF export, role-card assisted browser filling, match analysis, interview prep, analytics, search, data management, and settings.
+
+### Core Workflow
 
 | Dashboard | Resumes |
 | --------- | ------- |
@@ -70,13 +72,33 @@ These screenshots come from the June 8, 2026 Linux standalone production validat
 | ---------------- | ------------ |
 | <img src="docs/assets/readme/en-linux-job-descriptions.png" alt="SyncHire Lite English job descriptions screen from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-applications.png" alt="SyncHire Lite English applications screen from Linux validation" width="420" /> |
 
+### Resume And Browser Agent
+
+| Application Detail | Tailored Resume PDF Flow |
+| ------------------ | ------------------------ |
+| <img src="docs/assets/readme/en-linux-application-detail.png" alt="SyncHire Lite English application detail with local resume optimization completed" width="420" /> | <img src="docs/assets/readme/en-linux-tailored-resume-pdf.png" alt="SyncHire Lite English role-specific resume editor and local PDF export flow" width="420" /> |
+
 | Role Card & Browser Fill | Match Analysis |
 | ------------------------ | -------------- |
 | <img src="docs/assets/readme/en-linux-profile.png" alt="SyncHire Lite English role card and browser fill assistant with user-reviewed learning" width="420" /> | <img src="docs/assets/readme/en-linux-match-analysis.png" alt="SyncHire Lite English match analysis screen from Linux validation" width="420" /> |
 
+### Insights And Search
+
+| Interview Prep | Analytics |
+| -------------- | --------- |
+| <img src="docs/assets/readme/en-linux-interview-prep.png" alt="SyncHire Lite English interview preparation generated from resume, role card, and job description" width="420" /> | <img src="docs/assets/readme/en-linux-analytics.png" alt="SyncHire Lite English analytics dashboard from Linux validation" width="420" /> |
+
 | Search | Data Management |
 | ------ | --------------- |
 | <img src="docs/assets/readme/en-linux-search.png" alt="SyncHire Lite English local search screen from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-data-management.png" alt="SyncHire Lite English data management screen from Linux validation" width="420" /> |
+
+| Resume Search | Job Description Search |
+| ------------- | ---------------------- |
+| <img src="docs/assets/readme/en-linux-search-resumes.png" alt="SyncHire Lite English resume search results from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-search-jds.png" alt="SyncHire Lite English job description search results from Linux validation" width="420" /> |
+
+| Application Search | Settings |
+| ------------------ | -------- |
+| <img src="docs/assets/readme/en-linux-search-applications.png" alt="SyncHire Lite English application search results from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-settings.png" alt="SyncHire Lite English settings screen from Linux validation" width="420" /> |
 
 ## Product Modes
 

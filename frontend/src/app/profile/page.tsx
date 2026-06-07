@@ -15,6 +15,8 @@ import {
   collectProfileLearningUpdates,
   createBrowserAgentInstruction,
   createBrowserFillPlan,
+  mergeReviewedFieldReport,
+  parseBrowserReviewedFieldReport,
   type BrowserFillSession,
   type CandidateRoleCard,
 } from "@/lib/browser-fill-assistant";
@@ -66,6 +68,9 @@ const COPY = {
     reviewSubtitle:
       "Edit generated values as the user would. SyncHire learns only after explicit approval.",
     collectChanges: "Detect user edits",
+    applyAgentReport: "Apply browser report",
+    reportPlaceholder:
+      'Paste the reviewed field report returned by the browser agent, for example {"fields":[{"fieldId":"phone","value":"+86 139 1111 2222"}]}',
     approveLearning: "Approve and update role card",
     noChanges: "No learnable user edits detected yet.",
     learned: "Role card updated from approved user edits.",
@@ -119,6 +124,9 @@ const COPY = {
     reviewSubtitle:
       "像真实用户一样修改预填内容。SyncHire 只有在明确同意后才学习更新。",
     collectChanges: "检测用户修改",
+    applyAgentReport: "应用浏览器回传",
+    reportPlaceholder:
+      '粘贴浏览器 agent 返回的审核字段报告，例如 {"fields":[{"fieldId":"phone","value":"+86 139 1111 2222"}]}',
     approveLearning: "同意并更新角色卡",
     noChanges: "还没有检测到可学习的用户修改。",
     learned: "已根据用户同意的修改更新角色卡。",
@@ -205,6 +213,7 @@ export default function ProfilePage() {
   const [position, setPosition] = useState("Graduate Frontend Engineer");
   const [activeSession, setActiveSession] = useState<BrowserFillSession | null>(null);
   const [reviewValues, setReviewValues] = useState<Record<string, string>>({});
+  const [agentReport, setAgentReport] = useState("");
   const [learningMessage, setLearningMessage] = useState("");
   const formState =
     profileDraft.profileVersion === profileVersion
@@ -266,6 +275,7 @@ export default function ProfilePage() {
     addBrowserFillSession(session);
     setActiveSession(session);
     setReviewValues(buildReviewedFieldMap(session.suggestions));
+    setAgentReport("");
     setLearningMessage("");
   };
 
@@ -287,6 +297,7 @@ export default function ProfilePage() {
     if (!activeSession) {
       addBrowserFillSession(session);
       setReviewValues(buildReviewedFieldMap(session.suggestions));
+      setAgentReport("");
     }
 
     updateBrowserFillSession(session.id, {
@@ -296,6 +307,22 @@ export default function ProfilePage() {
       ...session,
       status: "filled-awaiting-review",
     });
+    setLearningMessage("");
+  };
+
+  const applyAgentReport = () => {
+    if (!activeSession) {
+      return;
+    }
+
+    const parsedReport = parseBrowserReviewedFieldReport(agentReport);
+    const nextValues = mergeReviewedFieldReport(
+      activeSession.suggestions,
+      reviewValues,
+      parsedReport
+    );
+
+    setReviewValues(nextValues);
     setLearningMessage("");
   };
 
@@ -603,9 +630,23 @@ export default function ProfilePage() {
                   <Button type="button" variant="outline" onClick={() => setLearningMessage("")}>
                     {copy.collectChanges}
                   </Button>
+                  <Button type="button" variant="outline" onClick={applyAgentReport}>
+                    {copy.applyAgentReport}
+                  </Button>
                   <Button type="button" onClick={approveLearning}>
                     {copy.approveLearning}
                   </Button>
+                </div>
+
+                <div className="mb-4 space-y-2">
+                  <Label htmlFor="agentReport">{copy.applyAgentReport}</Label>
+                  <Textarea
+                    id="agentReport"
+                    rows={5}
+                    value={agentReport}
+                    onChange={(event) => setAgentReport(event.target.value)}
+                    placeholder={copy.reportPlaceholder}
+                  />
                 </div>
 
                 {learningMessage && (
@@ -655,6 +696,7 @@ export default function ProfilePage() {
                     onClick={() => {
                       setActiveSession(session);
                       setReviewValues(buildReviewedFieldMap(session.suggestions));
+                      setAgentReport("");
                       setLearningMessage("");
                     }}
                     className="rounded-lg border border-gray-200 bg-white p-4 text-left transition hover:border-blue-300 hover:shadow-sm"

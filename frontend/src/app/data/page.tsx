@@ -11,11 +11,12 @@
 
 "use client";
 
-import { useState, useCallback, memo, useRef, useMemo } from "react";
+import { useEffect, useState, useCallback, memo, useRef, useMemo } from "react";
 import { Navigation } from "@/components/navigation-lite";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { logger, LogCategory } from "@/lib/logger";
+import { useLiteCopy } from "@/lib/lite-i18n";
 import { useAppStore, type JobApplication, type JobDescription, type Resume } from "@/lib/store";
 import {
   Download,
@@ -130,7 +131,96 @@ const EXPORT_TEMPLATES = {
   },
 };
 
+const COPY = {
+  "en-US": {
+    title: "Data Management",
+    subtitle: "Export, import, and back up your local job-search data",
+    status: "Data Status",
+    resumes: "Resumes",
+    jds: "Job Descriptions",
+    applications: "Applications",
+    databaseSize: "Database Size",
+    lastBackup: "Last backup:",
+    exportData: "Export Data",
+    exportDescription: "Export your data with filtering and template options",
+    showFilters: "Show Filters",
+    hideFilters: "Hide Filters",
+    exportOptions: "Export Options",
+    dataTypes: "Data Types",
+    dateRange: "Date Range",
+    applicationStatus: "Application Status",
+    exportTemplate: "Export Template",
+    json: "Export as JSON",
+    csv: "Export as CSV",
+    importData: "Import Data",
+    importDescription: "Import previously exported data with validation and conflict resolution",
+    selectFile: "Select File to Import",
+    importPreview: "Import Preview",
+    showDetails: "Show Details",
+    hideDetails: "Hide Details",
+    totalRecords: "Total Records",
+    conflicts: "Conflicts",
+    errors: "Errors",
+    createBackup: "Create Local Backup",
+    backups: "Local Backups",
+    backupDescription: "Local backup metadata is stored in this browser only.",
+    successJson: "Data exported successfully as JSON",
+    successCsv: "Data exported successfully as CSV",
+    failedExport: "Failed to export data",
+    cancelledExport: "Export cancelled",
+    readyImport: "File is ready to import",
+    failedPreview: "Failed to generate import preview",
+    failedImport: "Failed to import data",
+    backupCreated: "Backup created successfully",
+    backupFailed: "Failed to create backup",
+  },
+  "zh-CN": {
+    title: "数据管理",
+    subtitle: "导出、导入并备份你的本地求职数据",
+    status: "数据状态",
+    resumes: "简历",
+    jds: "职位描述",
+    applications: "申请",
+    databaseSize: "数据大小",
+    lastBackup: "最近备份:",
+    exportData: "导出数据",
+    exportDescription: "通过筛选和模板选项导出你的数据",
+    showFilters: "显示筛选",
+    hideFilters: "隐藏筛选",
+    exportOptions: "导出选项",
+    dataTypes: "数据类型",
+    dateRange: "日期范围",
+    applicationStatus: "申请状态",
+    exportTemplate: "导出模板",
+    json: "导出 JSON",
+    csv: "导出 CSV",
+    importData: "导入数据",
+    importDescription: "导入已导出的数据，并进行校验和冲突处理",
+    selectFile: "选择导入文件",
+    importPreview: "导入预览",
+    showDetails: "显示详情",
+    hideDetails: "隐藏详情",
+    totalRecords: "总记录数",
+    conflicts: "冲突",
+    errors: "错误",
+    createBackup: "创建本地备份",
+    backups: "本地备份",
+    backupDescription: "本地备份元数据仅保存在当前浏览器中。",
+    successJson: "已成功导出 JSON 数据",
+    successCsv: "已成功导出 CSV 数据",
+    failedExport: "导出数据失败",
+    cancelledExport: "导出已取消",
+    readyImport: "文件已准备好导入",
+    failedPreview: "生成导入预览失败",
+    failedImport: "导入数据失败",
+    backupCreated: "备份创建成功",
+    backupFailed: "创建备份失败",
+  },
+} as const;
+
 function DataManagementPage() {
+  const { locale } = useLiteCopy();
+  const copy = COPY[locale];
   const {
     resumes,
     jobDescriptions,
@@ -140,7 +230,7 @@ function DataManagementPage() {
     setApplications,
   } = useAppStore();
   const [loading, setLoading] = useState(false);
-  const [backups, setBackups] = useState<Backup[]>(() => readLocalBackups());
+  const [backups, setBackups] = useState<Backup[]>([]);
   const [message, setMessage] = useState<{
     type: "success" | "error" | "info";
     text: string;
@@ -194,6 +284,12 @@ function DataManagementPage() {
     setBackups(readLocalBackups());
   }, []);
 
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(loadBackups);
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [loadBackups]);
+
   const showMessage = useCallback(
     (type: "success" | "error" | "info", text: string) => {
       setMessage({ type, text });
@@ -242,15 +338,15 @@ function DataManagementPage() {
       URL.revokeObjectURL(url);
 
       setExportProgress({ stage: "Complete", progress: 100, total: 100, current: 100 });
-      showMessage("success", "Data exported successfully as JSON");
+      showMessage("success", copy.successJson);
       logger.info(LogCategory.API, "Data exported as JSON");
 
       setTimeout(() => setExportProgress(null), 2000);
     } catch (error: any) {
       if (error.message === "Export cancelled") {
-        showMessage("info", "Export cancelled");
+        showMessage("info", copy.cancelledExport);
       } else {
-        showMessage("error", "Failed to export data");
+        showMessage("error", copy.failedExport);
         logger.error(LogCategory.API, "Failed to export JSON", error);
       }
       setExportProgress(null);
@@ -258,7 +354,7 @@ function DataManagementPage() {
       setLoading(false);
       abortControllerRef.current = null;
     }
-  }, [buildExportData, showMessage]);
+  }, [buildExportData, copy.cancelledExport, copy.failedExport, copy.successJson, showMessage]);
 
   const handleExportCSV = useCallback(async () => {
     setLoading(true);
@@ -325,15 +421,15 @@ function DataManagementPage() {
       URL.revokeObjectURL(url);
 
       setExportProgress({ stage: "Complete", progress: 100, total: 100, current: 100 });
-      showMessage("success", "Data exported successfully as CSV");
+      showMessage("success", copy.successCsv);
       logger.info(LogCategory.API, "Data exported as CSV");
 
       setTimeout(() => setExportProgress(null), 2000);
     } catch (error: any) {
       if (error.message === "Export cancelled") {
-        showMessage("info", "Export cancelled");
+        showMessage("info", copy.cancelledExport);
       } else {
-        showMessage("error", "Failed to export data");
+        showMessage("error", copy.failedExport);
         logger.error(LogCategory.API, "Failed to export CSV", error);
       }
       setExportProgress(null);
@@ -341,7 +437,7 @@ function DataManagementPage() {
       setLoading(false);
       abortControllerRef.current = null;
     }
-  }, [applications, jobDescriptions, resumes, showMessage]);
+  }, [applications, copy.cancelledExport, copy.failedExport, copy.successCsv, jobDescriptions, resumes, showMessage]);
 
   const cancelExport = useCallback(() => {
     abortControllerRef.current?.abort();
@@ -422,15 +518,15 @@ function DataManagementPage() {
           `Found ${preview.conflicts.length} potential conflicts. Review and choose how to resolve.`
         );
       } else {
-        showMessage("success", "File is ready to import");
+        showMessage("success", copy.readyImport);
       }
     } catch (error) {
-      showMessage("error", "Failed to generate import preview");
+      showMessage("error", copy.failedPreview);
       logger.error(LogCategory.API, "Failed to generate preview", error as Error);
     } finally {
       setLoading(false);
     }
-  }, [applications, jobDescriptions, resumes, showMessage]);
+  }, [applications, copy.failedPreview, copy.readyImport, jobDescriptions, resumes, showMessage]);
 
   const handleImportFileSelect = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -548,7 +644,7 @@ function DataManagementPage() {
       if (error.name === "AbortError") {
         showMessage("info", "Import cancelled");
       } else {
-        showMessage("error", "Failed to import data");
+        showMessage("error", copy.failedImport);
         logger.error(LogCategory.API, "Failed to import data", error);
       }
     } finally {
@@ -562,6 +658,7 @@ function DataManagementPage() {
     importMode,
     jobDescriptions,
     loadBackups,
+    copy.failedImport,
     resolveConflicts,
     resumes,
     setApplications,
@@ -587,15 +684,15 @@ function DataManagementPage() {
       const nextBackups = [backup, ...readLocalBackups()].slice(0, 10);
       writeLocalBackups(nextBackups);
       setBackups(nextBackups);
-      showMessage("success", "Backup created successfully");
+      showMessage("success", copy.backupCreated);
       logger.info(LogCategory.API, "Backup created successfully");
     } catch (error) {
-      showMessage("error", "Failed to create backup");
+      showMessage("error", copy.backupFailed);
       logger.error(LogCategory.API, "Failed to create backup", error as Error);
     } finally {
       setLoading(false);
     }
-  }, [buildExportData, showMessage]);
+  }, [buildExportData, copy.backupCreated, copy.backupFailed, showMessage]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -604,9 +701,9 @@ function DataManagementPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Data Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{copy.title}</h1>
           <p className="mt-2 text-gray-600">
-            Export, import, and backup your data with advanced options
+            {copy.subtitle}
           </p>
         </div>
 
@@ -657,23 +754,23 @@ function DataManagementPage() {
           <div className="bg-white rounded-lg shadow p-6 mb-8">
             <div className="flex items-center mb-4">
               <Database className="h-6 w-6 text-blue-600 mr-2" />
-              <h2 className="text-xl font-semibold text-gray-900">Data Status</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{copy.status}</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-700">Resumes</p>
+                <p className="text-sm text-blue-700">{copy.resumes}</p>
                 <p className="text-2xl font-bold text-blue-900">{status.resumes_count}</p>
               </div>
               <div className="p-4 bg-green-50 rounded-lg">
-                <p className="text-sm text-green-700">Job Descriptions</p>
+                <p className="text-sm text-green-700">{copy.jds}</p>
                 <p className="text-2xl font-bold text-green-900">{status.jds_count}</p>
               </div>
               <div className="p-4 bg-purple-50 rounded-lg">
-                <p className="text-sm text-purple-700">Applications</p>
+                <p className="text-sm text-purple-700">{copy.applications}</p>
                 <p className="text-2xl font-bold text-purple-900">{status.applications_count}</p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-700">Database Size</p>
+                <p className="text-sm text-gray-700">{copy.databaseSize}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {formatFileSize(status.database_size)}
                 </p>
@@ -681,7 +778,7 @@ function DataManagementPage() {
             </div>
             {status.last_backup && (
               <p className="mt-4 text-sm text-gray-600">
-                Last backup: {new Date(status.last_backup).toLocaleString()}
+                {copy.lastBackup} {new Date(status.last_backup).toLocaleString(locale)}
               </p>
             )}
           </div>
@@ -692,7 +789,7 @@ function DataManagementPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
               <Download className="h-6 w-6 text-green-600 mr-2" />
-              <h2 className="text-xl font-semibold text-gray-900">Export Data</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{copy.exportData}</h2>
             </div>
             <Button
               variant="outline"
@@ -700,30 +797,30 @@ function DataManagementPage() {
               onClick={() => setShowExportFilters(!showExportFilters)}
             >
               <Filter className="h-4 w-4 mr-2" />
-              {showExportFilters ? "Hide" : "Show"} Filters
+              {showExportFilters ? copy.hideFilters : copy.showFilters}
             </Button>
           </div>
 
           <p className="text-gray-600 mb-4">
-            Export your data with advanced filtering and template options
+            {copy.exportDescription}
           </p>
 
           {/* Export Filters */}
           {showExportFilters && (
             <div className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
-              <h3 className="font-medium text-gray-900 mb-3">Export Options</h3>
+              <h3 className="font-medium text-gray-900 mb-3">{copy.exportOptions}</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Data Types */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Data Types
+                    {copy.dataTypes}
                   </label>
                   <div className="space-y-2">
                     {[
-                      { value: "resumes", label: "Resumes" },
-                      { value: "jds", label: "Job Descriptions" },
-                      { value: "applications", label: "Applications" },
+                      { value: "resumes", label: copy.resumes },
+                      { value: "jds", label: copy.jds },
+                      { value: "applications", label: copy.applications },
                     ].map((type) => (
                       <label key={type.value} className="flex items-center">
                         <input
@@ -753,7 +850,7 @@ function DataManagementPage() {
                 {/* Date Range */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date Range
+                    {copy.dateRange}
                   </label>
                   <div className="space-y-2">
                     <input
@@ -784,7 +881,7 @@ function DataManagementPage() {
                 {/* Status Filter */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Application Status
+                    {copy.applicationStatus}
                   </label>
                   <div className="space-y-2">
                     {[
@@ -822,7 +919,7 @@ function DataManagementPage() {
                 {/* Template Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Export Template
+                    {copy.exportTemplate}
                   </label>
                   <select
                     value={selectedTemplate}
@@ -864,7 +961,7 @@ function DataManagementPage() {
               className="bg-blue-600 hover:bg-blue-700"
             >
               <FileJson className="h-4 w-4 mr-2" />
-              Export as JSON
+              {copy.json}
             </Button>
             <Button
               onClick={handleExportCSV}
@@ -872,7 +969,7 @@ function DataManagementPage() {
               variant="outline"
             >
               <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Export as CSV
+              {copy.csv}
             </Button>
           </div>
         </div>
@@ -881,11 +978,11 @@ function DataManagementPage() {
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <div className="flex items-center mb-4">
             <Upload className="h-6 w-6 text-orange-600 mr-2" />
-            <h2 className="text-xl font-semibold text-gray-900">Import Data</h2>
+            <h2 className="text-xl font-semibold text-gray-900">{copy.importData}</h2>
           </div>
 
           <p className="text-gray-600 mb-4">
-            Import previously exported data with validation and conflict resolution
+            {copy.importDescription}
           </p>
 
           {/* File Selection */}
@@ -900,7 +997,7 @@ function DataManagementPage() {
               />
               <Button disabled={loading} variant="outline" type="button">
                 <Upload className="h-4 w-4 mr-2" />
-                Select File to Import
+                {copy.selectFile}
               </Button>
             </label>
             {importFile && (
@@ -925,30 +1022,30 @@ function DataManagementPage() {
           {importPreview && (
             <div className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium text-gray-900">Import Preview</h3>
+                <h3 className="font-medium text-gray-900">{copy.importPreview}</h3>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowImportPreview(!showImportPreview)}
                 >
                   {showImportPreview ? <ChevronDown /> : <ChevronRight />}
-                  {showImportPreview ? "Hide" : "Show"} Details
+                  {showImportPreview ? copy.hideDetails : copy.showDetails}
                 </Button>
               </div>
 
               <div className="grid grid-cols-3 gap-4 mb-3">
                 <div className="bg-white p-3 rounded-lg">
-                  <p className="text-sm text-gray-600">Total Records</p>
+                  <p className="text-sm text-gray-600">{copy.totalRecords}</p>
                   <p className="text-xl font-bold text-gray-900">{importPreview.total_records}</p>
                 </div>
                 <div className="bg-white p-3 rounded-lg">
-                  <p className="text-sm text-gray-600">Conflicts</p>
+                  <p className="text-sm text-gray-600">{copy.conflicts}</p>
                   <p className="text-xl font-bold text-orange-600">
                     {importPreview.conflicts.length}
                   </p>
                 </div>
                 <div className="bg-white p-3 rounded-lg">
-                  <p className="text-sm text-gray-600">Errors</p>
+                  <p className="text-sm text-gray-600">{copy.errors}</p>
                   <p className="text-xl font-bold text-red-600">
                     {importPreview.validation_errors.length}
                   </p>

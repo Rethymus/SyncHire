@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useSearch, type SearchResult } from "@/hooks/use-search";
 import { applicationDetailHref } from "@/lib/application-links";
 import { sanitizeHighlight } from "@/lib/sanitize";
+import { useLiteCopy } from "@/lib/lite-i18n";
 import {
   Search as SearchIcon,
   FileText,
@@ -23,6 +24,47 @@ import {
 } from "lucide-react";
 
 function SearchPage() {
+  const { locale } = useLiteCopy();
+  const zh = locale === "zh-CN";
+  const copy = zh
+    ? {
+        title: "搜索",
+        subtitle: "搜索你的简历、职位描述和申请记录",
+        placeholder: "搜索任意内容...",
+        all: "全部",
+        resumes: "简历",
+        jds: "职位描述",
+        applications: "申请",
+        semantic: "语义搜索",
+        fullText: "全文搜索",
+        searching: "搜索中...",
+        found: "找到",
+        result: "个结果",
+        match: "匹配",
+        noResults: "没有找到结果",
+        noResultsHint: "尝试调整搜索关键词或筛选条件",
+        start: "开始搜索",
+        startHint: "输入至少 2 个字符来搜索你的数据",
+      }
+    : {
+        title: "Search",
+        subtitle: "Search your resumes, job descriptions, and applications",
+        placeholder: "Search for anything...",
+        all: "All",
+        resumes: "Resumes",
+        jds: "Job Descriptions",
+        applications: "Applications",
+        semantic: "Semantic",
+        fullText: "Full-Text",
+        searching: "Searching...",
+        found: "Found",
+        result: "result",
+        match: "match",
+        noResults: "No results found",
+        noResultsHint: "Try adjusting your search query or filters",
+        start: "Start searching",
+        startHint: "Enter at least 2 characters to search your data",
+      };
   const [query, setQuery] = useState("");
   const [searchType, setSearchType] = useState<"all" | "resume" | "jd" | "application">("all");
   const [semanticMode, setSemanticMode] = useState(false);
@@ -100,10 +142,10 @@ function SearchPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            Search
+            {copy.title}
           </h1>
           <p className="mt-2 text-gray-600">
-            Search your resumes, job descriptions, and applications
+            {copy.subtitle}
           </p>
         </div>
 
@@ -116,7 +158,7 @@ function SearchPage() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for anything..."
+                placeholder={copy.placeholder}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                 aria-label="Search query"
               />
@@ -141,28 +183,28 @@ function SearchPage() {
                 size="sm"
                 onClick={() => setSearchType("all")}
               >
-                All
+                {copy.all}
               </Button>
               <Button
                 variant={searchType === "resume" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSearchType("resume")}
               >
-                Resumes
+                {copy.resumes}
               </Button>
               <Button
                 variant={searchType === "jd" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSearchType("jd")}
               >
-                Job Descriptions
+                {copy.jds}
               </Button>
               <Button
                 variant={searchType === "application" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSearchType("application")}
               >
-                Applications
+                {copy.applications}
               </Button>
             </div>
 
@@ -174,7 +216,7 @@ function SearchPage() {
                 className="flex items-center gap-2"
               >
                 <Sparkles className="h-4 w-4" />
-                {semanticMode ? "Semantic" : "Full-Text"}
+                {semanticMode ? copy.semantic : copy.fullText}
               </Button>
             </div>
           </div>
@@ -185,7 +227,7 @@ function SearchPage() {
           <div className="bg-white rounded-lg shadow p-8 mb-8">
             <div className="flex items-center justify-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-600">Searching...</span>
+              <span className="ml-3 text-gray-600">{copy.searching}</span>
             </div>
           </div>
         )}
@@ -194,7 +236,7 @@ function SearchPage() {
         {!loading && results.length > 0 && (
           <div className="space-y-4">
             <p className="text-sm text-gray-600">
-              Found {results.length} result{results.length !== 1 ? "s" : ""}
+              {copy.found} {results.length} {zh ? copy.result : `${copy.result}${results.length !== 1 ? "s" : ""}`}
             </p>
             {results.map((result) => {
               const Icon = getIconForType(result.type);
@@ -235,7 +277,7 @@ function SearchPage() {
                         {result.score !== undefined && (
                           <div className="flex-shrink-0">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              {Math.round(result.score * 100)}% match
+                              {Math.round(result.score * 100)}% {copy.match}
                             </span>
                           </div>
                         )}
@@ -253,10 +295,10 @@ function SearchPage() {
           <div className="bg-white rounded-lg shadow p-8 text-center">
             <SearchIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No results found
+              {copy.noResults}
             </h3>
             <p className="text-gray-600">
-              Try adjusting your search query or filters
+              {copy.noResultsHint}
             </p>
           </div>
         )}
@@ -266,10 +308,10 @@ function SearchPage() {
           <div className="bg-white rounded-lg shadow p-8 text-center">
             <SearchIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Start searching
+              {copy.start}
             </h3>
             <p className="text-gray-600">
-              Enter at least 2 characters to search your data
+              {copy.startHint}
             </p>
           </div>
         )}

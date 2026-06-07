@@ -67,6 +67,7 @@ export default function ApplicationDetailClient() {
     hasHydrated,
     updateApplication,
     updateResume,
+    setCurrentResume,
   } = useAppStore();
   const routeApplicationId = params.id;
   const applicationId = searchParams.get("id")
@@ -234,10 +235,20 @@ export default function ApplicationDetailClient() {
         });
 
         if (sourceResume) {
-          updateResume(sourceResume.id, {
+          const nextResume = {
+            ...sourceResume,
             content: tailoredResume,
             skills: candidateProfile.skills,
             experience: candidateProfile.projects,
+          };
+
+          updateResume(sourceResume.id, nextResume);
+          setCurrentResume(nextResume);
+          setResume({
+            id: nextResume.id,
+            title: nextResume.name,
+            content: nextResume.content,
+            created_at: nextResume.uploadedAt,
           });
         }
 
@@ -282,6 +293,7 @@ export default function ApplicationDetailClient() {
     isLocalApplication,
     jobDescriptions,
     resumes,
+    setCurrentResume,
     updateApplication,
     updateResume,
   ]);

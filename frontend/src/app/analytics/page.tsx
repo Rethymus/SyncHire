@@ -6,6 +6,8 @@ import { Suspense } from "react";
 // // import { Navigation } from "@/components/navigation";
 import { useAppStore } from "@/lib/store";
 import { apiClient } from "@/lib/api-client";
+import { buildLocalAnalytics } from "@/lib/local-job-intelligence";
+import { useLiteCopy } from "@/lib/lite-i18n";
 import {
   LineChart,
   Line,
@@ -104,12 +106,23 @@ const COLORS = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
+  pending: "Pending",
+  applied: "Applied",
+  interview: "Interview",
+  offer: "Offer",
+  rejected: "Rejected",
+  draft: "Draft",
+  optimized: "Optimized",
+};
+
+const STATUS_LABELS_ZH: Record<string, string> = {
   pending: "处理中",
   applied: "已申请",
   interview: "面试中",
   offer: "录用",
   rejected: "已拒绝",
   draft: "草稿",
+  optimized: "已优化",
 };
 
 const INSIGHT_ICONS: Record<string, React.ElementType> = {
@@ -167,7 +180,77 @@ function StatCard({ title, value, icon: Icon, color, trend }: StatCardProps) {
 }
 
 function AnalyticsPageContent() {
-  const { isAuthenticated } = useAppStore();
+  const { locale } = useLiteCopy();
+  const zh = locale === "zh-CN";
+  const labels = zh
+    ? {
+        failedTitle: "加载失败",
+        failedDescription: "无法加载分析数据",
+        title: "数据分析",
+        subtitle: "追踪你的求职进度和转化率",
+        timeRange: "时间范围:",
+        day7: "最近 7 天",
+        day30: "最近 30 天",
+        day90: "最近 90 天",
+        totalApplications: "总申请数",
+        interviews: "面试邀请",
+        offers: "录用通知",
+        activeApplications: "活跃申请",
+        interviewRate: "面试邀请率",
+        interviewRateDescription: "份申请中有",
+        interviewUnit: "份面试",
+        interviewSuccessRate: "面试成功率",
+        interviewSuccessDescription: "面试后获得录用的比例",
+        averageMatch: "平均匹配度",
+        averageMatchDescription: "本地分析的平均匹配分数",
+        activityTrend: "活动趋势",
+        statusDistribution: "状态分布",
+        weeklyTrend: "周度趋势分析",
+        applications: "申请数",
+        interviewLegend: "面试",
+        successRate: "成功率 (%)",
+        insights: "智能洞察",
+        actionable: "可操作",
+        updatedAt: "数据更新时间:",
+      }
+    : {
+        failedTitle: "Load Failed",
+        failedDescription: "Unable to load analytics data",
+        title: "Analytics",
+        subtitle: "Track your job-search progress and conversion rate",
+        timeRange: "Time range:",
+        day7: "Last 7 days",
+        day30: "Last 30 days",
+        day90: "Last 90 days",
+        totalApplications: "Total Applications",
+        interviews: "Interview Invites",
+        offers: "Offers",
+        activeApplications: "Active Applications",
+        interviewRate: "Interview Rate",
+        interviewRateDescription: "applications produced",
+        interviewUnit: "interviews",
+        interviewSuccessRate: "Interview Success Rate",
+        interviewSuccessDescription: "Share of interviews that converted to offers",
+        averageMatch: "Average Match",
+        averageMatchDescription: "Average locally analyzed match score",
+        activityTrend: "Activity Trend",
+        statusDistribution: "Status Distribution",
+        weeklyTrend: "Weekly Trend Analysis",
+        applications: "Applications",
+        interviewLegend: "Interviews",
+        successRate: "Success Rate (%)",
+        insights: "Smart Insights",
+        actionable: "Actionable",
+        updatedAt: "Data updated:",
+      };
+  const statusLabels = zh ? STATUS_LABELS_ZH : STATUS_LABELS;
+  const {
+    applications,
+    hasHydrated,
+    isAuthenticated,
+    jobDescriptions,
+    resumes,
+  } = useAppStore();
   const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -175,6 +258,14 @@ function AnalyticsPageContent() {
 
   const fetchAnalytics = useCallback(async () => {
     if (!isAuthenticated) {
+      if (hasHydrated) {
+        setAnalytics(buildLocalAnalytics({
+          applications,
+          resumes,
+          jobDescriptions,
+          locale,
+        }) as AnalyticsResponse);
+      }
       setLoading(false);
       return;
     }
@@ -192,7 +283,7 @@ function AnalyticsPageContent() {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, timeRange]);
+  }, [applications, hasHydrated, isAuthenticated, jobDescriptions, locale, resumes, timeRange]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -200,23 +291,6 @@ function AnalyticsPageContent() {
     };
     loadData();
   }, [fetchAnalytics]);
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              请先登录
-            </h1>
-            <p className="text-gray-600">
-              您需要登录才能查看分析数据
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
@@ -238,8 +312,8 @@ function AnalyticsPageContent() {
             <div className="flex items-center gap-3">
               <AlertCircle className="h-6 w-6 text-red-600" />
               <div>
-                <h3 className="text-lg font-medium text-red-900">加载失败</h3>
-                <p className="text-red-700 mt-1">{error || "无法加载分析数据"}</p>
+                <h3 className="text-lg font-medium text-red-900">{labels.failedTitle}</h3>
+                <p className="text-red-700 mt-1">{error || labels.failedDescription}</p>
               </div>
             </div>
           </div>
@@ -254,14 +328,14 @@ function AnalyticsPageContent() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">数据分析</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{labels.title}</h1>
             <p className="mt-2 text-gray-600">
-              追踪您的求职进度和成功率
+              {labels.subtitle}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <label htmlFor="timeRange" className="text-sm text-gray-600">
-              时间范围:
+              {labels.timeRange}
             </label>
             <select
               id="timeRange"
@@ -269,9 +343,9 @@ function AnalyticsPageContent() {
               onChange={(e) => setTimeRange(Number(e.target.value))}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value={7}>最近 7 天</option>
-              <option value={30}>最近 30 天</option>
-              <option value={90}>最近 90 天</option>
+              <option value={7}>{labels.day7}</option>
+              <option value={30}>{labels.day30}</option>
+              <option value={90}>{labels.day90}</option>
             </select>
           </div>
         </div>
@@ -279,25 +353,25 @@ function AnalyticsPageContent() {
         {/* Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard
-            title="总申请数"
+            title={labels.totalApplications}
             value={analytics.overview.total_applications}
             icon={Briefcase}
             color="bg-blue-500"
           />
           <StatCard
-            title="面试邀请"
+            title={labels.interviews}
             value={analytics.overview.interview_count}
             icon={CheckCircle2}
             color="bg-green-500"
           />
           <StatCard
-            title="录用通知"
+            title={labels.offers}
             value={analytics.overview.offer_count}
             icon={Award}
             color="bg-purple-500"
           />
           <StatCard
-            title="活跃申请"
+            title={labels.activeApplications}
             value={analytics.overview.active_applications}
             icon={Clock}
             color="bg-yellow-500"
@@ -309,7 +383,7 @@ function AnalyticsPageContent() {
           <div className="bg-white rounded-lg p-6 border border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                面试邀请率
+                {labels.interviewRate}
               </h3>
               <Target className="h-5 w-5 text-blue-600" />
             </div>
@@ -317,15 +391,16 @@ function AnalyticsPageContent() {
               {analytics.success_rates.application_to_interview_rate}%
             </div>
             <p className="text-sm text-gray-600">
-              {analytics.success_rates.total_applications} 份申请中有{" "}
-              {analytics.overview.interview_count} 份面试
+              {zh
+                ? `${analytics.success_rates.total_applications} ${labels.interviewRateDescription} ${analytics.overview.interview_count} ${labels.interviewUnit}`
+                : `${analytics.success_rates.total_applications} ${labels.interviewRateDescription} ${analytics.overview.interview_count} ${labels.interviewUnit}`}
             </p>
           </div>
 
           <div className="bg-white rounded-lg p-6 border border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                面试成功率
+                {labels.interviewSuccessRate}
               </h3>
               <TrendingUp className="h-5 w-5 text-green-600" />
             </div>
@@ -333,14 +408,14 @@ function AnalyticsPageContent() {
               {analytics.success_rates.interview_to_offer_rate}%
             </div>
             <p className="text-sm text-gray-600">
-              面试中获得录用的比例
+              {labels.interviewSuccessDescription}
             </p>
           </div>
 
           <div className="bg-white rounded-lg p-6 border border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                平均匹配度
+                {labels.averageMatch}
               </h3>
               <Award className="h-5 w-5 text-purple-600" />
             </div>
@@ -348,7 +423,7 @@ function AnalyticsPageContent() {
               {analytics.success_rates.average_match_score}%
             </div>
             <p className="text-sm text-gray-600">
-              AI 分析的平均匹配分数
+              {labels.averageMatchDescription}
             </p>
           </div>
         </div>
@@ -358,7 +433,7 @@ function AnalyticsPageContent() {
           {/* Activity Timeline */}
           <div className="bg-white rounded-lg p-6 border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              活动趋势
+              {labels.activityTrend}
             </h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={analytics.recent_activity.slice(-14)}>
@@ -374,7 +449,7 @@ function AnalyticsPageContent() {
                 <Tooltip
                   labelFormatter={(value: any) => {
                     const date = new Date(value);
-                    return date.toLocaleDateString("zh-CN");
+                    return date.toLocaleDateString(locale);
                   }}
                 />
                 <Legend />
@@ -382,14 +457,14 @@ function AnalyticsPageContent() {
                   type="monotone"
                   dataKey="applications"
                   stroke="#3B82F6"
-                  name="申请数"
+                  name={labels.applications}
                   strokeWidth={2}
                 />
                 <Line
                   type="monotone"
                   dataKey="interviews"
                   stroke="#10B981"
-                  name="面试"
+                  name={labels.interviewLegend}
                   strokeWidth={2}
                 />
               </LineChart>
@@ -399,7 +474,7 @@ function AnalyticsPageContent() {
           {/* Status Distribution */}
           <div className="bg-white rounded-lg p-6 border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              状态分布
+              {labels.statusDistribution}
             </h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -409,7 +484,7 @@ function AnalyticsPageContent() {
                   cy="50%"
                   labelLine={false}
                   label={(entry: any) =>
-                    `${STATUS_LABELS[entry.status] || entry.status}: ${entry.percentage}%`
+                    `${statusLabels[entry.status] || entry.status}: ${entry.percentage}%`
                   }
                   outerRadius={80}
                   fill="#8884d8"
@@ -424,7 +499,7 @@ function AnalyticsPageContent() {
                 </Pie>
                 <Tooltip formatter={(value: any, name: any, props: any) => [
                   value,
-                  STATUS_LABELS[props.payload?.status] || props.payload?.status || name
+                  statusLabels[props.payload?.status] || props.payload?.status || name
                 ]} />
               </PieChart>
             </ResponsiveContainer>
@@ -434,7 +509,7 @@ function AnalyticsPageContent() {
         {/* Weekly Trends */}
         <div className="bg-white rounded-lg p-6 border border-gray-200 mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            周度趋势分析
+            {labels.weeklyTrend}
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={analytics.trends}>
@@ -448,13 +523,13 @@ function AnalyticsPageContent() {
                 yAxisId="left"
                 dataKey="applications"
                 fill="#3B82F6"
-                name="申请数"
+                name={labels.applications}
               />
               <Bar
                 yAxisId="right"
                 dataKey="success_rate"
                 fill="#10B981"
-                name="成功率 (%)"
+                name={labels.successRate}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -464,7 +539,7 @@ function AnalyticsPageContent() {
         {analytics.insights.length > 0 && (
           <div className="bg-white rounded-lg p-6 border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              智能洞察
+              {labels.insights}
             </h3>
             <div className="space-y-4">
               {analytics.insights.map((insight, index) => {
@@ -483,7 +558,7 @@ function AnalyticsPageContent() {
                           <h4 className="font-medium">{insight.title}</h4>
                           {insight.actionable && (
                             <span className="text-xs px-2 py-1 bg-white rounded-full">
-                              可操作
+                              {labels.actionable}
                             </span>
                           )}
                         </div>
@@ -499,8 +574,8 @@ function AnalyticsPageContent() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">
-          数据更新时间:{" "}
-          {new Date(analytics.generated_at).toLocaleString("zh-CN")}
+          {labels.updatedAt}{" "}
+          {new Date(analytics.generated_at).toLocaleString(locale)}
         </div>
       </main>
     </div>

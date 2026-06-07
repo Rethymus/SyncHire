@@ -15,6 +15,90 @@ import { TemplateGallery } from "@/components/template-gallery";
 import { SavedTemplatesManager } from "@/components/saved-templates-manager";
 import { ResumeEditorSkeleton } from "@/components/skeleton";
 import { logger, LogCategory } from "@/lib/logger";
+import { useLiteCopy } from "@/lib/lite-i18n";
+
+const COPY = {
+  "en-US": {
+    title: "Resume Editor",
+    edit: "Edit",
+    preview: "Preview",
+    selectTemplate: "Choose Template",
+    myTemplates: "My Templates",
+    optimize: "AI Optimize",
+    optimizing: "Optimizing...",
+    exportPdf: "Export PDF",
+    exportingPdf: "Exporting...",
+    save: "Save",
+    saving: "Saving...",
+    editorLabel: "Resume content editor",
+    placeholder: "Edit your resume here...",
+    livePreview: "Live Preview",
+    tipsTitle: "Editing Tip",
+    tipsDescription:
+      "Use Markdown to edit your resume. Headings, lists, and bold text are supported. Use AI Optimize to improve the resume for the selected job.",
+    selectedTarget: "Target job selected:",
+    missingTarget: "Select a target job description to use AI optimization.",
+    optimizationFailed: "Optimization Failed",
+    pdfMissingResume: "Select a resume before exporting.",
+    pdfFailed: "PDF export failed",
+    saveFailed: "Save failed",
+    closeError: "Close error message",
+    optimizationTitle: "AI Optimization Result",
+    optimizationSubtitle: "Review the suggestions and decide whether to apply them.",
+    changes: "Changes Made",
+    keywords: "Keywords Added",
+    sections: "Sections Improved",
+    original: "Original Resume",
+    optimized: "Optimized Resume",
+    reject: "Reject Changes",
+    apply: "Apply Optimization",
+    unsavedTitle: "Unsaved Changes",
+    unsavedDescription: "You have unsaved changes. Save before leaving this page?",
+    discard: "Don't Save",
+    saveContinue: "Save and Continue",
+    stay: "Stay on this page",
+  },
+  "zh-CN": {
+    title: "简历编辑器",
+    edit: "编辑",
+    preview: "预览",
+    selectTemplate: "选择模板",
+    myTemplates: "我的模板",
+    optimize: "AI 优化",
+    optimizing: "优化中...",
+    exportPdf: "导出 PDF",
+    exportingPdf: "导出中...",
+    save: "保存",
+    saving: "保存中...",
+    editorLabel: "简历内容编辑",
+    placeholder: "在这里编辑您的简历...",
+    livePreview: "实时预览",
+    tipsTitle: "编辑提示",
+    tipsDescription:
+      "使用 Markdown 语法编辑简历。支持标题、列表、加粗等功能。点击 AI 优化，让 AI 帮助你改进简历内容。",
+    selectedTarget: "已选择目标职位：",
+    missingTarget: "请先选择目标职位描述以使用 AI 优化功能。",
+    optimizationFailed: "优化失败",
+    pdfMissingResume: "请先选择要导出的简历",
+    pdfFailed: "导出失败",
+    saveFailed: "保存失败",
+    closeError: "关闭错误提示",
+    optimizationTitle: "AI 优化结果",
+    optimizationSubtitle: "查看优化建议并决定是否应用更改。",
+    changes: "改进内容",
+    keywords: "新增关键词",
+    sections: "优化的部分",
+    original: "原始简历",
+    optimized: "优化后简历",
+    reject: "拒绝更改",
+    apply: "应用优化",
+    unsavedTitle: "有未保存的更改",
+    unsavedDescription: "您有未保存的更改。是否要在离开前保存这些更改？",
+    discard: "不保存",
+    saveContinue: "保存并继续",
+    stay: "留在此页面",
+  },
+} as const;
 
 const defaultResumeTemplate = `# 张三
 **前端开发工程师**
@@ -101,6 +185,8 @@ interface OptimizationResult {
 type SaveStatus = "saving" | "saved" | "error" | "idle" | "unsaved";
 
 function ResumeEditorComponent() {
+  const { locale } = useLiteCopy();
+  const copy = COPY[locale];
   const { currentResume, updateResume, currentJD } = useAppStore();
   const router = useRouter();
   const [content, setContent] = useState(defaultResumeTemplate);
@@ -111,6 +197,7 @@ function ResumeEditorComponent() {
   const [optimizationResult, setOptimizationResult] = useState<OptimizationResult | null>(null);
   const [optimizationError, setOptimizationError] = useState<string | null>(null);
   const [appliedOptimization, setAppliedOptimization] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
   const [showTemplateGallery, setShowTemplateGallery] = useState(false);
   const [showSavedTemplates, setShowSavedTemplates] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -132,7 +219,14 @@ function ResumeEditorComponent() {
   const hasUnsavedChanges = lastSavedContent && content !== lastSavedContent;
 
   useEffect(() => {
-    if (currentResume?.id !== prevResumeIdRef.current && currentResume?.content) {
+    if (!currentResume?.content) {
+      return;
+    }
+
+    const resumeChanged = currentResume.id !== prevResumeIdRef.current;
+    const upstreamContentChanged = currentResume.content !== lastSavedContent && !hasUnsavedChanges;
+
+    if (resumeChanged || upstreamContentChanged) {
       setInitialLoading(true);
       setContent(currentResume.content);
       setLastSavedContent(currentResume.content);
@@ -144,7 +238,7 @@ function ResumeEditorComponent() {
       // Simulate minimum loading time for smooth UX
       setTimeout(() => setInitialLoading(false), 300);
     }
-  }, [currentResume?.id, currentResume?.content]);
+  }, [currentResume?.id, currentResume?.content, hasUnsavedChanges, lastSavedContent]);
 
   // Auto-save functionality
   useEffect(() => {
@@ -279,7 +373,7 @@ function ResumeEditorComponent() {
       // Reset status after 3 seconds
       resetSaveStatusTimer();
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "保存失败");
+      setSaveError(error instanceof Error ? error.message : copy.saveFailed);
       setSaveStatus("error");
 
       // Reset status after 3 seconds
@@ -287,7 +381,7 @@ function ResumeEditorComponent() {
     } finally {
       setSaving(false);
     }
-  }, [currentResume, updateResume, content, resetSaveStatusTimer]);
+  }, [copy.saveFailed, currentResume, updateResume, content, resetSaveStatusTimer]);
 
   // Get save status icon and text
   const getSaveStatusDisplay = useCallback(() => {
@@ -316,22 +410,22 @@ function ResumeEditorComponent() {
       case "error":
         return {
           icon: <AlertCircle className="h-4 w-4" />,
-          text: "保存失败",
+          text: copy.saveFailed,
           className: "text-red-600"
         };
       default:
         return null;
     }
-  }, [saveStatus, hasUnsavedChanges]);
+  }, [copy.saveFailed, saveStatus, hasUnsavedChanges]);
 
   const handleAIOptimize = useCallback(async () => {
     if (!currentResume?.id) {
-      setOptimizationError("请先选择要优化的简历");
+      setOptimizationError(copy.pdfMissingResume);
       return;
     }
 
     if (!currentJD?.description) {
-      setOptimizationError("请先选择目标职位描述");
+      setOptimizationError(copy.missingTarget);
       return;
     }
 
@@ -349,15 +443,15 @@ function ResumeEditorComponent() {
         // Normalize error to string (handle both string and APIError types)
         const errorMessage = typeof response.error === 'string'
           ? response.error
-          : response.error?.message || "优化失败，请重试";
+          : response.error?.message || copy.optimizationFailed;
         setOptimizationError(errorMessage);
       }
     } catch (error) {
-      setOptimizationError(error instanceof Error ? error.message : "优化过程中出现错误");
+      setOptimizationError(error instanceof Error ? error.message : copy.optimizationFailed);
     } finally {
       setAiOptimizing(false);
     }
-  }, [currentResume, currentJD]);
+  }, [copy.missingTarget, copy.optimizationFailed, copy.pdfMissingResume, currentResume, currentJD]);
 
   const handleApplyOptimization = useCallback(() => {
     if (optimizationResult?.optimized_content) {
@@ -372,11 +466,57 @@ function ResumeEditorComponent() {
     setOptimizationResult(null);
   }, []);
 
-  const handleExportPDF = useCallback(() => {
-    // TODO: Implement PDF export functionality
-    // Navigate to preview page with export dialog
-    // router.push("/preview");
-  }, []);
+  const handleExportPDF = useCallback(async () => {
+    if (!currentResume) {
+      setSaveError(copy.pdfMissingResume);
+      setSaveStatus("error");
+      return;
+    }
+
+    setExportingPdf(true);
+    setSaveError(null);
+
+    try {
+      const html = `<!doctype html>
+        <html>
+          <head><meta charset="utf-8" /></head>
+          <body><main>${renderMarkdown(content)}</main></body>
+        </html>`;
+      const response = await fetch("/api/generate-pdf", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          html,
+          filename: currentResume.name || "synchire-tailored-resume",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: copy.pdfFailed }));
+        throw new Error(errorData.error || errorData.detail || copy.pdfFailed);
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${currentResume.name || "synchire-tailored-resume"}.pdf`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(url);
+      setSaveStatus("saved");
+      resetSaveStatusTimer();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : copy.pdfFailed);
+      setSaveStatus("error");
+      resetSaveStatusTimer();
+    } finally {
+      setExportingPdf(false);
+    }
+  }, [content, copy.pdfFailed, copy.pdfMissingResume, currentResume, resetSaveStatusTimer]);
 
   const handleTogglePreview = useCallback(() => {
     setPreviewMode(prev => !prev);
@@ -403,7 +543,7 @@ function ResumeEditorComponent() {
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold text-gray-900">
-            简历编辑器
+            {copy.title}
           </h2>
           {currentResume && (
             <span className="text-sm text-gray-600">
@@ -432,12 +572,12 @@ function ResumeEditorComponent() {
             {previewMode ? (
               <>
                 <Edit className="h-4 w-4 mr-2" />
-                编辑
+                {copy.edit}
               </>
             ) : (
               <>
                 <Eye className="h-4 w-4 mr-2" />
-                预览
+                {copy.preview}
               </>
             )}
           </Button>
@@ -449,7 +589,7 @@ function ResumeEditorComponent() {
             className="min-h-[44px] px-4"
           >
             <Palette className="h-4 w-4 mr-2" />
-            选择模板
+            {copy.selectTemplate}
           </Button>
 
           <Button
@@ -459,7 +599,7 @@ function ResumeEditorComponent() {
             className="min-h-[44px] px-4"
           >
             <Palette className="h-4 w-4 mr-2" />
-            我的模板
+            {copy.myTemplates}
           </Button>
 
           <Button
@@ -470,17 +610,18 @@ function ResumeEditorComponent() {
             className="min-h-[44px] px-4"
           >
             <Sparkles className="h-4 w-4 mr-2" />
-            {aiOptimizing ? "优化中..." : "AI 优化"}
+            {aiOptimizing ? copy.optimizing : copy.optimize}
           </Button>
 
           <Button
             variant="outline"
             size="sm"
             onClick={handleExportPDF}
+            disabled={exportingPdf}
             className="min-h-[44px] px-4"
           >
             <Download className="h-4 w-4 mr-2" />
-            导出 PDF
+            {exportingPdf ? copy.exportingPdf : copy.exportPdf}
           </Button>
 
           <Button
@@ -490,7 +631,7 @@ function ResumeEditorComponent() {
             className="min-h-[44px] px-4"
           >
             <Save className="h-4 w-4 mr-2" />
-            {saving ? "保存中..." : "保存"}
+            {saving ? copy.saving : copy.save}
           </Button>
         </div>
       </div>
@@ -513,14 +654,14 @@ function ResumeEditorComponent() {
             {/* Editor Area */}
             <div className="flex-1 border-r border-gray-200">
               <label htmlFor="resume-editor" className="sr-only">
-                简历内容编辑
+                {copy.editorLabel}
               </label>
               <textarea
                 id="resume-editor"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 className="w-full h-full p-8 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm leading-relaxed"
-                placeholder="在这里编辑您的简历..."
+                placeholder={copy.placeholder}
                 aria-describedby="editor-tips"
                 style={{
                   minHeight: "100%",
@@ -532,7 +673,7 @@ function ResumeEditorComponent() {
             <div className="flex-1 overflow-auto bg-gray-50">
               <div className="max-w-4xl mx-auto p-8 bg-white shadow-sm">
                 <h3 className="text-sm font-medium text-gray-600 mb-4 pb-2 border-b">
-                  实时预览
+                  {copy.livePreview}
                 </h3>
                 <div
                   className="prose prose-sm max-w-none"
@@ -552,19 +693,18 @@ function ResumeEditorComponent() {
           <Sparkles className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
           <div className="flex-1">
             <h3 className="text-sm font-medium text-blue-900">
-              编辑提示
+              {copy.tipsTitle}
             </h3>
             <p className="text-sm text-blue-700 mt-1">
-              使用 Markdown 语法编辑简历。支持标题（#, ##, ###）、列表（-, *）、加粗（**text**）等功能。
-              点击&ldquo;AI 优化&rdquo;按钮，让 AI 帮助您改进简历内容。
+              {copy.tipsDescription}
             </p>
             {currentJD ? (
               <p className="text-sm text-green-700 mt-1">
-                ✓ 已选择目标职位：{currentJD.title}
+                {copy.selectedTarget}{currentJD.title}
               </p>
             ) : (
               <p className="text-sm text-amber-700 mt-1">
-                ⚠ 请先选择目标职位描述以使用AI优化功能
+                {copy.missingTarget}
               </p>
             )}
           </div>
@@ -577,13 +717,13 @@ function ResumeEditorComponent() {
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
             <div className="flex-1">
-              <h4 className="text-sm font-medium text-red-900">优化失败</h4>
+              <h4 className="text-sm font-medium text-red-900">{copy.optimizationFailed}</h4>
               <p className="text-sm text-red-700 mt-1">{optimizationError}</p>
             </div>
             <button
               onClick={() => setOptimizationError(null)}
               className="text-red-500 hover:text-red-700"
-              aria-label="关闭错误提示"
+              aria-label={copy.closeError}
             >
               <X className="h-4 w-4" />
             </button>
@@ -599,15 +739,15 @@ function ResumeEditorComponent() {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">AI 优化结果</h3>
+                  <h3 className="text-xl font-semibold text-gray-900">{copy.optimizationTitle}</h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    查看优化建议并决定是否应用更改
+                    {copy.optimizationSubtitle}
                   </p>
                 </div>
                 <button
                   onClick={handleRejectOptimization}
                   className="text-gray-400 hover:text-gray-600"
-                  aria-label="关闭优化结果"
+                  aria-label={copy.closeError}
                 >
                   <X className="h-6 w-6" />
                 </button>
@@ -622,7 +762,7 @@ function ResumeEditorComponent() {
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <h4 className="font-medium text-green-900 flex items-center gap-2">
                       <Check className="h-4 w-4" />
-                      改进内容
+                      {copy.changes}
                     </h4>
                     <ul className="mt-2 space-y-1 text-sm text-green-800">
                       {optimizationResult.changes_made.map((change, index) => (
@@ -635,7 +775,7 @@ function ResumeEditorComponent() {
                   </div>
 
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="font-medium text-blue-900">新增关键词</h4>
+                    <h4 className="font-medium text-blue-900">{copy.keywords}</h4>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {optimizationResult.keywords_added.map((keyword, index) => (
                         <span
@@ -649,7 +789,7 @@ function ResumeEditorComponent() {
                   </div>
 
                   <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                    <h4 className="font-medium text-purple-900">优化的部分</h4>
+                    <h4 className="font-medium text-purple-900">{copy.sections}</h4>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {optimizationResult.sections_improved.map((section, index) => (
                         <span
@@ -665,7 +805,7 @@ function ResumeEditorComponent() {
 
                 {/* Original vs Optimized */}
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-3">原始简历</h4>
+                  <h4 className="font-medium text-gray-900 mb-3">{copy.original}</h4>
                   <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 h-96 overflow-auto">
                     <div
                       className="prose prose-sm max-w-none"
@@ -677,7 +817,7 @@ function ResumeEditorComponent() {
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-3">优化后简历</h4>
+                  <h4 className="font-medium text-gray-900 mb-3">{copy.optimized}</h4>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 h-96 overflow-auto">
                     <div
                       className="prose prose-sm max-w-none"
@@ -697,14 +837,14 @@ function ResumeEditorComponent() {
                 onClick={handleRejectOptimization}
                 className="min-h-[44px] px-6"
               >
-                拒绝更改
+                {copy.reject}
               </Button>
               <Button
                 onClick={handleApplyOptimization}
                 className="min-h-[44px] px-6 bg-green-600 hover:bg-green-700"
               >
                 <Check className="h-4 w-4 mr-2" />
-                应用优化
+                {copy.apply}
               </Button>
             </div>
           </div>
@@ -719,10 +859,10 @@ function ResumeEditorComponent() {
               <AlertTriangle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">
-                  有未保存的更改
+                  {copy.unsavedTitle}
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  您有未保存的更改。是否要在离开前保存这些更改？
+                  {copy.unsavedDescription}
                 </p>
               </div>
             </div>
@@ -733,13 +873,13 @@ function ResumeEditorComponent() {
                 onClick={() => confirmNavigation(false)}
                 className="min-h-[44px] px-6"
               >
-                不保存
+                {copy.discard}
               </Button>
               <Button
                 onClick={() => confirmNavigation(true)}
                 className="min-h-[44px] px-6"
               >
-                保存并继续
+                {copy.saveContinue}
               </Button>
             </div>
 
@@ -751,7 +891,7 @@ function ResumeEditorComponent() {
                 }}
                 className="text-sm text-gray-600 hover:text-gray-900"
               >
-                留在此页面
+                {copy.stay}
               </button>
             </div>
           </div>
@@ -764,13 +904,13 @@ function ResumeEditorComponent() {
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
             <div className="flex-1">
-              <h4 className="text-sm font-medium text-red-900">保存失败</h4>
+              <h4 className="text-sm font-medium text-red-900">{copy.saveFailed}</h4>
               <p className="text-sm text-red-700 mt-1">{saveError}</p>
             </div>
             <button
               onClick={() => setSaveError(null)}
               className="text-red-500 hover:text-red-700"
-              aria-label="关闭错误提示"
+              aria-label={copy.closeError}
             >
               <X className="h-4 w-4" />
             </button>
