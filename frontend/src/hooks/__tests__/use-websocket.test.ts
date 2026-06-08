@@ -6,7 +6,11 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi, test } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useWebSocket, useRealtimeNotifications } from '../use-websocket';
+import {
+  useActivityFeed,
+  useRealtimeNotifications,
+  useWebSocket,
+} from '../use-websocket';
 import { WebSocketMessage, MessageType } from '../../lib/websocket-types';
 
 // Mock WebSocket
@@ -419,5 +423,87 @@ describe('useRealtimeNotifications', () => {
 
     expect(result.current.notifications.length).toBe(0);
     expect(result.current.unreadCount).toBe(0);
+  });
+});
+
+describe('useActivityFeed', () => {
+  beforeEach(() => {
+    MockWebSocket.clear();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  test('should receive activity feed events', async () => {
+    const { result } = renderHook(() => useActivityFeed('test-token'));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    expect(MockWebSocket.instances.length).toBeGreaterThan(0);
+
+    act(() => {
+      const ws = MockWebSocket.instances[0];
+      ws.onmessage?.(
+        new MessageEvent('message', {
+          data: JSON.stringify({
+            type: MessageType.ACTIVITY_NEW,
+            data: {
+              activity_id: 'activity-1',
+              type: 'application_update',
+              description: 'Application moved to interview stage',
+              created_at: '2026-06-08T08:00:00.000Z',
+            },
+            timestamp: new Date().toISOString(),
+            id: 'activity-message-1',
+          }),
+        })
+      );
+    });
+
+    await waitFor(() => {
+      expect(result.current.activities).toHaveLength(1);
+      expect(result.current.activities[0].activity_id).toBe('activity-1');
+    });
+  });
+
+  test('should clear activities', async () => {
+    const { result } = renderHook(() => useActivityFeed('test-token'));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    act(() => {
+      const ws = MockWebSocket.instances[0];
+      ws.onmessage?.(
+        new MessageEvent('message', {
+          data: JSON.stringify({
+            type: MessageType.ACTIVITY_NEW,
+            data: {
+              activity_id: 'activity-1',
+              type: 'application_update',
+              description: 'Application moved to interview stage',
+              created_at: '2026-06-08T08:00:00.000Z',
+            },
+            timestamp: new Date().toISOString(),
+            id: 'activity-message-1',
+          }),
+        })
+      );
+    });
+
+    await waitFor(() => {
+      expect(result.current.activities).toHaveLength(1);
+    });
+
+    act(() => {
+      result.current.clearActivities();
+    });
+
+    expect(result.current.activities).toHaveLength(0);
   });
 });

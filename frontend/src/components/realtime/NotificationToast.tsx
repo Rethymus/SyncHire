@@ -7,7 +7,10 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useRealtimeNotifications } from '../../hooks/use-websocket';
+import {
+  useActivityFeed,
+  useRealtimeNotifications,
+} from '../../hooks/use-websocket';
 import { useAuthStore } from '../../lib/auth-store';
 import { toast } from 'sonner';
 
@@ -80,12 +83,9 @@ export function ConnectionStatusIndicator() {
 /**
  * Real-time Activity Feed Component
  */
-// TODO: Implement useActivityFeed hook
 export function ActivityFeed() {
   const token = useAuthStore((state) => state.token);
-  // const { activities } = useActivityFeed(token);
-
-  const activities: any[] = []; // Placeholder until hook is implemented
+  const { activities } = useActivityFeed(token);
 
   if (activities.length === 0) {
     return (
