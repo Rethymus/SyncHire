@@ -1,6 +1,6 @@
 {
   "name": "@synchire/mcp-resume-analyzer",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "MCP server for parsing and analyzing resumes into structured data",
   "type": "module",
   "main": "build/index.js",

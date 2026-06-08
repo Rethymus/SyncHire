@@ -7,6 +7,12 @@ import {
   applyApprovedProfileLearning,
   createDefaultCandidateRoleCard,
 } from "./browser-fill-assistant";
+import {
+  getPlatformStorageItem,
+  migrateWebStorageItemToNative,
+  removePlatformStorageItem,
+  setPlatformStorageItem,
+} from "./platform-storage";
 
 export interface Resume {
   id: string;
@@ -121,7 +127,7 @@ interface AppState {
 
   // Onboarding state
   hasHydrated: boolean;
-  hydrateFromStorage: () => void;
+  hydrateFromStorage: () => Promise<void>;
   onboarding: OnboardingState;
   setOnboardingStep: (step: number) => void;
   completeOnboardingStep: (step: string) => void;
@@ -248,13 +254,14 @@ function hydratePersistedState(state: Partial<PersistedAppState>): Partial<Persi
   };
 }
 
-function loadPersistedState(): Partial<PersistedAppState> {
+async function loadPersistedState(): Promise<Partial<PersistedAppState>> {
   if (typeof window === "undefined") {
     return {};
   }
 
   try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
+    await migrateWebStorageItemToNative(STORAGE_KEY);
+    const stored = await getPlatformStorageItem(STORAGE_KEY);
     if (!stored) {
       return {};
     }
@@ -288,7 +295,7 @@ function persistState(state: AppState) {
     onboarding: state.onboarding,
   };
 
-  window.localStorage.setItem(
+  void setPlatformStorageItem(
     STORAGE_KEY,
     JSON.stringify({
       version: STORAGE_VERSION,
@@ -298,9 +305,7 @@ function persistState(state: AppState) {
 }
 
 function clearPersistedState() {
-  if (typeof window !== "undefined") {
-    window.localStorage.removeItem(STORAGE_KEY);
-  }
+  void removePlatformStorageItem(STORAGE_KEY);
 }
 
 // Main store without persistence for sensitive data
@@ -413,10 +418,7 @@ export const useAppStore = create<AppState>()((set) => ({
       persistState({ ...state, selectedTemplate: templateId });
       return { selectedTemplate: templateId };
     });
-    // Save to localStorage for persistence
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('selectedTemplate', templateId);
-    }
+    void setPlatformStorageItem("selectedTemplate", templateId);
   },
 
   setTemplateCustomization: (customization) => {
@@ -424,10 +426,10 @@ export const useAppStore = create<AppState>()((set) => ({
       persistState({ ...state, templateCustomization: customization });
       return { templateCustomization: customization };
     });
-    // Save to localStorage for persistence
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('templateCustomization', JSON.stringify(customization));
-    }
+    void setPlatformStorageItem(
+      "templateCustomization",
+      JSON.stringify(customization)
+    );
   },
 
   saveTemplatePreferences: (templateId, customization) => {
@@ -442,11 +444,11 @@ export const useAppStore = create<AppState>()((set) => ({
         templateCustomization: customization,
       };
     });
-    // Save to localStorage for persistence
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('selectedTemplate', templateId);
-      localStorage.setItem('templateCustomization', JSON.stringify(customization));
-    }
+    void setPlatformStorageItem("selectedTemplate", templateId);
+    void setPlatformStorageItem(
+      "templateCustomization",
+      JSON.stringify(customization)
+    );
   },
 
   // Application actions
@@ -575,13 +577,14 @@ export const useAppStore = create<AppState>()((set) => ({
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
   // Onboarding actions
-  hydrateFromStorage: () =>
+  hydrateFromStorage: async () => {
+    const persistedState = await loadPersistedState();
+
     set((state) => {
       if (state.hasHydrated) {
         return state;
       }
 
-      const persistedState = loadPersistedState();
       return {
         resumes: persistedState.resumes ?? state.resumes,
         currentResume: persistedState.currentResume ?? state.currentResume,
@@ -597,7 +600,8 @@ export const useAppStore = create<AppState>()((set) => ({
         onboarding: persistedState.onboarding ?? state.onboarding,
         hasHydrated: true,
       };
-    }),
+    });
+  },
 
   setOnboardingStep: (step) =>
     set((state) => {

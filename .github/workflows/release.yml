@@ -41,10 +41,11 @@ jobs:
               src-tauri/target/release/bundle/dmg/*.dmg
           - name: linux
             runner: ubuntu-latest
-            bundles: deb
+            bundles: deb,rpm
             artifact-name: SyncHire-Linux
             artifact-path: |
               src-tauri/target/release/bundle/deb/*.deb
+              src-tauri/target/release/bundle/rpm/*.rpm
 
     steps:
       - name: Checkout code

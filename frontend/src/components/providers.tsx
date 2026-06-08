@@ -19,7 +19,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   useEffect(() => {
-    hydrateFromStorage();
+    void hydrateFromStorage();
   }, [hydrateFromStorage]);
 
   return (

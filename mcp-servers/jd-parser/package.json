@@ -1,6 +1,6 @@
 {
   "name": "@synchire/mcp-jd-parser",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "MCP server for parsing job descriptions into structured data",
   "type": "module",
   "main": "build/index.js",
