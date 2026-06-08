@@ -2,7 +2,6 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone, type FileRejection } from "react-dropzone";
-// import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { useAppStore } from "@/lib/store";

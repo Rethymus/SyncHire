@@ -8,6 +8,10 @@ node_modules/
 dogfood-output/
 frontend/playwright-report/
 frontend/test-results/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.py[cod]
 
 # Next.js
 /.next/

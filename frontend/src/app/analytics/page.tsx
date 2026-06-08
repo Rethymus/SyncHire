@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Suspense } from "react";
-// // import { Navigation } from "@/components/navigation";
 import { useAppStore } from "@/lib/store";
 import { apiClient } from "@/lib/api-client";
 import { buildLocalAnalytics } from "@/lib/local-job-intelligence";

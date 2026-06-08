@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-// // import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { useAppStore, type JobDescription } from "@/lib/store";
 import { useRouter } from "next/navigation";

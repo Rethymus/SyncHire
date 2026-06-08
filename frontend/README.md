@@ -175,11 +175,12 @@ chore: 构建/工具变更
 
 ## 文档
 
-详细文档请查看 `/docs` 目录：
+详细文档请查看仓库根目录的 `docs/`：
 
-- [FINAL_VIBE_CODING_DELIVERY_REPORT.md](./docs/FINAL_VIBE_CODING_DELIVERY_REPORT.md) - 最终交付报告
-- [COMPREHENSIVE_TEST_REPORT.md](./docs/COMPREHENSIVE_TEST_REPORT.md) - 综合测试报告
-- [P2_COMPLETE_FIXES.md](./docs/P2_COMPLETE_FIXES.md) - P2 修复报告
+- [文档索引](../docs/INDEX.md)
+- [开发者指南](../docs/DEVELOPER_GUIDE.md)
+- [测试指南](../docs/TESTING_GUIDE.md)
+- [部署指南](../docs/DEPLOYMENT_GUIDE.md)
 
 ## 许可证
 

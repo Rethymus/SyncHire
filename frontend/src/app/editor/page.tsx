@@ -1,6 +1,4 @@
 "use client";
-
-// import { Navigation } from "@/components/navigation";
 import { ResumeEditor } from "@/components/resume-editor";
 import { useAppStore } from "@/lib/store";
 import { useRouter, useSearchParams } from "next/navigation";

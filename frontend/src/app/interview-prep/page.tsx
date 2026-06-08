@@ -2,7 +2,6 @@
 
 import { useCallback, useState, useMemo, memo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-// import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { applicationAPI } from "@/lib/api-client";
 import { useAppStore } from "@/lib/store";

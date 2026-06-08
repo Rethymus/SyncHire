@@ -8,7 +8,6 @@
 
 
 import { useState, useCallback, memo, useEffect } from "react";
-// import { Navigation } from "@/components/navigation-unified";
 import { Button } from "@/components/ui/button";
 import { useSearch, type SearchResult } from "@/hooks/use-search";
 import { applicationDetailHref } from "@/lib/application-links";

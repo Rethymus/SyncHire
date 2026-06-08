@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-// import { Navigation } from "@/components/navigation";
 import { UniversalSearch } from "@/components/universal-search";
 import { SearchResults } from "@/components/search-results";
 import { searchApi, SearchFilters as APISearchFilters } from "@/lib/api/search";

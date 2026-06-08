@@ -11,6 +11,9 @@ env:
   PYTHON_VERSION: '3.11'
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+permissions:
+  contents: read
+
 jobs:
   frontend-tests:
     runs-on: ubuntu-latest
@@ -22,19 +25,10 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Cache node_modules
-        uses: actions/cache@v5
-        with:
-          path: |
-            node_modules
-            frontend/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          cache: npm
 
       - name: Install dependencies
-        run: npm install --prefer-offline --no-audit --no-fund
+        run: npm ci --include=optional --no-audit --no-fund
 
       - name: Run linter
         run: npm run lint --workspace=frontend
@@ -123,17 +117,17 @@ jobs:
 
       - name: Install security tools
         run: |
-          pip install bandit safety ruff
+          python -m pip install --upgrade pip
+          pip install bandit pip-audit
 
       - name: Run Bandit security scan
+        working-directory: ./api
         run: |
-          cd api
           bandit -r app/ -f json -o bandit-report.json || true
 
-      - name: Run Safety check
-        run: |
-          cd api
-          safety check --json || true
+      - name: Run dependency audit
+        working-directory: ./api
+        run: pip-audit -r requirements-dev.txt --format json --output pip-audit-report.json || true
 
       - name: Upload security reports
         uses: actions/upload-artifact@v6
@@ -142,7 +136,7 @@ jobs:
           name: security-reports
           path: |
             api/bandit-report.json
-            api/safety-report.json
+            api/pip-audit-report.json
 
   quality-gate:
     needs: [frontend-tests, backend-tests, security-scan]

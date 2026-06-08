@@ -2,7 +2,6 @@
 
 
 import { useState, useCallback, useEffect } from "react";
-// import { Navigation } from "@/components/navigation";
 import { UniversalSearch } from "@/components/universal-search";
 import { SearchResults } from "@/components/search-results";
 import { SearchFilters as APISearchFilters } from "@/lib/api/search";
