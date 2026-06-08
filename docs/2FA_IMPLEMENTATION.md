@@ -155,22 +155,6 @@ cd /home/re/code/SyncHire/api
 python -m pytest tests/test_two_factor.py -v
 ```
 
-### Demonstration Script
-
-A comprehensive demonstration script is available at `/home/re/code/SyncHire/api/test_2fa_demo.py`:
-
-```bash
-cd /home/re/code/SyncHire/api
-python test_2fa_demo.py
-```
-
-This demonstrates:
-- TOTP generation and verification
-- QR code generation
-- Backup codes generation
-- Complete 2FA setup flow
-- Login with 2FA verification
-
 ## Security Considerations
 
 ### Best Practices Implemented
@@ -314,7 +298,6 @@ logging.getLogger('app.services.two_factor_service').setLevel(logging.DEBUG)
 
 - **API Documentation**: Available at `/docs` endpoint
 - **Test Coverage**: `/home/re/code/SyncHire/api/tests/test_two_factor.py`
-- **Demo Script**: `/home/re/code/SyncHire/api/test_2fa_demo.py`
 
 ### Issues
 

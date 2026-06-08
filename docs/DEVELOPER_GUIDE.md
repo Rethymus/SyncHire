@@ -41,9 +41,13 @@ Comprehensive guide for contributing to and developing the SyncHire platform.
    # Install all workspace dependencies
    npm install
    
-   # Install specific workspace
+   # Install the frontend workspace
    npm install --workspace=frontend
-   npm install --workspace=api
+
+   # Install backend dependencies
+   cd api
+   python -m pip install -r requirements.txt
+   cd ..
    ```
 
 3. **Configure Environment**
@@ -60,7 +64,6 @@ Comprehensive guide for contributing to and developing the SyncHire platform.
 5. **Initialize Database**
    ```bash
    npm run db:migrate
-   npm run db:seed  # Optional: populate with sample data
    ```
 
 6. **Start Development Servers**
@@ -104,9 +107,14 @@ SyncHire/
 │   ├── public/              # Static assets
 │   └── package.json
 ├── api/                     # FastAPI backend
-│   ├── app/                 # FastAPI application
-│   ├── routers/             # API endpoints
-│   ├── models/              # Database models
+│   ├── app/
+│   │   ├── api/             # API routers
+│   │   ├── models/          # SQLAlchemy models
+│   │   ├── schemas/         # Pydantic schemas
+│   │   ├── services/        # Business logic
+│   │   └── core/            # Config, database, security
+│   ├── main.py              # Canonical server entrypoint
+│   ├── main_lite.py         # Local-first desktop/Electron entrypoint
 │   └── tests/               # Backend tests
 ├── mcp-servers/            # AI processing servers
 │   ├── jd-parser/
@@ -657,7 +665,10 @@ npm run build
 
 # Build specific workspace
 npm run build --workspace=frontend
-npm run build --workspace=api
+
+# Validate backend package imports
+cd api
+python -m pytest tests/test_api.py::TestHealthEndpoints -v --tb=short
 ```
 
 ### Docker Deployment

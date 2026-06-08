@@ -60,7 +60,7 @@ All MCP servers perform well below targets:
 
 **Testing Scripts Created**:
 - `scripts/test_api_performance.py` - Automated endpoint testing
-- `scripts/analyze_db_performance.py` - Database analysis
+- `api/analyze_db_performance.py` - Database analysis
 - `scripts/load_test.sh` - Apache Bench load testing
 
 ## Optimizations Applied
@@ -157,7 +157,8 @@ cd mcp-servers
 node benchmark.ts
 
 # Database Analysis
-python scripts/analyze_db_performance.py
+cd api
+python analyze_db_performance.py
 
 # API Performance Test
 python scripts/test_api_performance.py

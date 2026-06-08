@@ -62,7 +62,7 @@ CREATE INDEX idx_status_history_app_changed
     ON application_status_history(application_id, changed_at DESC);
 ```
 
-**Verification**: Run `api/validate_performance_fix.py` before/after migration
+**Verification**: run the backend pytest suite and compare database query plans before/after migration.
 
 ---
 
@@ -213,7 +213,7 @@ if applications:
    - Tests query performance
    - Generates recommendations
 
-2. **Validation Script**: `api/validate_performance_fix.py`
+2. **Validation**: backend pytest coverage plus database query-plan comparison
    - Measures query performance before/after
    - Validates index installation
    - Generates performance report
@@ -229,7 +229,7 @@ cd api
 python analyze_db_performance.py
 
 # Validate fixes (after applying migration)
-python validate_performance_fix.py
+python -m pytest tests/test_api.py::TestHealthEndpoints -v --tb=short
 ```
 
 ### Expected Performance Improvements
@@ -260,13 +260,13 @@ docker exec -i synchire-postgres psql -U synchire -d synchire \
 
 ### 2. Verify Installation
 ```bash
-python api/validate_performance_fix.py
+cd api && python -m pytest tests/test_api.py::TestHealthEndpoints -v --tb=short
 ```
 
 ### 3. Monitor Performance
 - Check query times in application logs
 - Monitor database metrics in pg_stat_statements
-- Run `analyze_db_performance.py` periodically
+- Run `cd api && python analyze_db_performance.py` periodically
 
 ---
 
@@ -319,6 +319,6 @@ This audit identified and resolved critical database performance issues in SyncH
 - ✅ `api/app/services/application_service.py` (bulk delete optimization)
 - ✅ `db/migrations/002_add_performance_indexes.sql` (new)
 - ✅ `api/analyze_db_performance.py` (new analysis tool)
-- ✅ `api/validate_performance_fix.py` (new validation tool)
+- ✅ Backend pytest health coverage for migration smoke validation
 
 **Status**: Ready for production deployment after testing.

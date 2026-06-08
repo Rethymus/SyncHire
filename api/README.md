@@ -371,7 +371,8 @@ api/
 │       ├── application_service.py
 │       ├── ai_service.py
 │       └── mcp_client.py
-├── main.py               # FastAPI application
+├── main.py               # Canonical FastAPI entrypoint
+├── main_lite.py          # Local-first desktop/Electron entrypoint
 ├── requirements.txt      # Python dependencies
 └── .env.example          # Environment template
 ```

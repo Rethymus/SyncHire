@@ -247,7 +247,7 @@ Created `scripts/test_api_performance.py` for automated testing of:
    - Measures throughput and latency
    - Provides scaling recommendations
 
-2. **Database Performance Analysis**: `scripts/analyze_db_performance.py`
+2. **Database Performance Analysis**: `api/analyze_db_performance.py`
    - Table size analysis
    - Index usage statistics
    - Query performance testing
