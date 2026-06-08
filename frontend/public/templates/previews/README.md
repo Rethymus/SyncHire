@@ -1,17 +1,19 @@
-# Resume Template Preview Images
+# Resume Template Previews
 
-This directory contains preview images for resume templates.
+This directory contains resume template preview assets.
 
-## Required Preview Images
+## Active Preview Assets
 
-- `minimal.png` - Preview of minimal template
-- `professional.png` - Preview of professional template
-- `creative.png` - Preview of creative template
-- `executive.png` - Preview of executive template
-- `technical.png` - Preview of technical template
-- `modern.png` - Preview of modern template
+- `minimal.svg` - Minimal template preview
+- `professional.svg` - Professional template preview
+- `creative.svg` - Creative template preview
+- `executive.svg` - Executive template preview
+- `technical.svg` - Technical template preview
+- `modern.svg` - Modern template preview
 
-## Image Specifications
+The frontend template registry references the SVG files directly.
+
+## Future Raster Preview Specifications
 
 - **Dimensions**: 800x600 pixels (4:3 aspect ratio)
 - **Format**: PNG with transparent background
@@ -39,22 +41,14 @@ This directory contains preview images for resume templates.
 2. Export high-quality PNG at specified dimensions
 3. Ensure accurate representation of colors and fonts
 
-### Option 3: Automated Generation
+### Automated Generation
 ```bash
-# Use puppeteer or similar tool to generate previews
 npm run generate:template-previews
 ```
 
 ## Current Status
 
-⚠️ **Preview images not yet generated**
-
-The template system currently uses colored placeholders. To create actual preview images:
-
-1. Navigate to `/editor` in the application
-2. Apply each template to a sample resume
-3. Take screenshots of the preview area
-4. Crop and save to this directory
+The template system currently uses lightweight SVG previews. Generate raster PNGs only when the frontend registry is changed to reference them.
 
 ## Template Color Schemes (for placeholders)
 

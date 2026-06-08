@@ -187,8 +187,9 @@ async def my_endpoint(request: Request):
 
 ## Testing & Validation
 
-### Test Pages Created
-- `/test-i18n` - Frontend i18n test page with language switcher
+### Validation Coverage
+- Locale routing is covered by the production `/en-US` and `/zh-CN` routes.
+- UI behavior is verified through the frontend lint, type-check, build, and test commands below.
 
 ### Validation Commands
 ```bash
