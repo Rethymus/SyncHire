@@ -82,7 +82,30 @@ jobs:
         run: node scripts/install-tailwind-oxide.mjs
 
       - name: Build desktop installer
+        if: runner.os != 'Windows'
         run: npx tauri build --bundles ${{ matrix.platform.bundles }}
+
+      - name: Build desktop installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $maxAttempts = 3
+          for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            Write-Host "Windows installer build attempt $attempt of $maxAttempts"
+            npx tauri build --bundles ${{ matrix.platform.bundles }}
+            if ($LASTEXITCODE -eq 0) {
+              exit 0
+            }
+
+            if ($attempt -eq $maxAttempts) {
+              Write-Host "Windows installer build failed after $maxAttempts attempts"
+              exit $LASTEXITCODE
+            }
+
+            $delaySeconds = 30 * $attempt
+            Write-Host "Build failed with exit code $LASTEXITCODE; retrying in $delaySeconds seconds"
+            Start-Sleep -Seconds $delaySeconds
+          }
 
       - name: Upload desktop installer
         uses: actions/upload-artifact@v6
