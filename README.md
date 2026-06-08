@@ -139,6 +139,24 @@ Full generated resume artifact: [Chen Yu graduate frontend tailored resume](docs
 | Lite Mode       | Private local workflows, demos, offline-friendly exploration | Next.js frontend, browser local storage, local PDF export, no required API |
 | Full Stack Mode | AI features, team deployments, API-backed persistence        | Next.js, FastAPI, PostgreSQL + PGVector, Redis, Minio, MCP services |
 
+## Release Data Storage
+
+SyncHire release builds use the same local-first data schema, but the storage
+backend changes by platform:
+
+| Release target | Shell | Data storage backend |
+| -------------- | ----- | -------------------- |
+| Windows `.exe` | Tauri | Tauri native commands write JSON files under the app data directory: `app_data_dir()/storage/{key}.json` |
+| macOS `.dmg` | Tauri | Same Tauri app data directory JSON storage: `app_data_dir()/storage/{key}.json` |
+| Linux `.deb` / `.rpm` | Tauri | Same Tauri app data directory JSON storage: `app_data_dir()/storage/{key}.json` |
+| Android `.apk` | Capacitor | Native `@capacitor/preferences` storage |
+| Web / browser fallback | Browser | `window.localStorage` |
+
+The main application state keeps the same keys and payload shape across
+targets, including `synchire-storage`. On Tauri and Capacitor builds, SyncHire
+also attempts a one-time migration from existing browser `localStorage` when
+the native store is empty.
+
 ## Core Capabilities
 
 ### Resume Intelligence
