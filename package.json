@@ -14,7 +14,7 @@
     "dev:mcp": "./scripts/mcp-start.sh",
     "stop:mcp": "./scripts/mcp-stop.sh",
     "build": "npm run build --workspaces",
-    "build:static": "NEXT_OUTPUT=export npm run build --workspace=frontend",
+    "build:static": "node scripts/build-static.mjs",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build",
     "desktop:build:debug": "tauri build --debug",
