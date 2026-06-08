@@ -303,6 +303,18 @@ class UnifiedAPIClient {
       method: 'POST',
     }),
     listBackups: () => this.request<any>('/api/portability/backups'),
+    restoreBackup: (backupId: string) => this.request<any>(
+      `/api/portability/backups/${encodeURIComponent(backupId)}/restore`,
+      {
+        method: 'POST',
+      }
+    ),
+    deleteBackup: (backupId: string) => this.request<any>(
+      `/api/portability/backups/${encodeURIComponent(backupId)}`,
+      {
+        method: 'DELETE',
+      }
+    ),
     getStatus: () => this.request<any>('/api/portability/status'),
   };
 

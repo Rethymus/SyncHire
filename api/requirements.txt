@@ -33,26 +33,3 @@ python-docx==1.1.2
 cryptography==48.0.0
 python-magic==0.4.27
 clamd==1.0.2
-
-# Testing Dependencies (2026 Best Practices)
-pytest==9.0.3
-pytest-asyncio==1.4.0
-pytest-cov==6.0.0
-pytest-mock==3.14.0
-pytest-xdist==3.6.1  # Parallel test execution
-faker==36.0.0
-testcontainers==4.9.0
-freezegun==1.5.1  # Time mocking for tests
-factory-boy==3.3.1  # Test data factories
-pytest-timeout==2.3.1  # Test timeout enforcement
-pytest-benchmark==4.0.0  # Performance benchmarking
-
-# Code Quality Tools (2026 Standards)
-black==26.5.1
-ruff==0.9.2
-mypy==1.14.1
-bandit==1.8.0
-pip-audit==2.10.0
-
-# Development Tools
-playwright==1.48.0

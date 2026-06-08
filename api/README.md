@@ -6,7 +6,7 @@ FastAPI backend for the SyncHire (知遇) platform - AI-powered resume optimizat
 
 ```bash
 # Install dependencies
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 
 # Configure environment
 cp .env.example .env
@@ -373,7 +373,8 @@ api/
 │       └── mcp_client.py
 ├── main.py               # Canonical FastAPI entrypoint
 ├── main_lite.py          # Local-first desktop/Electron entrypoint
-├── requirements.txt      # Python dependencies
+├── requirements.txt      # Runtime Python dependencies
+├── requirements-dev.txt  # Test, lint, and security tooling
 └── .env.example          # Environment template
 ```
 

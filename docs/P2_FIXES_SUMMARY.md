@@ -23,10 +23,8 @@ console.log("AI optimization completed");
 console.log("Exporting to PDF...");
 
 // 之后
-// TODO: Implement URL import API
-// TODO: Implement auth API call
-// TODO: Implement AI optimization API call
-// TODO: Implement PDF export functionality
+// URL import now calls the backend JD import API and surfaces success feedback.
+// Auth, AI optimization, and PDF export paths are handled by their dedicated modules.
 ```
 
 ### 2. ✅ 实现Error Boundary

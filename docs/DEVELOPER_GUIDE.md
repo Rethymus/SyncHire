@@ -46,7 +46,7 @@ Comprehensive guide for contributing to and developing the SyncHire platform.
 
    # Install backend dependencies
    cd api
-   python -m pip install -r requirements.txt
+   python -m pip install -r requirements-dev.txt
    cd ..
    ```
 

@@ -184,6 +184,7 @@ export const LITE_COPY = {
       importPlaceholder: "https://www.example.com/job/123456",
       importButton: "Import",
       importingButton: "Importing...",
+      importSuccess: "Import started. The job description was added for review.",
       importUnsupported:
         "Automatic import is not available for this link yet. The link is preserved; paste the job details below.",
       importFailed: "Import failed. The link is preserved; paste the job details manually below.",
@@ -496,6 +497,7 @@ export const LITE_COPY = {
       importPlaceholder: "https://www.example.com/job/123456",
       importButton: "导入",
       importingButton: "导入中...",
+      importSuccess: "已开始导入，职位描述已加入待校准列表。",
       importUnsupported: "暂不支持自动导入该链接。链接已保留，请将职位信息粘贴到下方表单。",
       importFailed: "导入失败。链接已保留，请将职位信息手动粘贴到下方表单。",
       manualTitle: "手动输入",

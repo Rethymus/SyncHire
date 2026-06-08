@@ -52,6 +52,7 @@ test_outputs/
 
 # Claude
 .claude/
+.omc/
 
 # OS
 Thumbs.db

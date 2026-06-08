@@ -8,13 +8,13 @@ import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client-unified";
 import { logger, LogCategory } from "@/lib/logger";
-import { HardDrive, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { HardDrive, RefreshCw, CheckCircle2, AlertCircle, Trash2 } from "lucide-react";
 
 interface Backup {
-  id: string;
+  filename: string;
   created_at: string;
   size: number;
-  files_count: number;
+  files_count?: number;
 }
 
 export function BackupManager() {
@@ -43,6 +43,45 @@ export function BackupManager() {
     } catch (error) {
       setMessage({ type: "error", text: "Failed to create backup" });
       logger.error(LogCategory.API, "Failed to create backup", error as Error);
+    } finally {
+      setLoading(false);
+    }
+  }, [loadBackups]);
+
+  const handleRestoreBackup = useCallback(async (backup: Backup) => {
+    if (!window.confirm(`Restore backup ${backup.filename}? Current local data may be replaced.`)) {
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+    try {
+      await apiClient.portability.restoreBackup(backup.filename);
+      setMessage({ type: "success", text: "Backup restored successfully" });
+      logger.info(LogCategory.API, `Backup restored: ${backup.filename}`);
+    } catch (error) {
+      setMessage({ type: "error", text: "Failed to restore backup" });
+      logger.error(LogCategory.API, "Failed to restore backup", error as Error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleDeleteBackup = useCallback(async (backup: Backup) => {
+    if (!window.confirm(`Delete backup ${backup.filename}? This cannot be undone.`)) {
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+    try {
+      await apiClient.portability.deleteBackup(backup.filename);
+      setMessage({ type: "success", text: "Backup deleted successfully" });
+      logger.info(LogCategory.API, `Backup deleted: ${backup.filename}`);
+      await loadBackups();
+    } catch (error) {
+      setMessage({ type: "error", text: "Failed to delete backup" });
+      logger.error(LogCategory.API, "Failed to delete backup", error as Error);
     } finally {
       setLoading(false);
     }
@@ -113,7 +152,7 @@ export function BackupManager() {
         <div className="space-y-2">
           {backups.map((backup) => (
             <div
-              key={backup.id}
+              key={backup.filename}
               className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
             >
               <div>
@@ -121,19 +160,29 @@ export function BackupManager() {
                   {new Date(backup.created_at).toLocaleString()}
                 </p>
                 <p className="text-sm text-gray-600">
-                  {backup.files_count} files • {formatFileSize(backup.size)}
+                  {backup.files_count ? `${backup.files_count} files • ` : ""}
+                  {formatFileSize(backup.size)}
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  // TODO: Implement restore functionality
-                  logger.info(LogCategory.API, `Restore backup: ${backup.id}`);
-                }}
-              >
-                Restore
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={loading}
+                  onClick={() => handleRestoreBackup(backup)}
+                >
+                  Restore
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={loading}
+                  onClick={() => handleDeleteBackup(backup)}
+                  aria-label={`Delete backup ${backup.filename}`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>

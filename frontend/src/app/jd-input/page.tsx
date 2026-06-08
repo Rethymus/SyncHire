@@ -7,8 +7,8 @@ import { useAppStore, type JobDescription } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { logger } from "@/lib/logger";
 import { LogCategory } from "@/lib/logger";
-import { TIMING } from "@/lib/constants";
 import { useLiteCopy } from "@/lib/lite-i18n";
+import { apiClient } from "@/lib/api-client-unified";
 import {
   Briefcase,
   CheckCircle2,
@@ -75,15 +75,22 @@ export default function JDInputPage() {
     setImporting(true);
 
     try {
-      // Simulate importing from URL
-      await new Promise((resolve) => setTimeout(resolve, TIMING.API_CALL.LONG));
+      const result = await apiClient.jd.import(url.trim());
+      const importedJD: JobDescription = {
+        id: result.job_id || crypto.randomUUID(),
+        title: result.title || "Imported job description",
+        company: result.company || "Pending review",
+        description: result.description || result.message || "Import is processing. Review the source URL and paste details if needed.",
+        requirements: [],
+        skills: [],
+        createdAt: new Date(),
+      };
 
-      // In production, this would call your scraping API
-      // TODO: Implement URL import API
-
-      setImportMessage(
-        jdCopy.importUnsupported
-      );
+      addJobDescription(importedJD);
+      setImportMessage(jdCopy.importSuccess);
+      redirectTimerRef.current = setTimeout(() => {
+        router.push("/dashboard");
+      }, 500);
     } catch (error) {
       logger.error(LogCategory.API, "Import error", error as Error);
       setImportMessage(
