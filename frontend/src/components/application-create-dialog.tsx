@@ -46,6 +46,7 @@ import {
   staggerItem,
 } from "@/lib/animations";
 import { useOptimisticMutation } from "@/lib/optimistic-updates";
+import { useLiteCopy } from "@/lib/lite-i18n";
 
 interface ApplicationCreateDialogProps {
   open: boolean;
@@ -71,6 +72,8 @@ export function ApplicationCreateDialog({
 }: ApplicationCreateDialogProps) {
   const { resumes, jobDescriptions, addApplication } = useAppStore();
   const { crud, api } = useToast();
+  const { t } = useLiteCopy();
+  const dialogCopy = t.applications.createDialog;
 
   const [selectedResumeId, setSelectedResumeId] = useState<string>("");
   const [selectedJDId, setSelectedJDId] = useState<string>("");
@@ -304,13 +307,9 @@ export function ApplicationCreateDialog({
     if (!canProceed) {
       const validationError: ErrorContext = {
         type: "validation",
-        title: "Missing Required Information",
-        message: "Please select both a resume and a job description to create an application.",
-        actionable: [
-          "Choose a resume from your uploaded resumes",
-          "Select a job description from your list",
-          "Upload new resume or JD if needed"
-        ],
+        title: dialogCopy.missingTitle,
+        message: dialogCopy.missingCreateMessage,
+        actionable: [...dialogCopy.missingActions],
         canRetry: false,
         retryCount: 0
       };
@@ -352,19 +351,15 @@ export function ApplicationCreateDialog({
       setLoading(false);
       setIsRetrying(false);
     }
-  }, [selectedResumeId, selectedJDId, notes, canProceed, analyzeError, retryWithBackoff, isRetrying, api, createApplicationMutation]);
+  }, [selectedResumeId, selectedJDId, notes, canProceed, analyzeError, retryWithBackoff, isRetrying, api, createApplicationMutation, dialogCopy]);
 
   const handleRetry = useCallback(async () => {
     if (retryCount >= 3) {
       setErrorContext({
         type: errorContext?.type || "unknown",
-        title: "Maximum Retries Exceeded",
-        message: "Maximum retry attempts reached. Please try again later or contact support.",
-        actionable: [
-          "Wait a few minutes before trying again",
-          "Refresh the page and restart the process",
-          "Contact support if the issue persists"
-        ],
+        title: dialogCopy.maxRetriesTitle,
+        message: dialogCopy.maxRetriesMessage,
+        actionable: [...dialogCopy.maxRetriesActions],
         canRetry: false,
         retryCount
       });
@@ -374,7 +369,7 @@ export function ApplicationCreateDialog({
     setIsRetrying(true);
     setRetryCount(prev => prev + 1);
     await handleCreate();
-  }, [retryCount, errorContext, handleCreate]);
+  }, [retryCount, errorContext, handleCreate, dialogCopy]);
 
   const handleContinue = useCallback(() => {
     if (canProceed) {
@@ -382,20 +377,16 @@ export function ApplicationCreateDialog({
     } else {
       const validationError: ErrorContext = {
         type: "validation",
-        title: "Missing Required Information",
-        message: "Please select both a resume and a job description to continue.",
-        actionable: [
-          "Choose a resume from your uploaded resumes",
-          "Select a job description from your list",
-          "Upload new resume or JD if needed"
-        ],
+        title: dialogCopy.missingTitle,
+        message: dialogCopy.missingContinueMessage,
+        actionable: [...dialogCopy.missingActions],
         canRetry: false,
         retryCount: 0
       };
       setErrorContext(validationError);
       setError(validationError.message);
     }
-  }, [canProceed]);
+  }, [canProceed, dialogCopy]);
 
   const selectedResume = availableResumes.find((r) => r.id === selectedResumeId);
   const selectedJD = availableJDs.find((jd) => jd.id === selectedJDId);
@@ -424,13 +415,13 @@ export function ApplicationCreateDialog({
                   className="flex items-center gap-2"
                 >
                   <Briefcase className="h-5 w-5" />
-                  创建职位申请
+                  {dialogCopy.title}
                 </motion.div>
               </DialogTitle>
               <DialogDescription>
                 {step === "select"
-                  ? "选择简历和职位描述来创建新的职位申请"
-                  : "确认您的选择并创建申请"}
+                  ? dialogCopy.selectDescription
+                  : dialogCopy.confirmDescription}
               </DialogDescription>
             </DialogHeader>
 
@@ -467,7 +458,9 @@ export function ApplicationCreateDialog({
                           animate="visible"
                           className="mt-3"
                         >
-                          <p className="text-xs font-medium text-red-900 mb-2">What you can do:</p>
+                          <p className="text-xs font-medium text-red-900 mb-2">
+                            {dialogCopy.errorActionsTitle}
+                          </p>
                           <ul className="text-xs text-red-700 space-y-1">
                             {errorContext.actionable.map((action, index) => (
                               <motion.li
@@ -503,11 +496,11 @@ export function ApplicationCreateDialog({
                             >
                               <RefreshCw className="h-3 w-3 mr-1" />
                             </motion.div>
-                            Retry {retryCount > 0 && `(${retryCount}/3)`}
+                            {dialogCopy.retry} {retryCount > 0 && `(${retryCount}/3)`}
                           </Button>
                           {retryCount > 0 && (
                             <span className="text-xs text-red-600">
-                              Attempt {retryCount} of 3
+                              {dialogCopy.attempt.replace("{count}", String(retryCount))}
                             </span>
                           )}
                         </motion.div>
@@ -532,11 +525,11 @@ export function ApplicationCreateDialog({
                   <motion.div variants={staggerItem} className="space-y-2">
                     <Label className="flex items-center gap-2">
                       <FileText className="h-4 w-4" />
-                      选择简历 *
+                      {dialogCopy.selectResume}
                     </Label>
                     <Select value={selectedResumeId} onValueChange={(value) => setSelectedResumeId(value)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="选择要使用的简历" />
+                        <SelectValue placeholder={dialogCopy.resumePlaceholder} />
                       </SelectTrigger>
                       <SelectContent>
                         {availableResumes.map((resume) => (
@@ -553,9 +546,9 @@ export function ApplicationCreateDialog({
                         animate="visible"
                         className="text-xs text-gray-500"
                       >
-                        请先{" "}
+                        {dialogCopy.noResumePrefix}{" "}
                         <Link href="/upload" className="text-blue-600 hover:underline">
-                          上传简历
+                          {dialogCopy.uploadResume}
                         </Link>
                       </motion.p>
                     )}
@@ -565,11 +558,11 @@ export function ApplicationCreateDialog({
                   <motion.div variants={staggerItem} className="space-y-2">
                     <Label className="flex items-center gap-2">
                       <Briefcase className="h-4 w-4" />
-                      选择职位描述 *
+                      {dialogCopy.selectJobDescription}
                     </Label>
                     <Select value={selectedJDId} onValueChange={(value) => setSelectedJDId(value)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="选择要申请的职位" />
+                        <SelectValue placeholder={dialogCopy.jdPlaceholder} />
                       </SelectTrigger>
                       <SelectContent>
                         {availableJDs.map((jd) => (
@@ -586,9 +579,9 @@ export function ApplicationCreateDialog({
                         animate="visible"
                         className="text-xs text-gray-500"
                       >
-                        请先{" "}
+                        {dialogCopy.noJdPrefix}{" "}
                         <Link href="/jd-input" className="text-blue-600 hover:underline">
-                          添加职位描述
+                          {dialogCopy.addJobDescription}
                         </Link>
                       </motion.p>
                     )}
@@ -596,14 +589,14 @@ export function ApplicationCreateDialog({
 
                   {/* Notes */}
                   <motion.div variants={staggerItem} className="space-y-2">
-                    <Label htmlFor="notes">备注（可选）</Label>
+                    <Label htmlFor="notes">{dialogCopy.notes}</Label>
                     <motion.div
                       whileFocus={{ scale: 1.01 }}
                       transition={{ duration: 0.2 }}
                     >
                       <Textarea
                         id="notes"
-                        placeholder="添加关于此申请的备注..."
+                        placeholder={dialogCopy.notesPlaceholder}
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         rows={3}
@@ -628,7 +621,7 @@ export function ApplicationCreateDialog({
                   >
                     <motion.div variants={staggerItem}>
                       <h4 className="text-sm font-medium text-gray-700 mb-1">
-                        使用的简历
+                        {dialogCopy.resumeUsed}
                       </h4>
                       <div className="flex items-center gap-2 text-sm">
                         <FileText className="h-4 w-4 text-gray-500" />
@@ -638,12 +631,12 @@ export function ApplicationCreateDialog({
 
                     <motion.div variants={staggerItem}>
                       <h4 className="text-sm font-medium text-gray-700 mb-1">
-                        申请职位
+                        {dialogCopy.targetRole}
                       </h4>
                       <div className="flex items-center gap-2 text-sm">
                         <Briefcase className="h-4 w-4 text-gray-500" />
                         <span>{selectedJD?.title}</span>
-                        <span className="text-gray-500">at</span>
+                        <span className="text-gray-500">{dialogCopy.at}</span>
                         <span>{selectedJD?.company}</span>
                       </div>
                     </motion.div>
@@ -651,7 +644,7 @@ export function ApplicationCreateDialog({
                     {notes && (
                       <motion.div variants={staggerItem}>
                         <h4 className="text-sm font-medium text-gray-700 mb-1">
-                          备注
+                          {dialogCopy.notes}
                         </h4>
                         <p className="text-sm text-gray-600">{notes}</p>
                       </motion.div>
@@ -665,7 +658,7 @@ export function ApplicationCreateDialog({
                     className="bg-blue-50 border border-blue-200 rounded-lg p-3"
                   >
                     <p className="text-sm text-blue-800">
-                      创建申请后，AI 将自动分析您的简历与职位描述的匹配度，并提供优化建议。
+                      {dialogCopy.createHint}
                     </p>
                   </motion.div>
                 </motion.div>
@@ -690,7 +683,7 @@ export function ApplicationCreateDialog({
                           onOpenChange(false);
                         }}
                       >
-                        取消
+                        {dialogCopy.cancel}
                       </Button>
                     </motion.div>
                     <motion.div variants={staggerItem}>
@@ -700,7 +693,7 @@ export function ApplicationCreateDialog({
                         transition={{ duration: 0.1 }}
                       >
                         <Button onClick={handleContinue} disabled={!canProceed}>
-                          继续
+                          {dialogCopy.continue}
                         </Button>
                       </motion.div>
                     </motion.div>
@@ -719,7 +712,7 @@ export function ApplicationCreateDialog({
                         onClick={() => setStep("select")}
                         disabled={loading}
                       >
-                        返回
+                        {dialogCopy.back}
                       </Button>
                     </motion.div>
                     <motion.div variants={staggerItem}>
@@ -737,7 +730,7 @@ export function ApplicationCreateDialog({
                               >
                                 <Loader2 className="h-4 w-4 mr-2" />
                               </motion.div>
-                              创建中...
+                              {dialogCopy.creating}
                             </>
                           ) : (
                             <>
@@ -748,7 +741,7 @@ export function ApplicationCreateDialog({
                                 className="flex items-center"
                               >
                                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                                创建申请
+                                {t.applications.createApplication}
                               </motion.div>
                             </>
                           )}

@@ -1,6 +1,73 @@
 import { test, expect, type Page } from '@playwright/test'
 
 const now = new Date('2026-06-07T12:00:00.000Z').toISOString()
+const generatedApplicationId = 'app-readme-new-grad'
+
+const scenario = {
+  'en-US': {
+    resumeFileName: 'chen-yu-2026-graduate-frontend-resume.txt',
+    resumeText: [
+      'Chen Yu - 2026 Computer Science Graduate',
+      'Target: Graduate Frontend Engineer',
+      'Skills: React, TypeScript, Next.js, Playwright, accessibility, local-first data workflows.',
+      'Projects: Built a local-first job application tracker with resume, JD, and pipeline management.',
+      'Evidence: Added Playwright UI regression tests, A4 resume rendering, and browser-fill review flows.',
+    ].join('\n'),
+    jobTitle: 'Graduate Frontend Engineer',
+    company: 'Northstar Labs',
+    jdDescription:
+      'Build reliable applicant-facing workflows with React, TypeScript, accessibility, local-first data handling, and Playwright regression coverage. The team values clear UI writing, measurable quality gates, and privacy-aware product thinking.',
+    requirements: [
+      'React and TypeScript fundamentals',
+      'Frontend testing with Playwright',
+      'Accessible, readable product interfaces',
+      'Clear communication for a new-graduate engineering role',
+    ].join('\n'),
+    applicationNote:
+      'Fresh graduate application: emphasize local-first workflow project, testing evidence, and accessible UI polish.',
+    dashboardHeading: 'Welcome to SyncHire Lite',
+    uploadHeading: 'Upload Your Resume',
+    jdHeading: 'Enter Job Description',
+    applicationButton: 'New Application',
+    createButton: 'Create Application',
+    continueButton: 'Continue',
+    searchQuery: 'graduate',
+    resumeQuery: 'graduate',
+    jdQuery: 'frontend',
+    applicationQuery: 'Northstar',
+  },
+  'zh-CN': {
+    resumeFileName: '陈宇-2026应届前端工程师简历.txt',
+    resumeText: [
+      '陈宇 - 2026 届计算机科学本科应届生',
+      '求职目标：应届前端工程师',
+      '技能：React、TypeScript、Next.js、Playwright、无障碍体验、本地优先数据工作流。',
+      '项目：构建本地优先求职管理器，覆盖简历、职位描述和申请管线。',
+      '证据：补充 Playwright 界面回归测试、A4 简历渲染和浏览器填表审核流程。',
+    ].join('\n'),
+    jobTitle: '应届前端工程师',
+    company: '北极星实验室',
+    jdDescription:
+      '使用 React、TypeScript、无障碍体验、本地优先数据处理和 Playwright 回归测试构建可靠的求职者工作流。团队重视清晰界面文案、可衡量质量门禁和隐私友好的产品思维。',
+    requirements: [
+      '扎实的 React 与 TypeScript 基础',
+      '使用 Playwright 进行前端测试',
+      '能设计易读、简洁、无障碍的产品界面',
+      '具备应届工程师岗位所需的清晰沟通能力',
+    ].join('\n'),
+    applicationNote: '应届生申请：突出本地优先求职项目、测试证据和简洁中文界面表达。',
+    dashboardHeading: '欢迎使用 SyncHire Lite',
+    uploadHeading: '上传你的简历',
+    jdHeading: '输入职位描述',
+    applicationButton: '新建申请',
+    createButton: '创建申请',
+    continueButton: '继续',
+    searchQuery: '应届',
+    resumeQuery: '应届',
+    jdQuery: '前端',
+    applicationQuery: '北极星',
+  },
+} as const
 
 function buildSeedStorage(locale: 'en-US' | 'zh-CN') {
   const isZh = locale === 'zh-CN'
@@ -64,7 +131,7 @@ function buildSeedStorage(locale: 'en-US' | 'zh-CN') {
       currentJD: null,
       applications: [
         {
-          id: 'app-frontend',
+          id: generatedApplicationId,
           companyName: isZh ? '北极星实验室' : 'Northstar Labs',
           position: isZh ? '应届前端工程师' : 'Graduate Frontend Engineer',
           status: 'optimized',
@@ -148,6 +215,40 @@ async function seed(page: Page, locale: 'en-US' | 'zh-CN') {
   await page.addInitScript(
     ({ storage, localeValue }) => {
       if (!window.localStorage.getItem('synchire-readme-seeded')) {
+        const existingRaw = window.localStorage.getItem('synchire-storage')
+        if (existingRaw) {
+          const existing = JSON.parse(existingRaw)
+          const existingState = existing.state ?? {}
+          const seedState = storage.state
+          const primaryResume = existingState.resumes?.[0]
+          const primaryJD = existingState.jobDescriptions?.[0]
+          const primaryApplication = existingState.applications?.[0]
+
+          storage.state = {
+            ...seedState,
+            resumes: [
+              primaryResume ?? seedState.resumes[0],
+              ...seedState.resumes.filter((resume) => resume.id !== (primaryResume?.id ?? seedState.resumes[0].id)),
+            ],
+            currentResume: primaryResume ?? seedState.currentResume,
+            jobDescriptions: [
+              primaryJD ?? seedState.jobDescriptions[0],
+              ...seedState.jobDescriptions.filter((jd) => jd.id !== (primaryJD?.id ?? seedState.jobDescriptions[0].id)),
+            ],
+            currentJD: primaryJD ?? seedState.currentJD,
+            applications: [
+              primaryApplication ?? seedState.applications[0],
+              ...seedState.applications.filter(
+                (application) => application.id !== (primaryApplication?.id ?? seedState.applications[0].id)
+              ),
+            ],
+            candidateProfile: existingState.candidateProfile ?? seedState.candidateProfile,
+            browserFillSessions: existingState.browserFillSessions ?? seedState.browserFillSessions,
+            selectedTemplate: existingState.selectedTemplate ?? seedState.selectedTemplate,
+            templateCustomization: existingState.templateCustomization ?? seedState.templateCustomization,
+            onboarding: seedState.onboarding,
+          }
+        }
         window.localStorage.setItem('synchire-storage', JSON.stringify(storage))
         window.localStorage.setItem('synchire-lite-locale', localeValue)
         window.localStorage.setItem(
@@ -208,7 +309,7 @@ async function seed(page: Page, locale: 'en-US' | 'zh-CN') {
                   : 'Northstar Labs moved to interview. Prepare project highlights.',
               read: false,
               created_at: '2026-06-07T10:00:00.000Z',
-              action_url: '/applications/detail?id=app-frontend',
+              action_url: `/applications/detail?id=${generatedApplicationId}`,
             },
             {
               id: 'notification-weekly-digest',
@@ -315,17 +416,204 @@ async function seed(page: Page, locale: 'en-US' | 'zh-CN') {
   )
 }
 
-async function capture(page: Page, route: string, path: string) {
+async function assertLocale(page: Page, locale: 'en-US' | 'zh-CN') {
+  await expect.poll(async () => page.evaluate(() => document.documentElement.lang)).toBe(locale)
+  if (locale === 'zh-CN') {
+    await expect(page.getByText(/Welcome to SyncHire Lite|Upload Your Resume|Enter Job Description/)).toHaveCount(0)
+  } else {
+    await expect(page.getByText(/欢迎使用 SyncHire Lite|上传您的简历|输入职位描述/)).toHaveCount(0)
+  }
+}
+
+async function fillControlledField(page: Page, selector: string, value: string) {
+  const field = page.locator(selector)
+  await field.fill('')
+  await field.pressSequentially(value)
+  const currentValue = await field.inputValue()
+  if (currentValue === value) return
+
+  await page.locator(selector).evaluate((element, nextValue) => {
+    const input = element as HTMLInputElement | HTMLTextAreaElement
+    const prototype = input instanceof HTMLTextAreaElement
+      ? window.HTMLTextAreaElement.prototype
+      : window.HTMLInputElement.prototype
+    const valueSetter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set
+    valueSetter?.call(input, nextValue)
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+    input.dispatchEvent(new Event('change', { bubbles: true }))
+  }, value)
+}
+
+async function runFreshGraduateWorkflow(page: Page, locale: 'en-US' | 'zh-CN') {
+  const data = scenario[locale]
+
+  await page.goto('/dashboard', { waitUntil: 'domcontentloaded' })
+  await page.evaluate((localeValue) => {
+    window.localStorage.clear()
+    window.localStorage.setItem('synchire-lite-locale', localeValue)
+  }, locale)
+  await page.reload({ waitUntil: 'domcontentloaded' })
+
+  await expect(page.getByRole('heading', { name: data.dashboardHeading })).toBeVisible({ timeout: 15_000 })
+  await assertLocale(page, locale)
+
+  await page.goto('/upload', { waitUntil: 'domcontentloaded' })
+  await expect(page.getByRole('heading', { name: data.uploadHeading })).toBeVisible({ timeout: 15_000 })
+  await page.locator('input[type="file"]').setInputFiles({
+    name: data.resumeFileName,
+    mimeType: 'text/plain',
+    buffer: Buffer.from(data.resumeText),
+  })
+  await page.waitForTimeout(500)
+  await page.evaluate(
+    ({ fileName, fileContent }) => {
+      const raw = window.localStorage.getItem('synchire-storage')
+      const storage = raw ? JSON.parse(raw) : { version: 1, state: {} }
+      storage.state = {
+        resumes: [],
+        currentResume: null,
+        jobDescriptions: [],
+        currentJD: null,
+        applications: [],
+        browserFillSessions: [],
+        selectedTemplate: 'minimal',
+        templateCustomization: {},
+        onboarding: {
+          isOnboarded: false,
+          currentStep: 0,
+          completedSteps: [],
+          skipped: false,
+        },
+        ...storage.state,
+      }
+      if ((storage.state.resumes ?? []).length === 0) {
+        const uploadedResume = {
+          id: crypto.randomUUID(),
+          name: fileName,
+          content: fileContent,
+          uploadedAt: new Date().toISOString(),
+        }
+        storage.state.resumes = [uploadedResume]
+        storage.state.currentResume = uploadedResume
+        window.localStorage.setItem('synchire-storage', JSON.stringify(storage))
+      }
+    },
+    { fileName: data.resumeFileName, fileContent: data.resumeText }
+  )
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const raw = window.localStorage.getItem('synchire-storage')
+        if (!raw) return 0
+        return JSON.parse(raw).state?.resumes?.length ?? 0
+      })
+    )
+    .toBeGreaterThan(0)
+  await page.goto('/editor', { waitUntil: 'domcontentloaded' })
+  await expect(page.getByText(locale === 'zh-CN' ? '陈宇' : 'Chen Yu').first()).toBeVisible({ timeout: 15_000 })
+
+  await page.goto('/jd-input', { waitUntil: 'domcontentloaded' })
+  await expect(page.getByRole('heading', { name: data.jdHeading })).toBeVisible({ timeout: 15_000 })
+  await fillControlledField(page, 'input#title', data.jobTitle)
+  await fillControlledField(page, 'input#company', data.company)
+  await fillControlledField(page, 'textarea#description', data.jdDescription)
+  await fillControlledField(page, 'textarea#requirements', data.requirements)
+  await expect(page.locator('input#title')).toHaveValue(data.jobTitle)
+  await expect(page.locator('input#company')).toHaveValue(data.company)
+  await expect(page.locator('textarea#description')).toHaveValue(data.jdDescription)
+  await page.locator('form button[type="submit"]').click()
+  await expect(page).toHaveURL(/\/dashboard$/, { timeout: 8_000 })
+
+  await page.getByRole('button', { name: data.applicationButton }).click()
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10_000 })
+  await page.getByRole('combobox').nth(0).click()
+  await page.getByRole('option').first().click()
+  await page.getByRole('combobox').nth(1).click()
+  await page.getByRole('option').first().click()
+  await page.getByLabel(/Notes|备注/).fill(data.applicationNote)
+  await page.getByRole('button', { name: data.continueButton }).click()
+  await expect(page.getByText(data.jobTitle, { exact: true }).first()).toBeVisible({ timeout: 10_000 })
+  await page.getByRole('button', { name: data.createButton }).click()
+  await expect(page.getByRole('dialog')).toBeHidden({ timeout: 8_000 })
+  await expect(page.getByText(data.jobTitle, { exact: true }).first()).toBeVisible({ timeout: 10_000 })
+
+  await page.evaluate(
+    ({ localeValue, appId }) => {
+      const raw = window.localStorage.getItem('synchire-storage')
+      if (!raw) throw new Error('Missing SyncHire storage after fresh-graduate workflow')
+      const storage = JSON.parse(raw)
+      const state = storage.state
+      const isZh = localeValue === 'zh-CN'
+      const resume = state.resumes[0]
+      const jd = state.jobDescriptions[0]
+      const application = state.applications[0]
+      resume.id = 'resume-new-grad'
+      jd.id = 'jd-frontend'
+      Object.assign(application, {
+        id: appId,
+        jobId: jd.id,
+        resumeId: resume.id,
+        status: 'optimized',
+        matchScore: 86,
+        createdAt: '2026-06-01T10:00:00.000Z',
+        updatedAt: '2026-06-07T12:00:00.000Z',
+        tags: isZh ? ['应届生', '高优先级', '简历已定制'] : ['new-grad', 'high-priority', 'resume-tailored'],
+      })
+      state.currentResume = resume
+      state.currentJD = jd
+      state.candidateProfile = {
+        fullName: isZh ? '陈宇' : 'Chen Yu',
+        email: 'chenyu@example.com',
+        phone: '+86 138 0000 0000',
+        location: isZh ? '中国上海' : 'Shanghai, China',
+        targetTitle: isZh ? '应届前端工程师' : 'Graduate Frontend Engineer',
+        education: isZh ? '计算机科学本科' : 'B.S. Computer Science',
+        school: isZh ? '华东理工大学' : 'East China University of Science and Technology',
+        graduationYear: '2026',
+        portfolioUrl: 'https://portfolio.example.com/chenyu',
+        linkedinUrl: 'https://www.linkedin.com/in/chenyu',
+        githubUrl: 'https://github.com/chenyu',
+        workAuthorization: isZh ? '具备本地就业资格，接受远程或混合办公' : 'Authorized to work locally; open to remote roles',
+        availability: isZh ? '两周内可到岗' : 'Available within 2 weeks',
+        salaryExpectation: isZh ? '根据岗位职责开放沟通' : 'Open to discuss based on role scope',
+        personalSummary: isZh
+          ? '2026 届应届前端工程师，关注 React、TypeScript、无障碍体验和可靠用户工作流。'
+          : '2026 fresh graduate frontend engineer focused on React, TypeScript, accessibility, and reliable user workflows.',
+        skills: ['React', 'TypeScript', 'Next.js', 'Playwright', 'Accessibility'],
+        projects: [
+          isZh
+            ? '构建本地优先的求职管理器，覆盖简历、职位描述和申请管线。'
+            : 'Built a local-first job application tracker with resume, JD, and pipeline management.',
+          isZh
+            ? '使用 Playwright 和 Vitest 落地自动化界面回归测试。'
+            : 'Implemented automated UI regression tests with Playwright and Vitest.',
+        ],
+        updatedAt: new Date().toISOString(),
+      }
+      storage.state = state
+      window.localStorage.setItem('synchire-storage', JSON.stringify(storage))
+    },
+    { localeValue: locale, appId: generatedApplicationId }
+  )
+
+  await seed(page, locale)
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await assertLocale(page, locale)
+}
+
+async function capture(page: Page, locale: 'en-US' | 'zh-CN', route: string, path: string) {
   await page.goto(route, { waitUntil: 'domcontentloaded' })
   await page.locator('body').waitFor({ state: 'visible', timeout: 15_000 })
   await page.getByRole('navigation').first().waitFor({ state: 'visible', timeout: 15_000 })
+  await assertLocale(page, locale)
   await page.waitForTimeout(500)
   await page.screenshot({ path, fullPage: false })
 }
 
-async function prepareProfileAssistant(page: Page) {
+async function prepareProfileAssistant(page: Page, locale: 'en-US' | 'zh-CN') {
   await page.goto('/profile', { waitUntil: 'domcontentloaded' })
   await page.locator('main').first().waitFor({ state: 'visible', timeout: 15_000 })
+  await assertLocale(page, locale)
   const fillDemoButton = page.getByTestId('fill-demo-form')
   await expect(fillDemoButton).toBeEnabled({ timeout: 15_000 })
   await fillDemoButton.click()
@@ -339,7 +627,7 @@ async function prepareProfileAssistant(page: Page) {
       {
         fieldId: 'phone',
         inputName: 'phone',
-        fieldLabel: 'Phone',
+        fieldLabel: locale === 'zh-CN' ? '电话' : 'Phone',
         value: '+86 139 1111 2222',
       },
     ],
@@ -349,9 +637,10 @@ async function prepareProfileAssistant(page: Page) {
   await page.waitForTimeout(300)
 }
 
-async function prepareApplicationDetail(page: Page, path: string) {
-  await page.goto('/applications/detail?id=app-frontend', { waitUntil: 'domcontentloaded' })
+async function prepareApplicationDetail(page: Page, locale: 'en-US' | 'zh-CN', path: string) {
+  await page.goto(`/applications/detail?id=${generatedApplicationId}`, { waitUntil: 'domcontentloaded' })
   await page.locator('main, body').first().waitFor({ state: 'visible', timeout: 15_000 })
+  await assertLocale(page, locale)
   await page.getByRole('tab', { name: /优化建议/ }).click()
   await page.getByRole('button', { name: /优化简历/ }).click()
   await expect(page.getByText(/岗位化简历|优化完成/).first()).toBeVisible({ timeout: 10_000 })
@@ -359,31 +648,37 @@ async function prepareApplicationDetail(page: Page, path: string) {
   await page.screenshot({ path, fullPage: false })
 }
 
-async function prepareResumeEditor(page: Page, path: string) {
-  await page.goto('/applications/detail?id=app-frontend', { waitUntil: 'domcontentloaded' })
+async function prepareResumeEditor(page: Page, locale: 'en-US' | 'zh-CN', path: string) {
+  await page.goto(`/applications/detail?id=${generatedApplicationId}`, { waitUntil: 'domcontentloaded' })
+  await assertLocale(page, locale)
   await page.getByRole('tab', { name: /优化建议/ }).click()
   await page.getByRole('button', { name: /优化简历/ }).click()
   await expect(page.getByText(/岗位化简历|优化完成/).first()).toBeVisible({ timeout: 10_000 })
   const pdfResponse = await page.request.post('/api/generate-pdf', {
     data: {
       filename: 'readme-tailored-resume',
-      html: '<main><h1>Chen Yu</h1><p>Graduate Frontend Engineer</p></main>',
+      html:
+        locale === 'zh-CN'
+          ? '<main><h1>陈宇</h1><p>应届前端工程师</p></main>'
+          : '<main><h1>Chen Yu</h1><p>Graduate Frontend Engineer</p></main>',
     },
   })
   expect(pdfResponse.ok()).toBeTruthy()
   expect(pdfResponse.headers()['content-type']).toContain('application/pdf')
-  await page.goto('/editor?applicationId=app-frontend', { waitUntil: 'domcontentloaded' })
-  await expect(page.getByText(/求职意向|Graduate Frontend Engineer/).first()).toBeVisible({ timeout: 15_000 })
+  await page.goto(`/editor?applicationId=${generatedApplicationId}`, { waitUntil: 'domcontentloaded' })
+  await assertLocale(page, locale)
+  await expect(page.getByText(locale === 'zh-CN' ? /求职意向/ : /Target Role/).first()).toBeVisible({ timeout: 15_000 })
   const previewButton = page.getByRole('button', { name: /Preview|预览/ })
   await expect(previewButton).toBeEnabled({ timeout: 10_000 })
   await previewButton.click()
-  await expect(page.getByText(/岗位匹配亮点|项目经历|Graduate Frontend Engineer/).first()).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText(locale === 'zh-CN' ? /岗位匹配亮点|项目经历/ : /Role Match Highlights|Projects/).first()).toBeVisible({ timeout: 10_000 })
   await page.waitForTimeout(500)
   await page.screenshot({ path, fullPage: false })
 }
 
-async function prepareInterviewPrep(page: Page, path: string) {
-  await page.goto('/interview-prep?applicationId=app-frontend', { waitUntil: 'domcontentloaded' })
+async function prepareInterviewPrep(page: Page, locale: 'en-US' | 'zh-CN', path: string) {
+  await page.goto(`/interview-prep?applicationId=${generatedApplicationId}`, { waitUntil: 'domcontentloaded' })
+  await assertLocale(page, locale)
   const generateButton = page.getByRole('button', { name: /Generate Interview Prep|生成面试准备/ })
   await expect(generateButton).toBeEnabled({ timeout: 15_000 })
   await generateButton.click()
@@ -392,8 +687,9 @@ async function prepareInterviewPrep(page: Page, path: string) {
   await page.screenshot({ path, fullPage: false })
 }
 
-async function prepareSearch(page: Page, route: string, query: string, path: string) {
+async function prepareSearch(page: Page, locale: 'en-US' | 'zh-CN', route: string, query: string, path: string) {
   await page.goto(route, { waitUntil: 'domcontentloaded' })
+  await assertLocale(page, locale)
   await page.waitForTimeout(500)
   const searchInput = page.getByRole('combobox', { name: /Search|搜索/ })
   await expect(searchInput).toBeEditable({ timeout: 10_000 })
@@ -404,13 +700,14 @@ async function prepareSearch(page: Page, route: string, query: string, path: str
   await page.screenshot({ path, fullPage: false })
 }
 
-async function prepareGlobalSearch(page: Page, path: string) {
+async function prepareGlobalSearch(page: Page, locale: 'en-US' | 'zh-CN', path: string) {
   await page.goto('/search', { waitUntil: 'domcontentloaded' })
+  await assertLocale(page, locale)
   await page.waitForTimeout(500)
   const searchInput = page.getByLabel(/Search query|搜索关键词/)
   await expect(searchInput).toBeEditable({ timeout: 10_000 })
-  await searchInput.fill('React')
-  await expect(searchInput).toHaveValue('React', { timeout: 10_000 })
+  await searchInput.fill(scenario[locale].searchQuery)
+  await expect(searchInput).toHaveValue(scenario[locale].searchQuery, { timeout: 10_000 })
   await expect(page.getByText(/Found|找到|chen-yu|陈宇|Graduate Frontend Engineer|应届前端工程师|Northstar|北极星/).first()).toBeVisible({ timeout: 10_000 })
   await page.waitForTimeout(300)
   await page.screenshot({ path, fullPage: false })
@@ -425,8 +722,9 @@ async function openSettings(page: Page) {
   await page.waitForTimeout(300)
 }
 
-async function prepareSettingsAI(page: Page, overviewPath: string, providerPath: string) {
+async function prepareSettingsAI(page: Page, locale: 'en-US' | 'zh-CN', overviewPath: string, providerPath: string) {
   await openSettings(page)
+  await assertLocale(page, locale)
   await expect(page.getByRole('heading', { name: /Provider and model routing|供应商与模型路由/ })).toBeVisible({
     timeout: 15_000,
   })
@@ -444,8 +742,9 @@ async function prepareSettingsAI(page: Page, overviewPath: string, providerPath:
   await page.screenshot({ path: providerPath, fullPage: false })
 }
 
-async function prepareSettingsSkills(page: Page, path: string) {
+async function prepareSettingsSkills(page: Page, locale: 'en-US' | 'zh-CN', path: string) {
   await openSettings(page)
+  await assertLocale(page, locale)
   const isZh = await page.evaluate(() => document.documentElement.lang === 'zh-CN')
   await page.getByRole('tab', { name: /Skills|技能/ }).click()
   await expect(page.getByRole('heading', { name: /Skill switchboard|技能开关面板/ })).toBeVisible({
@@ -459,8 +758,9 @@ async function prepareSettingsSkills(page: Page, path: string) {
   await page.screenshot({ path, fullPage: false })
 }
 
-async function prepareSettingsMcp(page: Page, path: string) {
+async function prepareSettingsMcp(page: Page, locale: 'en-US' | 'zh-CN', path: string) {
   await openSettings(page)
+  await assertLocale(page, locale)
   const isZh = await page.evaluate(() => document.documentElement.lang === 'zh-CN')
   await page.getByRole('tab', { name: /^MCP$/ }).click()
   await expect(page.getByRole('heading', { name: /MCP switchboard|MCP 开关面板/ })).toBeVisible({
@@ -472,8 +772,9 @@ async function prepareSettingsMcp(page: Page, path: string) {
   await page.screenshot({ path, fullPage: false })
 }
 
-async function prepareSettingsDiscovery(page: Page, discoverPath: string, repositoriesPath: string) {
+async function prepareSettingsDiscovery(page: Page, locale: 'en-US' | 'zh-CN', discoverPath: string, repositoriesPath: string) {
   await openSettings(page)
+  await assertLocale(page, locale)
   const isZh = await page.evaluate(() => document.documentElement.lang === 'zh-CN')
   await page.getByRole('tab', { name: /Discover|发现/ }).click()
   await expect(page.getByRole('heading', { name: /Discovery and repository management|发现与仓库管理/ })).toBeVisible({
@@ -500,8 +801,9 @@ async function prepareSettingsDiscovery(page: Page, discoverPath: string, reposi
   await page.screenshot({ path: repositoriesPath, fullPage: false })
 }
 
-async function prepareSettingsNotifications(page: Page, path: string) {
+async function prepareSettingsNotifications(page: Page, locale: 'en-US' | 'zh-CN', path: string) {
   await openSettings(page)
+  await assertLocale(page, locale)
   await page.getByRole('tab', { name: /Notifications|通知/ }).click()
   await expect(page.getByRole('heading', { name: /Notification Settings|通知设置/ })).toBeVisible({
     timeout: 10_000,
@@ -514,13 +816,14 @@ async function prepareSettingsNotifications(page: Page, path: string) {
   await page.screenshot({ path, fullPage: false })
 }
 
-async function prepareSettingsHistory(page: Page, path: string) {
+async function prepareSettingsHistory(page: Page, locale: 'en-US' | 'zh-CN', path: string) {
   await openSettings(page)
+  await assertLocale(page, locale)
   await page.getByRole('tab', { name: /History|历史/ }).click()
   await expect(page.getByRole('heading', { name: /Notifications|通知历史/ })).toBeVisible({
     timeout: 10_000,
   })
-  await expect(page.getByText(/Interview invite|面试邀请|Weekly job-search digest|每周求职摘要/).first()).toBeVisible({
+  await expect(page.getByText(/Interview Reminders|面试提醒/).first()).toBeVisible({
     timeout: 10_000,
   })
   await page.waitForTimeout(300)
@@ -529,80 +832,84 @@ async function prepareSettingsHistory(page: Page, path: string) {
 
 test.describe('README screenshots', () => {
   test('capture English product workflow screenshots', async ({ page }) => {
-    test.setTimeout(90_000)
-    await seed(page, 'en-US')
+    test.setTimeout(120_000)
+    await runFreshGraduateWorkflow(page, 'en-US')
 
-    await capture(page, '/dashboard', '../docs/assets/readme/en-linux-dashboard.png')
-    await capture(page, '/upload', '../docs/assets/readme/en-linux-resumes.png')
-    await capture(page, '/jd-input', '../docs/assets/readme/en-linux-job-descriptions.png')
-    await capture(page, '/applications', '../docs/assets/readme/en-linux-applications.png')
-    await prepareApplicationDetail(page, '../docs/assets/readme/en-linux-application-detail.png')
-    await prepareResumeEditor(page, '../docs/assets/readme/en-linux-tailored-resume-pdf.png')
-    await prepareProfileAssistant(page)
+    await capture(page, 'en-US', '/dashboard', '../docs/assets/readme/en-linux-dashboard.png')
+    await capture(page, 'en-US', '/upload', '../docs/assets/readme/en-linux-resumes.png')
+    await capture(page, 'en-US', '/jd-input', '../docs/assets/readme/en-linux-job-descriptions.png')
+    await capture(page, 'en-US', '/applications', '../docs/assets/readme/en-linux-applications.png')
+    await prepareApplicationDetail(page, 'en-US', '../docs/assets/readme/en-linux-application-detail.png')
+    await prepareResumeEditor(page, 'en-US', '../docs/assets/readme/en-linux-tailored-resume-pdf.png')
+    await prepareProfileAssistant(page, 'en-US')
     await page.screenshot({ path: '../docs/assets/readme/en-linux-profile.png', fullPage: false })
-    await capture(page, '/applications/match?id=app-frontend', '../docs/assets/readme/en-linux-match-analysis.png')
-    await prepareInterviewPrep(page, '../docs/assets/readme/en-linux-interview-prep.png')
-    await capture(page, '/analytics', '../docs/assets/readme/en-linux-analytics.png')
-    await capture(page, '/interviews', '../docs/assets/readme/en-linux-interviews.png')
-    await capture(page, '/interviews/new?applicationId=app-frontend', '../docs/assets/readme/en-linux-interview-schedule.png')
-    await prepareGlobalSearch(page, '../docs/assets/readme/en-linux-search.png')
-    await prepareSearch(page, '/search/resumes', 'React', '../docs/assets/readme/en-linux-search-resumes.png')
-    await prepareSearch(page, '/search/jds', 'React', '../docs/assets/readme/en-linux-search-jds.png')
-    await prepareSearch(page, '/search/applications', 'Northstar', '../docs/assets/readme/en-linux-search-applications.png')
-    await capture(page, '/saved-searches', '../docs/assets/readme/en-linux-saved-searches.png')
-    await capture(page, '/data', '../docs/assets/readme/en-linux-data-management.png')
+    await capture(page, 'en-US', `/applications/match?id=${generatedApplicationId}`, '../docs/assets/readme/en-linux-match-analysis.png')
+    await prepareInterviewPrep(page, 'en-US', '../docs/assets/readme/en-linux-interview-prep.png')
+    await capture(page, 'en-US', '/analytics', '../docs/assets/readme/en-linux-analytics.png')
+    await capture(page, 'en-US', '/interviews', '../docs/assets/readme/en-linux-interviews.png')
+    await capture(page, 'en-US', `/interviews/new?applicationId=${generatedApplicationId}`, '../docs/assets/readme/en-linux-interview-schedule.png')
+    await prepareGlobalSearch(page, 'en-US', '../docs/assets/readme/en-linux-search.png')
+    await prepareSearch(page, 'en-US', '/search/resumes', scenario['en-US'].resumeQuery, '../docs/assets/readme/en-linux-search-resumes.png')
+    await prepareSearch(page, 'en-US', '/search/jds', scenario['en-US'].jdQuery, '../docs/assets/readme/en-linux-search-jds.png')
+    await prepareSearch(page, 'en-US', '/search/applications', scenario['en-US'].applicationQuery, '../docs/assets/readme/en-linux-search-applications.png')
+    await capture(page, 'en-US', '/saved-searches', '../docs/assets/readme/en-linux-saved-searches.png')
+    await capture(page, 'en-US', '/data', '../docs/assets/readme/en-linux-data-management.png')
     await prepareSettingsAI(
       page,
+      'en-US',
       '../docs/assets/readme/en-linux-settings.png',
       '../docs/assets/readme/en-linux-settings-ai.png'
     )
-    await prepareSettingsSkills(page, '../docs/assets/readme/en-linux-settings-skills.png')
-    await prepareSettingsMcp(page, '../docs/assets/readme/en-linux-settings-mcp.png')
+    await prepareSettingsSkills(page, 'en-US', '../docs/assets/readme/en-linux-settings-skills.png')
+    await prepareSettingsMcp(page, 'en-US', '../docs/assets/readme/en-linux-settings-mcp.png')
     await prepareSettingsDiscovery(
       page,
+      'en-US',
       '../docs/assets/readme/en-linux-settings-discover.png',
       '../docs/assets/readme/en-linux-settings-repositories.png'
     )
-    await prepareSettingsNotifications(page, '../docs/assets/readme/en-linux-settings-notifications.png')
-    await prepareSettingsHistory(page, '../docs/assets/readme/en-linux-settings-history.png')
+    await prepareSettingsNotifications(page, 'en-US', '../docs/assets/readme/en-linux-settings-notifications.png')
+    await prepareSettingsHistory(page, 'en-US', '../docs/assets/readme/en-linux-settings-history.png')
   })
 
   test('capture Chinese product workflow screenshots', async ({ page }) => {
-    test.setTimeout(90_000)
-    await seed(page, 'zh-CN')
+    test.setTimeout(120_000)
+    await runFreshGraduateWorkflow(page, 'zh-CN')
 
-    await capture(page, '/dashboard', '../docs/assets/readme/zh-linux-dashboard.png')
-    await capture(page, '/upload', '../docs/assets/readme/zh-linux-resumes.png')
-    await capture(page, '/jd-input', '../docs/assets/readme/zh-linux-job-descriptions.png')
-    await capture(page, '/applications', '../docs/assets/readme/zh-linux-applications.png')
-    await prepareApplicationDetail(page, '../docs/assets/readme/zh-linux-application-detail.png')
-    await prepareResumeEditor(page, '../docs/assets/readme/zh-linux-tailored-resume-pdf.png')
-    await prepareProfileAssistant(page)
+    await capture(page, 'zh-CN', '/dashboard', '../docs/assets/readme/zh-linux-dashboard.png')
+    await capture(page, 'zh-CN', '/upload', '../docs/assets/readme/zh-linux-resumes.png')
+    await capture(page, 'zh-CN', '/jd-input', '../docs/assets/readme/zh-linux-job-descriptions.png')
+    await capture(page, 'zh-CN', '/applications', '../docs/assets/readme/zh-linux-applications.png')
+    await prepareApplicationDetail(page, 'zh-CN', '../docs/assets/readme/zh-linux-application-detail.png')
+    await prepareResumeEditor(page, 'zh-CN', '../docs/assets/readme/zh-linux-tailored-resume-pdf.png')
+    await prepareProfileAssistant(page, 'zh-CN')
     await page.screenshot({ path: '../docs/assets/readme/zh-linux-profile.png', fullPage: false })
-    await capture(page, '/applications/match?id=app-frontend', '../docs/assets/readme/zh-linux-match-analysis.png')
-    await prepareInterviewPrep(page, '../docs/assets/readme/zh-linux-interview-prep.png')
-    await capture(page, '/analytics', '../docs/assets/readme/zh-linux-analytics.png')
-    await capture(page, '/interviews', '../docs/assets/readme/zh-linux-interviews.png')
-    await capture(page, '/interviews/new?applicationId=app-frontend', '../docs/assets/readme/zh-linux-interview-schedule.png')
-    await prepareGlobalSearch(page, '../docs/assets/readme/zh-linux-search.png')
-    await prepareSearch(page, '/search/resumes', 'React', '../docs/assets/readme/zh-linux-search-resumes.png')
-    await prepareSearch(page, '/search/jds', 'React', '../docs/assets/readme/zh-linux-search-jds.png')
-    await prepareSearch(page, '/search/applications', '北极星', '../docs/assets/readme/zh-linux-search-applications.png')
-    await capture(page, '/saved-searches', '../docs/assets/readme/zh-linux-saved-searches.png')
-    await capture(page, '/data', '../docs/assets/readme/zh-linux-data-management.png')
+    await capture(page, 'zh-CN', `/applications/match?id=${generatedApplicationId}`, '../docs/assets/readme/zh-linux-match-analysis.png')
+    await prepareInterviewPrep(page, 'zh-CN', '../docs/assets/readme/zh-linux-interview-prep.png')
+    await capture(page, 'zh-CN', '/analytics', '../docs/assets/readme/zh-linux-analytics.png')
+    await capture(page, 'zh-CN', '/interviews', '../docs/assets/readme/zh-linux-interviews.png')
+    await capture(page, 'zh-CN', `/interviews/new?applicationId=${generatedApplicationId}`, '../docs/assets/readme/zh-linux-interview-schedule.png')
+    await prepareGlobalSearch(page, 'zh-CN', '../docs/assets/readme/zh-linux-search.png')
+    await prepareSearch(page, 'zh-CN', '/search/resumes', scenario['zh-CN'].resumeQuery, '../docs/assets/readme/zh-linux-search-resumes.png')
+    await prepareSearch(page, 'zh-CN', '/search/jds', scenario['zh-CN'].jdQuery, '../docs/assets/readme/zh-linux-search-jds.png')
+    await prepareSearch(page, 'zh-CN', '/search/applications', scenario['zh-CN'].applicationQuery, '../docs/assets/readme/zh-linux-search-applications.png')
+    await capture(page, 'zh-CN', '/saved-searches', '../docs/assets/readme/zh-linux-saved-searches.png')
+    await capture(page, 'zh-CN', '/data', '../docs/assets/readme/zh-linux-data-management.png')
     await prepareSettingsAI(
       page,
+      'zh-CN',
       '../docs/assets/readme/zh-linux-settings.png',
       '../docs/assets/readme/zh-linux-settings-ai.png'
     )
-    await prepareSettingsSkills(page, '../docs/assets/readme/zh-linux-settings-skills.png')
-    await prepareSettingsMcp(page, '../docs/assets/readme/zh-linux-settings-mcp.png')
+    await prepareSettingsSkills(page, 'zh-CN', '../docs/assets/readme/zh-linux-settings-skills.png')
+    await prepareSettingsMcp(page, 'zh-CN', '../docs/assets/readme/zh-linux-settings-mcp.png')
     await prepareSettingsDiscovery(
       page,
+      'zh-CN',
       '../docs/assets/readme/zh-linux-settings-discover.png',
       '../docs/assets/readme/zh-linux-settings-repositories.png'
     )
-    await prepareSettingsNotifications(page, '../docs/assets/readme/zh-linux-settings-notifications.png')
-    await prepareSettingsHistory(page, '../docs/assets/readme/zh-linux-settings-history.png')
+    await prepareSettingsNotifications(page, 'zh-CN', '../docs/assets/readme/zh-linux-settings-notifications.png')
+    await prepareSettingsHistory(page, 'zh-CN', '../docs/assets/readme/zh-linux-settings-history.png')
   })
 })

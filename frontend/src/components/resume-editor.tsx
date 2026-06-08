@@ -641,7 +641,7 @@ function ResumeEditorComponent() {
                 {copy.a4Preview}
               </div>
               <span>
-                {copy.currentTemplate}: {getResumeTemplateLabel(selectedTemplate)}
+                {copy.currentTemplate}: {getResumeTemplateLabel(selectedTemplate, locale)}
               </span>
             </div>
             <main
@@ -680,7 +680,7 @@ function ResumeEditorComponent() {
                   {copy.livePreview}
                 </h3>
                 <span className="shrink-0">
-                  {copy.currentTemplate}: {getResumeTemplateLabel(selectedTemplate)}
+                  {copy.currentTemplate}: {getResumeTemplateLabel(selectedTemplate, locale)}
                 </span>
               </div>
               <main

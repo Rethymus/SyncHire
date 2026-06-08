@@ -1,12 +1,13 @@
 import { marked } from "marked";
 import { sanitizeMarkdownHtml } from "./sanitize";
+import type { LiteLocale } from "./lite-i18n";
 
 export type ResumeTemplateId = "minimal" | "professional" | "modern" | "technical" | "executive" | "creative";
 
 const TEMPLATE_TOKENS: Record<
   ResumeTemplateId,
   {
-    label: string;
+    label: Record<LiteLocale, string>;
     accent: string;
     heading: string;
     border: string;
@@ -14,42 +15,42 @@ const TEMPLATE_TOKENS: Record<
   }
 > = {
   minimal: {
-    label: "简约",
+    label: { "en-US": "Minimal", "zh-CN": "简约" },
     accent: "#111827",
     heading: "#111827",
     border: "#d1d5db",
     background: "#ffffff",
   },
   professional: {
-    label: "商务",
+    label: { "en-US": "Professional", "zh-CN": "商务" },
     accent: "#0f766e",
     heading: "#0f172a",
     border: "#99f6e4",
     background: "#ffffff",
   },
   modern: {
-    label: "现代",
+    label: { "en-US": "Modern", "zh-CN": "现代" },
     accent: "#2563eb",
     heading: "#172554",
     border: "#bfdbfe",
     background: "#ffffff",
   },
   technical: {
-    label: "技术",
+    label: { "en-US": "Technical", "zh-CN": "技术" },
     accent: "#7c3aed",
     heading: "#2e1065",
     border: "#ddd6fe",
     background: "#ffffff",
   },
   executive: {
-    label: "高管",
+    label: { "en-US": "Executive", "zh-CN": "高管" },
     accent: "#9f1239",
     heading: "#111827",
     border: "#fecdd3",
     background: "#ffffff",
   },
   creative: {
-    label: "创意",
+    label: { "en-US": "Creative", "zh-CN": "创意" },
     accent: "#c2410c",
     heading: "#1f2937",
     border: "#fed7aa",
@@ -72,8 +73,8 @@ export function normalizeResumeTemplateId(templateId?: string): ResumeTemplateId
   return "minimal";
 }
 
-export function getResumeTemplateLabel(templateId?: string) {
-  return TEMPLATE_TOKENS[normalizeResumeTemplateId(templateId)].label;
+export function getResumeTemplateLabel(templateId?: string, locale: LiteLocale = "zh-CN") {
+  return TEMPLATE_TOKENS[normalizeResumeTemplateId(templateId)].label[locale];
 }
 
 export function renderResumeMarkdownHtml(markdown: string) {

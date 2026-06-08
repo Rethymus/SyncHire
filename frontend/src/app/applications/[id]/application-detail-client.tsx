@@ -20,6 +20,7 @@ import { Breadcrumb } from "@/components/breadcrumb";
 import { logger, LogCategory } from "@/lib/logger";
 import { applicationAPI, resumeAPI, jdAPI } from "@/lib/api-client-consolidated";
 import { generateTailoredResumeMarkdown } from "@/lib/tailored-resume";
+import { useLiteCopy } from "@/lib/lite-i18n";
 import { ApplicationNotes } from "@/components/application-notes";
 import { MatchAnalysisDisplay } from "@/components/match-analysis-display";
 import { WorkflowAutomation } from "@/components/workflow-automation";
@@ -56,6 +57,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: any }> 
 };
 
 export default function ApplicationDetailClient() {
+  const { locale } = useLiteCopy();
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -232,6 +234,7 @@ export default function ApplicationDetailClient() {
           profile: candidateProfile,
           resume: sourceResume,
           jd: targetJD,
+          locale,
         });
 
         if (sourceResume) {
@@ -292,6 +295,7 @@ export default function ApplicationDetailClient() {
     candidateProfile,
     isLocalApplication,
     jobDescriptions,
+    locale,
     resumes,
     setCurrentResume,
     updateApplication,

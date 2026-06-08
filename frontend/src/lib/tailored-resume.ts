@@ -1,4 +1,5 @@
 import type { CandidateRoleCard } from "./browser-fill-assistant";
+import type { LiteLocale } from "./lite-i18n";
 import type { JobDescription, Resume } from "./store";
 
 function pickMatchedSkills(profile: CandidateRoleCard, jd?: JobDescription) {
@@ -20,6 +21,18 @@ function inferChineseHighlights(profile: CandidateRoleCard, jd?: JobDescription)
   ];
 }
 
+function inferEnglishHighlights(profile: CandidateRoleCard, jd?: JobDescription) {
+  const matchedSkills = pickMatchedSkills(profile, jd);
+  const role = jd?.title || profile.targetTitle;
+  const company = jd?.company ? ` at ${jd.company}` : "";
+
+  return [
+    `Emphasize ${matchedSkills.slice(0, 4).join(", ")} for the ${role}${company} requirements.`,
+    `Lead with verifiable project evidence such as "${profile.projects[0] ?? "user-facing product delivery"}" instead of generic claims.`,
+    `State availability (${profile.availability}) and work authorization (${profile.workAuthorization}) so recruiters can assess fit quickly.`,
+  ];
+}
+
 function compactOriginalNotes(content?: string) {
   if (!content?.trim()) return [];
 
@@ -35,17 +48,67 @@ export function generateTailoredResumeMarkdown({
   profile,
   resume,
   jd,
+  locale = "zh-CN",
 }: {
   profile: CandidateRoleCard;
   resume?: Resume;
   jd?: JobDescription;
+  locale?: LiteLocale;
 }) {
   const matchedSkills = pickMatchedSkills(profile, jd);
-  const highlights = inferChineseHighlights(profile, jd);
+  const isZh = locale === "zh-CN";
+  const highlights = isZh ? inferChineseHighlights(profile, jd) : inferEnglishHighlights(profile, jd);
   const originalNotes = compactOriginalNotes(resume?.content);
   const targetTitle = jd?.title || profile.targetTitle;
   const targetLine = `${targetTitle}${jd?.company ? ` - ${jd.company}` : ""}`;
-  const projects = profile.projects.length > 0 ? profile.projects : ["课程项目或个人项目待补充"];
+  const projects = profile.projects.length > 0
+    ? profile.projects
+    : [isZh ? "课程项目或个人项目待补充" : "Coursework or personal project to complete"];
+
+  if (!isZh) {
+    return [
+      `# ${profile.fullName}`,
+      [profile.location, profile.phone, profile.email, profile.githubUrl, profile.linkedinUrl, profile.portfolioUrl]
+        .filter(Boolean)
+        .join(" | "),
+      "",
+      "## Target Role",
+      `${targetLine}. Present project, coursework, internship, and engineering evidence aligned to the role requirements.`,
+      "",
+      "## Professional Summary",
+      `${profile.personalSummary} This version highlights ${matchedSkills.slice(0, 5).join(", ")} for ${targetTitle}.`,
+      "",
+      "## Role Match Highlights",
+      ...highlights.map((item) => `- ${item}`),
+      "",
+      "## Education",
+      `### ${profile.school} | ${profile.education}`,
+      profile.graduationYear ? `Class of ${profile.graduationYear}` : "Graduation date to complete",
+      "- Add GPA, ranking, core courses, competitions, publications, or lab work only when they are true.",
+      "",
+      "## Skills",
+      `- **Role-relevant skills:** ${matchedSkills.join(", ")}`,
+      "- **Engineering collaboration:** Git, code review, requirement breakdown, retrospectives, automated testing",
+      "- **Evidence boundary:** This draft is generated only from the role card, resume, and job description. Verify every claim before applying.",
+      "",
+      "## Projects",
+      ...projects.flatMap((project, index) => [
+        `### ${project}`,
+        `- Connect the project to ${targetTitle} by describing your responsibility, technical choices, and delivered result.`,
+        "- Add measurable evidence when available, such as performance gains, test coverage, user scale, defect fixes, or delivery timeline.",
+        `- Explain how the work demonstrates ${matchedSkills[index % matchedSkills.length] ?? "a role skill"} without listing keywords alone.`,
+      ]),
+      "",
+      "## Internship / Campus Practice",
+      "- If you have internship experience, add company/team, role, dates, and 2-3 bullets covering task, action, and result.",
+      "- If you do not have internship experience, include coursework, student organization technical work, open-source contribution, competition, or lab project.",
+      originalNotes.length > 0 ? "" : "",
+      originalNotes.length > 0 ? "## Original Resume Evidence" : "",
+      ...originalNotes.map((item) => `- ${item}`),
+    ]
+      .filter((section) => section !== "")
+      .join("\n");
+  }
 
   return [
     `# ${profile.fullName}`,
