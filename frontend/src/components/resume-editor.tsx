@@ -647,7 +647,7 @@ function ResumeEditorComponent() {
             <main
               className="synchire-resume-page"
               dangerouslySetInnerHTML={{
-                __html: renderMarkdown(content),
+                __html: sanitizeHtml(renderMarkdown(content)),
               }}
             />
           </div>
@@ -686,7 +686,7 @@ function ResumeEditorComponent() {
               <main
                 className="synchire-resume-page"
                 dangerouslySetInnerHTML={{
-                  __html: renderMarkdown(content),
+                  __html: sanitizeHtml(renderMarkdown(content)),
                 }}
               />
             </div>
