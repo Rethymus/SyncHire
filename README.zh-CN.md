@@ -297,7 +297,8 @@ pip-audit
 | 安全检查         | Bandit、pip-audit、pip check 通过                               |
 | 生产构建         | 通过                                                            |
 
-完整探索式 QA 报告见：[dogfood-output/report.md](dogfood-output/report.md)。
+当前用户视角流程证据已沉淀在中英文 README 截图矩阵中，并由 Playwright 截图回归覆盖：
+`cd frontend && npx playwright test e2e/readme-screenshots.spec.ts --workers=1`。
 
 ## 路线图
 

@@ -100,7 +100,8 @@ agent-browser --session synchire-test screenshot --annotate dogfood-output/scree
 agent-browser --session synchire-test close
 
 # Generate report
-# (Report is automatically generated in dogfood-output/report.md)
+# Report is generated locally in dogfood-output/report.md.
+# dogfood-output/ is ignored and should not be committed.
 ```
 
 ### Output Format

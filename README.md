@@ -297,7 +297,8 @@ The current QA baseline is intentionally strict because a job-search tool cannot
 | Security checks            | Bandit, pip-audit, pip check passing                                               |
 | Production build           | Passing                                                                            |
 
-The full exploratory QA report lives in [dogfood-output/report.md](dogfood-output/report.md).
+Current user-facing workflow evidence lives in the language-specific README screenshot matrix and the Playwright README screenshot regression:
+`cd frontend && npx playwright test e2e/readme-screenshots.spec.ts --workers=1`.
 
 ## Roadmap
 
