@@ -118,8 +118,6 @@ jobs:
   android:
     name: Android APK
     runs-on: ubuntu-latest
-    env:
-      HAS_ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
 
     steps:
       - name: Checkout code
@@ -155,13 +153,23 @@ jobs:
       - name: Build static frontend and sync Android
         run: npm run android:sync
 
+      - name: Validate Android signing secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          test -n "$ANDROID_KEYSTORE_PASSWORD"
+          test -n "$ANDROID_KEY_ALIAS"
+          test -n "$ANDROID_KEY_PASSWORD"
+
       - name: Decode Android signing keystore
-        if: env.HAS_ANDROID_KEYSTORE == 'true'
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
 
       - name: Build signed Android release APK
-        if: env.HAS_ANDROID_KEYSTORE == 'true'
         working-directory: android
         env:
           CAPACITOR_ANDROID_STUDIO_PATH: ""
@@ -172,26 +180,11 @@ jobs:
             -Pandroid.injected.signing.key.alias="${{ secrets.ANDROID_KEY_ALIAS }}" \
             -Pandroid.injected.signing.key.password="${{ secrets.ANDROID_KEY_PASSWORD }}"
 
-      - name: Build debug-signed Android APK
-        if: env.HAS_ANDROID_KEYSTORE != 'true'
-        working-directory: android
-        run: ./gradlew assembleDebug
-
       - name: Upload signed Android APK
-        if: env.HAS_ANDROID_KEYSTORE == 'true'
         uses: actions/upload-artifact@v6
         with:
           name: SyncHire-Android
           path: android/app/build/outputs/apk/release/*.apk
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Upload debug-signed Android APK
-        if: env.HAS_ANDROID_KEYSTORE != 'true'
-        uses: actions/upload-artifact@v6
-        with:
-          name: SyncHire-Android
-          path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
 
