@@ -12,8 +12,13 @@ function buildSeedStorage(locale: 'en-US' | 'zh-CN') {
         {
           id: 'resume-new-grad',
           name: isZh ? '陈宇-前端工程师简历.txt' : 'chen-yu-frontend-resume.txt',
-          content:
-            'Chen Yu - Frontend Engineer\nReact TypeScript Next.js Playwright Accessibility\nBuilt local-first job application workflows and automated UI tests.',
+          content: isZh
+            ? [
+                '陈宇 - 应届前端工程师',
+                'React TypeScript Next.js Playwright 无障碍体验',
+                '构建本地优先的求职管理工作流，并为核心页面补充自动化 UI 回归测试。',
+              ].join('\n')
+            : 'Chen Yu - Frontend Engineer\nReact TypeScript Next.js Playwright Accessibility\nBuilt local-first job application workflows and automated UI tests.',
           uploadedAt: now,
           skills: ['React', 'TypeScript', 'Next.js', 'Playwright', 'Accessibility'],
           experience: ['Built local-first job application workflows', 'Automated UI quality gates'],
@@ -21,8 +26,9 @@ function buildSeedStorage(locale: 'en-US' | 'zh-CN') {
         {
           id: 'resume-ai-product',
           name: isZh ? '陈宇-AI产品运营简历.txt' : 'chen-yu-ai-product-resume.txt',
-          content:
-            'AI product intern resume focused on prompt evaluation, analytics dashboards, and data privacy.',
+          content: isZh
+            ? 'AI 产品运营实习简历，关注提示词评测、数据看板、用户痛点分析和隐私边界。'
+            : 'AI product intern resume focused on prompt evaluation, analytics dashboards, and data privacy.',
           uploadedAt: now,
           skills: ['Prompt evaluation', 'Analytics', 'Privacy'],
           experience: ['Created product QA dashboards'],
@@ -95,7 +101,7 @@ function buildSeedStorage(locale: 'en-US' | 'zh-CN') {
         },
       ],
       candidateProfile: {
-        fullName: 'Chen Yu',
+        fullName: isZh ? '陈宇' : 'Chen Yu',
         email: 'chenyu@example.com',
         phone: '+86 138 0000 0000',
         location: isZh ? '中国上海' : 'Shanghai, China',
@@ -106,7 +112,7 @@ function buildSeedStorage(locale: 'en-US' | 'zh-CN') {
         portfolioUrl: 'https://portfolio.example.com/chenyu',
         linkedinUrl: 'https://www.linkedin.com/in/chenyu',
         githubUrl: 'https://github.com/chenyu',
-        workAuthorization: 'Authorized to work locally; open to remote roles',
+        workAuthorization: isZh ? '具备本地就业资格，接受远程或混合办公' : 'Authorized to work locally; open to remote roles',
         availability: isZh ? '两周内可到岗' : 'Available within 2 weeks',
         salaryExpectation: isZh ? '根据岗位职责开放沟通' : 'Open to discuss based on role scope',
         personalSummary: isZh
@@ -198,7 +204,7 @@ async function seed(page: Page, locale: 'en-US' | 'zh-CN') {
               title: localeValue === 'zh-CN' ? '面试邀请' : 'Interview invite',
               message:
                 localeValue === 'zh-CN'
-                  ? 'Northstar Labs 已进入面试阶段，请准备项目亮点。'
+                  ? '北极星实验室已进入面试阶段，请准备项目亮点。'
                   : 'Northstar Labs moved to interview. Prepare project highlights.',
               read: false,
               created_at: '2026-06-07T10:00:00.000Z',
@@ -393,7 +399,7 @@ async function prepareSearch(page: Page, route: string, query: string, path: str
   await expect(searchInput).toBeEditable({ timeout: 10_000 })
   await searchInput.fill(query)
   await expect(searchInput).toHaveValue(query, { timeout: 10_000 })
-  await expect(page.getByText(/Found|找到|Northstar|chen-yu|Graduate Frontend Engineer/).first()).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText(/Found|找到|Northstar|北极星|chen-yu|陈宇|Graduate Frontend Engineer|应届前端工程师/).first()).toBeVisible({ timeout: 10_000 })
   await page.waitForTimeout(300)
   await page.screenshot({ path, fullPage: false })
 }
@@ -405,7 +411,7 @@ async function prepareGlobalSearch(page: Page, path: string) {
   await expect(searchInput).toBeEditable({ timeout: 10_000 })
   await searchInput.fill('React')
   await expect(searchInput).toHaveValue('React', { timeout: 10_000 })
-  await expect(page.getByText(/Found|找到|chen-yu|Graduate Frontend Engineer|Northstar/).first()).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText(/Found|找到|chen-yu|陈宇|Graduate Frontend Engineer|应届前端工程师|Northstar|北极星/).first()).toBeVisible({ timeout: 10_000 })
   await page.waitForTimeout(300)
   await page.screenshot({ path, fullPage: false })
 }
@@ -482,12 +488,14 @@ async function prepareSettingsDiscovery(page: Page, discoverPath: string, reposi
   await page.waitForTimeout(300)
   await page.screenshot({ path: discoverPath, fullPage: false })
 
-  await page.getByLabel(/Repository name|仓库名称/).fill('Private Job Search Catalog')
+  await page.getByLabel(/Repository name|仓库名称/).fill(isZh ? '私有求职能力目录' : 'Private Job Search Catalog')
   await page.getByLabel(/Repository URL|仓库 URL/).fill('https://example.com/synchire/catalog.json')
-  await page.getByLabel(/Description|描述/).fill('Private metadata catalog for reviewed job-search skills and MCPs.')
+  await page.getByLabel(/Description|描述/).fill(
+    isZh ? '用于已审核求职技能与 MCP 的私有元数据目录。' : 'Private metadata catalog for reviewed job-search skills and MCPs.'
+  )
   await page.getByRole('button', { name: /Add source|添加来源/ }).click()
-  await expect(page.getByText('Private Job Search Catalog')).toBeVisible({ timeout: 10_000 })
-  await page.getByText('Private Job Search Catalog').scrollIntoViewIfNeeded()
+  await expect(page.getByText(isZh ? '私有求职能力目录' : 'Private Job Search Catalog')).toBeVisible({ timeout: 10_000 })
+  await page.getByText(isZh ? '私有求职能力目录' : 'Private Job Search Catalog').scrollIntoViewIfNeeded()
   await page.waitForTimeout(300)
   await page.screenshot({ path: repositoriesPath, fullPage: false })
 }
@@ -579,7 +587,7 @@ test.describe('README screenshots', () => {
     await prepareGlobalSearch(page, '../docs/assets/readme/zh-linux-search.png')
     await prepareSearch(page, '/search/resumes', 'React', '../docs/assets/readme/zh-linux-search-resumes.png')
     await prepareSearch(page, '/search/jds', 'React', '../docs/assets/readme/zh-linux-search-jds.png')
-    await prepareSearch(page, '/search/applications', 'Northstar', '../docs/assets/readme/zh-linux-search-applications.png')
+    await prepareSearch(page, '/search/applications', '北极星', '../docs/assets/readme/zh-linux-search-applications.png')
     await capture(page, '/saved-searches', '../docs/assets/readme/zh-linux-saved-searches.png')
     await capture(page, '/data', '../docs/assets/readme/zh-linux-data-management.png')
     await prepareSettingsAI(

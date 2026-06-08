@@ -124,6 +124,47 @@ export const DEFAULT_BROWSER_FORM_FIELDS: BrowserFormField[] = [
   { id: "submit", label: "Submit application", inputName: "submit", kind: "text", isSubmitControl: true },
 ];
 
+function hasChinese(value: string) {
+  return /[\u3400-\u9fff]/.test(value);
+}
+
+function isChineseProfile(profile: CandidateRoleCard, company = "", position = "") {
+  return hasChinese(
+    [
+      profile.location,
+      profile.targetTitle,
+      profile.education,
+      profile.school,
+      profile.workAuthorization,
+      profile.availability,
+      profile.salaryExpectation,
+      profile.personalSummary,
+      ...profile.projects,
+      company,
+      position,
+    ].join(" ")
+  );
+}
+
+const ZH_BROWSER_FIELD_LABELS: Record<string, string> = {
+  "full-name": "姓名",
+  email: "邮箱",
+  phone: "手机号",
+  location: "所在地",
+  portfolio: "作品集链接",
+  linkedin: "LinkedIn 链接",
+  github: "GitHub 链接",
+  "work-auth": "工作许可",
+  availability: "到岗时间",
+  skills: "相关技能",
+  summary: "为什么适合这个岗位？",
+  submit: "提交申请",
+};
+
+function localizeField(field: BrowserFormField, zh: boolean) {
+  return zh ? { ...field, label: ZH_BROWSER_FIELD_LABELS[field.id] ?? field.label } : field;
+}
+
 export function createDefaultCandidateRoleCard(): CandidateRoleCard {
   return {
     fullName: "Chen Yu",
@@ -177,6 +218,19 @@ function inferProfileKey(field: BrowserFormField): ProfileFieldKey | null {
 }
 
 function buildRolePitch(profile: CandidateRoleCard, company: string, position: string) {
+  if (isChineseProfile(profile, company, position)) {
+    const companyPart = company ? `（${company}）` : "";
+    const positionPart = position || profile.targetTitle;
+    const topSkills = profile.skills.slice(0, 4).join("、");
+    const project = profile.projects[0] ?? "交付可靠的用户侧产品";
+
+    return [
+      `${profile.personalSummary} 我正在申请 ${positionPart}${companyPart}。`,
+      `我的主要匹配点是 ${topSkills}。`,
+      `近期项目证据：${project}`,
+    ].join(" ");
+  }
+
   const companyPart = company ? ` at ${company}` : "";
   const positionPart = position || profile.targetTitle;
   const topSkills = profile.skills.slice(0, 4).join(", ");
@@ -190,6 +244,14 @@ function buildRolePitch(profile: CandidateRoleCard, company: string, position: s
 }
 
 function buildSkillsPitch(profile: CandidateRoleCard, position: string) {
+  if (isChineseProfile(profile, "", position)) {
+    const prefix = position
+      ? `${position} 相关技能`
+      : "相关技能";
+
+    return `${prefix}：${profile.skills.join("、")}。`;
+  }
+
   const prefix = position
     ? `Relevant skills for ${position}`
     : "Relevant skills";
@@ -210,7 +272,9 @@ export function createBrowserFillPlan({
   company?: string;
   position?: string;
 }): BrowserFillSession {
+  const zh = isChineseProfile(profile, company, position);
   const suggestions = fields
+    .map((field) => localizeField(field, zh))
     .filter((field) => !field.isSubmitControl)
     .map<BrowserFillSuggestion>((field) => {
       const key = inferProfileKey(field);
@@ -225,7 +289,9 @@ export function createBrowserFillPlan({
           source: key,
           confidence: field.required ? 0.94 : 0.86,
           requiresUserReview: true,
-          reason: `Matched "${field.label}" to role-card field "${key}".`,
+          reason: zh
+            ? `已将“${field.label}”匹配到角色卡字段“${key}”。`
+            : `Matched "${field.label}" to role-card field "${key}".`,
         };
       }
 
@@ -239,7 +305,9 @@ export function createBrowserFillPlan({
           source: "rolePitch",
           confidence: 0.78,
           requiresUserReview: true,
-          reason: "Generated a role-specific pitch from the role card and selected job.",
+          reason: zh
+            ? "已根据角色卡和目标岗位生成岗位化自我介绍。"
+            : "Generated a role-specific pitch from the role card and selected job.",
         };
       }
 
@@ -252,7 +320,9 @@ export function createBrowserFillPlan({
         source: "empty",
         confidence: 0.2,
         requiresUserReview: true,
-        reason: "No reliable role-card match. Leave this field for manual review.",
+        reason: zh
+          ? "没有可靠的角色卡匹配，保留给用户人工审核。"
+          : "No reliable role-card match. Leave this field for manual review.",
       };
     })
     .map((suggestion) => {

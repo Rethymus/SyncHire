@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/readme/en-linux-dashboard.png" alt="SyncHire Lite English Linux dashboard preview" width="860" />
+  <img src="docs/assets/readme/zh-linux-dashboard.png" alt="SyncHire Lite Chinese Linux dashboard preview" width="860" />
 </p>
 
 ## The Product Pitch
@@ -57,6 +57,40 @@ Use SyncHire in local-first Lite mode when you want a private, fast, no-backend 
 - Track application status, notes, search views, interviews, analytics, and saved searches.
 - Export, import, and back up your data from a dedicated data management console.
 - Connect a full backend for AI-powered resume analysis, job matching, interview prep, authentication, storage, and vector search.
+
+## Chinese New-Graduate Workflow Showcase
+
+These screenshots come from the June 8, 2026 Linux standalone validation run after the Chinese copy and resume-rendering fixes. SyncHire was tested as Chen Yu, a 2026 fresh graduate targeting frontend roles in China. The workflow covers Chinese dashboard, resume assets, job descriptions, applications, role-specific A4 resume rendering, local PDF export, role-card browser-fill review, match analysis, interview prep, search, data management, AI provider/model settings, Skill/MCP controls, discovery, notifications, and repository management.
+
+### 中文核心流程
+
+| 仪表盘 | 简历管理 |
+| ------ | -------- |
+| <img src="docs/assets/readme/zh-linux-dashboard.png" alt="SyncHire Lite 中文仪表盘，应届生求职数据已注入" width="420" /> | <img src="docs/assets/readme/zh-linux-resumes.png" alt="SyncHire Lite 中文简历管理，应届生简历列表" width="420" /> |
+
+| 职位描述 | 申请跟踪 |
+| -------- | -------- |
+| <img src="docs/assets/readme/zh-linux-job-descriptions.png" alt="SyncHire Lite 中文职位描述页面" width="420" /> | <img src="docs/assets/readme/zh-linux-applications.png" alt="SyncHire Lite 中文申请跟踪页面" width="420" /> |
+
+### 中文简历与投递辅助
+
+| 岗位化简历与 A4 PDF | 角色卡与浏览器填表 |
+| ------------------- | ------------------ |
+| <img src="docs/assets/readme/zh-linux-tailored-resume-pdf.png" alt="中文岗位化简历 A4 实时预览与 PDF 导出" width="420" /> | <img src="docs/assets/readme/zh-linux-profile.png" alt="中文角色卡与浏览器填表审核流程" width="420" /> |
+
+| 匹配分析 | 面试准备 |
+| -------- | -------- |
+| <img src="docs/assets/readme/zh-linux-match-analysis.png" alt="中文岗位匹配分析页面" width="420" /> | <img src="docs/assets/readme/zh-linux-interview-prep.png" alt="中文面试准备页面" width="420" /> |
+
+### 中文搜索、数据与运行时设置
+
+| 搜索申请 | 数据管理 |
+| -------- | -------- |
+| <img src="docs/assets/readme/zh-linux-search-applications.png" alt="中文申请搜索结果页面" width="420" /> | <img src="docs/assets/readme/zh-linux-data-management.png" alt="中文数据管理页面" width="420" /> |
+
+| AI 供应商与模型 | Skill / MCP 发现 |
+| ---------------- | ---------------- |
+| <img src="docs/assets/readme/zh-linux-settings-ai.png" alt="中文 AI 供应商、API key、连接测试和模型设置" width="420" /> | <img src="docs/assets/readme/zh-linux-settings-discover.png" alt="中文 Skill 与 MCP 发现页面" width="420" /> |
 
 ## English Linux Dogfood Showcase
 

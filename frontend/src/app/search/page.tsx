@@ -38,6 +38,7 @@ function SearchPage() {
         semantic: "语义搜索",
         fullText: "全文搜索",
         searching: "搜索中...",
+        searchLabel: "搜索关键词",
         found: "找到",
         result: "个结果",
         match: "匹配",
@@ -57,6 +58,7 @@ function SearchPage() {
         semantic: "Semantic",
         fullText: "Full-Text",
         searching: "Searching...",
+        searchLabel: "Search query",
         found: "Found",
         result: "result",
         match: "match",
@@ -160,7 +162,7 @@ function SearchPage() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={copy.placeholder}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                aria-label="Search query"
+                aria-label={copy.searchLabel}
               />
             </div>
             <Button

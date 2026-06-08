@@ -74,6 +74,10 @@ const COPY = {
     approveLearning: "Approve and update role card",
     noChanges: "No learnable user edits detected yet.",
     learned: "Role card updated from approved user edits.",
+    confidence: "confidence",
+    before: "Before",
+    afterUserEdit: "After user edit",
+    submitDisabled: "Submit disabled for manual user review",
     submitGuard:
       "Submit controls are intentionally excluded. The user must audit the page and submit manually.",
     recentSessions: "Recent local fill sessions",
@@ -131,6 +135,10 @@ const COPY = {
     approveLearning: "同意并更新角色卡",
     noChanges: "还没有检测到可学习的用户修改。",
     learned: "已根据用户同意的修改更新角色卡。",
+    confidence: "置信度",
+    before: "修改前",
+    afterUserEdit: "用户修改后",
+    submitDisabled: "提交已禁用，等待用户人工审核",
     submitGuard:
       "提交控件已被刻意排除。页面必须由用户审核后手动提交。",
     recentSessions: "最近本地填表会话",
@@ -211,8 +219,8 @@ export default function ProfilePage() {
     values: toFormState(candidateProfile),
   }));
   const [targetUrl, setTargetUrl] = useState("https://jobs.example.com/apply/frontend-new-grad");
-  const [company, setCompany] = useState("Northstar Labs");
-  const [position, setPosition] = useState("Graduate Frontend Engineer");
+  const [company, setCompany] = useState(locale === "zh-CN" ? "北极星实验室" : "Northstar Labs");
+  const [position, setPosition] = useState(locale === "zh-CN" ? "应届前端工程师" : "Graduate Frontend Engineer");
   const [activeSession, setActiveSession] = useState<BrowserFillSession | null>(null);
   const [reviewValues, setReviewValues] = useState<Record<string, string>>({});
   const [agentReport, setAgentReport] = useState("");
@@ -603,13 +611,13 @@ export default function ProfilePage() {
                           />
                         )}
                         <p className="text-xs text-gray-500">
-                          {Math.round(suggestion.confidence * 100)}% confidence - {suggestion.reason}
+                          {Math.round(suggestion.confidence * 100)}% {copy.confidence} - {suggestion.reason}
                         </p>
                       </div>
                     );
                   })}
                   <Button type="button" disabled className="w-full">
-                    Submit disabled for manual user review
+                    {copy.submitDisabled}
                   </Button>
                 </div>
               </CardContent>
@@ -667,9 +675,9 @@ export default function ProfilePage() {
                         <p className="text-sm font-semibold text-gray-900">
                           {fields[update.profileKey]}
                         </p>
-                        <p className="mt-2 text-xs text-gray-500">Before</p>
+                        <p className="mt-2 text-xs text-gray-500">{copy.before}</p>
                         <p className="text-sm text-gray-700">{update.previousValue}</p>
-                        <p className="mt-2 text-xs text-gray-500">After user edit</p>
+                        <p className="mt-2 text-xs text-gray-500">{copy.afterUserEdit}</p>
                         <p className="text-sm font-medium text-gray-950">{update.reviewedValue}</p>
                       </div>
                     ))}
