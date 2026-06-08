@@ -74,6 +74,8 @@ These screenshots come from the June 8, 2026 Linux standalone production validat
 
 ### Resume And Browser Agent
 
+Full generated resume artifact: [Chen Yu graduate frontend tailored resume](docs/assets/readme/en-fresh-graduate-tailored-resume.md)
+
 | Application Detail | Tailored Resume PDF Flow |
 | ------------------ | ------------------------ |
 | <img src="docs/assets/readme/en-linux-application-detail.png" alt="SyncHire Lite English application detail with local resume optimization completed" width="420" /> | <img src="docs/assets/readme/en-linux-tailored-resume-pdf.png" alt="SyncHire Lite English role-specific resume editor and local PDF export flow" width="420" /> |
