@@ -10,7 +10,7 @@ const MARGIN_X = 48;
 const START_Y = 792;
 const FONT_SIZE = 10;
 const LINE_HEIGHT = 14;
-const MAX_CHARS_PER_LINE = 92;
+const MAX_LINE_WIDTH = 92;
 const MAX_LINES_PER_PAGE = 52;
 
 const ENTITY_MAP: Record<string, string> = {
@@ -54,21 +54,24 @@ export function htmlToPlainText(html: string) {
     .trim();
 }
 
-function toPdfSafeText(value: string) {
-  return value
-    .normalize("NFKD")
-    .replace(/[^\x09\x0a\x0d\x20-\x7e]/g, "?")
-    .replace(/\\/g, "\\\\")
-    .replace(/\(/g, "\\(")
-    .replace(/\)/g, "\\)");
+function toUtf16HexString(value: string) {
+  return `<${Buffer.from(value, "utf16le").swap16().toString("hex")}>`;
+}
+
+function getCharWidth(char: string) {
+  return /[\u3400-\u9fff\u3000-\u303f\uff00-\uffef]/.test(char) ? 1.9 : 1;
+}
+
+function getTextWidth(value: string) {
+  return Array.from(value).reduce((total, char) => total + getCharWidth(char), 0);
 }
 
 function wrapLine(line: string) {
-  if (line.length <= MAX_CHARS_PER_LINE) {
+  if (getTextWidth(line) <= MAX_LINE_WIDTH) {
     return [line];
   }
 
-  const words = line.split(/\s+/);
+  const words = line.includes(" ") ? line.split(/\s+/) : Array.from(line);
   const wrapped: string[] = [];
   let current = "";
 
@@ -78,8 +81,11 @@ function wrapLine(line: string) {
       continue;
     }
 
-    if (`${current} ${word}`.length <= MAX_CHARS_PER_LINE) {
-      current = `${current} ${word}`;
+    const separator = line.includes(" ") ? " " : "";
+    const candidate = `${current}${separator}${word}`;
+
+    if (getTextWidth(candidate) <= MAX_LINE_WIDTH) {
+      current = candidate;
     } else {
       wrapped.push(current);
       current = word;
@@ -91,14 +97,26 @@ function wrapLine(line: string) {
   }
 
   return wrapped.flatMap((item) => {
-    if (item.length <= MAX_CHARS_PER_LINE) {
+    if (getTextWidth(item) <= MAX_LINE_WIDTH) {
       return [item];
     }
 
     const chunks: string[] = [];
-    for (let index = 0; index < item.length; index += MAX_CHARS_PER_LINE) {
-      chunks.push(item.slice(index, index + MAX_CHARS_PER_LINE));
+    let current = "";
+
+    Array.from(item).forEach((char) => {
+      if (getTextWidth(`${current}${char}`) > MAX_LINE_WIDTH && current) {
+        chunks.push(current);
+        current = char;
+      } else {
+        current += char;
+      }
+    });
+
+    if (current) {
+      chunks.push(current);
     }
+
     return chunks;
   });
 }
@@ -121,7 +139,7 @@ function paginate(text: string) {
 
 function buildContentStream(lines: string[]) {
   const body = lines
-    .map((line) => `(${toPdfSafeText(line)}) Tj T*`)
+    .map((line) => `${toUtf16HexString(line)} Tj T*`)
     .join("\n");
 
   return [
@@ -136,13 +154,13 @@ function buildContentStream(lines: string[]) {
 
 function buildPdf(objects: string[]) {
   let offset = 0;
-  const chunks: string[] = ["%PDF-1.4\n"];
+  const chunks: Buffer[] = [Buffer.from("%PDF-1.4\n", "binary")];
   offset += chunks[0].length;
   const offsets = [0];
 
   objects.forEach((object, index) => {
     offsets[index + 1] = offset;
-    const chunk = `${index + 1} 0 obj\n${object}\nendobj\n`;
+    const chunk = Buffer.from(`${index + 1} 0 obj\n${object}\nendobj\n`, "utf8");
     chunks.push(chunk);
     offset += chunk.length;
   });
@@ -160,8 +178,8 @@ function buildPdf(objects: string[]) {
     "%%EOF",
   ].join("\n");
 
-  chunks.push(xref);
-  return Buffer.from(chunks.join(""), "binary");
+  chunks.push(Buffer.from(xref, "binary"));
+  return Buffer.concat(chunks);
 }
 
 export function createSimpleResumePdf(input: SimplePdfInput) {
@@ -173,14 +191,17 @@ export function createSimpleResumePdf(input: SimplePdfInput) {
     .join("\n\n");
   const pages = paginate(text || "SyncHire Resume");
   const objects: string[] = [];
-  const pageObjectIds = pages.map((_, index) => 4 + index * 2);
-  const contentObjectIds = pages.map((_, index) => 5 + index * 2);
+  const pageObjectIds = pages.map((_, index) => 5 + index * 2);
+  const contentObjectIds = pages.map((_, index) => 6 + index * 2);
 
   objects.push("<< /Type /Catalog /Pages 2 0 R >>");
   objects.push(
     `<< /Type /Pages /Kids [${pageObjectIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pages.length} >>`
   );
-  objects.push("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+  objects.push("<< /Type /Font /Subtype /Type0 /BaseFont /STSong-Light /Encoding /UniGB-UCS2-H /DescendantFonts [4 0 R] >>");
+  objects.push(
+    "<< /Type /Font /Subtype /CIDFontType0 /BaseFont /STSong-Light /CIDSystemInfo << /Registry (Adobe) /Ordering (GB1) /Supplement 2 >> >>"
+  );
 
   pages.forEach((pageLines, index) => {
     const contentObjectId = contentObjectIds[index];

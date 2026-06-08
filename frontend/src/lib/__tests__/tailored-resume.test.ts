@@ -27,8 +27,12 @@ describe("tailored resume generation", () => {
 
     expect(markdown).toContain("# Chen Yu");
     expect(markdown).toContain("Graduate Frontend Engineer - Northstar Labs");
+    expect(markdown).toContain("## 求职意向");
+    expect(markdown).toContain("## 项目经历");
+    expect(markdown).toContain("## 原始简历可用证据");
     expect(markdown).toContain("React");
     expect(markdown).toContain("TypeScript");
     expect(markdown).toContain("Original resume notes");
+    expect(markdown).not.toContain("Professional Summary");
   });
 });

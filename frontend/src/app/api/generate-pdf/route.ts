@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { logger, LogCategory } from "@/lib/logger";
 import { createSimpleResumePdf, htmlToPlainText } from "@/lib/simple-pdf";
 
+function buildPdfContentDisposition(filename?: string) {
+  const rawName = filename?.trim() || "resume";
+  const asciiName = rawName
+    .replace(/[^\x20-\x7e]/g, "")
+    .replace(/[\\/:*?"<>|]/g, "-")
+    .trim() || "resume";
+
+  return `attachment; filename="${asciiName}.pdf"; filename*=UTF-8''${encodeURIComponent(`${rawName}.pdf`)}`;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { html, filename } = await request.json();
@@ -22,7 +32,7 @@ export async function POST(request: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${filename || "resume"}.pdf"`,
+        "Content-Disposition": buildPdfContentDisposition(filename),
       },
     });
 

@@ -132,7 +132,7 @@ test.describe('Lite route regression coverage', () => {
     await expect(page.getByText(/岗位化简历|优化完成/).first()).toBeVisible({ timeout: 10_000 })
 
     const stored = await page.evaluate(() => window.localStorage.getItem('synchire-storage'))
-    expect(stored).toContain('Target Role')
+    expect(stored).toContain('求职意向')
     expect(stored).toContain('Acme Hiring')
     expect(stored).toContain('React')
 

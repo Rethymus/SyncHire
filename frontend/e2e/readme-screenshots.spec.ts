@@ -367,11 +367,11 @@ async function prepareResumeEditor(page: Page, path: string) {
   expect(pdfResponse.ok()).toBeTruthy()
   expect(pdfResponse.headers()['content-type']).toContain('application/pdf')
   await page.goto('/editor?applicationId=app-frontend', { waitUntil: 'domcontentloaded' })
-  await expect(page.getByText(/Target Role|目标岗位|Graduate Frontend Engineer/).first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(/求职意向|Graduate Frontend Engineer/).first()).toBeVisible({ timeout: 15_000 })
   const previewButton = page.getByRole('button', { name: /Preview|预览/ })
   await expect(previewButton).toBeEnabled({ timeout: 10_000 })
   await previewButton.click()
-  await expect(page.getByText(/Role Fit Highlights|岗位匹配亮点|Professional Summary/).first()).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText(/岗位匹配亮点|项目经历|Graduate Frontend Engineer/).first()).toBeVisible({ timeout: 10_000 })
   await page.waitForTimeout(500)
   await page.screenshot({ path, fullPage: false })
 }

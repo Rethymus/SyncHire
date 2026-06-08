@@ -3,12 +3,11 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
-import { Save, Download, Eye, Edit, Sparkles, X, Check, AlertCircle, Clock, AlertTriangle, Palette } from "lucide-react";
+import { Save, Download, Eye, Edit, Sparkles, X, Check, AlertCircle, Clock, AlertTriangle, Palette, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { sanitizeHtml, sanitizeMarkdownHtml } from "@/lib/sanitize";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { memo } from "react";
 import { TIMING, RESUME } from "@/lib/constants";
-import { marked } from "marked";
 import { resumeAPI } from "@/lib/api-client-consolidated";
 import { useRouter } from "next/navigation";
 import { TemplateGallery } from "@/components/template-gallery";
@@ -16,6 +15,12 @@ import { SavedTemplatesManager } from "@/components/saved-templates-manager";
 import { ResumeEditorSkeleton } from "@/components/skeleton";
 import { logger, LogCategory } from "@/lib/logger";
 import { useLiteCopy } from "@/lib/lite-i18n";
+import {
+  buildResumeDocumentHtml,
+  getResumeTemplateLabel,
+  getResumeTemplateStyles,
+  renderResumeMarkdownHtml,
+} from "@/lib/resume-rendering";
 
 const COPY = {
   "en-US": {
@@ -33,6 +38,8 @@ const COPY = {
     editorLabel: "Resume content editor",
     placeholder: "Edit your resume here...",
     livePreview: "Live Preview",
+    a4Preview: "A4 rendered preview",
+    currentTemplate: "Current template",
     tipsTitle: "Editing Tip",
     tipsDescription:
       "Use Markdown to edit your resume. Headings, lists, and bold text are supported. Use AI Optimize to improve the resume for the selected job.",
@@ -73,9 +80,11 @@ const COPY = {
     editorLabel: "简历内容编辑",
     placeholder: "在这里编辑您的简历...",
     livePreview: "实时预览",
+    a4Preview: "A4 渲染预览",
+    currentTemplate: "当前模板",
     tipsTitle: "编辑提示",
     tipsDescription:
-      "使用 Markdown 语法编辑简历。支持标题、列表、加粗等功能。点击 AI 优化，让 AI 帮助你改进简历内容。",
+      "使用 Markdown 语法编辑简历。右侧 A4 预览与 PDF 导出使用同一套排版；模板可切换，内容可以继续由你和 AI 共同修改。",
     selectedTarget: "已选择目标职位：",
     missingTarget: "请先选择目标职位描述以使用 AI 优化功能。",
     optimizationFailed: "优化失败",
@@ -100,77 +109,60 @@ const COPY = {
   },
 } as const;
 
-const defaultResumeTemplate = `# 张三
-**前端开发工程师**
+const defaultResumeTemplate = `# 陈宇
+上海 | 138-0000-0000 | chen.yu@example.com | github.com/chenyu | portfolio.example.com
 
-## 个人简介
-5年前端开发经验，专注于React生态系统和现代Web技术。热衷于构建高性能、可维护的用户界面。
-
-## 工作经历
-
-### 字节跳动 | 高级前端工程师
-*2022年3月 - 至今*
-
-- 负责核心产品的前端架构设计和开发
-- 使用Next.js和TypeScript重构旧系统，提升性能30%
-- 带领5人前端团队，建立代码规范和CI/CD流程
-- 实施前端监控和性能优化，LCP从2.5s优化到1.2s
-
-### 腾讯 | 前端工程师
-*2020年7月 - 2022年2月*
-
-- 开发企业级SaaS平台的前端功能
-- 使用React和Redux构建复杂的数据可视化组件
-- 优化首屏加载速度，FCP提升40%
-- 编写单元测试，测试覆盖率达到85%
-
-## 技能
-
-- **前端框架**: React, Vue, Next.js, Nuxt.js
-- **状态管理**: Redux, Zustand, Pinia
-- **构建工具**: Webpack, Vite, Turbopack
-- **样式方案**: Tailwind CSS, CSS-in-JS
-- **测试**: Jest, Testing Library, Playwright
-- **语言**: TypeScript, JavaScript, Python
+## 求职意向
+前端开发工程师 / 全栈开发实习生，可尽快到岗，关注用户体验、工程质量与自动化测试。
 
 ## 教育背景
+### 上海交通大学 | 计算机科学与技术 | 本科
+2022.09 - 2026.06
 
-### 清华大学 | 计算机科学与技术 | 本科
-*2016年9月 - 2020年6月*
+- GPA：3.72/4.00，专业排名前 15%
+- 主修课程：数据结构、计算机网络、操作系统、数据库系统、软件工程、人机交互
+- 校内经历：前端技术社团核心成员，组织 4 次 React 与 TypeScript 分享
 
-- GPA: 3.8/4.0
-- 主修课程: 数据结构、算法、计算机网络、操作系统
-- 毕业设计: 基于React的实时协作文档编辑器
+## 专业技能
+- **前端工程**：React、Next.js、TypeScript、Zustand、Tailwind CSS，能独立完成组件拆分、状态管理与页面联调
+- **测试与质量**：熟悉 Vitest、Testing Library、Playwright，能为关键流程补充单元测试和端到端测试
+- **后端与数据**：了解 Node.js、REST API、PostgreSQL、Redis，能完成基础接口设计与数据建模
+- **工程协作**：熟悉 Git、GitHub Actions、代码评审、需求拆解与问题复盘
 
-## 项目经验
+## 项目经历
+### SyncHire 本地优先求职助手 | 课程项目
+2025.09 - 2026.01
 
-### 在线协作白板系统
-*个人项目 | 2023年*
+- 负责简历管理、岗位匹配和申请看板的前端实现，使用 React + TypeScript 构建可复用表单、列表和状态流
+- 设计本地存储的数据结构，支持简历、职位描述、申请状态和面试记录在浏览器内持久化
+- 为核心流程补充 Playwright 回归用例，覆盖简历上传、岗位录入、匹配分析和 PDF 导出
+- 将岗位关键词映射到简历证据，减少无依据改写，保证应届生项目经历表达真实可追溯
 
-- 技术栈: Next.js 14, TypeScript, WebSocket, Canvas API
-- 实现实时多人协作的白板功能，支持绘制、文字、图片等
-- 使用WebSocket实现低延迟的同步机制
-- 部署在Vercel，支持10,000+日活用户
+### 校园活动报名与签到系统 | 团队项目
+2024.10 - 2025.01
 
-## 证书与奖项
+- 负责活动列表、报名表单和签到管理页面，完成移动端适配和异常状态提示
+- 使用 TypeScript 抽象表单校验规则，将重复校验代码减少约 40%
+- 与后端同学联调 REST API，处理分页、搜索、失败重试和空状态展示
 
-- AWS Certified Developer - Associate (2023)
-- 公司年度优秀员工 (2023)
-- ACM-ICPC区域赛银奖 (2019)
+## 实习与实践
+### 前端开发实习生 | 某 SaaS 创业团队
+2025.07 - 2025.09
+
+- 参与客户管理模块迭代，完成表格筛选、批量操作和详情抽屉等高频功能
+- 根据设计稿还原页面并优化可访问性，为按钮、弹窗和表单补齐键盘焦点与语义标签
+- 参与每周代码评审，修复 12 个影响数据展示和交互反馈的问题
+
+## 个人优势
+- 能把岗位要求转化为可验证的项目证据，不堆砌空泛形容词
+- 对中文简历表达、A4 排版、ATS 可读性和 PDF 导出一致性有工程化意识
+- 接受快速学习和跨端协作，能在明确边界内独立推进任务
 `;
 
-/**
- * 安全的markdown渲染函数
- * 使用marked库解析markdown，然后通过DOMPurify进行XSS防护
- */
 function renderMarkdown(markdown: string): string {
   try {
-    // 使用marked库将markdown转换为HTML
-    const html = marked(markdown) as string;
-    // 使用DOMPurify净化HTML，防止XSS攻击
-    return sanitizeMarkdownHtml(html);
+    return renderResumeMarkdownHtml(markdown);
   } catch (error) {
-    // 如果渲染失败，返回纯文本（转义HTML）
     return sanitizeHtml(markdown);
   }
 }
@@ -187,7 +179,13 @@ type SaveStatus = "saving" | "saved" | "error" | "idle" | "unsaved";
 function ResumeEditorComponent() {
   const { locale } = useLiteCopy();
   const copy = COPY[locale];
-  const { currentResume, updateResume, currentJD } = useAppStore();
+  const {
+    currentResume,
+    updateResume,
+    currentJD,
+    selectedTemplate,
+    setSelectedTemplate,
+  } = useAppStore();
   const router = useRouter();
   const [content, setContent] = useState(defaultResumeTemplate);
   const [previewMode, setPreviewMode] = useState(false);
@@ -477,11 +475,7 @@ function ResumeEditorComponent() {
     setSaveError(null);
 
     try {
-      const html = `<!doctype html>
-        <html>
-          <head><meta charset="utf-8" /></head>
-          <body><main>${renderMarkdown(content)}</main></body>
-        </html>`;
+      const html = buildResumeDocumentHtml(content, selectedTemplate);
       const response = await fetch("/api/generate-pdf", {
         method: "POST",
         headers: {
@@ -489,6 +483,7 @@ function ResumeEditorComponent() {
         },
         body: JSON.stringify({
           html,
+          template: selectedTemplate,
           filename: currentResume.name || "synchire-tailored-resume",
         }),
       });
@@ -516,17 +511,16 @@ function ResumeEditorComponent() {
     } finally {
       setExportingPdf(false);
     }
-  }, [content, copy.pdfFailed, copy.pdfMissingResume, currentResume, resetSaveStatusTimer]);
+  }, [content, copy.pdfFailed, copy.pdfMissingResume, currentResume, resetSaveStatusTimer, selectedTemplate]);
 
   const handleTogglePreview = useCallback(() => {
     setPreviewMode(prev => !prev);
   }, []);
 
   const handleSelectTemplate = useCallback((templateId: string) => {
-    // Template selection logic
     logger.info(LogCategory.UI, `Template selected: ${templateId}`);
-    // Could integrate with backend to save template preference
-  }, []);
+    setSelectedTemplate(templateId);
+  }, [setSelectedTemplate]);
 
   const handleManageTemplates = useCallback(() => {
     setShowSavedTemplates(true);
@@ -639,20 +633,28 @@ function ResumeEditorComponent() {
       {/* Editor/Preview */}
       <div className="flex-1 overflow-hidden">
         {previewMode ? (
-          <div className="h-full overflow-auto bg-gray-50">
-            <div className="max-w-4xl mx-auto p-8 bg-white shadow-sm">
-              <div
-                className="prose prose-lg max-w-none"
-                dangerouslySetInnerHTML={{
-                  __html: sanitizeHtml(renderMarkdown(content)),
-                }}
-              />
+          <div className="synchire-resume-shell h-full">
+            <style>{getResumeTemplateStyles(selectedTemplate)}</style>
+            <div className="mb-4 flex items-center justify-between text-sm text-gray-700">
+              <div className="flex items-center gap-2 font-medium">
+                <FileText className="h-4 w-4" />
+                {copy.a4Preview}
+              </div>
+              <span>
+                {copy.currentTemplate}: {getResumeTemplateLabel(selectedTemplate)}
+              </span>
             </div>
+            <main
+              className="synchire-resume-page"
+              dangerouslySetInnerHTML={{
+                __html: renderMarkdown(content),
+              }}
+            />
           </div>
         ) : (
-          <div className="h-full flex">
+          <div className="grid h-full lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.86fr)]">
             {/* Editor Area */}
-            <div className="flex-1 border-r border-gray-200">
+            <div className="min-h-0 border-r border-gray-200">
               <label htmlFor="resume-editor" className="sr-only">
                 {copy.editorLabel}
               </label>
@@ -660,7 +662,7 @@ function ResumeEditorComponent() {
                 id="resume-editor"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="w-full h-full p-8 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm leading-relaxed"
+                className="w-full h-full p-8 pb-32 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm leading-relaxed"
                 placeholder={copy.placeholder}
                 aria-describedby="editor-tips"
                 style={{
@@ -670,18 +672,23 @@ function ResumeEditorComponent() {
             </div>
 
             {/* Live Preview */}
-            <div className="flex-1 overflow-auto bg-gray-50">
-              <div className="max-w-4xl mx-auto p-8 bg-white shadow-sm">
-                <h3 className="text-sm font-medium text-gray-600 mb-4 pb-2 border-b">
+            <div className="synchire-resume-shell min-h-0 pb-32">
+              <style>{getResumeTemplateStyles(selectedTemplate)}</style>
+              <div className="mb-4 flex items-center justify-between gap-3 text-sm text-gray-700">
+                <h3 className="flex items-center gap-2 font-medium">
+                  <FileText className="h-4 w-4" />
                   {copy.livePreview}
                 </h3>
-                <div
-                  className="prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{
-                    __html: sanitizeHtml(renderMarkdown(content)),
-                  }}
-                />
+                <span className="shrink-0">
+                  {copy.currentTemplate}: {getResumeTemplateLabel(selectedTemplate)}
+                </span>
               </div>
+              <main
+                className="synchire-resume-page"
+                dangerouslySetInnerHTML={{
+                  __html: renderMarkdown(content),
+                }}
+              />
             </div>
           </div>
         )}

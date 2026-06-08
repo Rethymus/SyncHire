@@ -7,6 +7,8 @@ import {
   Eye,
   EyeOff,
   KeyRound,
+  Link as LinkIcon,
+  Loader2,
   PackageCheck,
   PlugZap,
   RefreshCw,
@@ -53,6 +55,13 @@ import {
   setRuntimeCapabilityEnabled,
   setRuntimeCapabilityInstalled,
 } from "@/lib/ai-runtime-settings";
+import {
+  AI_PROVIDER_PRESETS,
+  findPresetByBaseUrl,
+  getPresetsForProvider,
+  testAIProviderConnection,
+  type AIProviderPresetId,
+} from "@/lib/ai-provider-connection";
 import { formatLiteDate, useLiteCopy } from "@/lib/lite-i18n";
 import { cn } from "@/lib/utils";
 
@@ -83,10 +92,19 @@ const COPY = {
       manual: "Manual",
       activeProvider: "Manual provider",
       baseUrl: "Base URL",
+      providerPreset: "Provider preset",
+      customEndpoint: "Custom endpoint",
       apiKey: "API key",
+      apiKeyLink: "Get API key",
       apiKeyPlaceholder: "Paste your API key. It stays in this browser.",
       modelMode: "Model mode",
       model: "Model",
+      testConnection: "Test connection",
+      testingConnection: "Testing...",
+      connectionOk: "Connection OK",
+      connectionFailed: "Connection failed",
+      connectionUntested: "Not tested",
+      connectionDetail: "Testing only fetches the model list and does not send resume or job content.",
       customModel: "Custom model ID",
       customModelPlaceholder: "provider-specific-model-id",
       enabled: "Enabled",
@@ -195,10 +213,19 @@ const COPY = {
       manual: "手动指定",
       activeProvider: "手动供应商",
       baseUrl: "Base URL",
+      providerPreset: "供应商预设",
+      customEndpoint: "自定义接口",
       apiKey: "API key",
+      apiKeyLink: "获取 API key",
       apiKeyPlaceholder: "粘贴 API key，仅保存在当前浏览器。",
       modelMode: "模型模式",
       model: "模型",
+      testConnection: "测试连接",
+      testingConnection: "测试中...",
+      connectionOk: "连接可用",
+      connectionFailed: "连接失败",
+      connectionUntested: "未测试",
+      connectionDetail: "测试只拉取模型列表，不发送简历或职位内容，不消耗生成类 token。",
       customModel: "自定义模型 ID",
       customModelPlaceholder: "provider-specific-model-id",
       enabled: "已启用",
@@ -565,6 +592,37 @@ function MessageBanner({ message }: { message: { type: "success" | "error"; text
   );
 }
 
+function FloatingToast({ message }: { message: { type: "success" | "error"; title: string; text: string } | null }) {
+  if (!message) {
+    return null;
+  }
+
+  return (
+    <div
+      className={cn(
+        "fixed right-4 top-4 z-50 max-w-md rounded-md border bg-white p-4 shadow-lg",
+        message.type === "success" ? "border-emerald-200" : "border-red-200"
+      )}
+      role="status"
+      aria-live="polite"
+    >
+      <div className="flex items-start gap-3">
+        {message.type === "success" ? (
+          <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+        ) : (
+          <ShieldCheck className="mt-0.5 size-5 shrink-0 text-red-600" />
+        )}
+        <div>
+          <div className={cn("text-sm font-semibold", message.type === "success" ? "text-emerald-900" : "text-red-900")}>
+            {message.title}
+          </div>
+          <p className="mt-1 text-sm leading-6 text-gray-700">{message.text}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SectionHeader({
   icon: Icon,
   title,
@@ -645,13 +703,55 @@ function AIProviderPanel({
   onReset: () => void;
 }) {
   const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
+  const [testingProviderId, setTestingProviderId] = useState<AIProviderId | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<
+    Record<string, { type: "success" | "error"; text: string }>
+  >({});
+  const [toast, setToast] = useState<{ type: "success" | "error"; title: string; text: string } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), 5200);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
 
   const toggleVisibleKey = (providerId: AIProviderId) => {
     setVisibleKeys((current) => ({ ...current, [providerId]: !current[providerId] }));
   };
 
+  const handlePresetChange = (provider: AIRuntimeSettings["providers"][number], presetId: AIProviderPresetId | "custom") => {
+    if (presetId === "custom") return;
+    const preset = AI_PROVIDER_PRESETS.find((item) => item.id === presetId);
+    if (!preset) return;
+
+    setSettings(updateProvider(settings, provider.id, { baseUrl: preset.baseUrl }));
+  };
+
+  const handleTestConnection = async (provider: AIRuntimeSettings["providers"][number]) => {
+    setTestingProviderId(provider.id);
+    const result = await testAIProviderConnection(provider);
+
+    if (result.ok) {
+      setSettings(updateProvider(settings, provider.id, { models: result.models }));
+      setConnectionStatus((current) => ({
+        ...current,
+        [provider.id]: { type: "success", text: result.detail },
+      }));
+      setToast({ type: "success", title: result.message, text: result.detail });
+    } else {
+      setConnectionStatus((current) => ({
+        ...current,
+        [provider.id]: { type: "error", text: result.detail },
+      }));
+      setToast({ type: "error", title: result.message, text: result.detail });
+    }
+
+    setTestingProviderId(null);
+  };
+
   return (
     <div className="space-y-6">
+      <FloatingToast message={toast} />
       <SectionHeader icon={KeyRound} title={copy.ai.title} subtitle={copy.ai.subtitle} />
 
       <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
@@ -718,6 +818,10 @@ function AIProviderPanel({
           const selectedModel = provider.modelMode === "auto" ? "auto" : provider.selectedModel;
           const keyVisible = Boolean(visibleKeys[provider.id]);
           const hasKey = provider.apiKey.trim().length > 0;
+          const presets = getPresetsForProvider(provider.id);
+          const selectedPreset = findPresetByBaseUrl(provider.id, provider.baseUrl);
+          const status = connectionStatus[provider.id];
+          const isTesting = testingProviderId === provider.id;
 
           return (
             <section
@@ -739,6 +843,16 @@ function AIProviderPanel({
                     <Badge variant="outline">
                       {provider.enabled ? copy.ai.enabled : copy.ai.disabled}
                     </Badge>
+                    <Badge
+                      variant={status?.type === "success" ? "default" : "outline"}
+                      className={status?.type === "success" ? "bg-emerald-600" : status?.type === "error" ? "border-red-300 text-red-700" : ""}
+                    >
+                      {status?.type === "success"
+                        ? copy.ai.connectionOk
+                        : status?.type === "error"
+                          ? copy.ai.connectionFailed
+                          : copy.ai.connectionUntested}
+                    </Badge>
                   </div>
                   <p className="mt-1 text-sm leading-6 text-gray-600">
                     {getProviderDescription(provider, locale)}
@@ -759,6 +873,36 @@ function AIProviderPanel({
               </div>
 
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <div>
+                  <Label>{copy.ai.providerPreset}</Label>
+                  <Select
+                    value={selectedPreset?.id ?? "custom"}
+                    onValueChange={(value) => handlePresetChange(provider, value as AIProviderPresetId | "custom")}
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {presets.map((preset) => (
+                        <SelectItem key={preset.id} value={preset.id}>
+                          {preset.label}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="custom">{copy.ai.customEndpoint}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {(selectedPreset?.apiKeyUrl || presets[0]?.apiKeyUrl) && (
+                    <a
+                      href={selectedPreset?.apiKeyUrl ?? presets[0].apiKeyUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:text-blue-900"
+                    >
+                      <LinkIcon className="size-3.5" />
+                      {copy.ai.apiKeyLink}
+                    </a>
+                  )}
+                </div>
                 <div>
                   <Label htmlFor={`${provider.id}-base-url`}>{copy.ai.baseUrl}</Label>
                   <Input
@@ -796,6 +940,29 @@ function AIProviderPanel({
                   <p className="mt-1 text-xs text-gray-500">
                     {copy.ai.masked}: {getMaskedApiKey(provider.apiKey, locale, copy.ai.noKey)}
                   </p>
+                </div>
+                <div>
+                  <Label>{copy.ai.testConnection}</Label>
+                  <div className="mt-2 flex flex-col gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleTestConnection(provider)}
+                      disabled={isTesting}
+                      className="justify-start"
+                    >
+                      {isTesting ? <Loader2 className="size-4 animate-spin" /> : <PlugZap className="size-4" />}
+                      {isTesting ? copy.ai.testingConnection : copy.ai.testConnection}
+                    </Button>
+                    <p
+                      className={cn(
+                        "text-xs leading-5",
+                        status?.type === "success" ? "text-emerald-700" : status?.type === "error" ? "text-red-700" : "text-gray-500"
+                      )}
+                    >
+                      {status?.text ?? copy.ai.connectionDetail}
+                    </p>
+                  </div>
                 </div>
                 <div>
                   <Label>{copy.ai.modelMode}</Label>
