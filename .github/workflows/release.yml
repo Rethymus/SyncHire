@@ -202,14 +202,16 @@ jobs:
           merge-multiple: true
 
       - name: List release assets
-        run: find release-assets -maxdepth 2 -type f -print | sort
+        run: find release-assets -maxdepth 3 -type f -print | sort
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
           name: SyncHire ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
-          files: release-assets/*
+          files: |
+            release-assets/*
+            release-assets/**/*
           generate_release_notes: true
           fail_on_unmatched_files: true
         env:
