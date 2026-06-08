@@ -3,25 +3,48 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag (e.g., v1.0.0)'
+        description: "Version tag or release name (for manual runs)"
         required: true
-        default: 'v1.0.0'
+        default: "v1.0.0"
+
+permissions:
+  contents: write
 
 env:
-  NODE_VERSION: '22.x'
-  PYTHON_VERSION: '3.11'
+  NODE_VERSION: "22.x"
+  RUST_VERSION: stable
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  # ─────────────────────────────────────────────
-  # Build Windows exe with Electron + PyInstaller
-  # ─────────────────────────────────────────────
-  build-windows:
-    runs-on: windows-latest
-    needs: []
+  desktop:
+    name: Desktop ${{ matrix.platform.name }}
+    runs-on: ${{ matrix.platform.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - name: windows
+            runner: windows-latest
+            bundles: nsis
+            artifact-name: SyncHire-Windows
+            artifact-path: |
+              src-tauri/target/release/bundle/nsis/*.exe
+          - name: macos
+            runner: macos-latest
+            bundles: dmg
+            artifact-name: SyncHire-macOS
+            artifact-path: |
+              src-tauri/target/release/bundle/dmg/*.dmg
+          - name: linux
+            runner: ubuntu-latest
+            bundles: deb
+            artifact-name: SyncHire-Linux
+            artifact-path: |
+              src-tauri/target/release/bundle/deb/*.deb
 
     steps:
       - name: Checkout code
@@ -31,80 +54,49 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
-      - name: Setup Python
-        uses: actions/setup-python@v6
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: api/requirements.txt
+          workspaces: src-tauri -> target
 
-      - name: Install Python dependencies
-        working-directory: ./api
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pyinstaller
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            rpm
 
-      - name: Install frontend dependencies
-        run: npm install --prefer-offline --no-audit --no-fund
+      - name: Install npm dependencies
+        run: npm ci --include=optional --no-audit --no-fund
 
-      - name: Build frontend (static export)
-        working-directory: ./frontend
-        shell: bash
-        run: |
-          # Move API routes completely out of src/app (they can't be statically exported)
-          mv src/app/api ../_api_temp
-          npx next build
-          # Restore API routes
-          mv ../_api_temp src/app/api
-        env:
-          NODE_ENV: production
-          NEXT_OUTPUT: export
+      - name: Ensure Tailwind native dependency
+        run: node scripts/install-tailwind-oxide.mjs
 
-      - name: Copy static export to Electron
-        shell: bash
-        run: |
-          mkdir -p electron/frontend/out
-          cp -r frontend/out/* electron/frontend/out/
+      - name: Build desktop installer
+        run: npx tauri build --bundles ${{ matrix.platform.bundles }}
 
-      - name: Install Electron dependencies
-        working-directory: ./electron
-        run: npm install
-
-      - name: Build Python backend with PyInstaller
-        working-directory: ./api
-        run: |
-          pyinstaller main_lite.spec --distpath ../electron/python --clean
-
-      - name: Package Electron app
-        working-directory: ./electron
-        run: npm run package:win
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Windows installer
+      - name: Upload desktop installer
         uses: actions/upload-artifact@v6
         with:
-          name: SyncHire-Windows
-          path: electron/dist/*.exe
+          name: ${{ matrix.platform.artifact-name }}
+          path: ${{ matrix.platform.artifact-path }}
+          if-no-files-found: error
           retention-days: 30
 
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: electron/dist/*.exe
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # ─────────────────────────────────────────────
-  # Build Android APK with Capacitor + Chaquopy
-  # ─────────────────────────────────────────────
-  build-android:
+  android:
+    name: Android APK
     runs-on: ubuntu-latest
-    needs: []
+    env:
+      HAS_ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
 
     steps:
       - name: Checkout code
@@ -114,126 +106,94 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install frontend dependencies
-        run: npm install --prefer-offline --no-audit --no-fund
-
-      - name: Build frontend (static export)
-        working-directory: ./frontend
-        shell: bash
+      - name: Install Android build platform
         run: |
-          # Move API routes completely out of src/app (they can't be statically exported)
-          mv src/app/api ../_api_temp
-          npx next build
-          # Restore API routes
-          mv ../_api_temp src/app/api
+          yes | sdkmanager --licenses || true
+          yes | sdkmanager "platforms;android-36" "build-tools;35.0.0"
+
+      - name: Install npm dependencies
+        run: npm ci --include=optional --no-audit --no-fund
+
+      - name: Ensure Tailwind native dependency
+        run: node scripts/install-tailwind-oxide.mjs
+
+      - name: Build static frontend and sync Android
+        run: npm run android:sync
+
+      - name: Decode Android signing keystore
+        if: env.HAS_ANDROID_KEYSTORE == 'true'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
+
+      - name: Build signed Android release APK
+        if: env.HAS_ANDROID_KEYSTORE == 'true'
+        working-directory: android
         env:
-          NODE_ENV: production
-          NEXT_OUTPUT: export
-
-      - name: Initialize Capacitor
+          CAPACITOR_ANDROID_STUDIO_PATH: ""
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "SyncHire" "com.synchire.app" --web-dir frontend/out
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file="$PWD/app/release.keystore" \
+            -Pandroid.injected.signing.store.password="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.key.alias="${{ secrets.ANDROID_KEY_ALIAS }}" \
+            -Pandroid.injected.signing.key.password="${{ secrets.ANDROID_KEY_PASSWORD }}"
 
-      - name: Add Android platform
-        run: |
-          npx cap add android
+      - name: Build debug-signed Android APK
+        if: env.HAS_ANDROID_KEYSTORE != 'true'
+        working-directory: android
+        run: ./gradlew assembleDebug
 
-      - name: Configure Android for Chaquopy
-        working-directory: ./android
-        run: |
-          # Add Chaquopy plugin to build.gradle
-          sed -i '/plugins {/a\    id "com.chaquo.python" version "15.0.1"' app/build.gradle
+      - name: Upload signed Android APK
+        if: env.HAS_ANDROID_KEYSTORE == 'true'
+        uses: actions/upload-artifact@v6
+        with:
+          name: SyncHire-Android
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 30
 
-          # Configure Chaquopy in app/build.gradle
-          cat >> app/build.gradle << 'GRADLE_CONFIG'
-
-          chaquopy {
-              defaultConfig {
-                  python {
-                      version = "3.11"
-                      pip {
-                          install "fastapi"
-                          install "uvicorn"
-                          install "sqlalchemy"
-                          install "aiosqlite"
-                          install "pydantic"
-                          install "python-jose"
-                          install "passlib"
-                          install "httpx"
-                      }
-                  }
-              }
-          }
-          GRADLE_CONFIG
-
-      - name: Copy Python backend to Android assets
-        run: |
-          mkdir -p android/app/src/main/assets/python
-          cp -r api/app android/app/src/main/assets/python/
-          cp api/main_lite.py android/app/src/main/assets/python/
-
-      - name: Sync Capacitor
-        run: npx cap sync android
-
-      - name: Build Android APK
-        working-directory: ./android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug
-
-      - name: Upload Android APK
+      - name: Upload debug-signed Android APK
+        if: env.HAS_ANDROID_KEYSTORE != 'true'
         uses: actions/upload-artifact@v6
         with:
           name: SyncHire-Android
           path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
           retention-days: 30
 
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: android/app/build/outputs/apk/debug/*.apk
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # ─────────────────────────────────────────────
-  # Quality gate
-  # ─────────────────────────────────────────────
-  quality-gate:
-    needs: [build-windows, build-android]
+  release:
+    name: Publish GitHub Release
     runs-on: ubuntu-latest
-    if: always()
+    needs: [desktop, android]
 
     steps:
-      - name: Check build results
-        run: |
-          echo "## 📦 Release Build Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+      - name: Download release artifacts
+        uses: actions/download-artifact@v6
+        with:
+          path: release-assets
+          merge-multiple: true
 
-          if [ "${{ needs.build-windows.result }}" = "success" ]; then
-            echo "- ✅ Windows exe: Built successfully" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- ❌ Windows exe: Build failed" >> $GITHUB_STEP_SUMMARY
-          fi
+      - name: List release assets
+        run: find release-assets -maxdepth 2 -type f -print | sort
 
-          if [ "${{ needs.build-android.result }}" = "success" ]; then
-            echo "- ✅ Android APK: Built successfully" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- ❌ Android APK: Build failed" >> $GITHUB_STEP_SUMMARY
-          fi
-
-      - name: Fail if any build failed
-        if: needs.build-windows.result != 'success' || needs.build-android.result != 'success'
-        run: exit 1
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
+          name: SyncHire ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
+          files: release-assets/*
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

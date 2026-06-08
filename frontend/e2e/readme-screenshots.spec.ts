@@ -67,7 +67,7 @@ function buildSeedStorage(locale: 'en-US' | 'zh-CN') {
           matchScore: 86,
           createdAt: '2026-06-01T10:00:00.000Z',
           updatedAt: '2026-06-07T12:00:00.000Z',
-          tags: ['new-grad', 'high-priority', 'resume-tailored'],
+          tags: isZh ? ['应届生', '高优先级', '简历已定制'] : ['new-grad', 'high-priority', 'resume-tailored'],
         },
         {
           id: 'app-product',
@@ -79,7 +79,7 @@ function buildSeedStorage(locale: 'en-US' | 'zh-CN') {
           matchScore: 74,
           createdAt: '2026-06-03T09:00:00.000Z',
           updatedAt: '2026-06-06T10:30:00.000Z',
-          tags: ['interview', 'product'],
+          tags: isZh ? ['面试中', '产品方向'] : ['interview', 'product'],
         },
         {
           id: 'app-platform',
@@ -91,7 +91,7 @@ function buildSeedStorage(locale: 'en-US' | 'zh-CN') {
           matchScore: 68,
           createdAt: '2026-06-05T08:30:00.000Z',
           updatedAt: '2026-06-05T18:00:00.000Z',
-          tags: ['follow-up', 'frontend'],
+          tags: isZh ? ['待跟进', '前端'] : ['follow-up', 'frontend'],
         },
       ],
       candidateProfile: {
@@ -440,12 +440,13 @@ async function prepareSettingsAI(page: Page, overviewPath: string, providerPath:
 
 async function prepareSettingsSkills(page: Page, path: string) {
   await openSettings(page)
-  await page.getByRole('tab', { name: /Skills/ }).click()
-  await expect(page.getByRole('heading', { name: /Skill switchboard|Skill 开关面板/ })).toBeVisible({
+  const isZh = await page.evaluate(() => document.documentElement.lang === 'zh-CN')
+  await page.getByRole('tab', { name: /Skills|技能/ }).click()
+  await expect(page.getByRole('heading', { name: /Skill switchboard|技能开关面板/ })).toBeVisible({
     timeout: 10_000,
   })
-  await page.locator('#skill-filter').fill('resume')
-  await expect(page.getByText(/JD Resume Tailor|Resume PDF Export/).first()).toBeVisible({
+  await page.locator('#skill-filter').fill(isZh ? '简历' : 'resume')
+  await expect(page.getByText(/JD Resume Tailor|Resume PDF Export|JD 简历定制|简历 PDF 导出/).first()).toBeVisible({
     timeout: 10_000,
   })
   await page.waitForTimeout(300)
@@ -454,18 +455,20 @@ async function prepareSettingsSkills(page: Page, path: string) {
 
 async function prepareSettingsMcp(page: Page, path: string) {
   await openSettings(page)
+  const isZh = await page.evaluate(() => document.documentElement.lang === 'zh-CN')
   await page.getByRole('tab', { name: /^MCP$/ }).click()
   await expect(page.getByRole('heading', { name: /MCP switchboard|MCP 开关面板/ })).toBeVisible({
     timeout: 10_000,
   })
-  await page.locator('#mcp-filter').fill('browser')
-  await expect(page.getByText('Review-Only WebBridge').first()).toBeVisible({ timeout: 10_000 })
+  await page.locator('#mcp-filter').fill(isZh ? '浏览器' : 'browser')
+  await expect(page.getByText(/Review-Only WebBridge|审核式 WebBridge/).first()).toBeVisible({ timeout: 10_000 })
   await page.waitForTimeout(300)
   await page.screenshot({ path, fullPage: false })
 }
 
 async function prepareSettingsDiscovery(page: Page, discoverPath: string, repositoriesPath: string) {
   await openSettings(page)
+  const isZh = await page.evaluate(() => document.documentElement.lang === 'zh-CN')
   await page.getByRole('tab', { name: /Discover|发现/ }).click()
   await expect(page.getByRole('heading', { name: /Discovery and repository management|发现与仓库管理/ })).toBeVisible({
     timeout: 10_000,
@@ -474,8 +477,8 @@ async function prepareSettingsDiscovery(page: Page, discoverPath: string, reposi
   await expect(page.getByText(/Catalog metadata refreshed locally|目录元数据已在本地刷新/)).toBeVisible({
     timeout: 10_000,
   })
-  await page.locator('#catalog-search').fill('browser')
-  await expect(page.getByText('Review-Only WebBridge').first()).toBeVisible({ timeout: 10_000 })
+  await page.locator('#catalog-search').fill(isZh ? '浏览器' : 'browser')
+  await expect(page.getByText(/Review-Only WebBridge|审核式 WebBridge/).first()).toBeVisible({ timeout: 10_000 })
   await page.waitForTimeout(300)
   await page.screenshot({ path: discoverPath, fullPage: false })
 

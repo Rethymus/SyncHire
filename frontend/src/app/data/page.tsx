@@ -164,6 +164,16 @@ const COPY = {
     createBackup: "Create Local Backup",
     backups: "Local Backups",
     backupDescription: "Local backup metadata is stored in this browser only.",
+    backupManagement: "Backup Management",
+    backupManagementDescription: "Create and manage automatic backups of your data",
+    createBackupButton: "Create Backup",
+    backupFiles: "files",
+    restore: "Restore",
+    restoreSoon: "Backup restoration will be implemented soon",
+    emptyBackups: "No backups yet. Create your first backup to protect your data.",
+    localPrivacyTitle: "Your Data Stays Local",
+    localPrivacyDescription:
+      "All data is stored locally on your machine in ~/.synchire. No cloud storage, no data collection, no tracking. Your job search data is completely private.",
     successJson: "Data exported successfully as JSON",
     successCsv: "Data exported successfully as CSV",
     failedExport: "Failed to export data",
@@ -206,6 +216,16 @@ const COPY = {
     createBackup: "创建本地备份",
     backups: "本地备份",
     backupDescription: "本地备份元数据仅保存在当前浏览器中。",
+    backupManagement: "备份管理",
+    backupManagementDescription: "创建并管理你的本地自动备份",
+    createBackupButton: "创建备份",
+    backupFiles: "个文件",
+    restore: "恢复",
+    restoreSoon: "备份恢复功能即将上线",
+    emptyBackups: "还没有备份。创建第一份备份来保护你的求职数据。",
+    localPrivacyTitle: "你的数据只保存在本地",
+    localPrivacyDescription:
+      "所有数据都存储在你的设备和本地应用目录中。没有云端存储、没有数据采集、没有追踪，你的求职数据完全由你掌控。",
     successJson: "已成功导出 JSON 数据",
     successCsv: "已成功导出 CSV 数据",
     failedExport: "导出数据失败",
@@ -1243,7 +1263,7 @@ function DataManagementPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
               <HardDrive className="h-6 w-6 text-purple-600 mr-2" />
-              <h2 className="text-xl font-semibold text-gray-900">Backup Management</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{copy.backupManagement}</h2>
             </div>
             <Button
               onClick={handleCreateBackup}
@@ -1251,12 +1271,12 @@ function DataManagementPage() {
               className="bg-purple-600 hover:bg-purple-700"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
-              Create Backup
+              {copy.createBackupButton}
             </Button>
           </div>
 
           <p className="text-gray-600 mb-4">
-            Create and manage automatic backups of your data
+            {copy.backupManagementDescription}
           </p>
 
           {backups.length > 0 ? (
@@ -1271,7 +1291,7 @@ function DataManagementPage() {
                       {new Date(backup.created_at).toLocaleString()}
                     </p>
                     <p className="text-sm text-gray-600">
-                      {backup.files_count} files • {formatFileSize(backup.size)}
+                      {backup.files_count} {copy.backupFiles} • {formatFileSize(backup.size)}
                     </p>
                   </div>
                   <Button
@@ -1279,17 +1299,17 @@ function DataManagementPage() {
                     size="sm"
                     onClick={() => {
                       logger.info(LogCategory.API, `Restore backup: ${backup.id}`);
-                      showMessage("info", "Backup restoration will be implemented soon");
+                      showMessage("info", copy.restoreSoon);
                     }}
                   >
-                    Restore
+                    {copy.restore}
                   </Button>
                 </div>
               ))}
             </div>
           ) : (
             <p className="text-center py-8 text-gray-600">
-              No backups yet. Create your first backup to protect your data.
+              {copy.emptyBackups}
             </p>
           )}
         </div>
@@ -1299,10 +1319,9 @@ function DataManagementPage() {
           <div className="flex">
             <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-blue-800">Your Data Stays Local</h3>
+              <h3 className="text-sm font-medium text-blue-800">{copy.localPrivacyTitle}</h3>
               <p className="text-sm text-blue-600 mt-1">
-                All data is stored locally on your machine in ~/.synchire. No cloud storage, no
-                data collection, no tracking. Your job search data is completely private.
+                {copy.localPrivacyDescription}
               </p>
             </div>
           </div>

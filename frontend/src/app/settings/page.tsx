@@ -159,6 +159,7 @@ const COPY = {
       remoteWarning:
         "Remote refresh is metadata-only. SyncHire will not run skill.sh, mcp.sh, install commands, or browser agents automatically.",
       noResults: "No results yet. Try a broader search or refresh metadata.",
+      whenOpeningSettings: "When opening settings",
     },
     status: {
       updated: "Updated",
@@ -175,11 +176,11 @@ const COPY = {
   "zh-CN": {
     pageTitle: "AI 运行时设置",
     pageSubtitle:
-      "用类似 cc switch 的控制台统一管理 API、模型、Skill、MCP 与本地安全策略。",
+      "用类似 cc switch 的控制台统一管理 API、模型、技能、MCP 与本地安全策略。",
     privacyPill: "仅存储在本机浏览器",
     tabs: {
       ai: "AI 供应商",
-      skills: "Skills",
+      skills: "技能",
       mcp: "MCP",
       discover: "发现",
       notifications: "通知",
@@ -229,9 +230,9 @@ const COPY = {
       install: "添加",
       remove: "移除",
       restore: "使用推荐默认配置",
-      skillsTitle: "Skill 开关面板",
+      skillsTitle: "技能开关面板",
       skillsSubtitle:
-        "像 cc switch 一样启停能力：角色卡蒸馏、JD 简历生成、审核式浏览器填写、本地隐私护栏等。",
+        "像 cc switch 一样启停能力：角色卡提炼、JD 简历生成、审核式浏览器填写、本地隐私护栏等。",
       mcpTitle: "MCP 开关面板",
       mcpSubtitle:
         "选择本地 MCP 与浏览器桥接能力。命令仅作为配置提示，必须由用户审核后安装。",
@@ -244,7 +245,7 @@ const COPY = {
       title: "发现与仓库管理",
       subtitle:
         "搜索 SyncHire、skill.sh、mcp.sh 与自定义目录的本地元数据；刷新不会执行远程脚本。",
-      search: "搜索 Skill 和 MCP",
+      search: "搜索技能和 MCP",
       kind: "目录类型",
       all: "全部",
       skills: "Skills",
@@ -270,14 +271,15 @@ const COPY = {
       remoteWarning:
         "远程刷新仅更新元数据。SyncHire 不会自动执行 skill.sh、mcp.sh、安装命令或浏览器 agent。",
       noResults: "暂无结果。可以放宽搜索词或刷新元数据。",
+      whenOpeningSettings: "打开设置页时自动刷新",
     },
     status: {
       updated: "更新时间",
       lastRefresh: "上次目录刷新",
       never: "从未",
       loading: "正在加载设置...",
-      enabledSkills: "启用 Skills",
-      enabledMcps: "启用 MCPs",
+      enabledSkills: "启用技能",
+      enabledMcps: "启用 MCP",
       configuredProviders: "已配置供应商",
       autoProvider: "自动供应商路由",
       manualProvider: "手动供应商路由",
@@ -308,6 +310,238 @@ function updateProvider(
 
 function formatOptionalDate(value: string | undefined, locale: "en-US" | "zh-CN", fallback: string) {
   return value ? formatLiteDate(value, locale) : fallback;
+}
+
+const ZH_PROVIDER_COPY: Record<
+  AIProviderId,
+  {
+    name: string;
+    description: string;
+    models: Record<string, { label: string; description?: string }>;
+  }
+> = {
+  openai: {
+    name: "OpenAI 兼容接口",
+    description: "适合通用推理、简历撰写和结构化信息抽取。",
+    models: {
+      auto: { label: "自动选择" },
+      "gpt-5": { label: "GPT-5", description: "适合角色卡提炼和简历重写等深度推理任务。" },
+      "gpt-5-mini": { label: "GPT-5 mini", description: "适合日常草稿、分类和低延迟填表建议。" },
+      custom: { label: "自定义模型 ID" },
+    },
+  },
+  anthropic: {
+    name: "Anthropic 兼容接口",
+    description: "适合长文本推理和更谨慎的浏览器填表建议。",
+    models: {
+      auto: { label: "自动选择" },
+      "claude-sonnet": { label: "Claude Sonnet 系列", description: "兼顾推理质量与速度，适合多数求职流程。" },
+      "claude-haiku": { label: "Claude Haiku 系列", description: "适合低成本抽取、分类和摘要。" },
+      custom: { label: "自定义模型 ID" },
+    },
+  },
+  moonshot: {
+    name: "Kimi / Moonshot",
+    description: "适合长上下文中文与双语求职工作流。",
+    models: {
+      auto: { label: "自动选择" },
+      "kimi-k2": { label: "Kimi K2", description: "适合长职位描述、角色卡提炼和中英双语推理。" },
+      custom: { label: "自定义模型 ID" },
+    },
+  },
+  deepseek: {
+    name: "DeepSeek 兼容接口",
+    description: "适合本地优先工作流中的高性价比推理和文案起草。",
+    models: {
+      auto: { label: "自动选择" },
+      "deepseek-chat": { label: "DeepSeek Chat", description: "适合职位解析、简历要点和摘要生成。" },
+      "deepseek-reasoner": { label: "DeepSeek Reasoner", description: "适合匹配分析和面试规划等推理任务。" },
+      custom: { label: "自定义模型 ID" },
+    },
+  },
+  gemini: {
+    name: "Gemini 兼容接口",
+    description: "适合多模态友好的材料分析和快速草稿。",
+    models: {
+      auto: { label: "自动选择" },
+      "gemini-pro": { label: "Gemini Pro 系列", description: "适合简历审阅、公司研究和综合推理。" },
+      "gemini-flash": { label: "Gemini Flash 系列", description: "适合低延迟填表建议和摘要。" },
+      custom: { label: "自定义模型 ID" },
+    },
+  },
+  local: {
+    name: "本地模型服务",
+    description: "适合离线草稿和隐私优先的信息抽取。",
+    models: {
+      auto: { label: "自动选择" },
+      "ollama-default": { label: "Ollama 默认模型", description: "通过 Ollama 兼容端点提供的本地模型。" },
+      custom: { label: "自定义模型 ID" },
+    },
+  },
+};
+
+const ZH_CAPABILITY_COPY: Record<
+  string,
+  {
+    name: string;
+    description: string;
+    category: string;
+    tags?: string[];
+    source?: string;
+    permissionNote?: string;
+  }
+> = {
+  "role-card-distiller": {
+    name: "角色卡提炼器",
+    description: "把用户资料提炼成紧凑的候选人角色卡，用于每一次职位匹配。",
+    category: "画像智能",
+    tags: ["角色卡", "隐私", "应届生"],
+    source: "SyncHire 内置",
+  },
+  "jd-resume-tailor": {
+    name: "JD 简历定制",
+    description: "在不虚构经历的前提下，生成面向具体岗位的简历草稿。",
+    category: "简历生成",
+    tags: ["简历", "JD", "ATS"],
+    source: "SyncHire 内置",
+  },
+  "browser-fill-review": {
+    name: "审核式浏览器填表",
+    description: "为申请表准备可审核字段值，同时阻止自动提交。",
+    category: "浏览器助手",
+    tags: ["浏览器", "表单", "人工审核"],
+    source: "SyncHire 内置",
+    permissionNote: "从用户修改中学习前，必须获得明确同意。",
+  },
+  "local-privacy-guard": {
+    name: "本地隐私护栏",
+    description: "确保个人数据留在本地，并在发送敏感字段给模型供应商前提醒用户。",
+    category: "安全",
+    tags: ["本地优先", "个人信息", "同意"],
+    source: "SyncHire 内置",
+  },
+  "application-ledger": {
+    name: "申请台账",
+    description: "在本地跟踪每个 JD、定制简历、状态变化和下一步动作。",
+    category: "求职管理",
+    tags: ["跟踪", "工作流", "申请"],
+    source: "SyncHire 内置",
+  },
+  "resume-pdf-export": {
+    name: "简历 PDF 导出",
+    description: "把岗位化简历草稿渲染成可由用户审核的 PDF 文件。",
+    category: "简历生成",
+    tags: ["PDF", "导出", "简历"],
+    source: "SyncHire 内置",
+  },
+  "interview-prep-coach": {
+    name: "面试准备教练",
+    description: "根据 JD 生成聚焦的面试问题、回答提纲和风险检查。",
+    category: "面试",
+    tags: ["面试", "问题", "练习"],
+    source: "SyncHire 目录",
+  },
+  "recruiter-message-writer": {
+    name: "招聘沟通文案",
+    description: "根据角色卡和目标公司上下文起草简洁的外联消息。",
+    category: "外联",
+    tags: ["消息", "人脉", "招聘方"],
+    source: "技能元数据目录",
+  },
+  "offer-comparison": {
+    name: "Offer 对比",
+    description: "对比多个 offer 的薪酬、成长、通勤和风险。",
+    category: "决策支持",
+    tags: ["offer", "薪酬", "决策"],
+    source: "技能元数据目录",
+  },
+  "synchire-resume-analyzer": {
+    name: "SyncHire 简历解析器",
+    description: "把简历解析成结构化的本地候选人证据。",
+    category: "本地 MCP",
+    tags: ["简历", "解析", "本地"],
+    source: "SyncHire 内置",
+  },
+  "synchire-jd-parser": {
+    name: "SyncHire JD 解析器",
+    description: "从粘贴的职位描述中提取标题、公司、要求和技能。",
+    category: "本地 MCP",
+    tags: ["JD", "解析", "本地"],
+    source: "SyncHire 内置",
+  },
+  "synchire-job-matcher": {
+    name: "SyncHire 岗位匹配器",
+    description: "将本地角色卡和简历证据与目标 JD 进行匹配评分。",
+    category: "本地 MCP",
+    tags: ["匹配", "评分", "本地"],
+    source: "SyncHire 内置",
+  },
+  "synchire-interview-prep": {
+    name: "SyncHire 面试准备",
+    description: "根据 JD 和申请历史构建面试准备材料。",
+    category: "本地 MCP",
+    tags: ["面试", "准备", "本地"],
+    source: "SyncHire 内置",
+  },
+  "review-only-webbridge": {
+    name: "审核式 WebBridge",
+    description: "连接浏览器桥接能力来填写表单，最终提交仍交给用户。",
+    category: "浏览器 MCP",
+    tags: ["浏览器", "表单", "不提交"],
+    source: "MCP 元数据目录",
+    permissionNote: "永不点击提交；从用户修改中学习需要用户同意。",
+  },
+  "local-file-vault": {
+    name: "本地文件保险库",
+    description: "只从用户批准的本地文件夹读写简历资产。",
+    category: "存储 MCP",
+    tags: ["文件", "本地", "保险库"],
+    source: "MCP 元数据目录",
+  },
+  "calendar-reminders": {
+    name: "日历提醒",
+    description: "创建本地面试提醒草稿，等待用户审核。",
+    category: "效率 MCP",
+    tags: ["日历", "面试", "提醒"],
+    source: "MCP 元数据目录",
+  },
+};
+
+function getProviderName(provider: AIRuntimeSettings["providers"][number], locale: "en-US" | "zh-CN") {
+  return locale === "zh-CN" ? ZH_PROVIDER_COPY[provider.id].name : provider.name;
+}
+
+function getProviderDescription(provider: AIRuntimeSettings["providers"][number], locale: "en-US" | "zh-CN") {
+  return locale === "zh-CN" ? ZH_PROVIDER_COPY[provider.id].description : provider.description;
+}
+
+function getModelLabel(
+  provider: AIRuntimeSettings["providers"][number],
+  model: AIRuntimeSettings["providers"][number]["models"][number],
+  locale: "en-US" | "zh-CN"
+) {
+  return locale === "zh-CN" ? ZH_PROVIDER_COPY[provider.id].models[model.id]?.label ?? model.label : model.label;
+}
+
+function getMaskedApiKey(apiKey: string, locale: "en-US" | "zh-CN", noKeyCopy: string) {
+  if (!apiKey) {
+    return locale === "zh-CN" ? noKeyCopy : maskApiKey(apiKey);
+  }
+
+  return maskApiKey(apiKey);
+}
+
+function getCapabilityDisplay(item: RuntimeCapability, locale: "en-US" | "zh-CN") {
+  const zhCopy = locale === "zh-CN" ? ZH_CAPABILITY_COPY[item.id] : undefined;
+
+  return {
+    name: zhCopy?.name ?? item.name,
+    description: zhCopy?.description ?? item.description,
+    category: zhCopy?.category ?? item.category,
+    tags: zhCopy?.tags ?? item.tags,
+    source: zhCopy?.source ?? item.source,
+    permissionNote: zhCopy?.permissionNote ?? item.permissionNote,
+  };
 }
 
 function MessageBanner({ message }: { message: { type: "success" | "error"; text: string } | null }) {
@@ -464,7 +698,7 @@ function AIProviderPanel({
               <SelectContent>
                 {settings.providers.map((provider) => (
                   <SelectItem key={provider.id} value={provider.id}>
-                    {provider.name}
+                    {getProviderName(provider, locale)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -496,7 +730,9 @@ function AIProviderPanel({
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-base font-semibold text-gray-950">{provider.name}</h3>
+                    <h3 className="text-base font-semibold text-gray-950">
+                      {getProviderName(provider, locale)}
+                    </h3>
                     <Badge variant={hasKey ? "default" : "outline"} className={hasKey ? "bg-emerald-600" : ""}>
                       {hasKey ? copy.ai.configured : copy.ai.noKey}
                     </Badge>
@@ -504,7 +740,9 @@ function AIProviderPanel({
                       {provider.enabled ? copy.ai.enabled : copy.ai.disabled}
                     </Badge>
                   </div>
-                  <p className="mt-1 text-sm leading-6 text-gray-600">{provider.description}</p>
+                  <p className="mt-1 text-sm leading-6 text-gray-600">
+                    {getProviderDescription(provider, locale)}
+                  </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <Label htmlFor={`${provider.id}-enabled`} className="text-sm text-gray-700">
@@ -556,7 +794,7 @@ function AIProviderPanel({
                     </Button>
                   </div>
                   <p className="mt-1 text-xs text-gray-500">
-                    {copy.ai.masked}: {maskApiKey(provider.apiKey)}
+                    {copy.ai.masked}: {getMaskedApiKey(provider.apiKey, locale, copy.ai.noKey)}
                   </p>
                 </div>
                 <div>
@@ -606,7 +844,7 @@ function AIProviderPanel({
                     <SelectContent>
                       {provider.models.map((model) => (
                         <SelectItem key={model.id} value={model.id}>
-                          {model.label}
+                          {getModelLabel(provider, model, locale)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -650,11 +888,13 @@ function AIProviderPanel({
 function CapabilityCard({
   item,
   copy,
+  locale,
   onToggle,
   onInstallToggle,
 }: {
   item: RuntimeCapability;
   copy: SettingsCopy;
+  locale: "en-US" | "zh-CN";
   onToggle: (id: string, enabled: boolean) => void;
   onInstallToggle: (id: string, installed: boolean) => void;
 }) {
@@ -663,13 +903,14 @@ function CapabilityCard({
     medium: copy.capability.medium,
     high: copy.capability.high,
   }[item.risk];
+  const display = getCapabilityDisplay(item, locale);
 
   return (
     <article className="rounded-md border border-gray-200 bg-white p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-base font-semibold text-gray-950">{item.name}</h3>
+            <h3 className="text-base font-semibold text-gray-950">{display.name}</h3>
             {item.recommended && <Badge className="bg-blue-600">{copy.capability.recommended}</Badge>}
             <Badge variant={item.installed ? "default" : "outline"}>
               {item.installed ? copy.capability.installed : copy.capability.available}
@@ -678,7 +919,7 @@ function CapabilityCard({
               {copy.capability.risk}: {riskCopy}
             </Badge>
           </div>
-          <p className="mt-2 text-sm leading-6 text-gray-600">{item.description}</p>
+          <p className="mt-2 text-sm leading-6 text-gray-600">{display.description}</p>
         </div>
         <div className="flex shrink-0 items-center gap-3">
           <Label htmlFor={`${item.id}-enabled`} className="text-sm text-gray-700">
@@ -694,7 +935,7 @@ function CapabilityCard({
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        {item.tags.map((tag) => (
+        {display.tags.map((tag) => (
           <span key={tag} className="rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-700">
             {tag}
           </span>
@@ -704,11 +945,11 @@ function CapabilityCard({
       <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
         <div>
           <dt className="font-medium text-gray-700">{copy.capability.source}</dt>
-          <dd className="mt-1 text-gray-600">{item.source}</dd>
+          <dd className="mt-1 text-gray-600">{display.source}</dd>
         </div>
         <div>
           <dt className="font-medium text-gray-700">{copy.capability.category}</dt>
-          <dd className="mt-1 text-gray-600">{item.category}</dd>
+          <dd className="mt-1 text-gray-600">{display.category}</dd>
         </div>
         {item.command && (
           <div className="sm:col-span-2">
@@ -718,10 +959,10 @@ function CapabilityCard({
             </dd>
           </div>
         )}
-        {item.permissionNote && (
+        {display.permissionNote && (
           <div className="sm:col-span-2">
             <dt className="font-medium text-gray-700">{copy.capability.permission}</dt>
-            <dd className="mt-1 text-gray-600">{item.permissionNote}</dd>
+            <dd className="mt-1 text-gray-600">{display.permissionNote}</dd>
           </div>
         )}
       </dl>
@@ -747,6 +988,7 @@ function CapabilityPanel({
   settings,
   setSettings,
   copy,
+  locale,
   onSave,
   onDefaults,
 }: {
@@ -754,6 +996,7 @@ function CapabilityPanel({
   settings: AIRuntimeSettings;
   setSettings: (settings: AIRuntimeSettings) => void;
   copy: SettingsCopy;
+  locale: "en-US" | "zh-CN";
   onSave: () => void;
   onDefaults: () => void;
 }) {
@@ -766,13 +1009,15 @@ function CapabilityPanel({
       return items;
     }
 
-    return items.filter((item) =>
-      [item.name, item.description, item.category, item.source, ...item.tags]
+    return items.filter((item) => {
+      const display = getCapabilityDisplay(item, locale);
+
+      return [item.name, item.description, item.category, item.source, ...item.tags, display.name, display.description, display.category, display.source, ...display.tags]
         .join(" ")
         .toLowerCase()
-        .includes(normalized)
-    );
-  }, [items, query]);
+        .includes(normalized);
+    });
+  }, [items, locale, query]);
 
   const title = kind === "skill" ? copy.capability.skillsTitle : copy.capability.mcpTitle;
   const subtitle = kind === "skill" ? copy.capability.skillsSubtitle : copy.capability.mcpSubtitle;
@@ -813,6 +1058,7 @@ function CapabilityPanel({
             key={item.id}
             item={item}
             copy={copy}
+            locale={locale}
             onToggle={(id, enabled) =>
               setSettings(setRuntimeCapabilityEnabled(settings, kind, id, enabled))
             }
@@ -852,10 +1098,39 @@ function DiscoveryPanel({
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<RuntimeCapabilityKind | "all">("all");
   const [repositoryForm, setRepositoryForm] = useState(EMPTY_REPOSITORY_FORM);
-  const results = useMemo(
-    () => searchRuntimeCatalog(settings, query, kind),
-    [settings, query, kind]
-  );
+  const results = useMemo(() => {
+    const baseResults = searchRuntimeCatalog(settings, query, kind);
+    const normalized = query.trim().toLowerCase();
+
+    if (!normalized) {
+      return baseResults;
+    }
+
+    const rawMatches = new Set(baseResults.map((item) => item.id));
+    const items = [
+      ...(kind === "mcp" ? [] : settings.skills),
+      ...(kind === "skill" ? [] : settings.mcps),
+    ];
+    const translatedMatches = items.filter((item) => {
+      const display = getCapabilityDisplay(item, locale);
+
+      return [
+        display.name,
+        display.description,
+        display.category,
+        display.source,
+        ...display.tags,
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(normalized);
+    });
+
+    return [
+      ...baseResults,
+      ...translatedMatches.filter((item) => !rawMatches.has(item.id)),
+    ];
+  }, [settings, query, kind, locale]);
 
   const protectedRepositoryIds = new Set(["synchire-built-in", "skill-sh", "mcp-sh"]);
 
@@ -943,7 +1218,7 @@ function DiscoveryPanel({
         <label className="flex items-center justify-between gap-3 rounded-md border border-gray-200 bg-white px-4 py-3">
           <span>
             <span className="block text-sm font-medium text-gray-900">{copy.discover.autoRefresh}</span>
-            <span className="block text-xs text-gray-500">When opening settings</span>
+            <span className="block text-xs text-gray-500">{copy.discover.whenOpeningSettings}</span>
           </span>
           <Switch
             checked={settings.autoRefreshCatalogs}
@@ -960,6 +1235,7 @@ function DiscoveryPanel({
             key={`${item.kind}-${item.id}`}
             item={item}
             copy={copy}
+            locale={locale}
             onToggle={(id, enabled) =>
               setSettings(setRuntimeCapabilityEnabled(settings, item.kind, id, enabled))
             }
@@ -1263,6 +1539,7 @@ export default function SettingsPage() {
               settings={settings}
               setSettings={setSettings}
               copy={copy}
+              locale={locale}
               onSave={saveSettings}
               onDefaults={restoreDefaults}
             />
@@ -1273,6 +1550,7 @@ export default function SettingsPage() {
               settings={settings}
               setSettings={setSettings}
               copy={copy}
+              locale={locale}
               onSave={saveSettings}
               onDefaults={restoreDefaults}
             />

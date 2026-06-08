@@ -96,6 +96,7 @@ const INTERVIEW_FORM_COPY = {
     },
     meetingPlatform: "Meeting Platform",
     selectPlatform: "Select platform",
+    platformOther: "Other",
     meetingUrl: "Meeting URL",
     meetingId: "Meeting ID",
     meetingPassword: "Meeting Password",
@@ -180,6 +181,7 @@ const INTERVIEW_FORM_COPY = {
     },
     meetingPlatform: "会议平台",
     selectPlatform: "选择平台",
+    platformOther: "其他",
     meetingUrl: "会议链接",
     meetingId: "会议 ID",
     meetingPassword: "会议密码",
@@ -731,7 +733,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                 <option value="google_meet">Google Meet</option>
                 <option value="teams">Microsoft Teams</option>
                 <option value="webex">Cisco Webex</option>
-                <option value="other">Other</option>
+                <option value="other">{copy.platformOther}</option>
               </select>
             </div>
 

@@ -108,6 +108,21 @@ function formatDateKey(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
+function formatMatchLevel(score: number, locale: LiteLocale) {
+  const level = getMatchLevel(score);
+
+  if (locale !== "zh-CN") {
+    return level;
+  }
+
+  return {
+    excellent: "优秀",
+    good: "良好",
+    fair: "一般",
+    poor: "较低",
+  }[level];
+}
+
 export function findLocalApplicationContext({
   applicationId,
   applications,
@@ -511,7 +526,7 @@ export function buildLocalAnalytics({
           type: "success",
           title: zh ? "最高匹配机会" : "Highest-fit opportunity",
           description: zh
-            ? `${bestApplication.companyName} - ${bestApplication.position} 当前匹配等级为 ${getMatchLevel(bestApplication.matchScore ?? 0)}，分数 ${bestApplication.matchScore}%。投递前请先审核岗位化简历。`
+            ? `${bestApplication.companyName} - ${bestApplication.position} 当前匹配等级为${formatMatchLevel(bestApplication.matchScore ?? 0, locale)}，分数 ${bestApplication.matchScore}%。投递前请先审核岗位化简历。`
             : `${bestApplication.companyName} - ${bestApplication.position} is a ${getMatchLevel(bestApplication.matchScore ?? 0)} match at ${bestApplication.matchScore}%. Review the tailored resume before applying.`,
           actionable: true,
           priority: "high",

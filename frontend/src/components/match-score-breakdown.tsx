@@ -82,6 +82,10 @@ const categoryColors = {
   "Soft Skills": "bg-purple-500",
   "Experience": "bg-green-500",
   "Education": "bg-orange-500",
+  "硬技能": "bg-blue-500",
+  "软技能": "bg-purple-500",
+  "项目经历": "bg-green-500",
+  "教育背景": "bg-orange-500",
 };
 
 export function MatchScoreBreakdown({

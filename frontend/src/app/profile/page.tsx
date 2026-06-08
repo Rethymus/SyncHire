@@ -77,6 +77,7 @@ const COPY = {
     submitGuard:
       "Submit controls are intentionally excluded. The user must audit the page and submit manually.",
     recentSessions: "Recent local fill sessions",
+    autoSubmit: "Auto submit",
     emptySessions: "No browser fill sessions yet.",
     demoForm: "Demo application form",
     demoNotice: "Filled values are staged for review only. Submit stays disabled.",
@@ -133,6 +134,7 @@ const COPY = {
     submitGuard:
       "提交控件已被刻意排除。页面必须由用户审核后手动提交。",
     recentSessions: "最近本地填表会话",
+    autoSubmit: "自动提交",
     emptySessions: "还没有浏览器填表会话。",
     demoForm: "演示申请表",
     demoNotice: "填入内容仅用于审核暂存，提交按钮保持禁用。",
@@ -369,7 +371,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-950">0</p>
-              <p className="text-xs text-gray-600">Auto submit</p>
+              <p className="text-xs text-gray-600">{copy.autoSubmit}</p>
             </div>
           </div>
         </header>
