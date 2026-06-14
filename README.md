@@ -195,8 +195,7 @@ SyncHire/
 ├── api/             FastAPI backend, auth, data, AI orchestration
 ├── mcp-servers/     Modular AI services for parsing, matching, and prep
 ├── db/              Database schema and migrations
-├── deploy/          Deployment assets
-├── k8s/             Kubernetes manifests
+├── deploy/          Deployment assets (Docker only)
 ├── docs/            Engineering and product documentation
 └── docker-compose.yml
 ```

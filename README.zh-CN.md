@@ -193,8 +193,7 @@ SyncHire/
 ├── api/             FastAPI 后端、认证、数据、AI 编排
 ├── mcp-servers/     用于解析、匹配和面试准备的模块化 AI 服务
 ├── db/              数据库 schema 和迁移
-├── deploy/          部署资源
-├── k8s/             Kubernetes 配置
+├── deploy/          部署资源（仅 Docker）
 ├── docs/            工程与产品文档
 └── docker-compose.yml
 ```

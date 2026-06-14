@@ -124,8 +124,7 @@ SyncHire/
 ├── db/                      # Database schemas
 │   └── migrations/          # Alembic migrations
 ├── docs/                    # Documentation
-├── deploy/                  # Deployment configs
-├── k8s/                     # Kubernetes manifests
+├── deploy/                  # Deployment configs (Docker only)
 └── package.json            # Root workspace config
 ```
 
