@@ -175,6 +175,25 @@ function DashboardPage() {
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">{dashboard.quickActions}</h2>
+          <Link
+            href="/resume-builder"
+            className="group mb-4 flex items-center justify-between gap-4 p-5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center">
+                <FileText className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-base">Markdown 简历制作</p>
+                <p className="text-sm text-blue-100">
+                  多主题 · 智能一页 · 智能检测 · 源码 / 所见即所得 · PDF / PNG / MD 导出
+                </p>
+              </div>
+            </div>
+            <span className="text-sm font-medium opacity-90 group-hover:translate-x-1 transition-transform">
+              开始制作 →
+            </span>
+          </Link>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link
               href="/upload"

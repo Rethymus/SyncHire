@@ -19,9 +19,11 @@ import {
   SlidersHorizontal,
   Sparkles,
   Trash2,
+  Image as ImageIcon,
   type LucideIcon,
 } from "lucide-react";
 import { NotificationSettings } from "@/components/settings/notification-settings";
+import { ImageProviderPanel } from "@/components/settings/image-provider-panel";
 import { NotificationHistory } from "@/components/notification-history";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,7 +67,7 @@ import {
 import { formatLiteDate, useLiteCopy } from "@/lib/lite-i18n";
 import { cn } from "@/lib/utils";
 
-type TabType = "ai" | "skills" | "mcp" | "discover" | "notifications" | "history";
+type TabType = "ai" | "skills" | "mcp" | "discover" | "image" | "notifications" | "history";
 
 type SettingsCopy = (typeof COPY)[keyof typeof COPY];
 
@@ -80,6 +82,7 @@ const COPY = {
       skills: "Skills",
       mcp: "MCP",
       discover: "Discover",
+      image: "Image",
       notifications: "Notifications",
       history: "History",
     },
@@ -201,6 +204,7 @@ const COPY = {
       skills: "技能",
       mcp: "MCP",
       discover: "发现",
+      image: "图像",
       notifications: "通知",
       history: "历史",
     },
@@ -1579,7 +1583,13 @@ function DiscoveryPanel({
 export default function SettingsPage() {
   const { locale } = useLiteCopy();
   const copy = COPY[locale];
-  const [activeTab, setActiveTab] = useState<TabType>("ai");
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    if (typeof window === "undefined") return "ai";
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    return tab && ["ai", "skills", "mcp", "discover", "image", "notifications", "history"].includes(tab)
+      ? (tab as TabType)
+      : "ai";
+  });
   const [settings, setSettings] = useState<AIRuntimeSettings>(() =>
     createDefaultAIRuntimeSettings()
   );
@@ -1680,6 +1690,10 @@ export default function SettingsPage() {
               <Search className="size-4" />
               {copy.tabs.discover}
             </TabsTrigger>
+            <TabsTrigger value="image" className="gap-2">
+              <ImageIcon className="size-4" />
+              {copy.tabs.image}
+            </TabsTrigger>
             <TabsTrigger value="notifications" className="gap-2">
               <Settings2 className="size-4" />
               {copy.tabs.notifications}
@@ -1732,6 +1746,9 @@ export default function SettingsPage() {
               onSave={saveSettings}
               showMessage={showMessage}
             />
+          </TabsContent>
+          <TabsContent value="image" className="mt-6">
+            <ImageProviderPanel />
           </TabsContent>
           <TabsContent value="notifications" className="mt-6">
             <NotificationSettings />
