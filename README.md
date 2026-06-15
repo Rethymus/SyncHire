@@ -1,276 +1,305 @@
 # SyncHire (知遇)
 
 <p align="center">
-  <strong>The AI-powered job application command center for people who refuse to send generic resumes.</strong>
+  <strong>为不甘心投递模板简历的人打造的 AI 求职作战中心。</strong>
   <br />
-  Build sharper resumes, decode job descriptions, manage every opportunity, and walk into interviews with a plan.
+  打磨简历、拆解岗位、管理机会、准备面试，把每一次投递都变成有策略的出击。
 </p>
 
 <p align="center">
-  <a href="./README.md"><strong>English</strong></a>
+  <a href="./README.en.md">English</a>
   ·
-  <a href="./README.zh-CN.md">简体中文</a>
+  <a href="./README.md"><strong>简体中文</strong></a>
 </p>
 
 <p align="center">
-  <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
-  <img alt="Next.js 16.2.7" src="https://img.shields.io/badge/Next.js-16.2.7-black.svg" />
-  <img alt="React 19" src="https://img.shields.io/badge/React-19.2.7-61DAFB.svg" />
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-blue.svg" />
-  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-Python%203.11+-009688.svg" />
-  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL%20%2B%20PGVector-16-336791.svg" />
+  <a href="https://opensource.org/licenses/MIT"><img alt="License" src="https://img.shields.io/badge/License-MIT-blue.svg" /></a>
+  <a href="https://github.com/Rethymus/SyncHire/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Rethymus/SyncHire/actions/workflows/ci.yml/badge.svg" /></a>
+  <a href="https://github.com/Rethymus/SyncHire"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/Rethymus/SyncHire?style=social" /></a>
+  <img alt="Last Commit" src="https://img.shields.io/github/last-commit/Rethymus/SyncHire" />
+  <img alt="Repo Size" src="https://img.shields.io/github/repo-size/Rethymus/SyncHire" />
+  <a href="https://github.com/Rethymus/SyncHire/issues"><img alt="Issues" src="https://img.shields.io/github/issues/Rethymus/SyncHire" /></a>
+  <a href="https://github.com/Rethymus/SyncHire/pulls"><img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
 </p>
 
 <p align="center">
-  <img src="docs/assets/readme/en-linux-dashboard.png" alt="SyncHire Lite English Linux dashboard preview" width="860" />
+  <strong>前端 · Frontend</strong><br />
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16.2.7-black?logo=nextdotjs&logoColor=white" />
+  <img alt="React" src="https://img.shields.io/badge/React-19.2.7-61DAFB?logo=react&logoColor=black" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" />
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white" />
+  <img alt="Zustand" src="https://img.shields.io/badge/Zustand-5-FF6B00?logo=zustand&logoColor=white" />
+  <img alt="TanStack Query" src="https://img.shields.io/badge/TanStack_Query-5-FF4154?logo=reactquery&logoColor=white" />
 </p>
-
-## The Product Pitch
-
-Job hunting should not feel like throwing your career into a black box.
-
-SyncHire is built for one clear promise: turn every application into a targeted, measurable, high-confidence campaign. It brings your resume, job descriptions, role card, tailored PDF export, match scoring, interview preparation, application tracking, browser-assisted form filling, and data portability into one focused workspace. No more scattered files, half-finished notes, lost links, or guessing whether your resume actually speaks the language of the role.
-
-Use SyncHire in local-first Lite mode when you want a private, fast, no-backend workflow where personal data stays on your machine. Turn on the full stack when you want AI analysis, vector matching, API-backed persistence, OAuth, 2FA, object storage, and production-grade infrastructure.
-
-## Why SyncHire Wins
-
-| What job seekers usually fight                | What SyncHire gives them                              |
-| --------------------------------------------- | ----------------------------------------------------- |
-| One resume sent everywhere                    | Role-specific resume and job-description workflows    |
-| Job links buried in tabs and notes            | A structured application pipeline                     |
-| Vague "looks good" feedback                   | Match scores, gaps, and next actions                  |
-| Interview prep starting too late              | Role-aware prep generated from the actual opportunity |
-| Data trapped in a product                     | JSON/CSV export, import preview, and local backups    |
-| Fragile demos that need every service running | Lite mode that works locally without backend noise    |
-| Application forms that steal your time        | Agent-ready fill plans that stop before submission    |
-
-## What You Can Do
-
-- Upload and manage resumes with visible validation for file type and size.
-- Save job descriptions manually or preserve job URLs when auto-import is unavailable.
-- Create local applications from a resume and a job description in minutes.
-- Maintain a local candidate role card that powers tailored resumes and browser fill suggestions.
-- Generate local PDF resume exports without sending personal data to the cloud.
-- Produce browser-agent instructions for Kimi WebBridge-style assisted form filling while excluding every submit control.
-- Review generated field values, edit them as a real applicant, and approve learning only when you want the role card updated.
-- Track application status, notes, search views, interviews, analytics, and saved searches.
-- Export, import, and back up your data from a dedicated data management console.
-- Connect a full backend for AI-powered resume analysis, job matching, interview prep, authentication, storage, and vector search.
-
-## English Linux Dogfood Showcase
-
-These screenshots come from the June 8, 2026 Linux standalone production validation run. SyncHire was tested in English as Chen Yu, a 2026 fresh graduate targeting graduate frontend roles. The workflow starts from a blank local profile, uploads a resume, enters a job description, creates an application, and then exercises the complete Lite flow: dashboard, resume assets, job descriptions, applications, role-specific A4 resume rendering, local PDF export, role-card assisted browser filling, match analysis, interview prep, interview scheduling, saved searches, notification settings and history, analytics, search, data management, AI provider/model settings, Skill and MCP switchboards, discovery, and repository management.
-
-### Core Workflow
-
-| Dashboard | Resumes |
-| --------- | ------- |
-| <img src="docs/assets/readme/en-linux-dashboard.png" alt="SyncHire Lite English dashboard after Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-resumes.png" alt="SyncHire Lite English resume management screen from Linux validation" width="420" /> |
-
-| Job Descriptions | Applications |
-| ---------------- | ------------ |
-| <img src="docs/assets/readme/en-linux-job-descriptions.png" alt="SyncHire Lite English job descriptions screen from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-applications.png" alt="SyncHire Lite English applications screen from Linux validation" width="420" /> |
-
-### Resume And Browser Agent
-
-Full generated resume artifact: [Chen Yu graduate frontend tailored resume](docs/assets/readme/en-fresh-graduate-tailored-resume.md)
-
-| Application Detail | Tailored Resume PDF Flow |
-| ------------------ | ------------------------ |
-| <img src="docs/assets/readme/en-linux-application-detail.png" alt="SyncHire Lite English application detail with local resume optimization completed" width="420" /> | <img src="docs/assets/readme/en-linux-tailored-resume-pdf.png" alt="SyncHire Lite English role-specific resume editor and local PDF export flow" width="420" /> |
-
-| Role Card & Browser Fill | Match Analysis |
-| ------------------------ | -------------- |
-| <img src="docs/assets/readme/en-linux-profile.png" alt="SyncHire Lite English role card and browser fill assistant with user-reviewed learning" width="420" /> | <img src="docs/assets/readme/en-linux-match-analysis.png" alt="SyncHire Lite English match analysis screen from Linux validation" width="420" /> |
-
-### AI Business Headshot (Photo → Portrait)
-
-The resume builder can turn a single casual photo into a clean, professional ID-portrait / business headshot through the configured image model — no studio, no appointment. The **Portrait Studio** lives right in the resume-builder toolbar — upload a daily photo, optionally fill a name/title/department, and generate:
 
 <p align="center">
-  <img src="docs/assets/readme/image-demo/portrait-studio-modal.png" alt="SyncHire resume-builder Portrait Studio modal: upload a casual photo, fill optional name/title/department, and generate a business ID portrait with the configured image model" width="800" />
+  <strong>后端与数据 · Backend &amp; Data</strong><br />
+  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-Python%203.11+-009688?logo=fastapi&logoColor=white" />
+  <img alt="Python" src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" />
+  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white" />
+  <img alt="PGVector" src="https://img.shields.io/badge/PGVector-vector_search-41B883" />
+  <img alt="Redis" src="https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white" />
+  <img alt="MinIO" src="https://img.shields.io/badge/MinIO-S3_compatible-FFC72C" />
 </p>
-
-Below are before/after pairs using public figures only as neutral demo subjects; their likeness is not endorsed and is not reused beyond this showcase.
-
-| Daniel Wu — source photo | Daniel Wu — AI-generated ID portrait |
-| ------------------------ | ------------------------------------ |
-| <img src="docs/assets/readme/image-demo/daniel-wu-source.jpg" alt="Daniel Wu casual source photo used as input to the AI portrait generator" width="300" /> | <img src="docs/assets/readme/image-demo/daniel-wu-id-photo.png" alt="Daniel Wu AI-generated professional ID portrait produced by SyncHire" width="300" /> |
-
-| Eddie Peng — source photo | Eddie Peng — AI-generated ID portrait |
-| ------------------------- | ------------------------------------- |
-| <img src="docs/assets/readme/image-demo/eddie-peng-source.jpg" alt="Eddie Peng casual source photo used as input to the AI portrait generator" width="300" /> | <img src="docs/assets/readme/image-demo/eddie-peng-id-photo.png" alt="Eddie Peng AI-generated professional ID portrait produced by SyncHire" width="300" /> |
-
-The portrait route is provider-agnostic (OpenAI-compatible `images/edits`, SiliconFlow, Volcengine Ark / Doubao) and runs server-side, so the API key never reaches the browser. Bring your own `OPENAI_API_KEY` and `base_url` to enable it.
-
-> **Portrait & media notice.** SyncHire is an open-source, non-commercial project. The demo photos above are used solely to illustrate the headshot feature and are reused here only under their original free licenses — *Daniel Wu* by Gage Skidmore ([CC BY-SA 3.0](https://commons.wikimedia.org/wiki/File:Daniel_Wu_by_Gage_Skidmore.jpg)) and *Eddie Peng, October 2018* ([CC BY 3.0](https://commons.wikimedia.org/wiki/File:Eddie_Peng_(%E5%BD%AD%E4%BA%8E%E6%99%8F)_in_October_2018.png)), both from Wikimedia Commons. They depict public figures and imply no endorsement of SyncHire, and the generated portraits are not reused beyond this showcase. If any displayed content infringes your rights, please open an issue or contact the maintainer and it will be removed promptly.
-
-### Insights And Search
-
-| Interview Prep | Analytics |
-| -------------- | --------- |
-| <img src="docs/assets/readme/en-linux-interview-prep.png" alt="SyncHire Lite English interview preparation generated from resume, role card, and job description" width="420" /> | <img src="docs/assets/readme/en-linux-analytics.png" alt="SyncHire Lite English analytics dashboard from Linux validation" width="420" /> |
-
-| Search | Data Management |
-| ------ | --------------- |
-| <img src="docs/assets/readme/en-linux-search.png" alt="SyncHire Lite English local search screen from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-data-management.png" alt="SyncHire Lite English data management screen from Linux validation" width="420" /> |
-
-### Interview Review (fresh interview → structured improvement)
-
-Right after an interview, hand the content to AI. Three input modes: **recall notes** (out-of-order is fine), **meeting transcript** (paste Tencent Meeting / Feishu Minutes / Otter notes for the best accuracy), or **speech-to-text** (live browser dictation, or paste ASR text after uploading audio). AI runs a two-step pipeline — first **normalizes** messy input into an ordered Q&A transcript, then produces a **7-dimension score + STAR gaps + action items** review. Shown below: a fresh-grad frontend candidate reviewing a real first-round interview (model: GLM-4-Flash).
-
-<p align="center"><em>① Three input modes: recall / transcript / speech-to-text</em></p>
-
-| Recall mode | Transcript mode | Speech-to-text mode |
-| ----------- | --------------- | ------------------- |
-| <img src="docs/assets/readme/image-demo/interview-review/modal-recall-mode.png" alt="Interview review recall mode with a textarea for messy post-interview notes" width="320" /> | <img src="docs/assets/readme/image-demo/interview-review/transcript-mode.png" alt="Interview review transcript mode prompting to paste Tencent Meeting AI notes" width="320" /> | <img src="docs/assets/readme/image-demo/interview-review/audio-mode.png" alt="Interview review speech-to-text mode with live browser dictation and audio upload guidance" width="320" /> |
-
-<p align="center"><em>② Messy recall normalized into 14 ordered Q&A turns</em></p>
 
 <p align="center">
-  <img src="docs/assets/readme/image-demo/interview-review/filled-recall-text.png" alt="Fresh-grad candidate's messy recalled interview notes" width="460" />&nbsp;&nbsp;
-  <img src="docs/assets/readme/image-demo/interview-review/normalized-turns.png" alt="14 ordered Q&A turns the AI reconstructed from the messy recall" width="460" />
+  <strong>AI 与质量保障 · AI &amp; Quality</strong><br />
+  <img alt="OpenAI" src="https://img.shields.io/badge/OpenAI-compatible-412991?logo=openai&logoColor=white" />
+  <img alt="MCP" src="https://img.shields.io/badge/MCP-modular_servers-orange" />
+  <img alt="Vitest" src="https://img.shields.io/badge/Vitest-4-6E9F18?logo=vitest&logoColor=white" />
+  <img alt="Playwright" src="https://img.shields.io/badge/Playwright-E2E-2EAD33?logo=playwright&logoColor=white" />
+  <img alt="ESLint" src="https://img.shields.io/badge/ESLint-9-4B32C3?logo=eslint&logoColor=white" />
+  <img alt="Pytest" src="https://img.shields.io/badge/Pytest-passing-0A9EDC?logo=pytest&logoColor=white" />
 </p>
-
-<p align="center"><em>③ Review report: 7-dimension scores + STAR gaps + action items</em></p>
 
 <p align="center">
-  <img src="docs/assets/readme/image-demo/interview-review/review-report.png" alt="AI-generated interview review report with overall score, seven-dimension scores, STAR gaps, and action items" width="780" />
+  <img src="docs/assets/readme/zh-linux-dashboard.png" alt="SyncHire Lite 中文 Linux 仪表盘预览" width="860" />
 </p>
 
-### Interviews And Alerts
+## 产品宣言
 
-| Interview Pipeline | Interview Scheduling |
-| ------------------ | -------------------- |
-| <img src="docs/assets/readme/en-linux-interviews.png" alt="SyncHire Lite English interview pipeline with upcoming and completed interviews from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-interview-schedule.png" alt="SyncHire Lite English interview scheduling form from Linux validation" width="420" /> |
+求职不应该像把职业生涯扔进一个黑箱。
 
-| Saved Searches | Notification Settings |
-| -------------- | --------------------- |
-| <img src="docs/assets/readme/en-linux-saved-searches.png" alt="SyncHire Lite English saved search cards with filters and match notifications from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-settings-notifications.png" alt="SyncHire Lite English local notification settings from Linux validation" width="420" /> |
+SyncHire 只为一个目标而生：让每一次投递都更有策略、更可衡量、更有胜算。它把简历、职位描述、候选人角色卡、个性化 PDF 导出、匹配分析、面试准备、申请进度、浏览器辅助填表和数据备份放进同一个工作台。你不再需要在文件夹、浏览器标签、备忘录和聊天记录之间来回翻找，也不必猜测“这份简历到底有没有说到岗位重点”。
 
-| Notification History |
-| -------------------- |
-| <img src="docs/assets/readme/en-linux-settings-history.png" alt="SyncHire Lite English local notification history from Linux validation" width="860" /> |
+想快速体验，可以直接使用本地优先的 Lite 模式，不依赖后端、不制造 API 报错噪音，个人资料始终留在你的设备上。想打开完整能力，可以启用全栈模式，接入 AI 分析、向量匹配、后端持久化、OAuth、2FA、对象存储和生产级基础设施。
 
-### Focused Search Views
+## 为什么是 SyncHire
 
-| Resume Search | Job Description Search |
-| ------------- | ---------------------- |
-| <img src="docs/assets/readme/en-linux-search-resumes.png" alt="SyncHire Lite English resume search results from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-search-jds.png" alt="SyncHire Lite English job description search results from Linux validation" width="420" /> |
+| 求职者常见痛点               | SyncHire 的答案                   |
+| ---------------------------- | --------------------------------- |
+| 一份简历投所有岗位           | 围绕具体岗位组织简历和职位描述    |
+| 岗位链接散落在标签页和笔记里 | 结构化的申请管线                  |
+| 只有“感觉还行”的模糊反馈     | 匹配度、差距和下一步动作          |
+| 面试准备总是太晚开始         | 基于真实岗位生成准备内容          |
+| 数据被困在产品里             | JSON/CSV 导出、导入预览、本地备份 |
+| 演示环境必须全服务启动       | Lite 模式本地可用，无后端依赖     |
+| 网页投递表单反复填写         | Agent 辅助预填，但提交权永远在你手里 |
 
-| Application Search | Settings Overview |
-| ------------------ | ----------------- |
-| <img src="docs/assets/readme/en-linux-search-applications.png" alt="SyncHire Lite English application search results from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-settings.png" alt="SyncHire Lite English AI runtime settings overview from Linux validation" width="420" /> |
+## 你可以用它做什么
 
-### AI Runtime Control
+- 上传并管理简历，明确校验文件类型和 10MB 大小限制。
+- 手动保存职位描述；当自动导入不可用时，保留原始岗位 URL 并给出清晰提示。
+- 用一份简历和一份职位描述，在几分钟内创建本地申请记录。
+- 维护本地候选人角色卡，用它驱动个性化简历和浏览器填表建议。
+- 在本地生成简历 PDF，不把个人信息上传到云端。
+- 为 Kimi WebBridge 这类浏览器 agent 生成填表指令，明确排除所有提交控件。
+- 审核系统填写的字段，像真实用户一样修改，并且只有明确同意后才把修改学习回角色卡。
+- 跟踪申请状态、备注、搜索视图、面试、分析和收藏搜索。
+- 在数据管理台导出、导入、预览冲突并维护本地备份记录。
+- 接入完整后端，启用 AI 简历分析、岗位匹配、面试准备、认证、存储和向量搜索。
 
-| AI Provider & Model Routing | Skill Switchboard |
-| --------------------------- | ----------------- |
-| <img src="docs/assets/readme/en-linux-settings-ai.png" alt="SyncHire Lite English AI provider API key and model routing settings from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-settings-skills.png" alt="SyncHire Lite English Skill switchboard filtered for resume capabilities from Linux validation" width="420" /> |
+## 中文 Linux 实测截图
 
-| MCP Switchboard | Discovery Search |
-| --------------- | ---------------- |
-| <img src="docs/assets/readme/en-linux-settings-mcp.png" alt="SyncHire Lite English MCP switchboard filtered for browser bridge capabilities from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-settings-discover.png" alt="SyncHire Lite English Skill and MCP discovery search from Linux validation" width="420" /> |
+以下截图来自 2026 年 6 月 8 日的 Linux standalone 生产验证。本轮测试在本地启动 SyncHire，注入应届生求职场景数据，切换到中文界面，并真实走查完整 Lite 流程：仪表盘、简历、职位描述、申请详情、岗位化简历生成、本地 PDF 导出、角色卡辅助填表、匹配分析、面试准备、面试预约、收藏搜索、通知设置与历史、数据分析、搜索、数据管理、AI 供应商与模型设置、Skill 与 MCP 开关面板、发现页和仓库管理。
 
-| Repository Management |
-| --------------------- |
-| <img src="docs/assets/readme/en-linux-settings-repositories.png" alt="SyncHire Lite English runtime repository management with a private metadata catalog from Linux validation" width="860" /> |
+### 核心流程
 
-## Product Modes
+| 仪表盘 | 简历管理 |
+| ------ | -------- |
+| <img src="docs/assets/readme/zh-linux-dashboard.png" alt="Linux 验证后的 SyncHire Lite 中文仪表盘" width="420" /> | <img src="docs/assets/readme/zh-linux-resumes.png" alt="Linux 验证中的 SyncHire Lite 中文简历管理页面" width="420" /> |
 
-| Mode            | Best for                                                     | What runs                                                           |
-| --------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |
-| Lite Mode       | Private local workflows, demos, offline-friendly exploration | Next.js frontend, browser local storage, local PDF export, no required API |
-| Full Stack Mode | AI features, team deployments, API-backed persistence        | Next.js, FastAPI, PostgreSQL + PGVector, Redis, Minio, MCP services |
+| 职位描述 | 申请跟踪 |
+| -------- | -------- |
+| <img src="docs/assets/readme/zh-linux-job-descriptions.png" alt="Linux 验证中的 SyncHire Lite 中文职位描述页面" width="420" /> | <img src="docs/assets/readme/zh-linux-applications.png" alt="Linux 验证中的 SyncHire Lite 中文申请跟踪页面" width="420" /> |
 
-## Release Data Storage
+### 简历生成与浏览器 Agent
 
-SyncHire release builds use the same local-first data schema, but the storage
-backend changes by platform:
+完整生成简历产物：[陈宇应届前端工程师岗位化简历](docs/assets/readme/zh-fresh-graduate-tailored-resume.md)
 
-| Release target | Shell | Data storage backend |
-| -------------- | ----- | -------------------- |
-| Windows `.exe` | Tauri | Tauri native commands write JSON files under the app data directory: `app_data_dir()/storage/{key}.json` |
-| macOS `.dmg` | Tauri | Same Tauri app data directory JSON storage: `app_data_dir()/storage/{key}.json` |
-| Linux `.deb` / `.rpm` | Tauri | Same Tauri app data directory JSON storage: `app_data_dir()/storage/{key}.json` |
-| Android `.apk` | Capacitor | Native `@capacitor/preferences` storage |
-| Web / browser fallback | Browser | `window.localStorage` |
+| 申请详情 | 岗位化简历与 PDF |
+| -------- | ---------------- |
+| <img src="docs/assets/readme/zh-linux-application-detail.png" alt="Linux 验证中的 SyncHire Lite 中文申请详情与本地简历优化页面" width="420" /> | <img src="docs/assets/readme/zh-linux-tailored-resume-pdf.png" alt="Linux 验证中的 SyncHire Lite 中文岗位化简历编辑与本地 PDF 导出流程" width="420" /> |
 
-The main application state keeps the same keys and payload shape across
-targets, including `synchire-storage`. On Tauri and Capacitor builds, SyncHire
-also attempts a one-time migration from existing browser `localStorage` when
-the native store is empty.
+| 角色卡与浏览器填表 | 匹配分析 |
+| ------------------ | -------- |
+| <img src="docs/assets/readme/zh-linux-profile.png" alt="Linux 验证中的 SyncHire Lite 中文角色卡与浏览器填表助手页面" width="420" /> | <img src="docs/assets/readme/zh-linux-match-analysis.png" alt="Linux 验证中的 SyncHire Lite 中文匹配分析页面" width="420" /> |
 
-## Core Capabilities
+### AI 商务证件照（生活照 → 证件照）
 
-### Resume Intelligence
+简历构建器可以把一张普通生活照，通过已配置的图像模型生成干净、专业的证件照 / 商务头像 —— 无需影楼、无需预约。**证件照生成**入口就在简历构建器的工具栏中：上传一张日常照片，按需填写姓名 / 职位 / 部门，即可生成：
 
-Upload PDF, DOC, DOCX, or TXT resumes, extract structured content, tailor the resume to a target role, and export a local PDF artifact for manual submission. SyncHire treats the resume as a living asset, not a forgotten attachment.
+<p align="center">
+  <img src="docs/assets/readme/image-demo/portrait-studio-modal.png" alt="SyncHire 简历构建器证件照生成弹窗：上传日常照片，可选填姓名 / 职位 / 部门，通过已配置的图像模型生成商务证件照" width="800" />
+</p>
 
-### Local Role Card
+下方为前后对比，仅使用公众人物作为中立的演示样本，不代表对其形象的背书，也不在本次展示之外做任何复用。
 
-Store your candidate identity as a local role card: contact details, target title, education, skills, project proof points, work authorization, availability, and compensation expectations. SyncHire uses it as the source of truth for personalized resumes and browser fill plans without cloud storage.
+| 吴彦祖 — 源照片 | 吴彦祖 — AI 生成的证件照 |
+| --------------- | ------------------------ |
+| <img src="docs/assets/readme/image-demo/daniel-wu-source.jpg" alt="作为 AI 证件照生成器输入的吴彦祖生活照" width="300" /> | <img src="docs/assets/readme/image-demo/daniel-wu-id-photo.png" alt="SyncHire 为吴彦祖生成的 AI 专业证件照" width="300" /> |
 
-### Job Description Command Center
+| 彭于晏 — 源照片 | 彭于晏 — AI 生成的证件照 |
+| --------------- | ------------------------ |
+| <img src="docs/assets/readme/image-demo/eddie-peng-source.jpg" alt="作为 AI 证件照生成器输入的彭于晏生活照" width="300" /> | <img src="docs/assets/readme/image-demo/eddie-peng-id-photo.png" alt="SyncHire 为彭于晏生成的 AI 专业证件照" width="300" /> |
 
-Capture job descriptions, company context, requirements, skills, and links in a structured format. Every role becomes something you can compare, analyze, and act on.
+证件照路由与具体供应商解耦（兼容 OpenAI 的 `images/edits`、SiliconFlow、火山方舟 / 豆包），并在服务端执行，确保 API Key 不会出现在浏览器端。请自行配置 `OPENAI_API_KEY` 与 `base_url` 即可启用。
 
-### Match and Gap Analysis
+> **肖像与素材声明。** SyncHire 是开源、非商业项目。上述演示照片仅用于展示证件照功能，并按其原始自由许可复用 —— 吴彦祖照片来自 Gage Skidmore（[CC BY-SA 3.0](https://commons.wikimedia.org/wiki/File:Daniel_Wu_by_Gage_Skidmore.jpg)），彭于晏 2018 年 10 月照片为 [CC BY 3.0](https://commons.wikimedia.org/wiki/File:Eddie_Peng_(%E5%BD%AD%E4%BA%8E%E6%99%8F)_in_October_2018.png)，均取自 Wikimedia Commons。照片人物为公众人物，不构成对 SyncHire 的背书，生成的证件照也不在本次展示之外做任何复用。如展示内容侵害您的权益，请提 issue 或联系维护者，我们会第一时间删除。
 
-The full AI workflow is designed to score fit, identify missing skills, surface keyword gaps, and recommend stronger positioning. The product goal is simple: make every application more intentional than the last.
+### 洞察与搜索
 
-### Browser Fill Assistant
+| 面试准备 | 数据分析 |
+| -------- | -------- |
+| <img src="docs/assets/readme/zh-linux-interview-prep.png" alt="Linux 验证中的 SyncHire Lite 中文面试准备页面" width="420" /> | <img src="docs/assets/readme/zh-linux-analytics.png" alt="Linux 验证中的 SyncHire Lite 中文数据分析页面" width="420" /> |
 
-Generate a reviewed fill plan for application pages and hand the policy to Kimi WebBridge or another local browser agent. SyncHire fills known fields, excludes submit controls, stops for user review, and learns from user edits only after explicit approval.
+| 本地搜索 | 数据管理 |
+| -------- | -------- |
+| <img src="docs/assets/readme/zh-linux-search.png" alt="Linux 验证中的 SyncHire Lite 中文本地搜索页面" width="420" /> | <img src="docs/assets/readme/zh-linux-data-management.png" alt="Linux 验证中的 SyncHire Lite 中文数据管理页面" width="420" /> |
 
-### Interview Preparation
+### 面试复盘（刚结束的面试 → 结构化改进）
 
-Generate role-specific technical, behavioral, HR, and STAR-method prep from the opportunity itself. SyncHire helps you prepare for the conversation you are actually walking into.
+面试结束后立刻把内容交给 AI：支持**回忆记录**（语序乱也没关系）、**会议转写**（腾讯会议 / 飞书妙记 / Otter 纪要粘贴进来最准）、**语音转写**（浏览器实时听写或上传音频后粘贴转写文本）。AI 两步走——先把混乱内容**整理**成按顺序的问答对话，再做**七维度评分 + STAR 缺口 + 改进清单**复盘。下面以一位应聘前端开发（应届）的候选人复盘真实一面为例（模型为 GLM-4-Flash）。
 
-### Interview Review
+<p align="center"><em>① 三种输入方式：回忆记录 / 会议转写 / 语音转写</em></p>
 
-Debrief immediately after an interview. Three input modes — recall notes, meeting transcript (Tencent Meeting / Feishu Minutes / Otter), or speech-to-text. AI first normalizes messy input into an ordered Q&A transcript, then scores seven dimensions, surfaces STAR gaps, and produces an actionable improvement list. Every conclusion is grounded in what you actually entered — no fabricated questions or answers.
+| 回忆模式 | 会议转写模式 | 语音转写模式 |
+| -------- | ------------ | ------------ |
+| <img src="docs/assets/readme/image-demo/interview-review/modal-recall-mode.png" alt="面试复盘弹窗回忆记录模式：输入框可填写乱序的面试回忆" width="320" /> | <img src="docs/assets/readme/image-demo/interview-review/transcript-mode.png" alt="面试复盘会议转写模式：提示把腾讯会议等 AI 纪要粘贴进来" width="320" /> | <img src="docs/assets/readme/image-demo/interview-review/audio-mode.png" alt="面试复盘语音转写模式：浏览器实时听写或上传音频后粘贴转写文本" width="320" /> |
 
-### Data Ownership
+<p align="center"><em>② 把混乱回忆整理成 14 轮有序问答对话</em></p>
 
-Export JSON or CSV, preview imports, resolve conflicts, and keep local backup metadata. Your job search is strategic data; SyncHire keeps it accessible.
+<p align="center">
+  <img src="docs/assets/readme/image-demo/interview-review/filled-recall-text.png" alt="应届生填写的混乱面试回忆原文" width="460" />&nbsp;&nbsp;
+  <img src="docs/assets/readme/image-demo/interview-review/normalized-turns.png" alt="AI 把混乱回忆整理成的 14 轮按顺序问答对话" width="460" />
+</p>
 
-## Architecture
+<p align="center"><em>③ 七维度评分 + STAR 缺口 + 改进清单的复盘报告</em></p>
+
+<p align="center">
+  <img src="docs/assets/readme/image-demo/interview-review/review-report.png" alt="AI 生成的面试复盘报告：整体评分、七维度评分、STAR 缺口与改进清单" width="780" />
+</p>
+
+### 面试与提醒
+
+| 面试管线 | 面试预约 |
+| -------- | -------- |
+| <img src="docs/assets/readme/zh-linux-interviews.png" alt="Linux 验证中的 SyncHire Lite 中文面试管线页面" width="420" /> | <img src="docs/assets/readme/zh-linux-interview-schedule.png" alt="Linux 验证中的 SyncHire Lite 中文面试预约表单" width="420" /> |
+
+| 收藏搜索 | 通知设置 |
+| -------- | -------- |
+| <img src="docs/assets/readme/zh-linux-saved-searches.png" alt="Linux 验证中的 SyncHire Lite 中文收藏搜索与匹配提醒页面" width="420" /> | <img src="docs/assets/readme/zh-linux-settings-notifications.png" alt="Linux 验证中的 SyncHire Lite 中文本地通知设置页面" width="420" /> |
+
+| 通知历史 |
+| -------- |
+| <img src="docs/assets/readme/zh-linux-settings-history.png" alt="Linux 验证中的 SyncHire Lite 中文本地通知历史页面" width="860" /> |
+
+### 聚焦搜索视图
+
+| 简历搜索 | 职位描述搜索 |
+| -------- | ------------ |
+| <img src="docs/assets/readme/zh-linux-search-resumes.png" alt="Linux 验证中的 SyncHire Lite 中文简历搜索结果页面" width="420" /> | <img src="docs/assets/readme/zh-linux-search-jds.png" alt="Linux 验证中的 SyncHire Lite 中文职位描述搜索结果页面" width="420" /> |
+
+| 申请搜索 | 设置总览 |
+| -------- | -------- |
+| <img src="docs/assets/readme/zh-linux-search-applications.png" alt="Linux 验证中的 SyncHire Lite 中文申请搜索结果页面" width="420" /> | <img src="docs/assets/readme/zh-linux-settings.png" alt="Linux 验证中的 SyncHire Lite 中文 AI 运行时设置总览" width="420" /> |
+
+### AI 运行时控制台
+
+| AI 供应商与模型路由 | Skill 开关面板 |
+| ------------------- | -------------- |
+| <img src="docs/assets/readme/zh-linux-settings-ai.png" alt="Linux 验证中的 SyncHire Lite 中文 AI 供应商 API key 与模型路由设置" width="420" /> | <img src="docs/assets/readme/zh-linux-settings-skills.png" alt="Linux 验证中的 SyncHire Lite 中文 Skill 开关面板与简历能力筛选" width="420" /> |
+
+| MCP 开关面板 | 发现搜索 |
+| ------------ | -------- |
+| <img src="docs/assets/readme/zh-linux-settings-mcp.png" alt="Linux 验证中的 SyncHire Lite 中文 MCP 开关面板与浏览器桥接能力筛选" width="420" /> | <img src="docs/assets/readme/zh-linux-settings-discover.png" alt="Linux 验证中的 SyncHire Lite 中文 Skill 和 MCP 发现搜索页面" width="420" /> |
+
+| 仓库管理 |
+| -------- |
+| <img src="docs/assets/readme/zh-linux-settings-repositories.png" alt="Linux 验证中的 SyncHire Lite 中文运行时仓库管理与私有元数据目录" width="860" /> |
+
+## 产品模式
+
+| 模式      | 适合场景                           | 运行内容                                                        |
+| --------- | ---------------------------------- | --------------------------------------------------------------- |
+| Lite 模式 | 本地隐私工作流、产品演示、轻量探索 | Next.js 前端、浏览器本地存储、本地 PDF 导出、无需 API             |
+| 全栈模式  | AI 能力、团队部署、API 持久化      | Next.js、FastAPI、PostgreSQL + PGVector、Redis、Minio、MCP 服务 |
+
+## Release 数据存储
+
+SyncHire release 安装包使用同一套本地优先数据结构，但不同平台的底层存储后端不同：
+
+| Release 平台 | 应用壳 | 数据存储后端 |
+| ------------ | ------ | ------------ |
+| Windows `.exe` | Tauri | 通过 Tauri 原生命令写入应用数据目录下的 JSON 文件：`app_data_dir()/storage/{key}.json` |
+| macOS `.dmg` | Tauri | 同样写入 Tauri 应用数据目录：`app_data_dir()/storage/{key}.json` |
+| Linux `.deb` / `.rpm` | Tauri | 同样写入 Tauri 应用数据目录：`app_data_dir()/storage/{key}.json` |
+| Android `.apk` | Capacitor | 使用原生 `@capacitor/preferences` 存储 |
+| Web / 浏览器 fallback | 浏览器 | 使用 `window.localStorage` |
+
+主应用状态在各平台保持相同的 key 和 payload 结构，包括 `synchire-storage`。在
+Tauri 和 Capacitor 构建中，如果原生存储为空，SyncHire 会尝试从已有浏览器
+`localStorage` 执行一次迁移，避免旧本地数据丢失。
+
+## 核心能力
+
+### 简历智能管理
+
+支持上传 PDF、DOC、DOCX 和 TXT 简历，提取结构化内容，围绕目标岗位定制内容，并在本地导出 PDF 供用户人工提交。SyncHire 把简历当作持续迭代的资产，而不是一次性附件。
+
+### 本地角色卡
+
+把候选人身份沉淀成一张本地角色卡：联系方式、目标岗位、教育背景、技能、项目证据、工作许可、到岗时间和期望薪资。SyncHire 用它作为个性化简历和浏览器填表计划的事实来源，但不把这些信息上传云端。
+
+### 职位描述工作台
+
+沉淀职位名称、公司、要求、技能、链接和岗位描述。每一个机会都变成可比较、可分析、可行动的数据。
+
+### 匹配度与差距分析
+
+完整 AI 工作流面向匹配评分、缺失技能、关键词差距和定位建议而设计。产品目标很直接：让下一次投递永远比上一次更聪明。
+
+### 浏览器填表助手
+
+为投递页面生成可审核的填表计划，并交给 Kimi WebBridge 或类似本地浏览器 agent 执行。SyncHire 只填已知字段，排除提交控件，填写后停下等待用户审核，并且只有在用户明确同意后，才从用户修改中学习并更新角色卡。
+
+### 面试准备
+
+基于真实岗位生成技术题、行为题、HR 问题和 STAR 方法准备内容。准备的不是泛泛而谈的面经，而是你即将面对的那场对话。
+
+### 面试复盘
+
+面试结束后立即复盘。支持回忆记录、会议转写（腾讯会议 / 飞书妙记 / Otter）、语音转写三种输入，AI 先把混乱内容整理成有序问答对话，再做七维度评分、STAR 缺口分析与可执行改进清单。所有结论只基于你输入的真实内容，不杜撰问题或答案。
+
+### 数据主权
+
+支持 JSON/CSV 导出、导入预览、冲突处理和本地备份元数据。求职数据是你的战略资产，SyncHire 让它始终属于你。
+
+## 架构
 
 ```text
 SyncHire/
-├── frontend/        Next.js 16 app, Lite mode UX, E2E coverage
-├── api/             FastAPI backend, auth, data, AI orchestration
-├── mcp-servers/     Modular AI services for parsing, matching, and prep
-├── db/              Database schema and migrations
-├── deploy/          Deployment assets (Docker only)
-├── docs/            Engineering and product documentation
+├── frontend/        Next.js 16 应用、Lite 模式体验、E2E 测试
+├── api/             FastAPI 后端、认证、数据、AI 编排
+├── mcp-servers/     用于解析、匹配和面试准备的模块化 AI 服务
+├── db/              数据库 schema 和迁移
+├── deploy/          部署资源（仅 Docker）
+├── docs/            工程与产品文档
 └── docker-compose.yml
 ```
 
-### Technology Stack
+### 技术栈
 
-| Layer    | Stack                                                                           |
+| 层级     | 技术                                                                            |
 | -------- | ------------------------------------------------------------------------------- |
-| Frontend | Next.js 16.2.7, React 19.2.7, TypeScript, Tailwind CSS, Zustand, TanStack Query |
-| Backend  | FastAPI, Python 3.11+, Pydantic, PyJWT                                          |
-| Data     | PostgreSQL 16, PGVector, Redis, Minio                                           |
-| AI       | OpenAI, Anthropic, modular MCP servers                                          |
-| Quality  | Vitest, Playwright, Pytest, Ruff, Black, Bandit, pip-audit, ESLint              |
+| 前端     | Next.js 16.2.7, React 19.2.7, TypeScript, Tailwind CSS, Zustand, TanStack Query |
+| 后端     | FastAPI, Python 3.11+, Pydantic, PyJWT                                          |
+| 数据     | PostgreSQL 16, PGVector, Redis, Minio                                           |
+| AI       | OpenAI, Anthropic, 模块化 MCP servers                                           |
+| 质量保障 | Vitest, Playwright, Pytest, Ruff, Black, Bandit, pip-audit, ESLint              |
 
-## Quick Start
+## 快速开始
 
-### Prerequisites
+### 环境要求
 
-- Node.js 22+ and npm 10+
+- Node.js 22+ 和 npm 10+
 - Python 3.11+
-- Docker and Docker Compose
+- Docker 和 Docker Compose
 - Git
 
-### Option 1: Run Lite Mode
+### 方式一：启动 Lite 模式
 
-Lite Mode is the fastest way to experience the product. It does not require the backend.
+Lite 模式是最快体验产品的方式，不需要后端。
 
 ```bash
 git clone https://github.com/Rethymus/SyncHire.git
@@ -279,15 +308,15 @@ npm install
 npm run dev:frontend
 ```
 
-Open:
+打开：
 
 ```text
 http://localhost:3000
 ```
 
-### Option 2: Run the Full Stack
+### 方式二：启动完整全栈
 
-Use this when you want the API, database, object storage, AI services, and full platform behavior.
+当你需要 API、数据库、对象存储、AI 服务和完整平台能力时，使用全栈模式。
 
 ```bash
 git clone https://github.com/Rethymus/SyncHire.git
@@ -299,9 +328,9 @@ npm run db:migrate
 npm run dev
 ```
 
-Service URLs:
+服务地址：
 
-| Service       | URL                        |
+| 服务          | 地址                       |
 | ------------- | -------------------------- |
 | Frontend      | http://localhost:3000      |
 | API           | http://localhost:8000      |
@@ -309,29 +338,29 @@ Service URLs:
 | PostgreSQL    | localhost:5432             |
 | Minio Console | http://localhost:9001      |
 
-AI features require provider keys in `.env`:
+AI 能力需要在 `.env` 中配置模型供应商密钥：
 
 ```bash
 OPENAI_API_KEY=sk-your-openai-key
 ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
 ```
 
-## Developer Commands
+## 开发命令
 
 ```bash
-# Development
+# 开发
 npm run dev
 npm run dev:frontend
 npm run dev:api
 npm run dev:mcp
 
-# Infrastructure
+# 基础设施
 npm run docker:up
 npm run docker:down
 npm run docker:logs
 npm run db:migrate
 
-# Frontend quality
+# 前端质量门
 npm run type-check --workspace=frontend
 npm run lint:nocache --workspace=frontend -- --max-warnings=0
 npm test --workspace=frontend
@@ -339,7 +368,7 @@ npm run test:integration --workspace=frontend
 npm run test:e2e --workspace=frontend
 npm run build --workspace=frontend
 
-# Backend quality
+# 后端质量门
 cd api
 pytest -q -W error --tb=short
 ruff check .
@@ -349,42 +378,42 @@ pip check
 pip-audit
 ```
 
-## Quality Bar
+## 质量标准
 
-The current QA baseline is intentionally strict because a job-search tool cannot feel fragile.
+求职工具不能脆弱，SyncHire 的质量门故意设得很严格。
 
-| Gate                       | Current baseline                                                                   |
-| -------------------------- | ---------------------------------------------------------------------------------- |
-| Backend tests              | 344 passing with warnings treated as errors                                        |
-| Frontend unit tests        | 320 passing                                                                        |
-| Frontend integration tests | 18 passing                                                                         |
-| Playwright E2E             | 13 passing                                                                         |
-| Route dogfood sweep        | 13 key routes across desktop and mobile, HTTP 200, zero console errors or warnings |
-| Security checks            | Bandit, pip-audit, pip check passing                                               |
-| Production build           | Passing                                                                            |
+| 检查项           | 当前基线                                                        |
+| ---------------- | --------------------------------------------------------------- |
+| 后端测试         | 344 个测试通过，warning 视为 error                              |
+| 前端单元测试     | 320 个测试通过                                                  |
+| 前端集成测试     | 18 个测试通过                                                   |
+| Playwright E2E   | 13 个测试通过                                                   |
+| 用户视角路由回扫 | 桌面和移动端各 13 个关键路由，HTTP 200，0 console error/warning |
+| 安全检查         | Bandit、pip-audit、pip check 通过                               |
+| 生产构建         | 通过                                                            |
 
-Current user-facing workflow evidence lives in the language-specific README screenshot matrix and the Playwright README screenshot regression:
-`cd frontend && npx playwright test e2e/readme-screenshots.spec.ts --workers=1`.
+当前用户视角流程证据已沉淀在中英文 README 截图矩阵中，并由 Playwright 截图回归覆盖：
+`cd frontend && npx playwright test e2e/readme-screenshots.spec.ts --workers=1`。
 
-## Roadmap
+## 路线图
 
-- Deeper AI resume rewrites with explainable changes.
-- Better job-source importing and enrichment.
-- Stronger interview simulation loops.
-- Collaboration workflows for mentors, recruiters, and career coaches.
-- Deployment-ready observability, alerts, and analytics dashboards.
+- 更深入的 AI 简历改写，并解释每一处改动的原因。
+- 更强的岗位来源导入和信息补全。
+- 更接近真实面试的模拟练习闭环。
+- 面向导师、招聘顾问和职业教练的协作工作流。
+- 可部署的观测、告警和分析仪表盘。
 
-## Contributing
+## 参与贡献
 
-We welcome focused contributions that make the job-search workflow sharper, faster, more reliable, or more humane.
+欢迎任何能让求职工作流更锋利、更快速、更可靠、更有人味的贡献。
 
-1. Fork the repository.
-2. Create a feature branch.
-3. Keep changes scoped and tested.
-4. Run the relevant quality gates.
-5. Open a pull request with a clear product impact summary.
+1. Fork 仓库。
+2. 创建功能分支。
+3. 保持改动聚焦并补齐测试。
+4. 运行相关质量门。
+5. 提交 PR，并说明清晰的产品影响。
 
-Commit messages should follow conventional commits:
+提交信息请遵循 conventional commits：
 
 ```text
 feat: add role-specific interview prep flow
@@ -392,6 +421,6 @@ fix: preserve job URL during import fallback
 docs: refresh bilingual README
 ```
 
-## License
+## 许可证
 
-SyncHire is released under the [MIT License](https://opensource.org/licenses/MIT).
+SyncHire 基于 [MIT License](https://opensource.org/licenses/MIT) 开源。

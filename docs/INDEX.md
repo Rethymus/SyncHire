@@ -6,8 +6,8 @@ main documentation surface.
 
 ## Start Here
 
-- [Project README](../README.md) - product overview, screenshots, and setup
-- [Chinese README](../README.zh-CN.md) - Chinese overview and screenshots
+- [Project README](../README.md) - 简体中文产品总览、截图与上手指南
+- [English README](../README.en.md) - English overview and screenshots
 - [Quickstart](../QUICKSTART.md) - shortest local setup path
 - [Frontend README](../frontend/README.md) - frontend workspace notes
 - [Backend README](../api/README.md) - API service notes
