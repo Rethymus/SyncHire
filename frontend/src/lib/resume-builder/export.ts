@@ -65,8 +65,13 @@ export async function exportResumePng(
  * Open the print dialog for the resume (Save as PDF in the browser dialog).
  * Throws a user-friendly error if the popup is blocked.
  */
-export function printResumeToPdf(markdown: string, themeId: string, filename: string): void {
-  const html = buildResumeThemeDocumentHtml(markdown, themeId);
+export function printResumeToPdf(
+  markdown: string,
+  themeId: string,
+  filename: string,
+  portraitUrl?: string | null,
+): void {
+  const html = buildResumeThemeDocumentHtml(markdown, themeId, portraitUrl);
   const printWindow = window.open("", "_blank", "noopener,noreferrer,width=900,height=1200");
   if (!printWindow) {
     throw new Error(
@@ -78,7 +83,6 @@ export function printResumeToPdf(markdown: string, themeId: string, filename: st
   printWindow.document.close();
   printWindow.focus();
 
-  const fileTitle = safeFilename(filename);
   // Give fonts/layout a tick to settle before invoking print.
   setTimeout(() => {
     printWindow.print();
@@ -90,7 +94,5 @@ export function printResumeToPdf(markdown: string, themeId: string, filename: st
         // ignore — user may still be in the dialog
       }
     }, 500);
-    // fileTitle is intentionally unused beyond naming context for future hooks.
-    void fileTitle;
   }, 450);
 }

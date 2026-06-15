@@ -127,12 +127,20 @@ const iconExtension = {
   renderer(token: ResumeIconToken) {
     const resolved = resolveIconName(token.name);
     if (!resolved) {
-      // Unknown icon name — drop the token entirely (no stray text).
-      return "";
+      // Unknown icon name — render the original token as literal text so it
+      // survives the WYSIWYG round-trip instead of vanishing silently. The text
+      // passes through DOMPurify (a bare "icon:foo" has no markup), and
+      // re-rendering re-tokenizes it into this same literal — stable.
+      return escapeInline(token.raw);
     }
     return `<span class="ri ri-${resolved}" aria-hidden="true"></span>`;
   },
 };
+
+/** Escape the 3 HTML-significant chars for safe inline-literal emission. */
+function escapeInline(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 
 // marked only needs to be configured once per process.
 let extensionsApplied = false;
@@ -154,6 +162,17 @@ export interface ResumeRenderOptions {
   icons?: boolean;
 }
 
+/**
+ * Per-render feature toggles. Read inside the tokenizer closures at tokenize
+ * time.
+ *
+ * REENTRANCY: {@link renderResumeMarkdown} is fully synchronous — marked.lexer,
+ * marked.parser, and DOMPurify.sanitize never yield. Single-threaded JS cannot
+ * preempt a synchronous function, so the save/restore in renderResumeMarkdown's
+ * try/finally fully protects the flag span even though it is module-level.
+ * Do NOT introduce an `await` or callback deferral in the render pipeline
+ * without first making these flags per-call (a Marked instance per render).
+ */
 const renderFlags: Required<ResumeRenderOptions> = { columns: true, icons: true };
 
 /** Group consecutive top-level `resumeContainer` tokens into `resumeRow` tokens. */
