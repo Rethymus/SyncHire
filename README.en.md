@@ -23,27 +23,18 @@
 </p>
 
 <p align="center">
-  <strong>Frontend</strong><br />
   <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16.2.7-black?logo=nextdotjs&logoColor=white" />
   <img alt="React" src="https://img.shields.io/badge/React-19.2.7-61DAFB?logo=react&logoColor=black" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" />
   <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white" />
   <img alt="Zustand" src="https://img.shields.io/badge/Zustand-5-FF6B00?logo=zustand&logoColor=white" />
   <img alt="TanStack Query" src="https://img.shields.io/badge/TanStack_Query-5-FF4154?logo=reactquery&logoColor=white" />
-</p>
-
-<p align="center">
-  <strong>Backend &amp; Data</strong><br />
   <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-Python%203.11+-009688?logo=fastapi&logoColor=white" />
   <img alt="Python" src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" />
   <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white" />
   <img alt="PGVector" src="https://img.shields.io/badge/PGVector-vector_search-41B883" />
   <img alt="Redis" src="https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white" />
   <img alt="MinIO" src="https://img.shields.io/badge/MinIO-S3_compatible-FFC72C" />
-</p>
-
-<p align="center">
-  <strong>AI &amp; Quality</strong><br />
   <img alt="OpenAI" src="https://img.shields.io/badge/OpenAI-compatible-412991?logo=openai&logoColor=white" />
   <img alt="MCP" src="https://img.shields.io/badge/MCP-modular_servers-orange" />
   <img alt="Vitest" src="https://img.shields.io/badge/Vitest-4-6E9F18?logo=vitest&logoColor=white" />
