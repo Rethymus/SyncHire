@@ -130,7 +130,6 @@ const DIMENSION_KEYS = new Set([
   "behavioral",
   "communication",
   "rolefit",
-  "rolefit".toLowerCase(),
   "reversequestions",
   "nonverbal",
   "mindset",

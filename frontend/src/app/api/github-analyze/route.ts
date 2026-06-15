@@ -24,64 +24,26 @@ import { buildDistillPrompt } from "@/lib/github-distill/distill-prompt";
 import { parseDistilledProject, DistillParseError } from "@/lib/github-distill/parse-distill";
 import { parseRepoUrl, InvalidRepoUrlError } from "@/lib/github-distill/parse-url";
 import type { GithubAnalyzeRequest, GithubAnalyzeResponse } from "@/lib/github-distill/types";
+import {
+  callOpenAIChat,
+  getClientKey,
+  enforceRateLimit,
+  normalizeBaseUrl,
+  RATE_LIMITS,
+  llmProxyErrorResponse,
+} from "@/lib/llm-proxy";
 
-function normalizeBaseUrl(value: string): string {
-  return value.trim().replace(/\/+$/, "");
-}
-
-interface ChatChoice {
-  message?: { content?: string };
-}
-
-interface ChatCompletionResponse {
-  choices?: ChatChoice[];
-  error?: { message?: string };
-}
-
-async function callChatModel(
-  baseUrl: string,
-  apiKey: string,
-  model: string,
-  prompt: string,
-): Promise<string> {
-  const res = await fetch(`${baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-    },
-    body: JSON.stringify({
-      model,
-      temperature: 0.3,
-      messages: [
-        {
-          role: "system",
-          content:
-            "你是一名严谨的资深软件架构师，只依据给定的仓库静态信号做推断，绝不杜撰，并按要求的 JSON 结构输出。",
-        },
-        { role: "user", content: prompt },
-      ],
-    }),
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status}: ${text.slice(0, 400)}`);
-  }
-
-  const payload = (await res.json().catch(() => null)) as ChatCompletionResponse | null;
-  if (payload?.error?.message) {
-    throw new Error(payload.error.message);
-  }
-  const content = payload?.choices?.[0]?.message?.content;
-  if (!content) {
-    throw new Error("模型返回为空。");
-  }
-  return content;
-}
+const DISTILL_SYSTEM_PROMPT =
+  "你是一名严谨的资深软件架构师，只依据给定的仓库静态信号做推断，绝不杜撰，并按要求的 JSON 结构输出。";
 
 export async function POST(request: NextRequest): Promise<NextResponse<GithubAnalyzeResponse>> {
   try {
+    enforceRateLimit(
+      `github-analyze:${getClientKey(request)}`,
+      RATE_LIMITS.chat.max,
+      RATE_LIMITS.chat.windowMs,
+    );
+
     const body = (await request.json().catch(() => ({}))) as GithubAnalyzeRequest;
     const repoUrl = (body.repoUrl || "").trim();
     const focusRole = (body.focusRole || "").trim();
@@ -107,7 +69,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<GithubAna
     const repoMap = buildRepoMap(signals);
     const prompt = buildDistillPrompt({ repoMap, focusRole: focusRole || undefined });
 
-    const raw = await callChatModel(baseUrl, apiKey, model, prompt);
+    const raw = await callOpenAIChat({
+      baseUrl,
+      apiKey,
+      model,
+      systemPrompt: DISTILL_SYSTEM_PROMPT,
+      userPrompt: prompt,
+    });
 
     const distilled = parseDistilledProject(raw, {
       repoUrl: coordinates.url,
@@ -138,6 +106,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<GithubAna
   } catch (error) {
     logger.error(LogCategory.API, "github-analyze route error", error as Error);
 
+    const mapped = llmProxyErrorResponse<GithubAnalyzeResponse>(error);
+    if (mapped) return mapped;
     if (error instanceof InvalidRepoUrlError) {
       return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
     }

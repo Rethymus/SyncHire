@@ -13,10 +13,11 @@ interface ExportMenuProps {
   filename: string;
   content: string;
   themeId: string;
+  portraitUrl?: string | null;
   pageRef: RefObject<HTMLElement | null>;
 }
 
-function ExportMenuBase({ filename, content, themeId, pageRef }: ExportMenuProps) {
+function ExportMenuBase({ filename, content, themeId, portraitUrl, pageRef }: ExportMenuProps) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<null | "pdf" | "png" | "md">(null);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +48,7 @@ function ExportMenuBase({ filename, content, themeId, pageRef }: ExportMenuProps
     setBusy("pdf");
     setError(null);
     try {
-      printResumeToPdf(content, themeId, filename);
+      printResumeToPdf(content, themeId, filename, portraitUrl);
     } catch (e) {
       setError(e instanceof Error ? e.message : "导出失败");
     } finally {

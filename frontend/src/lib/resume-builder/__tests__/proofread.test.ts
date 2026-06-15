@@ -21,6 +21,29 @@ describe("proofreadResume", () => {
     expect(counts["english-term"]).toBe(0);
   });
 
+  it("flags wrong casing on s-ending terms (CSS/AWS/iOS) — regression for plural-skip bug", () => {
+    // These canonical terms end in "s"; the old plural-skip logic silenced
+    // casing warnings for them. Each wrong-casing variant must now be flagged.
+    for (const [wrong, right] of [
+      ["csS", "CSS"],
+      ["awS", "AWS"],
+      ["ioS", "iOS"],
+      ["macoS", "macOS"],
+    ] as const) {
+      const { issues } = proofreadResume(`熟悉 ${wrong} 与 Linux`);
+      const flagged = issues.find(
+        (i) => i.category === "english-term" && i.excerpt === wrong && i.suggestion === right,
+      );
+      expect(flagged, `expected ${wrong} → ${right} to be flagged`).toBeTruthy();
+    }
+  });
+
+  it("still allows genuine plural of a single-alpha-word term", () => {
+    // A real plural ("Reacts") of a canonical term ("React") is not a casing error.
+    const { counts } = proofreadResume("我使用 Reacts 框架");
+    expect(counts["english-term"]).toBe(0);
+  });
+
   it("flags known Chinese typos", () => {
     const { issues } = proofreadResume("作为前端,负责部份模块");
     const typos = issues.filter((i) => i.category === "typo");

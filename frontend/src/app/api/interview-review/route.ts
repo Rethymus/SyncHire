@@ -28,69 +28,91 @@ import type {
   InterviewReviewRequest,
   InterviewReviewResponse,
   NormalizedInterview,
+  NormalizedTurn,
 } from "@/lib/interview-review/types";
-
-function normalizeBaseUrl(value: string): string {
-  return value.trim().replace(/\/+$/, "");
-}
+import {
+  callOpenAIChat,
+  getClientKey,
+  enforceRateLimit,
+  normalizeBaseUrl,
+  RATE_LIMITS,
+  llmProxyErrorResponse,
+} from "@/lib/llm-proxy";
 
 const MIN_RAW_CHARS = 8;
 const MAX_RAW_CHARS = 24_000; // guard against pathological inputs
 
-interface ChatChoice {
-  message?: { content?: string };
-}
-interface ChatCompletionResponse {
-  choices?: ChatChoice[];
-  error?: { message?: string };
+/** Coerce a client-supplied speaker into the typed union; unknown → "unclear". */
+function coerceSpeaker(value: unknown): NormalizedTurn["speaker"] {
+  if (typeof value !== "string") return "unclear";
+  const s = value.trim().toLowerCase();
+  if (s.startsWith("interviewer") || s === "面试官" || s === "i") return "interviewer";
+  if (s.startsWith("candidate") || s === "候选人" || s === "我" || s === "c") return "candidate";
+  return "unclear";
 }
 
-async function callChatModel(
-  baseUrl: string,
-  apiKey: string,
-  model: string,
-  prompt: string,
-): Promise<string> {
-  const res = await fetch(`${baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+const REVIEW_SYSTEM_PROMPT =
+  "你是一名严谨的面试复盘助手，只依据用户给定的面试内容做整理与评估，绝不杜撰问题、答案或量化指标，并严格按要求输出单个 JSON 对象。";
+
+/** Normalize and shallow-validate the client-supplied normalized turns. */
+function coerceNormalized(
+  value: unknown,
+): { normalized: NormalizedInterview } | { error: string } {
+  if (!value || typeof value !== "object") {
+    return { error: "缺少整理后的面试记录（normalized.turns），无法复盘。" };
+  }
+  const obj = value as Record<string, unknown>;
+  const rawTurns = Array.isArray(obj.turns) ? obj.turns : [];
+  if (rawTurns.length === 0) {
+    return { error: "缺少整理后的面试记录（normalized.turns），无法复盘。" };
+  }
+  const turns: NormalizedTurn[] = [];
+  for (const t of rawTurns) {
+    if (!t || typeof t !== "object") continue;
+    const r = t as Record<string, unknown>;
+    const text = typeof r.text === "string" ? r.text.trim() : "";
+    if (!text) continue;
+    turns.push({
+      order: typeof r.order === "number" ? r.order : turns.length + 1,
+      // Validate membership rather than trusting a cast — otherwise an arbitrary
+      // client string (e.g. an injection payload) flows into the typed union and
+      // from there into the review prompt / studio render. Unknown → "unclear".
+      speaker: coerceSpeaker(r.speaker),
+      topic: typeof r.topic === "string" ? r.topic : "",
+      text,
+      note: typeof r.note === "string" ? r.note : undefined,
+    });
+  }
+  if (turns.length === 0) {
+    return { error: "缺少整理后的面试记录（normalized.turns），无法复盘。" };
+  }
+  const rawSource = typeof obj.source === "string" ? obj.source : "";
+  const source: NormalizedInterview["source"] =
+    rawSource === "recall" || rawSource === "transcript" || rawSource === "audio"
+      ? rawSource
+      : "recall";
+  return {
+    normalized: {
+      source,
+      turns,
+      summary: typeof obj.summary === "string" ? obj.summary : "",
+      unresolved: Array.isArray(obj.unresolved)
+        ? obj.unresolved.filter((s): s is string => typeof s === "string")
+        : [],
     },
-    body: JSON.stringify({
-      model,
-      temperature: 0.3,
-      messages: [
-        {
-          role: "system",
-          content:
-            "你是一名严谨的面试复盘助手，只依据用户给定的面试内容做整理与评估，绝不杜撰问题、答案或量化指标，并严格按要求输出单个 JSON 对象。",
-        },
-        { role: "user", content: prompt },
-      ],
-    }),
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status}: ${text.slice(0, 400)}`);
-  }
-
-  const payload = (await res.json().catch(() => null)) as ChatCompletionResponse | null;
-  if (payload?.error?.message) {
-    throw new Error(payload.error.message);
-  }
-  const content = payload?.choices?.[0]?.message?.content;
-  if (!content) {
-    throw new Error("模型返回为空。");
-  }
-  return content;
+  };
 }
 
 export async function POST(
   request: NextRequest,
 ): Promise<NextResponse<InterviewReviewResponse>> {
   try {
+    enforceRateLimit(
+      `interview-review:${getClientKey(request)}`,
+      RATE_LIMITS.chat.max,
+      RATE_LIMITS.chat.windowMs,
+    );
+
     const body = (await request.json().catch(() => ({}))) as InterviewReviewRequest;
     const input = body.input;
     const stage = body.stage;
@@ -139,7 +161,13 @@ export async function POST(
         targetRole: input.targetRole,
         targetCompany: input.targetCompany,
       });
-      const raw = await callChatModel(baseUrl, apiKey, model, prompt);
+      const raw = await callOpenAIChat({
+        baseUrl,
+        apiKey,
+        model,
+        systemPrompt: REVIEW_SYSTEM_PROMPT,
+        userPrompt: prompt,
+      });
       const normalized = parseNormalizedInterview(raw);
       // The model doesn't reliably echo `source`; stamp it from the request.
       normalized.source = input.source;
@@ -147,14 +175,14 @@ export async function POST(
       return NextResponse.json({ ok: true, normalized }, { status: 200 });
     }
 
-    // stage === "review"
-    const normalized = body.normalized as NormalizedInterview | undefined;
-    if (!normalized || !Array.isArray(normalized.turns) || normalized.turns.length === 0) {
-      return NextResponse.json(
-        { ok: false, error: "缺少整理后的面试记录（normalized.turns），无法复盘。" },
-        { status: 400 },
-      );
+    // stage === "review" — validate the client-supplied normalized turns
+    // rather than trusting the cast. Never accept client JSON as a domain type
+    // at the boundary without coercing it.
+    const coerced = coerceNormalized(body.normalized);
+    if ("error" in coerced) {
+      return NextResponse.json({ ok: false, error: coerced.error }, { status: 400 });
     }
+    const normalized = coerced.normalized;
 
     const prompt = buildReviewPrompt({
       normalized,
@@ -162,13 +190,21 @@ export async function POST(
       targetCompany: input?.targetCompany,
       focusNotes: input?.focusNotes,
     });
-    const raw = await callChatModel(baseUrl, apiKey, model, prompt);
+    const raw = await callOpenAIChat({
+      baseUrl,
+      apiKey,
+      model,
+      systemPrompt: REVIEW_SYSTEM_PROMPT,
+      userPrompt: prompt,
+    });
     const report = parseReviewReport(raw);
 
     return NextResponse.json({ ok: true, report }, { status: 200 });
   } catch (error) {
     logger.error(LogCategory.API, "interview-review route error", error as Error);
 
+    const mapped = llmProxyErrorResponse<InterviewReviewResponse>(error);
+    if (mapped) return mapped;
     if (error instanceof ReviewParseError) {
       return NextResponse.json({ ok: false, error: error.message }, { status: 200 });
     }

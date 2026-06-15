@@ -31,6 +31,16 @@ describe("resume-md render engine", () => {
     expect(html).toContain("chen@x.com");
   });
 
+  it("preserves unknown icon names as literal text (no silent drop)", () => {
+    // Regression: an unknown icon token used to vanish on render, and the
+    // WYSIWYG serializer (which reads the DOM) then lost the user's input.
+    // It must now survive as literal text so round-trips are lossless.
+    const html = renderResumeMarkdown("icon:notarealicon hello");
+    expect(html).toContain("icon:notarealicon");
+    expect(html).toContain("hello");
+    expect(html).not.toContain('class="ri ');
+  });
+
   it("renders icons inside link text", () => {
     const html = renderResumeMarkdown("[icon:blog GitHub](https://github.com/x)");
     expect(html).toContain('class="ri ri-link"');

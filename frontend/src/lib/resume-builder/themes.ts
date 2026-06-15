@@ -288,11 +288,31 @@ export function getResumeThemeStyles(themeId?: string | null): string {
   `;
 }
 
-/** Build a complete standalone HTML document (used by PNG rasterization / print). */
+/**
+ * Build a complete standalone HTML document (used by PNG rasterization / print).
+ *
+ * The portrait snippet is emitted OUTSIDE the DOMPurify-sanitized markdown body,
+ * so it must be validated here: only a raster-image data URL is accepted, and
+ * the value is attribute-escaped. This closes an XSS sink (a `javascript:` /
+ * `data:text/html` / quote-injected portraitUrl would otherwise execute in the
+ * print window opened by {@link printResumeToPdf}).
+ */
+const SAFE_PORTRAIT_RE = /^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
+
+function safePortraitImg(portraitUrl: string | null | undefined): string {
+  if (!portraitUrl || !SAFE_PORTRAIT_RE.test(portraitUrl)) {
+    return "";
+  }
+  const escaped = portraitUrl.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  return `<img class="resume-portrait" src="${escaped}" alt="" />`;
+}
+
 export function buildResumeThemeDocumentHtml(
   markdown: string,
   themeId?: string | null,
+  portraitUrl?: string | null,
 ): string {
+  const portrait = safePortraitImg(portraitUrl);
   return `<!doctype html>
 <html lang="zh-CN">
   <head>
@@ -301,7 +321,7 @@ export function buildResumeThemeDocumentHtml(
     <style>${getResumeThemeStyles(themeId)}</style>
   </head>
   <body>
-    <main class="synchire-resume-page">${renderResumeMarkdown(markdown)}</main>
+    <main class="synchire-resume-page">${portrait}${renderResumeMarkdown(markdown)}</main>
   </body>
 </html>`;
 }

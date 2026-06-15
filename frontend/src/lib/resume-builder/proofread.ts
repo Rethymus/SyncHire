@@ -166,9 +166,17 @@ function scanEnglishTerms(text: string, issues: ProofreadIssue[]): void {
       if (matched === term) {
         continue;
       }
-      // Allow a trailing plural "s" only for pure-alphabetic single-word terms.
-      const stripped = matched.replace(/s$/i, "");
-      if (stripped.toLowerCase() === term.toLowerCase().replace(/s$/i, "") && term.endsWith("s")) {
+      // Allow a genuine trailing plural "s" — but only for pure-alphabetic
+      // single-word terms AND only when the match is actually one character
+      // longer than the canonical term. Without the length check, canonical
+      // terms that themselves end in "s" (CSS, AWS, macOS, iOS) would be
+      // silently skipped even when written with the wrong casing (csS, awS).
+      const isSingleAlphaWord = /^[A-Za-z]+$/.test(term);
+      const isRealPlural =
+        isSingleAlphaWord &&
+        matched.length === term.length + 1 &&
+        matched.toLowerCase() === term.toLowerCase() + "s";
+      if (isRealPlural) {
         continue;
       }
       issues.push(

@@ -377,6 +377,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
             filename={name}
             content={content}
             themeId={themeId}
+            portraitUrl={portraitUrl}
             pageRef={pageRef}
           />
         </div>
