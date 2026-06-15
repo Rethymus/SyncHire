@@ -33,6 +33,7 @@ import {
   CheckSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { InterviewReviewStudio } from "@/components/resume-builder/interview-review-studio";
 
 interface InterviewQuestion {
   question: string;
@@ -533,6 +534,7 @@ function InterviewPrepContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [prepData, setPrepData] = useState<InterviewPrepData | null>(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
 
   const generateInterviewPrep = useCallback(async () => {
     if (!applicationId) {
@@ -665,6 +667,15 @@ function InterviewPrepContent() {
                 )}
               </Button>
             )}
+            <Button
+              onClick={() => setReviewOpen(true)}
+              size="lg"
+              variant="outline"
+              className="border-gray-300 text-gray-800 hover:bg-gray-50"
+            >
+              <Brain className="h-4 w-4 mr-2" />
+              {locale === "zh-CN" ? "面试复盘" : "Interview Review"}
+            </Button>
           </div>
 
           {error && (
@@ -776,6 +787,13 @@ function InterviewPrepContent() {
           </>
         )}
       </div>
+
+      <InterviewReviewStudio
+        open={reviewOpen}
+        onClose={() => setReviewOpen(false)}
+        targetRole={prepData?.targetRole}
+        targetCompany={prepData?.targetCompany}
+      />
     </div>
   );
 }

@@ -6,7 +6,13 @@ import {
   getImagePreset,
   type ImageProviderSettings,
 } from "@/lib/image-provider-settings";
-import { buildPortraitPrompt, type PortraitDetails } from "@/lib/portrait-prompt";
+import {
+  buildPortraitPrompt,
+  PORTRAIT_BACKGROUND_OPTIONS,
+  DEFAULT_PORTRAIT_BACKGROUND_ID,
+  type PortraitDetails,
+  type PortraitBackgroundId,
+} from "@/lib/portrait-prompt";
 import { useBuilderStore } from "@/lib/resume-builder/builder-store";
 import {
   Upload,
@@ -43,7 +49,12 @@ function PortraitStudioBase({ open, onClose }: PortraitStudioProps) {
   const currentPortrait = useBuilderStore((s) => s.portraitUrl);
 
   const [sourcePhoto, setSourcePhoto] = useState<string>("");
-  const [details, setDetails] = useState<PortraitDetails>({ name: "", title: "", department: "" });
+  const [details, setDetails] = useState<PortraitDetails>({
+    name: "",
+    title: "",
+    department: "",
+    backgroundId: DEFAULT_PORTRAIT_BACKGROUND_ID,
+  });
   const [status, setStatus] = useState<GenStatus>("idle");
   const [result, setResult] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -252,6 +263,36 @@ function PortraitStudioBase({ open, onClose }: PortraitStudioProps) {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Background color */}
+          <div>
+            <label
+              htmlFor="portrait-bg"
+              className="block text-sm font-medium text-gray-700 mb-1.5"
+            >
+              背景颜色
+            </label>
+            <p className="text-xs text-gray-500 mb-2">
+              选择证件照底色，不同颜色适配不同场景，请以接收方要求为准。
+            </p>
+            <select
+              id="portrait-bg"
+              value={details.backgroundId ?? DEFAULT_PORTRAIT_BACKGROUND_ID}
+              onChange={(e) =>
+                setDetails((d) => ({
+                  ...d,
+                  backgroundId: e.target.value as PortraitBackgroundId,
+                }))
+              }
+              className="w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none bg-white"
+            >
+              {PORTRAIT_BACKGROUND_OPTIONS.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label} — {option.scenario}
+                </option>
+              ))}
+            </select>
           </div>
 
           {error && (

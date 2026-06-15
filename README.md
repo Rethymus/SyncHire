@@ -84,6 +84,28 @@ Full generated resume artifact: [Chen Yu graduate frontend tailored resume](docs
 | ------------------------ | -------------- |
 | <img src="docs/assets/readme/en-linux-profile.png" alt="SyncHire Lite English role card and browser fill assistant with user-reviewed learning" width="420" /> | <img src="docs/assets/readme/en-linux-match-analysis.png" alt="SyncHire Lite English match analysis screen from Linux validation" width="420" /> |
 
+### AI Business Headshot (Photo → Portrait)
+
+The resume builder can turn a single casual photo into a clean, professional ID-portrait / business headshot through the configured image model — no studio, no appointment. The **Portrait Studio** lives right in the resume-builder toolbar — upload a daily photo, optionally fill a name/title/department, and generate:
+
+<p align="center">
+  <img src="docs/assets/readme/image-demo/portrait-studio-modal.png" alt="SyncHire resume-builder Portrait Studio modal: upload a casual photo, fill optional name/title/department, and generate a business ID portrait with the configured image model" width="800" />
+</p>
+
+Below are before/after pairs using public figures only as neutral demo subjects; their likeness is not endorsed and is not reused beyond this showcase.
+
+| Daniel Wu — source photo | Daniel Wu — AI-generated ID portrait |
+| ------------------------ | ------------------------------------ |
+| <img src="docs/assets/readme/image-demo/daniel-wu-source.jpg" alt="Daniel Wu casual source photo used as input to the AI portrait generator" width="300" /> | <img src="docs/assets/readme/image-demo/daniel-wu-id-photo.png" alt="Daniel Wu AI-generated professional ID portrait produced by SyncHire" width="300" /> |
+
+| Eddie Peng — source photo | Eddie Peng — AI-generated ID portrait |
+| ------------------------- | ------------------------------------- |
+| <img src="docs/assets/readme/image-demo/eddie-peng-source.jpg" alt="Eddie Peng casual source photo used as input to the AI portrait generator" width="300" /> | <img src="docs/assets/readme/image-demo/eddie-peng-id-photo.png" alt="Eddie Peng AI-generated professional ID portrait produced by SyncHire" width="300" /> |
+
+The portrait route is provider-agnostic (OpenAI-compatible `images/edits`, SiliconFlow, Volcengine Ark / Doubao) and runs server-side, so the API key never reaches the browser. Bring your own `OPENAI_API_KEY` and `base_url` to enable it.
+
+> **Portrait & media notice.** SyncHire is an open-source, non-commercial project. The demo photos above are used solely to illustrate the headshot feature and are reused here only under their original free licenses — *Daniel Wu* by Gage Skidmore ([CC BY-SA 3.0](https://commons.wikimedia.org/wiki/File:Daniel_Wu_by_Gage_Skidmore.jpg)) and *Eddie Peng, October 2018* ([CC BY 3.0](https://commons.wikimedia.org/wiki/File:Eddie_Peng_(%E5%BD%AD%E4%BA%8E%E6%99%8F)_in_October_2018.png)), both from Wikimedia Commons. They depict public figures and imply no endorsement of SyncHire, and the generated portraits are not reused beyond this showcase. If any displayed content infringes your rights, please open an issue or contact the maintainer and it will be removed promptly.
+
 ### Insights And Search
 
 | Interview Prep | Analytics |
@@ -93,6 +115,29 @@ Full generated resume artifact: [Chen Yu graduate frontend tailored resume](docs
 | Search | Data Management |
 | ------ | --------------- |
 | <img src="docs/assets/readme/en-linux-search.png" alt="SyncHire Lite English local search screen from Linux validation" width="420" /> | <img src="docs/assets/readme/en-linux-data-management.png" alt="SyncHire Lite English data management screen from Linux validation" width="420" /> |
+
+### Interview Review (fresh interview → structured improvement)
+
+Right after an interview, hand the content to AI. Three input modes: **recall notes** (out-of-order is fine), **meeting transcript** (paste Tencent Meeting / Feishu Minutes / Otter notes for the best accuracy), or **speech-to-text** (live browser dictation, or paste ASR text after uploading audio). AI runs a two-step pipeline — first **normalizes** messy input into an ordered Q&A transcript, then produces a **7-dimension score + STAR gaps + action items** review. Shown below: a fresh-grad frontend candidate reviewing a real first-round interview (model: GLM-4-Flash).
+
+<p align="center"><em>① Three input modes: recall / transcript / speech-to-text</em></p>
+
+| Recall mode | Transcript mode | Speech-to-text mode |
+| ----------- | --------------- | ------------------- |
+| <img src="docs/assets/readme/image-demo/interview-review/modal-recall-mode.png" alt="Interview review recall mode with a textarea for messy post-interview notes" width="320" /> | <img src="docs/assets/readme/image-demo/interview-review/transcript-mode.png" alt="Interview review transcript mode prompting to paste Tencent Meeting AI notes" width="320" /> | <img src="docs/assets/readme/image-demo/interview-review/audio-mode.png" alt="Interview review speech-to-text mode with live browser dictation and audio upload guidance" width="320" /> |
+
+<p align="center"><em>② Messy recall normalized into 14 ordered Q&A turns</em></p>
+
+<p align="center">
+  <img src="docs/assets/readme/image-demo/interview-review/filled-recall-text.png" alt="Fresh-grad candidate's messy recalled interview notes" width="460" />&nbsp;&nbsp;
+  <img src="docs/assets/readme/image-demo/interview-review/normalized-turns.png" alt="14 ordered Q&A turns the AI reconstructed from the messy recall" width="460" />
+</p>
+
+<p align="center"><em>③ Review report: 7-dimension scores + STAR gaps + action items</em></p>
+
+<p align="center">
+  <img src="docs/assets/readme/image-demo/interview-review/review-report.png" alt="AI-generated interview review report with overall score, seven-dimension scores, STAR gaps, and action items" width="780" />
+</p>
 
 ### Interviews And Alerts
 
@@ -182,6 +227,10 @@ Generate a reviewed fill plan for application pages and hand the policy to Kimi 
 ### Interview Preparation
 
 Generate role-specific technical, behavioral, HR, and STAR-method prep from the opportunity itself. SyncHire helps you prepare for the conversation you are actually walking into.
+
+### Interview Review
+
+Debrief immediately after an interview. Three input modes — recall notes, meeting transcript (Tencent Meeting / Feishu Minutes / Otter), or speech-to-text. AI first normalizes messy input into an ordered Q&A transcript, then scores seven dimensions, surfaces STAR gaps, and produces an actionable improvement list. Every conclusion is grounded in what you actually entered — no fabricated questions or answers.
 
 ### Data Ownership
 

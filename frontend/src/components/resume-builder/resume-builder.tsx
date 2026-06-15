@@ -15,6 +15,13 @@ import { IconPicker } from "./icon-picker";
 import { DetectionPanel } from "./detection-panel";
 import { ExportMenu } from "./export-menu";
 import { PortraitStudio } from "./portrait-studio";
+import { GithubProjectStudio } from "./github-project-studio";
+import {
+  buildProjectBlock,
+  insertProjectBlock,
+  mergeSkillsIntoContent,
+} from "@/lib/github-distill/resume-insert";
+import type { DistilledProject } from "@/lib/github-distill/types";
 import {
   ArrowLeft,
   Code2,
@@ -30,6 +37,7 @@ import {
   AlertTriangle,
   Maximize2,
   Camera,
+  GitBranch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -111,6 +119,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
   const [showIcons, setShowIcons] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showPortrait, setShowPortrait] = useState(false);
+  const [showGithub, setShowGithub] = useState(false);
 
   const pageRef = useRef<HTMLElement>(null);
   const sourceRef = useRef<SourceEditorHandle>(null);
@@ -218,6 +227,18 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
     );
   }, []);
 
+  // Apply a distilled GitHub project: insert a project block into 项目经历 and
+  // merge its tech stack into the skills section. Snapshots the pre-edit content
+  // so the change is reachable from the history drawer.
+  const handleApplyGithubProject = useCallback(
+    (project: DistilledProject) => {
+      const block = buildProjectBlock(project);
+      setContent((prev) => mergeSkillsIntoContent(insertProjectBlock(prev, block), project.skills));
+      pushSnapshot(`${project.name}（GitHub 蒸馏）`, content);
+    },
+    [content, pushSnapshot],
+  );
+
   const toolbarButton = useMemo(
     () => ({
       base: "inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-sm border transition min-h-[36px]",
@@ -297,6 +318,13 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
         >
           <Camera className="h-4 w-4" /> 证件照
           {portraitUrl && <span className="h-1.5 w-1.5 rounded-full bg-green-500" />}
+        </button>
+        <button
+          onClick={() => setShowGithub(true)}
+          className={cn(toolbarButton.base, toolbarButton.idle)}
+          title="GitHub 项目蒸馏：从仓库链接推断项目经历"
+        >
+          <GitBranch className="h-4 w-4" /> 项目蒸馏
         </button>
         <button
           onClick={() => useBuilderStore.getState().togglePlugin("detection")}
@@ -404,6 +432,11 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
       <PluginPanel open={showPlugins} onClose={() => setShowPlugins(false)} />
       <IconPicker open={showIcons} onPick={handleInsertIcon} onClose={() => setShowIcons(false)} />
       <PortraitStudio open={showPortrait} onClose={() => setShowPortrait(false)} />
+      <GithubProjectStudio
+        open={showGithub}
+        onClose={() => setShowGithub(false)}
+        onApplyProject={handleApplyGithubProject}
+      />
       <HistoryDrawer
         open={showHistory}
         onClose={() => setShowHistory(false)}
