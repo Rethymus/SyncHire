@@ -143,6 +143,15 @@ export const WysiwygEditor = forwardRef<WysiwygEditorHandle, WysiwygEditorProps>
       }
     };
 
+    const handlePaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
+      // The persisted representation is Markdown. Never let pasted rich HTML
+      // become an editable DOM sink beside a session-scoped provider key.
+      event.preventDefault();
+      const text = event.clipboardData.getData("text/plain");
+      document.execCommand("insertText", false, text);
+      emit();
+    };
+
     return (
       <div className="h-full flex flex-col bg-white">
         <div className="flex items-center gap-1 px-3 py-1.5 border-b border-gray-100 bg-gray-50">
@@ -176,6 +185,7 @@ export const WysiwygEditor = forwardRef<WysiwygEditorHandle, WysiwygEditorProps>
           suppressContentEditableWarning
           onInput={emit}
           onBlur={emit}
+          onPaste={handlePaste}
           aria-label="所见即所得编辑"
           dir="ltr"
         />

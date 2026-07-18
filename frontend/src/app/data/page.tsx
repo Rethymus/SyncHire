@@ -18,6 +18,13 @@ import { Progress } from "@/components/ui/progress";
 import { logger, LogCategory } from "@/lib/logger";
 import { useLiteCopy } from "@/lib/lite-i18n";
 import { useAppStore, type JobApplication, type JobDescription, type Resume } from "@/lib/store";
+import { isGithubPagesDeployment } from "@/lib/deployment-mode";
+import {
+  clearNonSecretWorkspace,
+  clearPagesSessionCredentials,
+  exportNonSecretWorkspace,
+  restoreNonSecretWorkspace,
+} from "@/lib/pages-workspace";
 import {
   Download,
   Upload,
@@ -181,8 +188,18 @@ const COPY = {
     readyImport: "File is ready to import",
     failedPreview: "Failed to generate import preview",
     failedImport: "Failed to import data",
+    workspaceRestorePending: "Workspace preferences were restored. Reload the page to apply them.",
     backupCreated: "Backup created successfully",
     backupFailed: "Failed to create backup",
+    pagesTitle: "Pages storage and privacy",
+    pagesDescription:
+      "This static preview keeps work data in this browser until you clear browser data. JSON export includes all non-secret SyncHire workspace data; provider keys and tokens are excluded.",
+    clearWorkspace: "Clear local workspace",
+    clearWorkspaceConfirm:
+      "Clear SyncHire work data saved in this browser? This cannot be undone. Export a JSON backup first.",
+    workspaceCleared: "Local SyncHire workspace cleared. Reloading the preview.",
+    clearTabKeys: "Clear keys in this tab",
+    tabKeysCleared: "Provider keys and direct-use approval were cleared from this tab.",
   },
   "zh-CN": {
     title: "数据管理",
@@ -233,14 +250,25 @@ const COPY = {
     readyImport: "文件已准备好导入",
     failedPreview: "生成导入预览失败",
     failedImport: "导入数据失败",
+    workspaceRestorePending: "工作区偏好已恢复，重新载入页面后生效。",
     backupCreated: "备份创建成功",
     backupFailed: "创建备份失败",
+    pagesTitle: "Pages 存储与隐私",
+    pagesDescription:
+      "此静态体验版会将工作数据保存在当前浏览器，直到你清除浏览器数据。JSON 导出会包含所有非敏感的 SyncHire 工作区数据；供应商密钥与令牌不会被导出。",
+    clearWorkspace: "清除本地工作区",
+    clearWorkspaceConfirm:
+      "确定清除此浏览器中保存的 SyncHire 工作数据吗？此操作无法撤销，请先导出 JSON 备份。",
+    workspaceCleared: "本地 SyncHire 工作区已清除，正在重新载入体验版。",
+    clearTabKeys: "清除此标签页的密钥",
+    tabKeysCleared: "已清除本标签页中的供应商密钥与直连确认记录。",
   },
 } as const;
 
 function DataManagementPage() {
   const { locale } = useLiteCopy();
   const copy = COPY[locale];
+  const pagesMode = isGithubPagesDeployment();
   const {
     resumes,
     jobDescriptions,
@@ -277,13 +305,14 @@ function DataManagementPage() {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const buildExportData = useCallback(() => ({
-    version: 1,
+    version: 2,
     exported_at: new Date().toISOString(),
     state: {
       resumes,
       jobDescriptions,
       applications,
     },
+    workspace: exportNonSecretWorkspace(),
   }), [applications, jobDescriptions, resumes]);
 
   const buildLocalStatus = useCallback((localBackups = readLocalBackups()): DataStatus => {
@@ -595,6 +624,8 @@ function DataManagementPage() {
       setImportProgress(30);
       const parsed = JSON.parse(await importFile.text());
       const state = parsed.state ?? parsed;
+      const workspaceRestored =
+        importMode === "replace" && restoreNonSecretWorkspace(parsed.workspace);
       const importedResumes: Resume[] = Array.isArray(state.resumes)
         ? state.resumes.map((resume: Resume) => ({
             ...resume,
@@ -655,7 +686,9 @@ function DataManagementPage() {
 
       showMessage(
         "success",
-        `Import completed: ${result.imported} imported, ${result.skipped} skipped, ${result.failed} failed`
+        workspaceRestored
+          ? copy.workspaceRestorePending
+          : `Import completed: ${result.imported} imported, ${result.skipped} skipped, ${result.failed} failed`
       );
       loadBackups();
 
@@ -679,6 +712,7 @@ function DataManagementPage() {
     jobDescriptions,
     loadBackups,
     copy.failedImport,
+    copy.workspaceRestorePending,
     resolveConflicts,
     resumes,
     setApplications,
@@ -714,6 +748,18 @@ function DataManagementPage() {
     }
   }, [buildExportData, copy.backupCreated, copy.backupFailed, showMessage]);
 
+  const handleClearWorkspace = useCallback(() => {
+    if (!window.confirm(copy.clearWorkspaceConfirm)) return;
+    clearNonSecretWorkspace();
+    showMessage("success", copy.workspaceCleared);
+    window.setTimeout(() => window.location.reload(), 600);
+  }, [copy.clearWorkspaceConfirm, copy.workspaceCleared, showMessage]);
+
+  const handleClearTabKeys = useCallback(() => {
+    clearPagesSessionCredentials();
+    showMessage("success", copy.tabKeysCleared);
+  }, [copy.tabKeysCleared, showMessage]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       
@@ -726,6 +772,25 @@ function DataManagementPage() {
             {copy.subtitle}
           </p>
         </div>
+
+        {pagesMode ? (
+          <section className="mb-8 rounded-lg border border-amber-200 bg-amber-50 p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-amber-950">{copy.pagesTitle}</h2>
+                <p className="mt-1 max-w-3xl text-sm leading-6 text-amber-900">{copy.pagesDescription}</p>
+              </div>
+              <div className="flex shrink-0 flex-wrap gap-2">
+                <Button type="button" variant="outline" onClick={handleClearTabKeys}>
+                  {copy.clearTabKeys}
+                </Button>
+                <Button type="button" variant="destructive" onClick={handleClearWorkspace}>
+                  {copy.clearWorkspace}
+                </Button>
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         {/* Message Banner */}
         {message && (
@@ -824,6 +889,11 @@ function DataManagementPage() {
           <p className="text-gray-600 mb-4">
             {copy.exportDescription}
           </p>
+          {pagesMode ? (
+            <p className="mb-4 text-sm text-amber-800">
+              JSON 备份还会包含简历编辑器偏好、角色卡、面试与通知等本地工作区数据；不会包含 API Key、GitHub Token 或认证令牌。
+            </p>
+          ) : null}
 
           {/* Export Filters */}
           {showExportFilters && (

@@ -8,11 +8,14 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const isStaticExport = process.env.NEXT_OUTPUT === "export";
+const isGithubPages = process.env.NEXT_PUBLIC_DEPLOYMENT_TARGET === "github-pages";
+const pagesBasePath = isGithubPages ? (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "") : "";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   // Output mode: 'standalone' for Docker, 'export' for static/Electron/Capacitor
   output: isStaticExport ? "export" : "standalone",
+  basePath: pagesBasePath || undefined,
 
   // Static shell builds do not have a Next.js server, so route.ts API handlers are ignored.
   pageExtensions: isStaticExport ? ["tsx", "jsx"] : ["ts", "tsx", "js", "jsx"],
@@ -45,6 +48,8 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_APP_NAME: "SyncHire Lite",
     NEXT_PUBLIC_APP_VERSION: "1.0.0",
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+    NEXT_PUBLIC_DEPLOYMENT_TARGET: process.env.NEXT_PUBLIC_DEPLOYMENT_TARGET || "standard",
+    NEXT_PUBLIC_BASE_PATH: pagesBasePath,
     NEXT_TELEMETRY_DISABLED: "1",
   },
 

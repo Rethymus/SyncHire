@@ -20,6 +20,8 @@ import {
   IdCard,
 } from "lucide-react";
 
+const brandMarkSrc = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/brand/synchire-mark.svg`;
+
 export function Navigation() {
   const pathname = usePathname();
   const { locale, setLocale, t } = useLiteCopy();
@@ -80,9 +82,10 @@ export function Navigation() {
           {/* Logo and brand */}
           <div className="flex items-center">
             <Link href="/dashboard" className="flex items-center space-x-2">
-              <Briefcase className="h-8 w-8 text-blue-600" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={brandMarkSrc} alt="SyncHire" className="h-8 w-8" />
               <span className="text-xl font-bold text-gray-900">
-                SyncHire <span className="text-blue-600">Lite</span>
+                SyncHire <span className="text-indigo-600">Lite</span>
               </span>
             </Link>
           </div>

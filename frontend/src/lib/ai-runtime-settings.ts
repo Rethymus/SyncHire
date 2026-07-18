@@ -1,3 +1,5 @@
+import { getCredentialStorage, isGithubPagesDeployment } from "./deployment-mode";
+
 export const AI_RUNTIME_SETTINGS_STORAGE_KEY = "synchire-ai-runtime-settings";
 export const AI_RUNTIME_SETTINGS_VERSION = 1;
 
@@ -730,7 +732,14 @@ export function loadAIRuntimeSettings(): AIRuntimeSettings {
   }
 
   try {
-    const stored = window.localStorage.getItem(AI_RUNTIME_SETTINGS_STORAGE_KEY);
+    const storage = getCredentialStorage();
+    if (!storage) return createDefaultAIRuntimeSettings();
+    // A Pages build must never revive a secret that a pre-Pages build wrote to
+    // durable browser storage for the same origin.
+    if (isGithubPagesDeployment()) {
+      window.localStorage.removeItem(AI_RUNTIME_SETTINGS_STORAGE_KEY);
+    }
+    const stored = storage.getItem(AI_RUNTIME_SETTINGS_STORAGE_KEY);
     return hydrateAIRuntimeSettings(stored ? JSON.parse(stored) : undefined);
   } catch {
     return createDefaultAIRuntimeSettings();
@@ -742,7 +751,12 @@ export function saveAIRuntimeSettings(settings: AIRuntimeSettings) {
     return;
   }
 
-  window.localStorage.setItem(
+  const storage = getCredentialStorage();
+  if (!storage) return;
+  if (isGithubPagesDeployment()) {
+    window.localStorage.removeItem(AI_RUNTIME_SETTINGS_STORAGE_KEY);
+  }
+  storage.setItem(
     AI_RUNTIME_SETTINGS_STORAGE_KEY,
     JSON.stringify({
       ...settings,

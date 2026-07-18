@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import {
   Brain,
   Wand2,
@@ -25,6 +25,11 @@ import {
 import Link from "next/link";
 import { loadAIRuntimeSettings } from "@/lib/ai-runtime-settings";
 import { resolveActiveTextProvider } from "@/lib/github-distill/llm-resolver";
+import { buildNormalizePrompt } from "@/lib/interview-review/normalize-prompt";
+import { buildReviewPrompt } from "@/lib/interview-review/review-prompt";
+import { parseNormalizedInterview, parseReviewReport } from "@/lib/interview-review/parse-review";
+import { completeTextDirectly, directConsentId } from "@/lib/direct-text-provider";
+import { canUseDirectByokInThisRuntime, isGithubPagesDeployment } from "@/lib/deployment-mode";
 import {
   isLiveDictationSupported,
   startLiveDictation,
@@ -74,6 +79,10 @@ const SOURCE_META: Record<
   },
 };
 
+const INTERVIEW_SYSTEM_PROMPT =
+  "你是一名严谨的面试复盘助手，只依据用户给定的面试内容做整理与评估，绝不杜撰问题、答案或量化指标，并严格按要求输出单个 JSON 对象。";
+const DIRECT_CONSENT_STORAGE_KEY = "synchire-pages-direct-provider-consent";
+
 function InterviewReviewStudioBase({
   open,
   onClose,
@@ -90,11 +99,33 @@ function InterviewReviewStudioBase({
   const [normalized, setNormalized] = useState<NormalizedInterview | null>(null);
   const [report, setReport] = useState<InterviewReviewReport | null>(null);
   const [copied, setCopied] = useState(false);
+  const [approvedConsent, setApprovedConsent] = useState("");
 
   // Live dictation state
   const dictRef = useRef<LiveDictationHandle | null>(null);
   const [dictating, setDictating] = useState(false);
   const dictSupported = isLiveDictationSupported();
+
+  const provider = resolveActiveTextProvider(loadAIRuntimeSettings());
+  const pagesMode = isGithubPagesDeployment();
+  let consentId = "";
+  try {
+    consentId = provider.baseUrl ? directConsentId(provider) : "";
+  } catch {
+    consentId = "";
+  }
+  let providerHost = "未配置供应商";
+  try {
+    providerHost = provider.baseUrl ? new URL(provider.baseUrl).hostname : providerHost;
+  } catch {
+    // Invalid Base URL is handled by the direct adapter when the user submits.
+  }
+  const hasDirectConsent = !pagesMode || approvedConsent === consentId;
+
+  useEffect(() => {
+    if (!pagesMode || !consentId) return;
+    setApprovedConsent(window.sessionStorage.getItem(DIRECT_CONSENT_STORAGE_KEY) ?? "");
+  }, [pagesMode, consentId]);
 
   const reset = useCallback(() => {
     setStage("idle");
@@ -127,6 +158,48 @@ function InterviewReviewStudioBase({
         );
         return null;
       }
+      if (pagesMode) {
+        if (!canUseDirectByokInThisRuntime()) {
+          throw new Error("此页面不是安全 HTTPS 上下文，已禁止直接使用 API Key。");
+        }
+        if (!hasDirectConsent) {
+          throw new Error("请先确认直连供应商与数据发送说明。");
+        }
+        if (bodySource === "normalize") {
+          const input = payload.input as {
+            source: InterviewInputSource;
+            rawText: string;
+            targetRole?: string;
+            targetCompany?: string;
+          };
+          const raw = await completeTextDirectly({
+            provider,
+            systemPrompt: INTERVIEW_SYSTEM_PROMPT,
+            userPrompt: buildNormalizePrompt(input),
+          });
+          const normalized = parseNormalizedInterview(raw);
+          normalized.source = input.source;
+          return { ok: true, normalized };
+        }
+        const input = payload.input as {
+          source: InterviewInputSource;
+          targetRole?: string;
+          targetCompany?: string;
+          focusNotes?: string;
+        };
+        const normalized = payload.normalized as NormalizedInterview;
+        const raw = await completeTextDirectly({
+          provider,
+          systemPrompt: INTERVIEW_SYSTEM_PROMPT,
+          userPrompt: buildReviewPrompt({
+            normalized,
+            targetRole: input.targetRole,
+            targetCompany: input.targetCompany,
+            focusNotes: input.focusNotes,
+          }),
+        });
+        return { ok: true, report: parseReviewReport(raw) };
+      }
       const res = await fetch("/api/interview-review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -148,7 +221,7 @@ function InterviewReviewStudioBase({
       }
       return data;
     },
-    [],
+    [hasDirectConsent, pagesMode],
   );
 
   const handleNormalize = useCallback(async () => {
@@ -241,7 +314,6 @@ function InterviewReviewStudioBase({
 
   if (!open) return null;
 
-  const provider = resolveActiveTextProvider(loadAIRuntimeSettings());
   const audioGuidance = getAudioUploadGuidance();
 
   return (
@@ -294,6 +366,29 @@ function InterviewReviewStudioBase({
               <SettingsIcon className="h-3 w-3" /> 前往配置
             </Link>
           </div>
+
+          {pagesMode ? (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+              <p>
+                直连模式会把本次面试文本与 API Key 发送至 <strong>{providerHost}</strong>，
+                使用模型 <code>{provider.model || "未设置"}</code>。SyncHire 不运行代理，也不会保存该 Key。
+              </p>
+              <p className="mt-2 text-xs text-amber-800">
+                Key 仅保留在当前标签页；浏览器扩展、已被篡改的页面或不受信任设备不在此保护范围内。
+              </p>
+              <button
+                type="button"
+                disabled={!consentId || !canUseDirectByokInThisRuntime()}
+                onClick={() => {
+                  window.sessionStorage.setItem(DIRECT_CONSENT_STORAGE_KEY, consentId);
+                  setApprovedConsent(consentId);
+                }}
+                className="mt-3 rounded-md bg-amber-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {hasDirectConsent ? "已确认直连说明" : "我理解并启用本供应商直连"}
+              </button>
+            </div>
+          ) : null}
 
           {/* Input mode selector */}
           <div>

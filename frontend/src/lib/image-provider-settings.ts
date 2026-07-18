@@ -1,3 +1,5 @@
+import { getCredentialStorage, isGithubPagesDeployment } from "./deployment-mode";
+
 /**
  * Image provider settings — kept SEPARATE from the text-AI providers in
  * {@link ai-runtime-settings}, because many LLM providers cannot generate
@@ -166,7 +168,12 @@ export function loadImageProviderSettings(): ImageProviderSettings {
     return createDefaultImageProviderSettings();
   }
   try {
-    const stored = window.localStorage.getItem(IMAGE_PROVIDER_SETTINGS_STORAGE_KEY);
+    const storage = getCredentialStorage();
+    if (!storage) return createDefaultImageProviderSettings();
+    if (isGithubPagesDeployment()) {
+      window.localStorage.removeItem(IMAGE_PROVIDER_SETTINGS_STORAGE_KEY);
+    }
+    const stored = storage.getItem(IMAGE_PROVIDER_SETTINGS_STORAGE_KEY);
     return hydrateImageProviderSettings(stored ? JSON.parse(stored) : undefined);
   } catch {
     return createDefaultImageProviderSettings();
@@ -177,7 +184,12 @@ export function saveImageProviderSettings(settings: ImageProviderSettings): void
   if (typeof window === "undefined") {
     return;
   }
-  window.localStorage.setItem(
+  const storage = getCredentialStorage();
+  if (!storage) return;
+  if (isGithubPagesDeployment()) {
+    window.localStorage.removeItem(IMAGE_PROVIDER_SETTINGS_STORAGE_KEY);
+  }
+  storage.setItem(
     IMAGE_PROVIDER_SETTINGS_STORAGE_KEY,
     JSON.stringify({ ...settings, version: IMAGE_PROVIDER_SETTINGS_VERSION, updatedAt: nowIso() }),
   );

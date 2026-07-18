@@ -66,6 +66,7 @@ import {
 } from "@/lib/ai-provider-connection";
 import { formatLiteDate, useLiteCopy } from "@/lib/lite-i18n";
 import { cn } from "@/lib/utils";
+import { isGithubPagesDeployment } from "@/lib/deployment-mode";
 
 type TabType = "ai" | "skills" | "mcp" | "discover" | "image" | "notifications" | "history";
 
@@ -706,6 +707,7 @@ function AIProviderPanel({
   onSave: () => void;
   onReset: () => void;
 }) {
+  const pagesMode = isGithubPagesDeployment();
   const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
   const [testingProviderId, setTestingProviderId] = useState<AIProviderId | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<
@@ -924,6 +926,7 @@ function AIProviderPanel({
                       id={`${provider.id}-api-key`}
                       data-testid={`${provider.id}-api-key`}
                       type={keyVisible ? "text" : "password"}
+                      autoComplete="off"
                       value={provider.apiKey}
                       placeholder={copy.ai.apiKeyPlaceholder}
                       onChange={(event) =>
@@ -952,11 +955,11 @@ function AIProviderPanel({
                       type="button"
                       variant="outline"
                       onClick={() => handleTestConnection(provider)}
-                      disabled={isTesting}
+                      disabled={isTesting || pagesMode}
                       className="justify-start"
                     >
                       {isTesting ? <Loader2 className="size-4 animate-spin" /> : <PlugZap className="size-4" />}
-                      {isTesting ? copy.ai.testingConnection : copy.ai.testConnection}
+                      {isTesting ? copy.ai.testingConnection : pagesMode ? "Pages 版不测试模型列表" : copy.ai.testConnection}
                     </Button>
                     <p
                       className={cn(
@@ -964,7 +967,7 @@ function AIProviderPanel({
                         status?.type === "success" ? "text-emerald-700" : status?.type === "error" ? "text-red-700" : "text-gray-500"
                       )}
                     >
-                      {status?.text ?? copy.ai.connectionDetail}
+                      {status?.text ?? (pagesMode ? "直连请求将在你确认后、实际使用 AI 时发送。" : copy.ai.connectionDetail)}
                     </p>
                   </div>
                 </div>
@@ -1583,6 +1586,7 @@ function DiscoveryPanel({
 export default function SettingsPage() {
   const { locale } = useLiteCopy();
   const copy = COPY[locale];
+  const pagesMode = isGithubPagesDeployment();
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     if (typeof window === "undefined") return "ai";
     const tab = new URLSearchParams(window.location.search).get("tab");
@@ -1690,10 +1694,12 @@ export default function SettingsPage() {
               <Search className="size-4" />
               {copy.tabs.discover}
             </TabsTrigger>
-            <TabsTrigger value="image" className="gap-2">
-              <ImageIcon className="size-4" />
-              {copy.tabs.image}
-            </TabsTrigger>
+            {!pagesMode ? (
+              <TabsTrigger value="image" className="gap-2">
+                <ImageIcon className="size-4" />
+                {copy.tabs.image}
+              </TabsTrigger>
+            ) : null}
             <TabsTrigger value="notifications" className="gap-2">
               <Settings2 className="size-4" />
               {copy.tabs.notifications}
@@ -1747,9 +1753,11 @@ export default function SettingsPage() {
               showMessage={showMessage}
             />
           </TabsContent>
-          <TabsContent value="image" className="mt-6">
-            <ImageProviderPanel />
-          </TabsContent>
+          {!pagesMode ? (
+            <TabsContent value="image" className="mt-6">
+              <ImageProviderPanel />
+            </TabsContent>
+          ) : null}
           <TabsContent value="notifications" className="mt-6">
             <NotificationSettings />
           </TabsContent>

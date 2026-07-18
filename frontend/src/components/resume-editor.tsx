@@ -15,6 +15,7 @@ import { SavedTemplatesManager } from "@/components/saved-templates-manager";
 import { ResumeEditorSkeleton } from "@/components/skeleton";
 import { logger, LogCategory } from "@/lib/logger";
 import { useLiteCopy } from "@/lib/lite-i18n";
+import { isGithubPagesDeployment } from "@/lib/deployment-mode";
 import {
   buildResumeDocumentHtml,
   getResumeTemplateLabel,
@@ -179,6 +180,7 @@ type SaveStatus = "saving" | "saved" | "error" | "idle" | "unsaved";
 function ResumeEditorComponent() {
   const { locale } = useLiteCopy();
   const copy = COPY[locale];
+  const pagesMode = isGithubPagesDeployment();
   const {
     currentResume,
     updateResume,
@@ -417,6 +419,10 @@ function ResumeEditorComponent() {
   }, [copy.saveFailed, saveStatus, hasUnsavedChanges]);
 
   const handleAIOptimize = useCallback(async () => {
+    if (pagesMode) {
+      setOptimizationError("GitHub Pages 体验版不提供服务端简历优化。可使用面试复盘中的直连 BYOK 功能。");
+      return;
+    }
     if (!currentResume?.id) {
       setOptimizationError(copy.pdfMissingResume);
       return;
@@ -449,7 +455,7 @@ function ResumeEditorComponent() {
     } finally {
       setAiOptimizing(false);
     }
-  }, [copy.missingTarget, copy.optimizationFailed, copy.pdfMissingResume, currentResume, currentJD]);
+  }, [copy.missingTarget, copy.optimizationFailed, copy.pdfMissingResume, currentResume, currentJD, pagesMode]);
 
   const handleApplyOptimization = useCallback(() => {
     if (optimizationResult?.optimized_content) {
@@ -475,6 +481,12 @@ function ResumeEditorComponent() {
     setSaveError(null);
 
     try {
+      if (pagesMode) {
+        window.print();
+        setSaveStatus("saved");
+        resetSaveStatusTimer();
+        return;
+      }
       const html = buildResumeDocumentHtml(content, selectedTemplate);
       const response = await fetch("/api/generate-pdf", {
         method: "POST",
@@ -511,7 +523,7 @@ function ResumeEditorComponent() {
     } finally {
       setExportingPdf(false);
     }
-  }, [content, copy.pdfFailed, copy.pdfMissingResume, currentResume, resetSaveStatusTimer, selectedTemplate]);
+  }, [content, copy.pdfFailed, copy.pdfMissingResume, currentResume, pagesMode, resetSaveStatusTimer, selectedTemplate]);
 
   const handleTogglePreview = useCallback(() => {
     setPreviewMode(prev => !prev);

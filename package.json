@@ -15,6 +15,7 @@
     "stop:mcp": "./scripts/mcp-stop.sh",
     "build": "npm run build --workspaces",
     "build:static": "node scripts/build-static.mjs",
+    "build:pages": "node scripts/build-pages.mjs",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build",
     "desktop:build:debug": "tauri build --debug",

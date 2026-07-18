@@ -11,6 +11,7 @@ import { Navigation } from "@/components/navigation-lite";
 import { ToastProvider } from "@/components/ui/toast";
 import { SearchProvider } from "@/contexts/search-context";
 import { Providers } from "@/components/providers";
+import { PagesModeNotice } from "@/components/pages-mode-notice";
 
 export const metadata: Metadata = {
   title: "SyncHire Lite - Local Job Application Tool",
@@ -30,6 +31,7 @@ export default function RootLayout({
           <SearchProvider>
             <ToastProvider>
               <Navigation />
+              <PagesModeNotice />
               <div className="min-h-screen bg-gray-50">
                 {children}
               </div>

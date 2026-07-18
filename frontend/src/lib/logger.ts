@@ -23,6 +23,8 @@ export enum LogCategory {
   WORKFLOW = "WORKFLOW",
 }
 
+const IS_GITHUB_PAGES = process.env.NEXT_PUBLIC_DEPLOYMENT_TARGET === "github-pages";
+
 interface LogEntry {
   timestamp: string;
   level: LogLevel;
@@ -239,8 +241,8 @@ if (process.env.NODE_ENV === "production") {
   logger.configure({
     minLevel: LogLevel.INFO,
     enableConsole: false,
-    enableRemote: true,
-    remoteEndpoint: process.env.NEXT_PUBLIC_LOG_ENDPOINT || "/api/logs",
+    enableRemote: !IS_GITHUB_PAGES,
+    remoteEndpoint: IS_GITHUB_PAGES ? undefined : process.env.NEXT_PUBLIC_LOG_ENDPOINT || "/api/logs",
     samplingRate: 0.1, // 采样10%
   });
 }

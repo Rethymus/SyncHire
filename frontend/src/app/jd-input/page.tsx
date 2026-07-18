@@ -8,6 +8,7 @@ import { logger } from "@/lib/logger";
 import { LogCategory } from "@/lib/logger";
 import { useLiteCopy } from "@/lib/lite-i18n";
 import { apiClient } from "@/lib/api-client-unified";
+import { isGithubPagesDeployment } from "@/lib/deployment-mode";
 import {
   Briefcase,
   CheckCircle2,
@@ -20,6 +21,7 @@ export default function JDInputPage() {
   const router = useRouter();
   const { t } = useLiteCopy();
   const jdCopy = t.jd;
+  const pagesMode = isGithubPagesDeployment();
   const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
@@ -66,6 +68,10 @@ export default function JDInputPage() {
   };
 
   const handleImportFromURL = async () => {
+    if (pagesMode) {
+      setImportMessage("Pages 体验版不抓取岗位链接。请手动粘贴职位描述，内容会保存在当前浏览器中。");
+      return;
+    }
     if (!url.trim()) {
       return;
     }
@@ -159,11 +165,16 @@ export default function JDInputPage() {
               <Button
                 variant="outline"
                 onClick={handleImportFromURL}
-                disabled={!url.trim() || importing}
+                disabled={pagesMode || !url.trim() || importing}
               >
-                {importing ? jdCopy.importingButton : jdCopy.importButton}
+                {pagesMode ? "Pages 版不可用" : importing ? jdCopy.importingButton : jdCopy.importButton}
               </Button>
             </div>
+            {pagesMode ? (
+              <p className="mt-3 text-sm text-amber-800">
+                静态 Pages 没有受控抓取后端；请在下方手动录入职位内容。
+              </p>
+            ) : null}
             {importMessage && (
               <p
                 id="job-url-import-message"

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">SyncHire logo</title>
+  <desc id="desc">A wayfinding mark made from a career path, a person, and a meeting point.</desc>
+  <defs>
+    <linearGradient id="indigo" x1="104" y1="72" x2="394" y2="442" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#312E81"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </linearGradient>
+    <linearGradient id="jade" x1="168" y1="426" x2="312" y2="134" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F766E"/>
+      <stop offset="1" stop-color="#14B8A6"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#F8FAFC"/>
+  <path d="M132 348c-27-57-19-126 23-176 44-53 118-72 181-47 30 12 56 33 74 61" fill="none" stroke="url(#indigo)" stroke-linecap="round" stroke-width="54"/>
+  <path d="M157 395c38-7 76-31 104-69 22-30 36-66 40-107" fill="none" stroke="url(#jade)" stroke-linecap="round" stroke-width="54"/>
+  <circle cx="350" cy="190" r="35" fill="#F59E0B"/>
+  <path d="M330 304c24 0 45 8 62 23" fill="none" stroke="#312E81" stroke-linecap="round" stroke-width="28"/>
+</svg>

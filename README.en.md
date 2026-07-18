@@ -1,4 +1,8 @@
-# SyncHire (知遇)
+# SyncHire 知遇
+
+<p align="center">
+  <img src="docs/assets/brand/synchire-mark.svg" alt="SyncHire logo: a wayfinding mark made from a career path, a person, and a meeting point" width="112" />
+</p>
 
 <p align="center">
   <strong>The AI-powered job application command center for people who refuse to send generic resumes.</strong>
@@ -7,40 +11,15 @@
 </p>
 
 <p align="center">
-  <a href="./README.en.md"><strong>English</strong></a>
-  ·
   <a href="./README.md">简体中文</a>
+  ·
+  <a href="./README.en.md"><strong>English</strong></a>
 </p>
 
 <p align="center">
   <a href="https://opensource.org/licenses/MIT"><img alt="License" src="https://img.shields.io/badge/License-MIT-blue.svg" /></a>
   <a href="https://github.com/Rethymus/SyncHire/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Rethymus/SyncHire/actions/workflows/ci.yml/badge.svg" /></a>
-  <a href="https://github.com/Rethymus/SyncHire"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/Rethymus/SyncHire?style=social" /></a>
-  <img alt="Last Commit" src="https://img.shields.io/github/last-commit/Rethymus/SyncHire" />
-  <img alt="Repo Size" src="https://img.shields.io/github/repo-size/Rethymus/SyncHire" />
-  <a href="https://github.com/Rethymus/SyncHire/issues"><img alt="Issues" src="https://img.shields.io/github/issues/Rethymus/SyncHire" /></a>
-  <a href="https://github.com/Rethymus/SyncHire/pulls"><img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
-</p>
-
-<p align="center">
-  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16.2.7-black?logo=nextdotjs&logoColor=white" />
-  <img alt="React" src="https://img.shields.io/badge/React-19.2.7-61DAFB?logo=react&logoColor=black" />
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" />
-  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white" />
-  <img alt="Zustand" src="https://img.shields.io/badge/Zustand-5-FF6B00?logo=zustand&logoColor=white" />
-  <img alt="TanStack Query" src="https://img.shields.io/badge/TanStack_Query-5-FF4154?logo=reactquery&logoColor=white" />
-  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-Python%203.11+-009688?logo=fastapi&logoColor=white" />
-  <img alt="Python" src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" />
-  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white" />
-  <img alt="PGVector" src="https://img.shields.io/badge/PGVector-vector_search-41B883" />
-  <img alt="Redis" src="https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white" />
-  <img alt="MinIO" src="https://img.shields.io/badge/MinIO-S3_compatible-FFC72C" />
-  <img alt="OpenAI" src="https://img.shields.io/badge/OpenAI-compatible-412991?logo=openai&logoColor=white" />
-  <img alt="MCP" src="https://img.shields.io/badge/MCP-modular_servers-orange" />
-  <img alt="Vitest" src="https://img.shields.io/badge/Vitest-4-6E9F18?logo=vitest&logoColor=white" />
-  <img alt="Playwright" src="https://img.shields.io/badge/Playwright-E2E-2EAD33?logo=playwright&logoColor=white" />
-  <img alt="ESLint" src="https://img.shields.io/badge/ESLint-9-4B32C3?logo=eslint&logoColor=white" />
-  <img alt="Pytest" src="https://img.shields.io/badge/Pytest-passing-0A9EDC?logo=pytest&logoColor=white" />
+  <a href="#github-pages-byok-preview"><img alt="AI Provider: BYOK" src="https://img.shields.io/badge/AI%20Provider-BYOK-0F766E" /></a>
 </p>
 
 <p align="center">
@@ -201,10 +180,25 @@ Right after an interview, hand the content to AI. Three input modes: **recall no
 
 ## Product Modes
 
-| Mode            | Best for                                                     | What runs                                                           |
-| --------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |
-| Lite Mode       | Private local workflows, demos, offline-friendly exploration | Next.js frontend, browser local storage, local PDF export, no required API |
-| Full Stack Mode | AI features, team deployments, API-backed persistence        | Next.js, FastAPI, PostgreSQL + PGVector, Redis, Minio, MCP services |
+| Mode | Best for | What runs |
+| --- | --- | --- |
+| GitHub Pages BYOK preview | Public evaluation, local job-search work, trying interview review with your own model key | Static Next.js, browser-local workspace, session-only API key, direct provider requests; no SyncHire backend or paid model account |
+| Lite Mode | Private local workflows, demos, offline-friendly exploration | Next.js frontend, browser local storage, local PDF export, no required API |
+| Full Stack Mode | AI features, team deployments, API-backed persistence | Next.js, FastAPI, PostgreSQL + PGVector, Redis, Minio, MCP services |
+
+## GitHub Pages BYOK Preview
+
+Try the local-first workflow on [SyncHire Pages](https://rethymus.github.io/SyncHire/). This is a static site: it runs no SyncHire API, model proxy, authentication service, or project-paid model account. After explicit confirmation, Interview Review sends requests directly from the browser to a configured OpenAI-compatible, Anthropic, or Gemini provider. Availability still depends on that provider's browser CORS policy.
+
+Provider keys live only in the current tab's `sessionStorage`; they are never exported or sent to a SyncHire backend. Closing the tab/window normally clears them. Browser session restore, extensions, XSS, a compromised device, or a compromised publishing chain are outside that guarantee. Job-search data persists in browser storage by default for continuity, but it is not a backup: export JSON from Data Management, and clear either the workspace or this tab's keys whenever needed.
+
+Static Pages cannot safely replace server-controlled features. Image generation, portrait studio, GitHub token analysis, OAuth, MCP, WebSocket, and server fetching/upload are disabled or explained rather than silently falling back to a proxy.
+
+Reproduce the Pages build locally:
+
+```bash
+npm run build:pages
+```
 
 ## Release Data Storage
 
@@ -218,6 +212,7 @@ backend changes by platform:
 | Linux `.deb` / `.rpm` | Tauri | Same Tauri app data directory JSON storage: `app_data_dir()/storage/{key}.json` |
 | Android `.apk` | Capacitor | Native `@capacitor/preferences` storage |
 | Web / browser fallback | Browser | `window.localStorage` |
+| GitHub Pages BYOK | Browser | Non-secret workspace data in `localStorage`; provider keys only in this tab's `sessionStorage` |
 
 The main application state keeps the same keys and payload shape across
 targets, including `synchire-storage`. On Tauri and Capacitor builds, SyncHire

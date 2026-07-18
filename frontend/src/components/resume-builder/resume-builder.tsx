@@ -40,6 +40,7 @@ import {
   GitBranch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isGithubPagesDeployment } from "@/lib/deployment-mode";
 
 export const DEFAULT_RESUME_MARKDOWN = `# 陈宇
 前端工程师 · 上海
@@ -103,6 +104,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
   const pushSnapshot = useBuilderStore((s) => s.pushSnapshot);
   const snapshots = useBuilderStore((s) => s.snapshots);
   const portraitUrl = useBuilderStore((s) => s.portraitUrl);
+  const pagesMode = isGithubPagesDeployment();
 
   const [content, setContent] = useState(initialResume?.content ?? DEFAULT_RESUME_MARKDOWN);
   const [name, setName] = useState(initialResume?.name ?? "我的简历");
@@ -310,22 +312,26 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
         >
           <Smile className="h-4 w-4" /> 图标
         </button>
-        <button
-          onClick={() => setShowPortrait(true)}
-          className={cn(toolbarButton.base, portraitUrl ? toolbarButton.active : toolbarButton.idle)}
-          aria-pressed={!!portraitUrl}
-          title="AI 生成商务证件照"
-        >
-          <Camera className="h-4 w-4" /> 证件照
-          {portraitUrl && <span className="h-1.5 w-1.5 rounded-full bg-green-500" />}
-        </button>
-        <button
-          onClick={() => setShowGithub(true)}
-          className={cn(toolbarButton.base, toolbarButton.idle)}
-          title="GitHub 项目蒸馏：从仓库链接推断项目经历"
-        >
-          <GitBranch className="h-4 w-4" /> 项目蒸馏
-        </button>
+        {!pagesMode ? (
+          <>
+            <button
+              onClick={() => setShowPortrait(true)}
+              className={cn(toolbarButton.base, portraitUrl ? toolbarButton.active : toolbarButton.idle)}
+              aria-pressed={!!portraitUrl}
+              title="AI 生成商务证件照"
+            >
+              <Camera className="h-4 w-4" /> 证件照
+              {portraitUrl && <span className="h-1.5 w-1.5 rounded-full bg-green-500" />}
+            </button>
+            <button
+              onClick={() => setShowGithub(true)}
+              className={cn(toolbarButton.base, toolbarButton.idle)}
+              title="GitHub 项目蒸馏：从仓库链接推断项目经历"
+            >
+              <GitBranch className="h-4 w-4" /> 项目蒸馏
+            </button>
+          </>
+        ) : null}
         <button
           onClick={() => useBuilderStore.getState().togglePlugin("detection")}
           className={cn(toolbarButton.base, detectionOn ? toolbarButton.active : toolbarButton.idle)}
@@ -432,12 +438,14 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
       <ThemePicker open={showTheme} onClose={() => setShowTheme(false)} />
       <PluginPanel open={showPlugins} onClose={() => setShowPlugins(false)} />
       <IconPicker open={showIcons} onPick={handleInsertIcon} onClose={() => setShowIcons(false)} />
-      <PortraitStudio open={showPortrait} onClose={() => setShowPortrait(false)} />
-      <GithubProjectStudio
-        open={showGithub}
-        onClose={() => setShowGithub(false)}
-        onApplyProject={handleApplyGithubProject}
-      />
+      {!pagesMode ? <PortraitStudio open={showPortrait} onClose={() => setShowPortrait(false)} /> : null}
+      {!pagesMode ? (
+        <GithubProjectStudio
+          open={showGithub}
+          onClose={() => setShowGithub(false)}
+          onApplyProject={handleApplyGithubProject}
+        />
+      ) : null}
       <HistoryDrawer
         open={showHistory}
         onClose={() => setShowHistory(false)}
