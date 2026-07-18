@@ -17,7 +17,7 @@ provider key and the browser talks directly to the chosen provider.
 
 ## Audiences and user journeys
 
-1. **Public evaluator** opens the Pages site, enters a provider configuration,
+1. **Public evaluator** opens the Pages site over HTTPS, enters a provider configuration,
    explicitly confirms the provider destination, creates a local job-search
    workspace, uses the one supported direct-BYOK feature, and can export their
    data. SyncHire infrastructure receives no key or application data.
@@ -34,7 +34,7 @@ provider key and the browser talks directly to the chosen provider.
 ## Architecture
 
 ```text
-GitHub Pages (static Next export)
+GitHub Pages (static Next export, HTTPS)
   |-- local app state -> browser persistent storage (user-controlled)
   |-- API keys/tokens -> sessionStorage only
   |-- direct client adapter -> provider HTTPS API (CORS/protocol permitting)
@@ -57,6 +57,12 @@ retain their existing behavior.
 | Interview review | Direct BYOK after explicit consent; OpenAI-compatible, Anthropic, and Gemini protocol adapters only |
 | Image provider, portrait studio, GitHub project analysis/token, account/OAuth, notifications, backend search/upload, WebSocket and MCP | Unavailable in Pages mode; controls are hidden/disabled with an explanation and no request is sent |
 | Custom provider endpoint | Advanced opt-in only: HTTPS URL validation plus a confirmation that the named host receives the key and prompt. It is never silently selected. |
+
+The Pages site, its HTTPS delivery, repository access, Actions dependencies,
+build artifact, and published JavaScript are part of the visitor's trusted
+computing base. The no-backend statement means that an uncompromised SyncHire
+Pages build does not intentionally receive or retain a key/application payload;
+it is not protection against a compromised deployment pipeline or client asset.
 
 ## Components
 
@@ -81,6 +87,8 @@ retain their existing behavior.
 - A common deployment-mode helper prevents inconsistent environment checks.
 - Legacy credentials found in the Pages origin's `localStorage` are removed,
   never migrated. Pages mode has no remote logger.
+- Direct-BYOK entry and inference require `window.isSecureContext` and HTTPS.
+  Only an explicit localhost development build may bypass this check.
 
 ### Workspace persistence, export, and deletion
 
@@ -92,10 +100,13 @@ retain their existing behavior.
   template selections/customisation, and onboarding metadata. Runtime
   providers, image providers, GitHub tokens, JWTs, OAuth tokens, and all other
   credential-shaped data are excluded by construction and test.
-- Data Management offers **Export workspace**, **Clear session keys**, and
+- Data Management offers **Export workspace**, **Clear keys in this tab**, and
   **Clear local workspace**. The latter names the affected SyncHire keys and
   state, asks for confirmation, and never calls `localStorage.clear()` because
-  project Pages can share an origin with other sites.
+  project Pages can share an origin with other sites. The key-clear action
+  clears only the current top-level browsing context; its confirmation asks the
+  visitor to close all SyncHire tabs because opener/duplicated tabs can retain
+  an independent session copy.
 
 ### Direct provider adapter
 
@@ -113,6 +124,7 @@ retain their existing behavior.
   unreachable (possibly CORS)" message; it never falls back to SyncHire.
 - Direct inference uses `redirect: "error"`; a cross-origin redirect never
   silently receives a previously consented provider key and prompt.
+- Direct inference uses `referrerPolicy: "no-referrer"`.
 - Use the adapter in Pages mode for the interview-review flow. Existing server
   proxy use is retained outside Pages mode.
 - Do not include key values in thrown errors, telemetry, exports, or UI.
@@ -121,7 +133,10 @@ retain their existing behavior.
 
 - Add a persistent Pages-mode notice: no SyncHire backend is running; the
   selected provider receives prompts, attachments, and the key for direct
-  inference; browser data is local, not a backup; export important data.
+  inference; browser data is local, not a backup; export important data. It
+  explains the HTTPS/supply-chain trust boundary and that project Pages under
+  the same `owner.github.io` origin are not an OS-vault isolation boundary; a
+  dedicated custom hostname is the stronger option.
 - Before first inference, and again after a provider/base-URL change, require
   consent naming the destination hostname, model/protocol, and data categories
   leaving the browser. Inputs remain untouched if consent is declined.
@@ -191,3 +206,6 @@ retain their existing behavior.
 6. A clean browser session shows no persisted provider key after closing and
    reopening the tab; non-secret local data follows the declared persistence
    policy.
+7. The final artifact contains the CSP meta policy before executable scripts,
+   contains no configured credential, and rejects direct BYOK use outside a
+   secure context.
