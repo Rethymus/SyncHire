@@ -104,11 +104,15 @@ retain their existing behavior.
   inferred only from a display name or base URL.
 - Map each protocol to a native path, headers, body, response extraction,
   timeout and abort strategy: bearer auth for OpenAI-compatible, `x-api-key`
-  plus `anthropic-version` for Anthropic, and a header-based Gemini key. A key
+  plus `anthropic-version` and
+  `anthropic-dangerous-direct-browser-access: true` for Anthropic, and a
+  header-based Gemini key with the native `:generateContent` endpoint. A key
   is never sent in a query string.
 - Reject Pages-mode non-HTTPS URLs, URL userinfo, query strings and fragments.
   A blocked/failed browser fetch reports a generic key-free "blocked or
   unreachable (possibly CORS)" message; it never falls back to SyncHire.
+- Direct inference uses `redirect: "error"`; a cross-origin redirect never
+  silently receives a previously consented provider key and prompt.
 - Use the adapter in Pages mode for the interview-review flow. Existing server
   proxy use is retained outside Pages mode.
 - Do not include key values in thrown errors, telemetry, exports, or UI.
@@ -146,11 +150,30 @@ retain their existing behavior.
 - The app cannot guarantee secrecy against malicious browser extensions,
   compromised devices, XSS, another same-origin application, or the chosen
   provider. Documentation must state this boundary. The content-editable resume
-  path receives a Pages-focused paste sanitisation/XSS regression test before
-  credentials are enabled.
-- Static exports do not receive the Next server headers. Pages includes a
-  compatible static CSP meta policy and documents that a dynamic custom endpoint
-  limits `connect-src` to a broad HTTPS allowance.
+  path stores Markdown only, prevents rich-HTML paste (it inserts
+  `text/plain`), and renders Markdown only through the existing DOMPurify
+  allowlist before any `innerHTML` sink. Imported workspace/template data is
+  treated as Markdown/data rather than trusted HTML. Regression coverage spans
+  paste, import, stored-workspace re-render, and template/customisation
+  ingress before credentials are enabled.
+- Static exports do not receive the Next server headers. Pages includes this
+  tested, framework-compatible CSP meta policy:
+  `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'
+  'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self'
+  https:; object-src 'none'; base-uri 'self'; form-action 'self'`.
+  The Next static runtime requires inline bootstrap content, so this policy is
+  defense in depth rather than an XSS guarantee; arbitrary custom endpoints
+  require the broad HTTPS `connect-src` allowance.
+
+### Deployment mechanics
+
+- The Pages deployment workflow is separate from CI and has `contents: read`,
+  `pages: write`, and `id-token: write` only where needed. It uses the
+  `github-pages` environment, a concurrency group, `configure-pages`,
+  `upload-pages-artifact`, and `deploy-pages`.
+- Before the first deployment, an authenticated one-time GitHub REST/UI action
+  enables Pages with build type `workflow`. The post-deploy check reads the
+  Pages configuration and reports that source explicitly as **GitHub Actions**.
 
 ## Validation
 
