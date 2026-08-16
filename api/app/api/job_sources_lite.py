@@ -9,7 +9,7 @@ pages via official ATS public APIs.
 import uuid
 from typing import List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -167,7 +167,7 @@ async def create_job_source(
 @router.post("/seed-defaults", response_model=List[JobSourceResponse])
 async def seed_default_job_sources(db: AsyncSession = Depends(get_db)):
     """Add the built-in verified sample sources (skips existing ones)."""
-    created = await job_source_service.seed_default_sources(db)
+    await job_source_service.seed_default_sources(db)
     result = await db.execute(select(JobSource).order_by(JobSource.created_at))
     return [_source_response(s) for s in result.scalars().all()]
 

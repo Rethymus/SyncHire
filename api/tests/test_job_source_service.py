@@ -14,10 +14,16 @@ import pytest_asyncio
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.core.database_lite import Base
+from app.core.database_lite import Base, get_db
+from app.api.job_sources_lite import router as job_sources_router
 from app.models.jd_lite import JobDescription
 from app.models.job_source import JobSource
+from app.models.resume_lite import Resume
+from app.services import job_match_service as match_svc
 from app.services import job_source_service as svc
+from app.services.hiring_signal_service import parse_campus_markdown
+from fastapi import FastAPI
+from httpx import ASGITransport, AsyncClient
 
 # ---------------------------------------------------------------------------
 # URL detection
@@ -409,9 +415,6 @@ def _mock_async_context(payload, error=None):
 # ---------------------------------------------------------------------------
 
 
-from app.models.resume_lite import Resume
-from app.services import job_match_service as match_svc
-
 RESUME_TEXT = """
 Senior Backend Engineer. Skills: Python, FastAPI, PostgreSQL, Docker,
 Kubernetes, AWS, Redis, pytest. Built data pipelines with Spark.
@@ -512,12 +515,6 @@ async def test_score_unscored_jobs_without_resume_is_noop(db_session):
 # ---------------------------------------------------------------------------
 # Job browser application logging + LLM scoring (endpoint-level)
 # ---------------------------------------------------------------------------
-
-from fastapi import FastAPI
-from httpx import ASGITransport, AsyncClient
-
-from app.core.database_lite import get_db
-from app.api.job_sources_lite import router as job_sources_router
 
 
 @pytest_asyncio.fixture
@@ -670,8 +667,6 @@ async def test_job_source_bulk_import_dedupes_and_defaults_disabled(
 # ---------------------------------------------------------------------------
 # Campus repo markdown parsing (radar import source)
 # ---------------------------------------------------------------------------
-
-from app.services.hiring_signal_service import parse_campus_markdown
 
 
 def test_parse_campus_markdown_extracts_companies_and_signals():
