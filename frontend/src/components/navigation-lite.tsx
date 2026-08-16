@@ -18,6 +18,9 @@ import {
   FolderOpen,
   BarChart3,
   IdCard,
+  Rss,
+  Radar,
+  SlidersHorizontal,
 } from "lucide-react";
 
 const brandMarkSrc = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/brand/synchire-mark.svg`;
@@ -44,6 +47,24 @@ export function Navigation() {
       href: "/jd-input",
       icon: Briefcase,
       current: /^\/(jd-input|job-descriptions)/,
+    },
+    {
+      name: locale === "zh-CN" ? "岗位信息流" : "Job Feed",
+      href: "/job-feed",
+      icon: Rss,
+      current: /^\/job-feed/,
+    },
+    {
+      name: locale === "zh-CN" ? "数据源" : "Sources",
+      href: "/job-sources",
+      icon: SlidersHorizontal,
+      current: /^\/job-sources/,
+    },
+    {
+      name: locale === "zh-CN" ? "招聘雷达" : "Radar",
+      href: "/company-board",
+      icon: Radar,
+      current: /^\/company-board/,
     },
     {
       name: locale === "zh-CN" ? "角色卡" : "Profile",
