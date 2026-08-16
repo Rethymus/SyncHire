@@ -31,8 +31,13 @@ class LiteSettings(BaseSettings):
     # Security (Minimal - local tool)
     SECRET_KEY: str = os.getenv("SECRET_KEY", token_urlsafe(32))
 
-    # CORS (Allow local development)
-    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:3001"]
+    # CORS (Allow local development; "null" covers the Electron job
+    # browser panel, which loads from file://)
+    CORS_ORIGINS: list[str] = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "null",
+    ]
 
     # File Upload
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
@@ -57,6 +62,26 @@ class LiteSettings(BaseSettings):
     # Extensions (Future platform integrations)
     EXTENSIONS_ENABLED: bool = False
     EXTENSIONS_DIR: Path = DATA_DIR / "extensions"
+
+    # Job Sources (ATS job board subscriptions)
+    JOB_SOURCE_SYNC_ON_STARTUP: bool = (
+        os.getenv("JOB_SOURCE_SYNC_ON_STARTUP", "true").lower() == "true"
+    )
+    JOB_SOURCE_SYNC_INTERVAL_HOURS: int = int(
+        os.getenv("JOB_SOURCE_SYNC_INTERVAL_HOURS", "12")
+    )
+    JOB_SOURCE_MAX_JOBS_PER_SYNC: int = int(
+        os.getenv("JOB_SOURCE_MAX_JOBS_PER_SYNC", "200")
+    )
+    # Per-job detail lookups (SmartRecruiters) per sync, bounded to stay polite
+    JOB_SOURCE_DETAIL_FETCH_LIMIT: int = int(
+        os.getenv("JOB_SOURCE_DETAIL_FETCH_LIMIT", "100")
+    )
+    JOB_SOURCE_FETCH_TIMEOUT: int = int(os.getenv("JOB_SOURCE_FETCH_TIMEOUT", "30"))
+    # New jobs auto-scored against the local resume after each sync
+    JOB_SOURCE_AUTOSCORE_LIMIT: int = int(
+        os.getenv("JOB_SOURCE_AUTOSCORE_LIMIT", "200")
+    )
 
     # Frontend
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")

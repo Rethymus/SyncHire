@@ -4,7 +4,7 @@ Lightweight Job Description Model
 Simplified JD model without user dependencies for local-first operation.
 """
 
-from sqlalchemy import Column, DateTime, Text, String, UUID, Float
+from sqlalchemy import Column, DateTime, Index, Text, String, UUID, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -24,6 +24,9 @@ class JobDescription(Base):
     platform = Column(String(50), default="manual", nullable=False)
     source_url = Column(Text)
     raw_text = Column(Text)
+    # Provenance for jobs ingested from ATS job sources (deduplication key)
+    source = Column(String(100), index=True)  # e.g. "greenhouse:stripe"
+    external_id = Column(String(255))
     location = Column(String(255))
     salary_min = Column(Float)
     salary_max = Column(Float)
@@ -33,6 +36,8 @@ class JobDescription(Base):
     requirements = Column(Text)  # JSON-encoded requirements
     benefits = Column(Text)  # JSON-encoded benefits
     embedding = Column(Text)  # JSON-encoded vector for semantic search
+    match_score = Column(Float)  # Local lexical match score (0-100)
+    match_detail = Column(Text)  # JSON-encoded scoring detail
     parsed_data = Column(Text)  # JSON-encoded parsed JD data
     parsed_json = Column(Text)
     language = Column(String(20), default="auto", nullable=False)
@@ -46,6 +51,16 @@ class JobDescription(Base):
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
+    )
+
+    # One row per ATS posting; manual JDs keep NULLs (distinct in SQLite)
+    __table_args__ = (
+        Index(
+            "uq_job_descriptions_source_external_id",
+            "source",
+            "external_id",
+            unique=True,
+        ),
     )
 
     # Relationships

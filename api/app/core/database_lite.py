@@ -82,6 +82,10 @@ def _run_lite_schema_migrations(conn: Connection) -> None:
             "language": "VARCHAR(20) NOT NULL DEFAULT 'auto'",
             "deadline": "DATETIME",
             "notes": "TEXT",
+            "source": "VARCHAR(100)",
+            "external_id": "VARCHAR(255)",
+            "match_score": "FLOAT",
+            "match_detail": "TEXT",
         },
         "applications": {
             "resume_variant_id": "CHAR(32)",
@@ -100,6 +104,38 @@ def _run_lite_schema_migrations(conn: Connection) -> None:
     for table_name, columns in additive_columns.items():
         for column_name, definition in columns.items():
             _add_column_if_missing(conn, table_name, column_name, definition)
+
+    _ensure_job_source_dedup_index(conn)
+
+
+def _ensure_job_source_dedup_index(conn: Connection) -> None:
+    """Create the (source, external_id) unique index on existing databases.
+
+    create_all handles fresh databases; this covers databases created
+    before ATS ingestion existed. Conflicting rows (same source and
+    external_id) are collapsed to the earliest-created one first.
+    """
+    if not _sqlite_table_exists(conn, "job_descriptions"):
+        return
+    if not (
+        _sqlite_column_exists(conn, "job_descriptions", "source")
+        and _sqlite_column_exists(conn, "job_descriptions", "external_id")
+    ):
+        return
+    conn.execute(
+        text(
+            "DELETE FROM job_descriptions WHERE source IS NOT NULL"
+            " AND rowid NOT IN ("
+            " SELECT MIN(rowid) FROM job_descriptions"
+            " WHERE source IS NOT NULL GROUP BY source, external_id)"
+        )
+    )
+    conn.execute(
+        text(
+            "CREATE UNIQUE INDEX IF NOT EXISTS uq_job_descriptions_source_external_id"
+            " ON job_descriptions (source, external_id)"
+        )
+    )
 
 
 async def get_db() -> AsyncSession:
@@ -146,12 +182,15 @@ async def init_db() -> None:
             candidate_profile_item_lite,
             candidate_profile_lite,
             candidate_role_card_lite,
+            company_directory,
             extensions,
             jd_lite,
+            job_source,
             local_profile,
             resume_export_lite,
             resume_lite,
             resume_variant_lite,
+            signal_feed,
         )
 
         # Create all tables
