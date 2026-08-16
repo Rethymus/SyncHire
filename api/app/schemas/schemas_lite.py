@@ -58,6 +58,8 @@ class JobDescriptionBase(BaseModel):
     platform: str = "manual"
     source_url: Optional[str] = None
     raw_text: Optional[str] = None
+    source: Optional[str] = None
+    external_id: Optional[str] = None
     location: Optional[str] = None
     salary_min: Optional[float] = None
     salary_max: Optional[float] = None
@@ -86,6 +88,8 @@ class JobDescriptionUpdate(BaseModel):
     platform: Optional[str] = None
     source_url: Optional[str] = None
     raw_text: Optional[str] = None
+    source: Optional[str] = None
+    external_id: Optional[str] = None
     location: Optional[str] = None
     salary_min: Optional[float] = None
     salary_max: Optional[float] = None
@@ -124,6 +128,8 @@ class JobDescriptionResponse(BaseModel):
     platform: str = "manual"
     source_url: Optional[str] = None
     raw_text: Optional[str] = None
+    source: Optional[str] = None
+    external_id: Optional[str] = None
     location: Optional[str] = None
     salary_min: Optional[float] = None
     salary_max: Optional[float] = None
@@ -131,11 +137,275 @@ class JobDescriptionResponse(BaseModel):
     employment_type: Optional[str] = None
     remote: str
     parsed_json: Optional[dict] = None
+    match_score: Optional[float] = None
+    match_detail: Optional[dict] = None
     language: str = "auto"
     deadline: Optional[datetime] = None
     notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+
+
+# Job Source Schemas (ATS job board subscriptions)
+
+
+class JobSourceCreate(BaseModel):
+    """Schema for subscribing to an ATS-backed recruiting page."""
+
+    url: Optional[str] = Field(
+        None, description="Recruiting page URL; ATS type auto-detected"
+    )
+    ats_type: Optional[str] = None
+    org_key: Optional[str] = None
+    name: Optional[str] = Field(None, description="Company display name")
+
+
+class JobSourceUpdate(BaseModel):
+    """Schema for updating a job source."""
+
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    enabled: Optional[bool] = None
+
+
+class JobSourceDetectRequest(BaseModel):
+    """Schema for detecting the ATS behind a recruiting page URL."""
+
+    url: str = Field(..., min_length=1)
+
+
+class JobSourceDetectResponse(BaseModel):
+    """Detected ATS metadata for a recruiting page URL."""
+
+    ats_type: str
+    org_key: str
+    suggested_name: str
+    portal_url: str
+
+
+class JobSourceResponse(BaseModel):
+    """Job source response schema."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    name: str
+    ats_type: str
+    org_key: str
+    portal_url: Optional[str] = None
+    enabled: bool
+    last_synced_at: Optional[datetime] = None
+    last_sync_status: Optional[str] = None
+    last_sync_message: Optional[str] = None
+    last_new_count: int = 0
+    last_total_count: int = 0
+    created_at: datetime
+    updated_at: datetime
+
+
+class JobSourceSyncResponse(BaseModel):
+    """Result of syncing one or more job sources."""
+
+    source_id: str
+    source_name: str
+    status: str  # ok | error | empty
+    new_count: int = 0
+    updated_count: int = 0
+    total_count: int = 0
+    message: Optional[str] = None
+
+
+class JobSourceScoreResponse(BaseModel):
+    """Result of scoring feed jobs against the local resume."""
+
+    scored_count: int = 0
+    resume_title: Optional[str] = None
+
+
+class JobSourceImportRequest(BaseModel):
+    """Bulk-subscribe a batch of ATS boards."""
+
+    ats_type: str
+    org_keys: List[str] = Field(..., min_length=1, max_length=20000)
+    enabled: bool = False
+
+
+class JobSourceImportResponse(BaseModel):
+    """Result of a bulk job-source import."""
+
+    created: int
+    skipped: int
+
+
+class JobSourceCatalogRequest(BaseModel):
+    """Search the bundled ATS board catalog."""
+
+    query: str = ""
+    ats_type: Optional[str] = None
+    limit: int = Field(20, ge=1, le=200)
+
+
+class JobSourceCatalogResult(BaseModel):
+    """One catalog hit."""
+
+    ats_type: str
+    org_key: str
+
+
+class JobSourceCatalogResponse(BaseModel):
+    """Catalog search results."""
+
+    total: int
+    results: List[JobSourceCatalogResult]
+    truncated: bool
+
+
+# Signal Feed Schemas (RSS → automatic radar signals)
+
+
+class SignalFeedCreate(BaseModel):
+    """Subscribe an RSS feed as a signal source."""
+
+    rss_url: str = Field(..., min_length=1)
+    name: Optional[str] = Field(None, max_length=255)
+
+
+class SignalFeedUpdate(BaseModel):
+    """Update a signal feed."""
+
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    enabled: Optional[bool] = None
+
+
+class SignalFeedResponse(BaseModel):
+    """Signal feed response."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    name: str
+    rss_url: str
+    enabled: bool
+    last_fetched_at: Optional[datetime] = None
+    last_status: Optional[str] = None
+    last_new_signals: int = 0
+    last_message: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class SignalFeedSyncResponse(BaseModel):
+    """Result of syncing one signal feed."""
+
+    feed_id: str
+    feed_name: str
+    status: str  # ok | empty | error
+    items_seen: int = 0
+    signals: List[str] = []
+    message: Optional[str] = None
+
+
+class JobSourceLogApplicationRequest(BaseModel):
+    """Log an application submitted through the job browser."""
+
+    url: str = Field(..., min_length=1)
+    title: Optional[str] = None
+    company: Optional[str] = None
+
+
+class JobSourceLogApplicationResponse(BaseModel):
+    """Created/updated application plus the linked job description."""
+
+    application_id: str
+    jd_id: str
+    jd_created: bool
+    status: str
+    applied_at: datetime
+
+
+# Company Directory Schemas (recruiting site radar)
+
+
+class CompanyCreate(BaseModel):
+    """Add a company to the directory."""
+
+    name: str = Field(..., min_length=1, max_length=255)
+    career_url: Optional[str] = None
+    aliases: Optional[List[str]] = None
+    career_type: str = "both"
+    industry: Optional[str] = None
+
+
+class CompanyUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    career_url: Optional[str] = None
+    aliases: Optional[List[str]] = None
+    career_type: Optional[str] = None
+    industry: Optional[str] = None
+    verified: Optional[bool] = None
+
+
+class CompanyResponse(BaseModel):
+    """Directory entry with its latest hiring signal."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    name: str
+    aliases: Optional[List[str]] = None
+    career_url: Optional[str] = None
+    career_type: str = "both"
+    industry: Optional[str] = None
+    verified: bool = False
+    signal_batch: Optional[str] = None
+    signal_title: Optional[str] = None
+    signal_url: Optional[str] = None
+    signal_detected_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class SignalDetectRequest(BaseModel):
+    """An article title (or URL to fetch it from) to scan for signals."""
+
+    title: Optional[str] = None
+    url: Optional[str] = None
+
+
+class SignalDetectResponse(BaseModel):
+    matched: List[CompanyResponse]
+    used_title: Optional[str] = None
+
+
+class ManualSignalRequest(BaseModel):
+    """Pin a signal on one company by hand."""
+
+    batch: str = Field(..., min_length=1, max_length=50)
+    title: Optional[str] = None
+    url: Optional[str] = None
+    detected_at: Optional[datetime] = None
+
+
+class CompanyImportItem(BaseModel):
+    """One company in a bulk import payload."""
+
+    name: str = Field(..., min_length=1, max_length=255)
+    career_url: Optional[str] = None
+    aliases: Optional[List[str]] = None
+    industry: Optional[str] = None
+    verified: bool = False
+
+
+class CompanyImportRequest(BaseModel):
+    """Bulk-import companies (deduped by name)."""
+
+    companies: List[CompanyImportItem] = Field(..., min_length=1, max_length=10000)
+
+
+class CompanyImportResponse(BaseModel):
+    """Result of a bulk import."""
+
+    created: int
+    skipped: int
 
 
 # Application Schemas
