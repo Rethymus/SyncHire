@@ -23,6 +23,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // External links
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
 
+  // Job browser (embedded browser with the fill assistant)
+  openJobBrowser: (url) => ipcRenderer.invoke('job-browser:open', url),
+
   // Event listeners
   onBackendStatusChange: (callback) => {
     ipcRenderer.on('backend-status-change', (_event, status) => callback(status));

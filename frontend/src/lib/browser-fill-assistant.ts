@@ -86,7 +86,7 @@ export interface BrowserReviewedFieldReport {
   value: string;
 }
 
-const FIELD_MAP: Array<{
+export const FIELD_MAP: Array<{
   key: ProfileFieldKey;
   labels: string[];
 }> = [
@@ -205,7 +205,7 @@ function readProfileValue(profile: CandidateRoleCard, key: ProfileFieldKey) {
   return value;
 }
 
-function inferProfileKey(field: BrowserFormField): ProfileFieldKey | null {
+export function inferProfileKey(field: BrowserFormField): ProfileFieldKey | null {
   const haystack = normalize(`${field.label} ${field.inputName}`);
 
   for (const mapping of FIELD_MAP) {

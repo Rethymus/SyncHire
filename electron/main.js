@@ -5,7 +5,7 @@
  * and creates the main browser window.
  */
 
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, shell, ipcMain } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const http = require('http');
@@ -19,6 +19,8 @@ const FRONTEND_URL = process.env.ELECTRON_DEV === 'true'
 
 let mainWindow = null;
 let pythonProcess = null;
+let jobBrowserWindow = null;
+let jobBrowserInitialUrl = null;
 
 /**
  * Get the path to the bundled Python executable
@@ -188,6 +190,50 @@ function createWindow() {
 }
 
 /**
+ * Create the Job Browser window: an embedded browser with the fill
+ * assistant panel. The <webview> uses a persistent partition so ATS
+ * login cookies survive across sessions.
+ */
+function createJobBrowserWindow(initialUrl) {
+  if (jobBrowserWindow) {
+    jobBrowserWindow.focus();
+    return jobBrowserWindow;
+  }
+
+  jobBrowserInitialUrl = initialUrl || null;
+
+  jobBrowserWindow = new BrowserWindow({
+    width: 1440,
+    height: 900,
+    minWidth: 1000,
+    minHeight: 640,
+    title: 'SyncHire 求职浏览器',
+    webPreferences: {
+      preload: path.join(__dirname, 'job-browser/preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      // The assistant panel is local trusted content hosting a webview
+      webviewTag: true,
+      sandbox: false, // preload needs fs to read the engine bundle
+    },
+    show: false,
+  });
+
+  jobBrowserWindow.loadFile(path.join(__dirname, 'job-browser/index.html'));
+
+  jobBrowserWindow.once('ready-to-show', () => {
+    jobBrowserWindow.show();
+  });
+
+  jobBrowserWindow.on('closed', () => {
+    jobBrowserWindow = null;
+    jobBrowserInitialUrl = null;
+  });
+
+  return jobBrowserWindow;
+}
+
+/**
  * Stop the Python backend
  */
 function stopPythonBackend() {
@@ -206,6 +252,52 @@ function stopPythonBackend() {
 
 // App lifecycle
 app.whenReady().then(async () => {
+  // Job browser IPC (safe: URL must be http/https, window is local file)
+  ipcMain.handle('job-browser:open', (_event, url) => {
+    if (typeof url === 'string' && /^https?:\/\//i.test(url)) {
+      createJobBrowserWindow(url);
+      return true;
+    }
+    createJobBrowserWindow(null);
+    return true;
+  });
+  ipcMain.handle('job-browser:api-base', () => PYTHON_URL);
+  ipcMain.handle('job-browser:initial-url', () => jobBrowserInitialUrl);
+
+  // SMOKE mode: boot the job browser window, self-check the panel,
+  // and exit non-zero on any failure (used by automated checks).
+  if (process.env.SYNCHIRE_SMOKE === '1') {
+    const smokeUrl = process.env.SYNCHIRE_SMOKE_URL || 'https://example.com/';
+    const jobWindow = createJobBrowserWindow(smokeUrl);
+    const fail = (reason) => {
+      console.error(`[SMOKE] FAIL: ${reason}`);
+      app.exit(1);
+    };
+    setTimeout(async () => {
+      try {
+        const checks = await jobWindow.webContents.executeJavaScript(`(() => {
+          const webview = document.getElementById('webview');
+          return {
+            hasPanel: !!document.getElementById('panel-actions'),
+            hasEngine: typeof window.SynchireFillEngine === 'object'
+              && typeof window.SynchireFillEngine.detectFormFields === 'function',
+            hasWebview: !!webview,
+            webviewSrc: webview ? webview.src : null,
+          };
+        })()`);
+        console.log('[SMOKE] checks:', JSON.stringify(checks));
+        if (!checks.hasPanel) return fail('assistant panel missing');
+        if (!checks.hasEngine) return fail('fill engine bundle not loaded');
+        if (!checks.hasWebview) return fail('webview element missing');
+        console.log('[SMOKE] OK');
+        app.exit(0);
+      } catch (err) {
+        fail(err.message);
+      }
+    }, 6000);
+    return;
+  }
+
   try {
     // Start Python backend first
     await startPythonBackend();

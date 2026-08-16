@@ -14,6 +14,7 @@
     "dev:mcp": "./scripts/mcp-start.sh",
     "stop:mcp": "./scripts/mcp-stop.sh",
     "build": "npm run build --workspaces",
+    "build:fill-engine": "node scripts/build-fill-engine.mjs",
     "build:static": "node scripts/build-static.mjs",
     "build:pages": "node scripts/build-pages.mjs",
     "desktop:dev": "tauri dev",
@@ -49,6 +50,8 @@
     "@typescript-eslint/parser": "^8.60.1",
     "@vitest/ui": "^4.1.8",
     "concurrently": "^8.2.2",
+    "electron": "^37.10.3",
+    "esbuild": "^0.28.2",
     "eslint": "^9.39.4",
     "jest-axe": "^10.0.0",
     "jsdom": "^29.1.1",
@@ -57,7 +60,7 @@
     "vitest": "^4.1.8"
   },
   "overrides": {
-    "esbuild": "^0.28.0",
+    "esbuild": "^0.28.2",
     "postcss": "^8.5.15",
     "vite": "^8.0.16"
   },
