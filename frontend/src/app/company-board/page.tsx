@@ -28,9 +28,9 @@ import {
   Trash2,
 } from "lucide-react";
 
-function daysAgo(iso: string | null): string | null {
+function daysAgo(iso: string | null, nowMs: number): string | null {
   if (!iso) return null;
-  const diff = Date.now() - new Date(iso).getTime();
+  const diff = nowMs - new Date(iso).getTime();
   const days = Math.floor(diff / 86400000);
   if (days <= 0) return "今天";
   if (days === 1) return "昨天";
@@ -63,8 +63,12 @@ export default function CompanyBoardPage() {
     }
   }, []);
 
+  // Captured once per mount; badge staleness within a session is fine
+  const [nowMs] = useState(() => Date.now());
+
   useEffect(() => {
-    void loadFeeds();
+    const frame = window.requestAnimationFrame(() => void loadFeeds());
+    return () => window.cancelAnimationFrame(frame);
   }, [loadFeeds]);
 
   const addFeed = async () => {
@@ -123,7 +127,8 @@ export default function CompanyBoardPage() {
   }, [keyword, industry]);
 
   useEffect(() => {
-    void load();
+    const frame = window.requestAnimationFrame(() => void load());
+    return () => window.cancelAnimationFrame(frame);
   }, [load]);
 
   const signaled = useMemo(
@@ -282,7 +287,7 @@ export default function CompanyBoardPage() {
         </div>
         <p className="text-xs text-gray-500 mt-0.5">
           {pinned && company.signal_detected_at
-            ? `${t.detected} ${daysAgo(company.signal_detected_at)}${
+            ? `${t.detected} ${daysAgo(company.signal_detected_at, nowMs)}${
                 company.signal_url ? " · " : ""
               }`
             : t.noSignal}

@@ -81,7 +81,8 @@ export default function JobFeedPage() {
   }, [keyword, remote, sourceFilter, sort]);
 
   useEffect(() => {
-    void load();
+    const frame = window.requestAnimationFrame(() => void load());
+    return () => window.cancelAnimationFrame(frame);
   }, [load]);
 
   const runScoring = async () => {
@@ -135,9 +136,11 @@ export default function JobFeedPage() {
     newToday: locale === "zh-CN" ? "新" : "NEW",
   };
 
+  // Captured once per mount: the "NEW" badge tolerates session staleness
+  const [nowMs] = useState(() => Date.now());
   const isNew = (job: JobSourceFeedItem) => {
     const created = new Date(job.created_at).getTime();
-    return Date.now() - created < 24 * 3600 * 1000;
+    return nowMs - created < 24 * 3600 * 1000;
   };
 
   return (
