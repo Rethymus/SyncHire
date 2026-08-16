@@ -215,10 +215,13 @@ async def _fetch_json(client: httpx.AsyncClient, url: str) -> Any:
     return response.json()
 
 
-async def fetch_greenhouse(client: httpx.AsyncClient, org_key: str) -> List[NormalizedJob]:
+async def fetch_greenhouse(
+    client: httpx.AsyncClient, org_key: str
+) -> List[NormalizedJob]:
     """Fetch jobs from Greenhouse's public board API."""
     data = await _fetch_json(
-        client, f"https://boards-api.greenhouse.io/v1/boards/{org_key}/jobs?content=true"
+        client,
+        f"https://boards-api.greenhouse.io/v1/boards/{org_key}/jobs?content=true",
     )
     jobs: List[NormalizedJob] = []
     for item in data.get("jobs", []):
@@ -235,7 +238,9 @@ async def fetch_greenhouse(client: httpx.AsyncClient, org_key: str) -> List[Norm
                 employment_type=None,
                 remote=_infer_remote(location),
                 departments=[
-                    d.get("name") for d in item.get("departments") or [] if d.get("name")
+                    d.get("name")
+                    for d in item.get("departments") or []
+                    if d.get("name")
                 ],
                 posted_at=_parse_datetime(item.get("updated_at")),
             )
@@ -268,9 +273,7 @@ async def fetch_lever(client: httpx.AsyncClient, org_key: str) -> List[Normalize
                 apply_url=item.get("applyUrl"),
                 location=location,
                 description_text="\n\n".join(text_parts) or None,
-                employment_type=normalize_employment_type(
-                    categories.get("commitment")
-                ),
+                employment_type=normalize_employment_type(categories.get("commitment")),
                 remote=_infer_remote(location),
                 departments=departments,
                 posted_at=_parse_datetime(item.get("createdAt")),
@@ -301,7 +304,9 @@ async def fetch_ashby(client: httpx.AsyncClient, org_key: str) -> List[Normalize
                 description_text=item.get("descriptionPlain")
                 or (strip_html(html) if html else None),
                 employment_type=normalize_employment_type(item.get("employmentType")),
-                remote=workplace_map.get(item.get("workplaceType"), _infer_remote(item.get("location"))),
+                remote=workplace_map.get(
+                    item.get("workplaceType"), _infer_remote(item.get("location"))
+                ),
                 departments=[
                     d for d in (item.get("department"), item.get("team")) if d
                 ],
@@ -360,7 +365,9 @@ async def fetch_smartrecruiters(
                 )
                 if p
             ]
-            remote = "remote" if (item.get("location") or {}).get("remote") else "onsite"
+            remote = (
+                "remote" if (item.get("location") or {}).get("remote") else "onsite"
+            )
             jobs.append(
                 NormalizedJob(
                     external_id=str(item["id"]),
@@ -474,9 +481,7 @@ async def sync_job_source(db: AsyncSession, source: JobSource) -> SyncResult:
     existing_rows = await db.execute(
         select(JobDescription).where(JobDescription.source == source.source_key)
     )
-    existing_by_ext = {
-        row.external_id: row for row in existing_rows.scalars().all()
-    }
+    existing_by_ext = {row.external_id: row for row in existing_rows.scalars().all()}
 
     result = SyncResult(total_count=len(jobs))
     for job in jobs:
@@ -529,7 +534,9 @@ async def sync_all_enabled(db: AsyncSession) -> List[tuple]:
     Returns (JobSource, SyncResult) pairs in created_at order.
     """
     rows = await db.execute(
-        select(JobSource).where(JobSource.enabled.is_(True)).order_by(JobSource.created_at)
+        select(JobSource)
+        .where(JobSource.enabled.is_(True))
+        .order_by(JobSource.created_at)
     )
     pairs = []
     for source in rows.scalars().all():
@@ -550,9 +557,7 @@ DEFAULT_SEED_SOURCES = [
 async def seed_default_sources(db: AsyncSession) -> List[JobSource]:
     """Add the verified sample sources that are not present yet."""
     existing = await db.execute(select(JobSource))
-    known = {
-        (s.ats_type, s.org_key.lower()) for s in existing.scalars().all()
-    }
+    known = {(s.ats_type, s.org_key.lower()) for s in existing.scalars().all()}
     created: List[JobSource] = []
     for seed in DEFAULT_SEED_SOURCES:
         if (seed["ats_type"], seed["org_key"].lower()) in known:

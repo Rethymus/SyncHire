@@ -139,12 +139,16 @@ async def test_apply_signal_pins_and_orders_directory(db_session):
     assert signals[0].batch == "2027届秋招"
 
     rows = (
-        await db_session.execute(
-            select(CompanyDirectoryEntry).order_by(
-                CompanyDirectoryEntry.signal_detected_at.desc().nullslast()
+        (
+            await db_session.execute(
+                select(CompanyDirectoryEntry).order_by(
+                    CompanyDirectoryEntry.signal_detected_at.desc().nullslast()
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     # Freshest signal first, unsignaled companies last
     assert [r.name for r in rows] == ["腾讯", "美团"]
     assert rows[0].signal_url == "https://mp.weixin.qq.com/s/abc"
@@ -194,9 +198,9 @@ async def test_seed_companies_idempotent(db_session):
     # Industry tags are seeded for signal grouping/display
     industries = {
         e.industry
-        for e in (
-            await db_session.execute(select(CompanyDirectoryEntry))
-        ).scalars().all()
+        for e in (await db_session.execute(select(CompanyDirectoryEntry)))
+        .scalars()
+        .all()
     }
     assert "互联网" in industries
     assert "银行" in industries
@@ -219,11 +223,17 @@ async def test_import_companies_bulk_dedupes(db_session):
 
     payload = {
         "companies": [
-            {"name": "测试公司甲", "career_url": "https://a.example.com", "industry": "测试"},
+            {
+                "name": "测试公司甲",
+                "career_url": "https://a.example.com",
+                "industry": "测试",
+            },
             {"name": "测试公司乙"},
         ]
     }
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
         first = await client.post("/api/companies/import", json=payload)
         assert first.status_code == 200
         assert first.json() == {"created": 2, "skipped": 0}

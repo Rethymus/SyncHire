@@ -19,7 +19,6 @@ from app.models.jd_lite import JobDescription
 from app.models.job_source import JobSource
 from app.services import job_source_service as svc
 
-
 # ---------------------------------------------------------------------------
 # URL detection
 # ---------------------------------------------------------------------------
@@ -328,18 +327,20 @@ async def test_sync_job_source_ingests_and_dedups(db_session):
     assert result2.updated_count == 1
 
     rows = (
-        await db_session.execute(
-            select(JobDescription).where(JobDescription.source == source.source_key)
+        (
+            await db_session.execute(
+                select(JobDescription).where(JobDescription.source == source.source_key)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     assert len(rows) == 1
     assert rows[0].title == "Engineer I (Updated)"
     assert rows[0].platform == "greenhouse"
     assert rows[0].external_id == "1"
 
-    source_row = (
-        await db_session.execute(select(JobSource))
-    ).scalar_one()
+    source_row = (await db_session.execute(select(JobSource))).scalar_one()
     assert source_row.last_sync_status == "ok"
     assert source_row.last_synced_at is not None
 
@@ -570,9 +571,7 @@ async def test_log_application_links_existing_feed_jd(db_session, client_factory
 
     from app.models.application_lite import Application, ApplicationStatus
 
-    application = (
-        await db_session.execute(select(Application))
-    ).scalar_one()
+    application = (await db_session.execute(select(Application))).scalar_one()
     assert application.status == ApplicationStatus.SUBMITTED
     assert application.platform == "job-browser"
     assert application.source_url == "https://stripe.com/jobs/123"
@@ -634,9 +633,7 @@ async def test_llm_score_requires_ai_provider(db_session, client_factory):
     from app.services import ai_service_lite
 
     async with client_factory as client:
-        with patch.object(
-            ai_service_lite.ai_service, "openai_client", None
-        ):
+        with patch.object(ai_service_lite.ai_service, "openai_client", None):
             response = await client.post(f"/api/job-sources/{jd.id}/score-llm")
 
     assert response.status_code == 422
@@ -645,7 +642,8 @@ async def test_llm_score_requires_ai_provider(db_session, client_factory):
 
 @pytest.mark.asyncio
 async def test_job_source_bulk_import_dedupes_and_defaults_disabled(
-    db_session, client_factory,
+    db_session,
+    client_factory,
 ):
     payload = {"ats_type": "greenhouse", "org_keys": ["stripe", "figma", "stripe"]}
     async with client_factory as client:

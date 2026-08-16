@@ -59,9 +59,7 @@ async def _get_entry_or_404(entry_id: str, db: AsyncSession):
         )
     entry = (
         await db.execute(
-            select(CompanyDirectoryEntry).where(
-                CompanyDirectoryEntry.id == entry_uuid
-            )
+            select(CompanyDirectoryEntry).where(CompanyDirectoryEntry.id == entry_uuid)
         )
     ).scalar_one_or_none()
     if entry is None:
@@ -170,9 +168,7 @@ async def import_companies(
     Designed for large curated lists (e.g. top-N rankings): existing
     names are skipped untouched, so re-running an import is safe.
     """
-    existing = (
-        await db.execute(select(CompanyDirectoryEntry))
-    ).scalars().all()
+    existing = (await db.execute(select(CompanyDirectoryEntry))).scalars().all()
     known = {e.name for e in existing}
 
     created = 0
@@ -196,7 +192,9 @@ async def import_companies(
 
     if created:
         await db.commit()
-        logger.info(LogCategory.DATA, f"Imported {created} companies ({skipped} skipped)")
+        logger.info(
+            LogCategory.DATA, f"Imported {created} companies ({skipped} skipped)"
+        )
     return CompanyImportResponse(created=created, skipped=skipped)
 
 
@@ -217,22 +215,16 @@ async def detect_signal(
             detail="Provide a title or a URL whose page exposes a title",
         )
 
-    signals = await hiring_signal_service.apply_signal(
-        db, title, url=payload.url
-    )
+    signals = await hiring_signal_service.apply_signal(db, title, url=payload.url)
     if not signals:
         return SignalDetectResponse(matched=[], used_title=title)
 
     by_id = {
         str(e.id): e
-        for e in (
-            await db.execute(select(CompanyDirectoryEntry))
-        ).scalars().all()
+        for e in (await db.execute(select(CompanyDirectoryEntry))).scalars().all()
     }
     matched = [
-        _company_response(by_id[s.company_id])
-        for s in signals
-        if s.company_id in by_id
+        _company_response(by_id[s.company_id]) for s in signals if s.company_id in by_id
     ]
     return SignalDetectResponse(matched=matched, used_title=title)
 

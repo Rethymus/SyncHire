@@ -101,7 +101,11 @@ def parse_feed(xml: str) -> List[FeedItem]:
     items: List[FeedItem] = []
     blocks = _RSS_ITEM_RE.findall(xml) or _ATOM_ENTRY_RE.findall(xml)
     for block in blocks:
-        title = _clean(_TAG_RE["title"].search(block).group(1)) if _TAG_RE["title"].search(block) else ""
+        title = (
+            _clean(_TAG_RE["title"].search(block).group(1))
+            if _TAG_RE["title"].search(block)
+            else ""
+        )
         if not title:
             continue
         link_match = _TAG_RE["link"].search(block)
@@ -110,7 +114,9 @@ def parse_feed(xml: str) -> List[FeedItem]:
             href = _TAG_RE["link_self"].search(block)
             link = href.group(1).strip() if href else None
         published = _parse_date(
-            _TAG_RE["pub"].search(block).group(1) if _TAG_RE["pub"].search(block) else None
+            _TAG_RE["pub"].search(block).group(1)
+            if _TAG_RE["pub"].search(block)
+            else None
         )
         items.append(FeedItem(title=title, link=link or None, published=published))
     return items
@@ -130,7 +136,9 @@ async def sync_signal_feed(db: AsyncSession, feed: SignalFeed) -> FeedSyncResult
     try:
         items = await fetch_feed_items(feed.rss_url)
     except Exception as exc:
-        logger.warning(LogCategory.API, f"Signal feed fetch failed ({feed.name}): {exc}")
+        logger.warning(
+            LogCategory.API, f"Signal feed fetch failed ({feed.name}): {exc}"
+        )
         result = FeedSyncResult(status="error", message=str(exc)[:500])
         _record(db, feed, result)
         await db.commit()
@@ -147,9 +155,7 @@ async def sync_signal_feed(db: AsyncSession, feed: SignalFeed) -> FeedSyncResult
 
     for item in items:
         signals = await apply_signal(db, item.title, url=item.link)
-        result.signals_applied.extend(
-            f"{s.company_name}·{s.batch}" for s in signals
-        )
+        result.signals_applied.extend(f"{s.company_name}·{s.batch}" for s in signals)
 
     _record(db, feed, result)
     await db.commit()
@@ -164,7 +170,9 @@ async def sync_signal_feed(db: AsyncSession, feed: SignalFeed) -> FeedSyncResult
 async def sync_all_signal_feeds(db: AsyncSession) -> List[tuple]:
     """Sync every enabled signal feed. Returns (feed, result) pairs."""
     rows = await db.execute(
-        select(SignalFeed).where(SignalFeed.enabled.is_(True)).order_by(SignalFeed.created_at)
+        select(SignalFeed)
+        .where(SignalFeed.enabled.is_(True))
+        .order_by(SignalFeed.created_at)
     )
     pairs = []
     for feed in rows.scalars().all():

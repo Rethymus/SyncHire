@@ -56,9 +56,7 @@ def _source_response(source: JobSource) -> JobSourceResponse:
     )
 
 
-async def _get_source_or_404(
-    source_id: str, db: AsyncSession
-) -> JobSource:
+async def _get_source_or_404(source_id: str, db: AsyncSession) -> JobSource:
     try:
         source_uuid = uuid.UUID(source_id)
     except ValueError:
@@ -66,9 +64,7 @@ async def _get_source_or_404(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid job source id",
         )
-    result = await db.execute(
-        select(JobSource).where(JobSource.id == source_uuid)
-    )
+    result = await db.execute(select(JobSource).where(JobSource.id == source_uuid))
     source = result.scalar_one_or_none()
     if source is None:
         raise HTTPException(
@@ -162,7 +158,9 @@ async def create_job_source(
     await db.commit()
     await db.refresh(source)
 
-    logger.info(LogCategory.DATA, f"Subscribed job source: {name} ({ats_type}/{org_key})")
+    logger.info(
+        LogCategory.DATA, f"Subscribed job source: {name} ({ats_type}/{org_key})"
+    )
     return _source_response(source)
 
 
@@ -254,10 +252,7 @@ async def import_job_sources(
             detail=f"Unsupported ATS type: {payload.ats_type}",
         )
     existing = await db.execute(select(JobSource))
-    known = {
-        (s.ats_type, s.org_key.lower())
-        for s in existing.scalars().all()
-    }
+    known = {(s.ats_type, s.org_key.lower()) for s in existing.scalars().all()}
     created = 0
     skipped = 0
     for org_key in payload.org_keys:
@@ -362,9 +357,7 @@ async def log_application(
     from app.models.resume_lite import Resume
 
     resume = (
-        await db.execute(
-            select(Resume).order_by(Resume.updated_at.desc()).limit(1)
-        )
+        await db.execute(select(Resume).order_by(Resume.updated_at.desc()).limit(1))
     ).scalar_one_or_none()
     if resume is None:
         raise HTTPException(
@@ -422,9 +415,7 @@ async def log_application(
     )
 
 
-@router.post(
-    "/{jd_id}/score-llm", response_model=JobDescriptionResponse
-)
+@router.post("/{jd_id}/score-llm", response_model=JobDescriptionResponse)
 async def score_jd_with_llm(
     jd_id: str,
     resume_id: Optional[str] = None,
@@ -448,9 +439,7 @@ async def score_jd_with_llm(
         )
 
     jd = (
-        await db.execute(
-            select(JobDescription).where(JobDescription.id == jd_uuid)
-        )
+        await db.execute(select(JobDescription).where(JobDescription.id == jd_uuid))
     ).scalar_one_or_none()
     if jd is None:
         raise HTTPException(

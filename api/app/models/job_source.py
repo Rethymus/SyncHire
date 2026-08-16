@@ -20,7 +20,9 @@ class JobSource(Base):
 
     id = Column(UUID, primary_key=True)
     name = Column(String(255), nullable=False)  # Company display name
-    ats_type = Column(String(50), nullable=False)  # greenhouse | lever | ashby | smartrecruiters
+    ats_type = Column(
+        String(50), nullable=False
+    )  # greenhouse | lever | ashby | smartrecruiters
     org_key = Column(
         String(255), nullable=False
     )  # Board token / company identifier used by the ATS API

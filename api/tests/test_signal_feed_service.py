@@ -155,11 +155,15 @@ def _mock_http(xml: str):
 
 @pytest.mark.asyncio
 async def test_sync_signal_feed_pins_companies_from_titles(db_session):
-    feed = SignalFeed(id=uuid.uuid4(), name="校招情报", rss_url="https://r.example/feed")
+    feed = SignalFeed(
+        id=uuid.uuid4(), name="校招情报", rss_url="https://r.example/feed"
+    )
     db_session.add(feed)
     await db_session.commit()
 
-    with patch.object(feed_svc.httpx, "AsyncClient", return_value=_mock_http(RSS_SAMPLE)):
+    with patch.object(
+        feed_svc.httpx, "AsyncClient", return_value=_mock_http(RSS_SAMPLE)
+    ):
         result = await feed_svc.sync_signal_feed(db_session, feed)
 
     assert result.status == "ok"
@@ -170,17 +174,13 @@ async def test_sync_signal_feed_pins_companies_from_titles(db_session):
         "腾讯·2027届秋招",
     ]
 
-    rows = (
-        await db_session.execute(select(CompanyDirectoryEntry))
-    ).scalars().all()
+    rows = (await db_session.execute(select(CompanyDirectoryEntry))).scalars().all()
     by_name = {r.name: r for r in rows}
     assert by_name["腾讯"].signal_batch == "2027届秋招"
     assert by_name["腾讯"].signal_url == "https://mp.weixin.qq.com/s/a1"
     assert by_name["哔哩哔哩"].signal_batch is None  # not mentioned in feed
 
-    refreshed = (
-        await db_session.execute(select(SignalFeed))
-    ).scalar_one()
+    refreshed = (await db_session.execute(select(SignalFeed))).scalar_one()
     assert refreshed.last_status == "ok"
     assert refreshed.last_new_signals == 2
 
@@ -219,7 +219,9 @@ async def test_sync_all_signal_feeds_skips_disabled(db_session):
     db_session.add_all([enabled, disabled])
     await db_session.commit()
 
-    with patch.object(feed_svc.httpx, "AsyncClient", return_value=_mock_http(ATOM_SAMPLE)):
+    with patch.object(
+        feed_svc.httpx, "AsyncClient", return_value=_mock_http(ATOM_SAMPLE)
+    ):
         pairs = await feed_svc.sync_all_signal_feeds(db_session)
 
     assert len(pairs) == 1

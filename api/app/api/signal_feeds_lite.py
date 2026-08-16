@@ -62,8 +62,10 @@ async def _get_feed_or_404(feed_id: str, db: AsyncSession) -> SignalFeed:
 @router.get("", response_model=List[SignalFeedResponse])
 async def list_signal_feeds(db: AsyncSession = Depends(get_db)):
     feeds = (
-        await db.execute(select(SignalFeed).order_by(SignalFeed.created_at))
-    ).scalars().all()
+        (await db.execute(select(SignalFeed).order_by(SignalFeed.created_at)))
+        .scalars()
+        .all()
+    )
     return [_feed_response(f) for f in feeds]
 
 
