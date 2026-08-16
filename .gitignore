@@ -60,3 +60,9 @@ test_outputs/
 
 # OS
 Thumbs.db
+
+# Local environments and recovery artifacts
+.venv/
+.git-broken/
+.ruff_cache/
+.pytest_cache/

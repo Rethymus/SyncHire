@@ -1,6 +1,5 @@
 """
 Enhanced Pytest configuration and fixtures for 2026 best practices
-
 This file provides:
 - Async fixtures with pytest-asyncio
 - Mock configurations for external services
@@ -9,6 +8,8 @@ This file provides:
 - Performance testing utilities
 - API test helpers
 """
+
+from __future__ import annotations
 
 import inspect
 import asyncio
@@ -39,12 +40,19 @@ TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 TEST_JWT_SECRET = "synchire-test-jwt-secret-32-bytes"
 os.environ.setdefault("DATABASE_URL", TEST_DATABASE_URL)
 
-from app.core.database import Base, get_db  # noqa: E402
-from app.models.application import Application  # noqa: E402
-from app.models.interview import Interview  # noqa: E402
-from app.models.jd import JD  # noqa: E402
-from app.models.resume import Resume  # noqa: E402
-from app.models.user import User  # noqa: E402
+# Cloud fixtures need the cloud model stack (asyncpg/pgvector). Guard the
+# imports so Lite-only environments can still collect and run Lite tests.
+try:
+    from app.core.database import Base, get_db  # noqa: E402
+    from app.models.application import Application  # noqa: E402
+    from app.models.interview import Interview  # noqa: E402
+    from app.models.jd import JD  # noqa: E402
+    from app.models.resume import Resume  # noqa: E402
+    from app.models.user import User  # noqa: E402
+
+    CLOUD_TEST_MODELS_AVAILABLE = True
+except ModuleNotFoundError:
+    CLOUD_TEST_MODELS_AVAILABLE = False
 
 if not getattr(NonCallableMock.assert_called_once, "_synchire_returns_bool", False):
     _orig_assert_called_once = NonCallableMock.assert_called_once
