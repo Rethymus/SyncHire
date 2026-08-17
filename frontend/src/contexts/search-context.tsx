@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useCallback, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useCallback, useState, useEffect, useRef, ReactNode } from "react";
 
 interface SearchHistoryItem {
   query: string;
@@ -24,27 +24,36 @@ const STORAGE_KEY = "synchire_search_history";
 const MAX_HISTORY_ITEMS = 20;
 
 export function SearchProvider({ children }: { children: ReactNode }) {
-  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>(() => {
-    // Load search history from localStorage during initialization
-    if (typeof window === "undefined") return [];
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
+  // SSR renders an empty list; hydrate from localStorage after mount so the
+  // server and client markup match (a typeof-window initializer caused a
+  // hydration mismatch that surfaced as a script-tag warning on /data).
+  const hydratedRef = useRef(false);
 
+  useEffect(() => {
+    // One-shot hydration from localStorage after mount; reading it in the
+    // state initializer would branch on typeof window and break SSR hydration.
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        return parsed.map((item: any) => ({
-          ...item,
-          timestamp: new Date(item.timestamp),
-        }));
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- single sync from an external store on mount
+        setSearchHistory(
+          parsed.map((item: SearchHistoryItem) => ({
+            ...item,
+            timestamp: new Date(item.timestamp),
+          }))
+        );
       }
     } catch (error) {
       console.error("Failed to load search history:", error);
     }
-    return [];
-  });
+    hydratedRef.current = true;
+  }, []);
 
   // Save search history to localStorage whenever it changes
   useEffect(() => {
+    if (!hydratedRef.current) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(searchHistory));
     } catch (error) {
