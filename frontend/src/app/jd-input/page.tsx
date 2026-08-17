@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useToastMessage } from "@/components/ui/toast";
 import { useAppStore, type JobDescription } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { logger } from "@/lib/logger";
@@ -19,7 +20,8 @@ import {
 
 export default function JDInputPage() {
   const router = useRouter();
-  const { t } = useLiteCopy();
+  const { locale, t } = useLiteCopy();
+  const toast = useToastMessage();
   const jdCopy = t.jd;
   const pagesMode = isGithubPagesDeployment();
   const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -31,14 +33,24 @@ export default function JDInputPage() {
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const { addJobDescription, currentJD, setCurrentJD, jobDescriptions } = useAppStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title || !company || !description) {
+      const message = locale === "zh-CN"
+        ? "请填写职位名称、公司名称和职位描述后再继续。"
+        : "Please fill in the job title, company and description before continuing.";
+      setValidationError(message);
+      toast.warning(
+        locale === "zh-CN" ? "还有必填项未完成" : "Required fields missing",
+        message
+      );
       return;
     }
+    setValidationError(null);
 
     setLoading(true);
 
@@ -214,7 +226,10 @@ export default function JDInputPage() {
                     type="text"
                     id="title"
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      setValidationError(null);
+                    }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder={jdCopy.titlePlaceholder}
                     required
@@ -232,7 +247,10 @@ export default function JDInputPage() {
                     type="text"
                     id="company"
                     value={company}
-                    onChange={(e) => setCompany(e.target.value)}
+                    onChange={(e) => {
+                      setCompany(e.target.value);
+                      setValidationError(null);
+                    }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder={jdCopy.companyPlaceholder}
                     required
@@ -250,7 +268,10 @@ export default function JDInputPage() {
                 <textarea
                   id="description"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => {
+                      setDescription(e.target.value);
+                      setValidationError(null);
+                    }}
                   rows={10}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                   placeholder={jdCopy.descriptionPlaceholder}
@@ -281,7 +302,25 @@ export default function JDInputPage() {
                 </p>
               </div>
 
+              {validationError && (
+                <p
+                  role="alert"
+                  aria-live="polite"
+                  className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                >
+                  {validationError}
+                </p>
+              )}
+
               <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  onClick={() => router.push("/dashboard")}
+                >
+                  {jdCopy.cancel}
+                </Button>
                 <Button
                   type="submit"
                   size="lg"
@@ -290,14 +329,6 @@ export default function JDInputPage() {
                 >
                   {loading ? jdCopy.loading : jdCopy.submit}
                   <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="lg"
-                  onClick={() => router.push("/dashboard")}
-                >
-                  {jdCopy.cancel}
                 </Button>
               </div>
             </form>

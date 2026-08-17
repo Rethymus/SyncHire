@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import { useAppStore } from "@/lib/store";
 import { BatchApplicationsList } from "@/components/batch-applications-list";
 import { MatchRankingControls } from "@/components/match-ranking-controls";
+import { ApplicationCreateDialog } from "@/components/application-create-dialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,8 @@ export default function ApplicationsPage() {
   } = useWorkflowAutomation();
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(new Set());
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const isEmpty = applications.length === 0;
 
   const stats = useMemo(() => getMatchStatistics(applications), [applications]);
   const recommended = useMemo(() => getRecommendedApplications(applications, 3), [applications]);
@@ -68,15 +71,14 @@ export default function ApplicationsPage() {
               {applicationsCopy.subtitle}
             </p>
           </div>
-          <Button asChild>
-            <Link href="/dashboard">
-              <Plus className="h-4 w-4 mr-2" />
-              {applicationsCopy.newApplication}
-            </Link>
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            {applicationsCopy.newApplication}
           </Button>
         </div>
 
-        {/* Statistics Overview */}
+        {/* Statistics Overview — hidden while there is nothing to measure */}
+        {!isEmpty && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card className="p-6">
             <div className="flex items-center gap-3 mb-2">
@@ -130,6 +132,7 @@ export default function ApplicationsPage() {
             </p>
           </Card>
         </div>
+        )}
 
         {/* High Priority Workflow Suggestions */}
         {showSuggestions && activeSuggestions.length > 0 && (
@@ -267,15 +270,17 @@ export default function ApplicationsPage() {
         )}
 
         {/* Ranking Controls and Applications List */}
+        {!isEmpty && (
         <MatchRankingControls
           applications={applications}
           onRankingChange={handleRankingChange}
         >
           <BatchApplicationsList showRanking={true} />
         </MatchRankingControls>
+        )}
 
         {/* Empty State */}
-        {applications.length === 0 && (
+        {isEmpty && (
           <Card className="p-12 text-center">
             <div className="max-w-md mx-auto">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -287,15 +292,18 @@ export default function ApplicationsPage() {
               <p className="text-gray-600 mb-6">
                 {applicationsCopy.emptyDescription}
               </p>
-              <Button asChild size="lg">
-                <Link href="/dashboard">
-                  <Plus className="h-4 w-4 mr-2" />
-                  {applicationsCopy.createApplication}
-                </Link>
+              <Button size="lg" onClick={() => setCreateDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                {applicationsCopy.createApplication}
               </Button>
             </div>
           </Card>
         )}
+
+        <ApplicationCreateDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+        />
       </div>
     </div>
   );
