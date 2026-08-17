@@ -155,7 +155,7 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/40">
       
 
       <div className="max-w-4xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
@@ -165,10 +165,10 @@ export default function UploadPage() {
         </div>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-foreground">
             {upload.title}
           </h1>
-          <p className="mt-2 text-lg text-gray-700">
+          <p className="mt-2 text-lg text-muted-foreground">
             {upload.subtitle}
           </p>
         </div>
@@ -182,7 +182,7 @@ export default function UploadPage() {
 
         <div className="space-y-8">
           {/* Upload Area */}
-          <div className="bg-white rounded-2xl shadow-sm p-8">
+          <div className="bg-card rounded-2xl shadow-sm p-8">
             <div
               {...getRootProps()}
               className={cn(
@@ -191,7 +191,7 @@ export default function UploadPage() {
                   ? "border-blue-500 bg-blue-50"
                   : isDragReject
                   ? "border-red-500 bg-red-50"
-                  : "border-gray-300 hover:border-gray-400"
+                  : "border-input hover:border-gray-400"
               )}
             >
               <input {...getInputProps()} />
@@ -203,7 +203,7 @@ export default function UploadPage() {
                       ? "bg-blue-100"
                       : isDragReject
                       ? "bg-red-100"
-                      : "bg-gray-100"
+                      : "bg-muted"
                   )}
                 >
                   <Upload
@@ -213,7 +213,7 @@ export default function UploadPage() {
                         ? "text-blue-600"
                         : isDragReject
                         ? "text-red-600"
-                        : "text-gray-700"
+                        : "text-muted-foreground"
                     )}
                   />
                 </div>
@@ -221,7 +221,7 @@ export default function UploadPage() {
                   <h3
                     className={cn(
                       "text-lg font-semibold",
-                      isDragReject ? "text-red-900" : "text-gray-900"
+                      isDragReject ? "text-red-900" : "text-foreground"
                     )}
                   >
                     {isDragReject
@@ -230,7 +230,7 @@ export default function UploadPage() {
                       ? upload.dropActive
                       : upload.dropIdle}
                   </h3>
-                  <p className="mt-2 text-sm text-gray-700">
+                  <p className="mt-2 text-sm text-muted-foreground">
                     {upload.supportedFormats}
                   </p>
                 </div>
@@ -239,7 +239,7 @@ export default function UploadPage() {
 
             {uploading && (
               <div className="mt-6 text-center">
-                <div className="inline-flex items-center gap-3 text-gray-700">
+                <div className="inline-flex items-center gap-3 text-muted-foreground">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" />
                   <span>{upload.processing}</span>
                 </div>
@@ -249,9 +249,9 @@ export default function UploadPage() {
 
           {/* Uploaded Resumes */}
           {resumes.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm p-8">
+            <div className="bg-card rounded-2xl shadow-sm p-8">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-foreground">
                   {upload.uploadedTitle} ({resumes.length})
                 </h2>
                 <Button
@@ -266,17 +266,17 @@ export default function UploadPage() {
                 {resumes.map((resume) => (
                   <div
                     key={resume.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-between p-4 bg-muted/40 rounded-lg hover:bg-muted transition-colors"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="p-3 bg-white rounded-lg shadow-sm">
+                      <div className="p-3 bg-card rounded-lg shadow-sm">
                         <FileText className="h-6 w-6 text-blue-600" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-foreground">
                           {resume.name}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           {upload.uploadedAt}{" "}
                           {formatLiteDate(resume.uploadedAt, locale)}
                         </p>
@@ -308,38 +308,38 @@ export default function UploadPage() {
 
           {/* Features */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-card rounded-xl p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 bg-blue-100 rounded-lg">
                   <FileText className="h-5 w-5 text-blue-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900">{upload.features[0].title}</h3>
+                <h3 className="font-semibold text-foreground">{upload.features[0].title}</h3>
               </div>
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-muted-foreground">
                 {upload.features[0].description}
               </p>
             </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-card rounded-xl p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 bg-green-100 rounded-lg">
                   <CheckCircle2 className="h-5 w-5 text-green-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900">{upload.features[1].title}</h3>
+                <h3 className="font-semibold text-foreground">{upload.features[1].title}</h3>
               </div>
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-muted-foreground">
                 {upload.features[1].description}
               </p>
             </div>
 
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-card rounded-xl p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 bg-purple-100 rounded-lg">
                   <ArrowRight className="h-5 w-5 text-purple-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900">{upload.features[2].title}</h3>
+                <h3 className="font-semibold text-foreground">{upload.features[2].title}</h3>
               </div>
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-muted-foreground">
                 {upload.features[2].description}
               </p>
             </div>

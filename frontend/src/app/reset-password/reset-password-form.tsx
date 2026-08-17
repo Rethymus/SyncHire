@@ -128,11 +128,11 @@ export function ResetPasswordForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
+      <div className="min-h-screen bg-muted/40 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-card rounded-lg shadow-md p-8 text-center">
           <CheckCircle2 className="mx-auto h-16 w-16 text-green-500 mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">密码重置成功</h1>
-          <p className="text-gray-600 mb-6">您的密码已成功重置。即将跳转到登录页面...</p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">密码重置成功</h1>
+          <p className="text-muted-foreground mb-6">您的密码已成功重置。即将跳转到登录页面...</p>
           <Button onClick={() => router.push("/login")} variant="outline">
             立即登录
           </Button>
@@ -143,11 +143,11 @@ export function ResetPasswordForm() {
 
   if (tokenValid === false) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
+      <div className="min-h-screen bg-muted/40 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-card rounded-lg shadow-md p-8 text-center">
           <Lock className="mx-auto h-16 w-16 text-red-500 mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">无效的重置链接</h1>
-          <p className="text-gray-600 mb-6">{errors.general || "该链接已过期或无效"}</p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">无效的重置链接</h1>
+          <p className="text-muted-foreground mb-6">{errors.general || "该链接已过期或无效"}</p>
           <div className="space-y-3">
             <Button onClick={() => router.push("/forgot-password")} className="w-full">
               请求新的重置链接
@@ -163,24 +163,24 @@ export function ResetPasswordForm() {
 
   if (tokenValid === null) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
+      <div className="min-h-screen bg-muted/40 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-card rounded-lg shadow-md p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">验证重置链接...</p>
+          <p className="text-muted-foreground">验证重置链接...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/40">
       
       <div className="max-w-md mx-auto px-4 py-16">
-        <div className="bg-white rounded-lg shadow-md p-8">
+        <div className="bg-card rounded-lg shadow-md p-8">
           <div className="text-center mb-8">
             <Lock className="mx-auto h-12 w-12 text-blue-600 mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">设置新密码</h1>
-            <p className="text-gray-600">请输入您的新密码</p>
+            <h1 className="text-2xl font-bold text-foreground mb-2">设置新密码</h1>
+            <p className="text-muted-foreground">请输入您的新密码</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -191,7 +191,7 @@ export function ResetPasswordForm() {
             )}
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-muted-foreground mb-2">
                 新密码
               </label>
               <div className="relative">
@@ -201,7 +201,7 @@ export function ResetPasswordForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.password ? "border-red-500" : "border-gray-300"
+                    errors.password ? "border-red-500" : "border-input"
                   }`}
                   placeholder="至少12个字符，包含大小写字母和数字"
                   aria-invalid={errors.password ? "true" : "false"}
@@ -210,7 +210,7 @@ export function ResetPasswordForm() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-muted-foreground"
                   aria-label={showPassword ? "隐藏密码" : "显示密码"}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -224,7 +224,7 @@ export function ResetPasswordForm() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-muted-foreground mb-2">
                 确认新密码
               </label>
               <div className="relative">
@@ -234,7 +234,7 @@ export function ResetPasswordForm() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.confirmPassword ? "border-red-500" : "border-gray-300"
+                    errors.confirmPassword ? "border-red-500" : "border-input"
                   }`}
                   placeholder="再次输入新密码"
                   aria-invalid={errors.confirmPassword ? "true" : "false"}

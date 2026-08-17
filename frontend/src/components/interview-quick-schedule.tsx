@@ -75,13 +75,13 @@ const ApplicationCard = memo(function ApplicationCard({
   onSchedule: (application: Application) => void;
 }) {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+    <div className="bg-card rounded-lg border border-border p-4 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
-          <h4 className="text-base font-semibold text-gray-900 truncate">
+          <h4 className="text-base font-semibold text-foreground truncate">
             {application.job_title}
           </h4>
-          <p className="text-sm text-gray-600 truncate">{application.company_name}</p>
+          <p className="text-sm text-muted-foreground truncate">{application.company_name}</p>
 
           {application.match_score !== undefined && (
             <div className="mt-2 flex items-center gap-2">
@@ -91,7 +91,7 @@ const ApplicationCard = memo(function ApplicationCard({
                   style={{ width: `${application.match_score}%` }}
                 />
               </div>
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-muted-foreground">
                 {application.match_score}%
               </span>
             </div>
@@ -126,13 +126,13 @@ const QuickInterviewCard = memo(function QuickInterviewCard({
 
   return (
     <div
-      className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+      className="bg-card rounded-lg border border-border p-4 hover:shadow-md transition-shadow cursor-pointer"
       onClick={() => onClick(interview)}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
-            <h4 className="text-base font-semibold text-gray-900 truncate">
+            <h4 className="text-base font-semibold text-foreground truncate">
               {interview.title}
             </h4>
             <span
@@ -145,7 +145,7 @@ const QuickInterviewCard = memo(function QuickInterviewCard({
             </span>
           </div>
 
-          <div className="flex items-center gap-3 text-sm text-gray-600">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
               <span className={isToday ? "font-medium text-blue-600" : ""}>
@@ -167,7 +167,7 @@ const QuickInterviewCard = memo(function QuickInterviewCard({
           </div>
 
           {(interview.company_name || interview.job_title) && (
-            <div className="mt-2 text-sm text-gray-700">
+            <div className="mt-2 text-sm text-muted-foreground">
               {interview.company_name && <span className="font-medium">{interview.company_name}</span>}
               {interview.company_name && interview.job_title && <span className="mx-1">•</span>}
               {interview.job_title && <span>{interview.job_title}</span>}
@@ -175,7 +175,7 @@ const QuickInterviewCard = memo(function QuickInterviewCard({
           )}
         </div>
 
-        <ChevronRight className="h-5 w-5 text-gray-400 flex-shrink-0 ml-2" />
+        <ChevronRight className="h-5 w-5 text-muted-foreground/80 flex-shrink-0 ml-2" />
       </div>
     </div>
   );
@@ -240,11 +240,11 @@ export function InterviewQuickSchedule() {
       />
 
       {/* Applications Ready for Interview */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Ready for Interview</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="text-lg font-semibold text-foreground">Ready for Interview</h3>
+            <p className="text-sm text-muted-foreground">
               Applications with interview status
             </p>
           </div>
@@ -257,7 +257,7 @@ export function InterviewQuickSchedule() {
         </div>
 
         {applicationsLoading ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             <Clock className="h-8 w-8 mx-auto mb-2 animate-spin" />
             <p>Loading applications...</p>
           </div>
@@ -272,7 +272,7 @@ export function InterviewQuickSchedule() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No applications ready for interview</p>
             <Button
@@ -287,11 +287,11 @@ export function InterviewQuickSchedule() {
       </div>
 
       {/* Upcoming Interviews */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Upcoming Interviews</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="text-lg font-semibold text-foreground">Upcoming Interviews</h3>
+            <p className="text-sm text-muted-foreground">
               Your scheduled and confirmed interviews
             </p>
           </div>
@@ -304,7 +304,7 @@ export function InterviewQuickSchedule() {
         </div>
 
         {interviewsLoading ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             <Clock className="h-8 w-8 mx-auto mb-2 animate-spin" />
             <p>Loading interviews...</p>
           </div>
@@ -319,7 +319,7 @@ export function InterviewQuickSchedule() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No upcoming interviews</p>
             <p className="text-xs mt-1">Schedule your first interview above</p>

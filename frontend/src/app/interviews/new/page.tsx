@@ -127,7 +127,7 @@ function NewInterviewContent() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/40">
       
 
       <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -142,8 +142,8 @@ function NewInterviewContent() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{copy.title}</h1>
-              <p className="mt-2 text-lg text-gray-700">
+              <h1 className="text-3xl font-bold text-foreground">{copy.title}</h1>
+              <p className="mt-2 text-lg text-muted-foreground">
                 {copy.subtitle}
               </p>
             </div>
@@ -174,7 +174,7 @@ function NewInterviewContent() {
         )}
 
         {/* Form */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-6">
           <InterviewSchedulingForm
             applicationId={applicationId || undefined}
             initialData={{
@@ -202,7 +202,7 @@ function NewInterviewContent() {
 
 export default function NewInterviewPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-muted/40 flex items-center justify-center">Loading...</div>}>
       <NewInterviewContent />
     </Suspense>
   );

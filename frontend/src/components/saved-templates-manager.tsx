@@ -136,16 +136,16 @@ export function SavedTemplatesManager({ onLoadTemplate, onClose }: SavedTemplate
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-card rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-border">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
                 <FolderOpen className="h-6 w-6 text-indigo-600" />
                 我的模板库
               </h2>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 管理您的自定义简历模板
               </p>
             </div>
@@ -174,9 +174,9 @@ export function SavedTemplatesManager({ onLoadTemplate, onClose }: SavedTemplate
                 自定义: {stats.custom}
               </span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg">
-              <Star className="h-4 w-4 text-gray-600" />
-              <span className="text-sm font-medium text-gray-900">
+            <div className="flex items-center gap-2 px-4 py-2 bg-muted/40 rounded-lg">
+              <Star className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">
                 默认: {stats.default}
               </span>
             </div>
@@ -219,7 +219,7 @@ export function SavedTemplatesManager({ onLoadTemplate, onClose }: SavedTemplate
           {/* Custom Templates */}
           {customTemplates.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Palette className="h-5 w-5 text-indigo-600" />
                 自定义模板
               </h3>
@@ -229,7 +229,7 @@ export function SavedTemplatesManager({ onLoadTemplate, onClose }: SavedTemplate
                   return (
                     <div
                       key={template.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors"
+                      className="border border-border rounded-lg p-4 hover:border-indigo-300 transition-colors"
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
@@ -239,7 +239,7 @@ export function SavedTemplatesManager({ onLoadTemplate, onClose }: SavedTemplate
                                 type="text"
                                 value={newTemplateName}
                                 onChange={(e) => setNewTemplateName(e.target.value)}
-                                className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                                className="flex-1 px-2 py-1 border border-input rounded text-sm"
                                 autoFocus
                               />
                               <Button
@@ -260,9 +260,9 @@ export function SavedTemplatesManager({ onLoadTemplate, onClose }: SavedTemplate
                               </Button>
                             </div>
                           ) : (
-                            <h4 className="font-medium text-gray-900">{template.name}</h4>
+                            <h4 className="font-medium text-foreground">{template.name}</h4>
                           )}
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             基于: {baseTemplate?.name}
                           </p>
                         </div>
@@ -296,7 +296,7 @@ export function SavedTemplatesManager({ onLoadTemplate, onClose }: SavedTemplate
                           </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
                         <Clock className="h-3.5 w-3.5" />
                         <span>
                           更新于 {new Date(template.updatedAt).toLocaleDateString()}
@@ -319,7 +319,7 @@ export function SavedTemplatesManager({ onLoadTemplate, onClose }: SavedTemplate
 
           {/* Default Templates */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <Star className="h-5 w-5 text-amber-600" />
               默认模板
             </h3>
@@ -329,7 +329,7 @@ export function SavedTemplatesManager({ onLoadTemplate, onClose }: SavedTemplate
                 return (
                   <div
                     key={template.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors"
+                    className="border border-border rounded-lg p-4 hover:border-indigo-300 transition-colors"
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <div
@@ -342,11 +342,11 @@ export function SavedTemplatesManager({ onLoadTemplate, onClose }: SavedTemplate
                         <Palette className="h-5 w-5" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-900">{template.name}</h4>
-                        <p className="text-xs text-gray-500">{baseTemplate?.nameEn}</p>
+                        <h4 className="font-medium text-foreground">{template.name}</h4>
+                        <p className="text-xs text-muted-foreground">{baseTemplate?.nameEn}</p>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                       {baseTemplate?.description}
                     </p>
                     <Button
@@ -365,15 +365,15 @@ export function SavedTemplatesManager({ onLoadTemplate, onClose }: SavedTemplate
 
           {customTemplates.length === 0 && defaultTemplates.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-center">
-              <FolderOpen className="h-16 w-16 text-gray-400 mb-4" />
-              <p className="text-gray-700 font-medium">暂无保存的模板</p>
-              <p className="text-sm text-gray-500 mt-1">选择模板后可在此处管理</p>
+              <FolderOpen className="h-16 w-16 text-muted-foreground/80 mb-4" />
+              <p className="text-muted-foreground font-medium">暂无保存的模板</p>
+              <p className="text-sm text-muted-foreground mt-1">选择模板后可在此处管理</p>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end">
+        <div className="p-4 border-t border-border bg-muted/40 flex justify-end">
           <Button variant="outline" onClick={onClose}>
             关闭
           </Button>
@@ -383,9 +383,9 @@ export function SavedTemplatesManager({ onLoadTemplate, onClose }: SavedTemplate
       {/* Import Dialog */}
       {showImportDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+          <div className="bg-card rounded-2xl shadow-2xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">导入模板</h3>
+              <h3 className="text-lg font-bold text-foreground">导入模板</h3>
               <Button
                 variant="ghost"
                 size="sm"
@@ -396,7 +396,7 @@ export function SavedTemplatesManager({ onLoadTemplate, onClose }: SavedTemplate
               </Button>
             </div>
             <div className="space-y-4">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 选择之前导出的模板文件（.json）来导入自定义模板。
               </p>
               <input
@@ -408,7 +408,7 @@ export function SavedTemplatesManager({ onLoadTemplate, onClose }: SavedTemplate
                     handleImportTemplates(file);
                   }
                 }}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
               />
             </div>
           </div>

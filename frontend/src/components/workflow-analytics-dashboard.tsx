@@ -183,11 +183,11 @@ export function WorkflowAnalyticsDashboard() {
   if (applications.length === 0) {
     return (
       <Card className="p-8 text-center">
-        <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <BarChart3 className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           暂无分析数据
         </h3>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           创建申请后即可查看工作流分析和统计数据
         </p>
       </Card>
@@ -203,12 +203,12 @@ export function WorkflowAnalyticsDashboard() {
             <div className="p-2 bg-purple-100 rounded-lg">
               <Target className="h-5 w-5 text-purple-600" />
             </div>
-            <span className="text-sm text-gray-600">面试转化率</span>
+            <span className="text-sm text-muted-foreground">面试转化率</span>
           </div>
-          <div className="text-2xl font-bold text-gray-900">
+          <div className="text-2xl font-bold text-foreground">
             {successMetrics.interviewRate.toFixed(1)}%
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             {successMetrics.interviewRate >= 20 ? '表现优秀' : '有提升空间'}
           </p>
         </Card>
@@ -218,12 +218,12 @@ export function WorkflowAnalyticsDashboard() {
             <div className="p-2 bg-green-100 rounded-lg">
               <Award className="h-5 w-5 text-green-600" />
             </div>
-            <span className="text-sm text-gray-600">录用转化率</span>
+            <span className="text-sm text-muted-foreground">录用转化率</span>
           </div>
-          <div className="text-2xl font-bold text-gray-900">
+          <div className="text-2xl font-bold text-foreground">
             {successMetrics.offerRate.toFixed(1)}%
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             {successMetrics.offerRate >= 10 ? '表现优秀' : '继续努力'}
           </p>
         </Card>
@@ -233,12 +233,12 @@ export function WorkflowAnalyticsDashboard() {
             <div className="p-2 bg-blue-100 rounded-lg">
               <TrendingUp className="h-5 w-5 text-blue-600" />
             </div>
-            <span className="text-sm text-gray-600">平均录用匹配度</span>
+            <span className="text-sm text-muted-foreground">平均录用匹配度</span>
           </div>
-          <div className="text-2xl font-bold text-gray-900">
+          <div className="text-2xl font-bold text-foreground">
             {successMetrics.averageMatchToOffer.toFixed(1)}%
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             录用职位的平均匹配分数
           </p>
         </Card>
@@ -248,12 +248,12 @@ export function WorkflowAnalyticsDashboard() {
             <div className="p-2 bg-yellow-100 rounded-lg">
               <Calendar className="h-5 w-5 text-yellow-600" />
             </div>
-            <span className="text-sm text-gray-600">建议周申请量</span>
+            <span className="text-sm text-muted-foreground">建议周申请量</span>
           </div>
-          <div className="text-2xl font-bold text-gray-900">
+          <div className="text-2xl font-bold text-foreground">
             {successMetrics.optimalApplicationCount}
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             基于当前成功率建议
           </p>
         </Card>
@@ -263,8 +263,8 @@ export function WorkflowAnalyticsDashboard() {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">申请流程漏斗</h3>
-            <p className="text-sm text-gray-600">查看各阶段转化率和流失情况</p>
+            <h3 className="text-lg font-semibold text-foreground">申请流程漏斗</h3>
+            <p className="text-sm text-muted-foreground">查看各阶段转化率和流失情况</p>
           </div>
           <Badge variant="outline" className="flex items-center gap-1">
             <Filter className="h-3 w-3" />
@@ -278,7 +278,7 @@ export function WorkflowAnalyticsDashboard() {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
                   <div className={`w-3 h-3 rounded-full ${stage.color}`} />
-                  <span className="font-medium text-gray-900">{stage.label}</span>
+                  <span className="font-medium text-foreground">{stage.label}</span>
                   <Badge variant="outline" className="text-xs">
                     {stage.count} 份
                   </Badge>
@@ -294,10 +294,10 @@ export function WorkflowAnalyticsDashboard() {
                       <span className={stage.conversionRate > 0 ? 'text-green-600' : 'text-red-600'}>
                         {stage.conversionRate.toFixed(1)}%
                       </span>
-                      <ArrowRight className="h-3 w-3 text-gray-400" />
+                      <ArrowRight className="h-3 w-3 text-muted-foreground/80" />
                     </div>
                   )}
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-muted-foreground">
                     {stage.percentage.toFixed(1)}%
                   </span>
                 </div>
@@ -317,8 +317,8 @@ export function WorkflowAnalyticsDashboard() {
               <Clock className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">各阶段停留时间</h3>
-              <p className="text-sm text-gray-600">平均在每个状态停留的时间</p>
+              <h3 className="text-lg font-semibold text-foreground">各阶段停留时间</h3>
+              <p className="text-sm text-muted-foreground">平均在每个状态停留的时间</p>
             </div>
           </div>
 
@@ -326,15 +326,15 @@ export function WorkflowAnalyticsDashboard() {
             {timeInStatusData.map((item) => (
               <div
                 key={item.status}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                className="flex items-center justify-between p-4 bg-muted/40 rounded-lg"
               >
                 <div>
-                  <p className="font-medium text-gray-900">{item.label}</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="font-medium text-foreground">{item.label}</p>
+                  <p className="text-sm text-muted-foreground">
                     平均 {item.averageTime} {item.timeUnit === 'hours' ? '小时' : '天'}
                   </p>
                 </div>
-                <Clock className="h-5 w-5 text-gray-400" />
+                <Clock className="h-5 w-5 text-muted-foreground/80" />
               </div>
             ))}
           </div>
@@ -349,8 +349,8 @@ export function WorkflowAnalyticsDashboard() {
               <AlertCircle className="h-5 w-5 text-orange-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">流失分析</h3>
-              <p className="text-sm text-gray-600">需要关注的高流失率阶段</p>
+              <h3 className="text-lg font-semibold text-foreground">流失分析</h3>
+              <p className="text-sm text-muted-foreground">需要关注的高流失率阶段</p>
             </div>
           </div>
 
@@ -367,15 +367,15 @@ export function WorkflowAnalyticsDashboard() {
               return (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-4 bg-white rounded-lg border border-orange-200"
+                  className="flex items-center justify-between p-4 bg-card rounded-lg border border-orange-200"
                 >
                   <div className="flex items-center gap-3">
                     <XCircle className="h-5 w-5 text-red-600" />
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-foreground">
                         {statusLabels[point.from]} → 已拒绝
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-muted-foreground">
                         {point.dropoffCount} 份申请被拒绝
                       </p>
                     </div>
@@ -411,40 +411,40 @@ export function WorkflowAnalyticsDashboard() {
               <BarChart3 className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">工作流自动化统计</h3>
-              <p className="text-sm text-gray-600">智能建议和自动化操作的数据</p>
+              <h3 className="text-lg font-semibold text-foreground">工作流自动化统计</h3>
+              <p className="text-sm text-muted-foreground">智能建议和自动化操作的数据</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">总状态变更</p>
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="p-4 bg-muted/40 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">总状态变更</p>
+              <p className="text-2xl font-bold text-foreground">
                 {statistics.totalTransitions}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 手动: {statistics.manualTransitions} | 自动: {statistics.automatedTransitions}
               </p>
             </div>
 
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">自动化率</p>
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="p-4 bg-muted/40 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">自动化率</p>
+              <p className="text-2xl font-bold text-foreground">
                 {statistics.totalTransitions > 0
                   ? ((statistics.automatedTransitions / statistics.totalTransitions) * 100).toFixed(1)
                   : 0}%
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 由智能规则自动执行
               </p>
             </div>
 
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">平均处理时间</p>
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="p-4 bg-muted/40 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-1">平均处理时间</p>
+              <p className="text-2xl font-bold text-foreground">
                 {Math.round(statistics.averageTransitionTime)}h
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 状态变更平均耗时
               </p>
             </div>
@@ -453,7 +453,7 @@ export function WorkflowAnalyticsDashboard() {
           {/* Most Common Transitions */}
           {statistics.mostCommonTransitions.length > 0 && (
             <div className="mt-6">
-              <h4 className="text-sm font-medium text-gray-900 mb-3">最常见状态转换</h4>
+              <h4 className="text-sm font-medium text-foreground mb-3">最常见状态转换</h4>
               <div className="space-y-2">
                 {statistics.mostCommonTransitions.slice(0, 5).map((transition, index) => {
                   const statusLabels: Record<string, string> = {
@@ -469,13 +469,13 @@ export function WorkflowAnalyticsDashboard() {
                   return (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-3 bg-white rounded-lg border"
+                      className="flex items-center justify-between p-3 bg-card rounded-lg border"
                     >
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-xs">
                           {statusLabels[transition.from]}
                         </Badge>
-                        <ArrowRight className="h-3 w-3 text-gray-400" />
+                        <ArrowRight className="h-3 w-3 text-muted-foreground/80" />
                         <Badge variant="outline" className="text-xs">
                           {statusLabels[transition.to]}
                         </Badge>

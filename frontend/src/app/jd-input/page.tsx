@@ -133,30 +133,30 @@ export default function JDInputPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/40">
 
       <div className="max-w-4xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-foreground">
             {jdCopy.title}
           </h1>
-          <p className="mt-2 text-lg text-gray-700">
+          <p className="mt-2 text-lg text-muted-foreground">
             {jdCopy.subtitle}
           </p>
         </div>
 
         <div className="space-y-8">
           {/* Import from URL */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-blue-600 rounded-lg">
                 <LinkIcon className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">
+                <h3 className="font-semibold text-foreground">
                   {jdCopy.importTitle}
                 </h3>
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-muted-foreground">
                   {jdCopy.importSubtitle}
                 </p>
               </div>
@@ -172,7 +172,7 @@ export default function JDInputPage() {
                 }}
                 placeholder={jdCopy.importPlaceholder}
                 aria-describedby={importMessage ? "job-url-import-message" : undefined}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="flex-1 px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
               <Button
                 variant="outline"
@@ -200,14 +200,14 @@ export default function JDInputPage() {
           </div>
 
           {/* Manual Input Form */}
-          <div className="bg-white rounded-2xl shadow-sm p-8">
+          <div className="bg-card rounded-2xl shadow-sm p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <Briefcase className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">{jdCopy.manualTitle}</h3>
-                <p className="text-sm text-gray-700">
+                <h3 className="font-semibold text-foreground">{jdCopy.manualTitle}</h3>
+                <p className="text-sm text-muted-foreground">
                   {jdCopy.manualSubtitle}
                 </p>
               </div>
@@ -218,7 +218,7 @@ export default function JDInputPage() {
                 <div className="space-y-2">
                   <label
                     htmlFor="title"
-                    className="block text-sm font-medium text-gray-900"
+                    className="block text-sm font-medium text-foreground"
                   >
                     {jdCopy.titleLabel}
                   </label>
@@ -230,7 +230,7 @@ export default function JDInputPage() {
                       setTitle(e.target.value);
                       setValidationError(null);
                     }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder={jdCopy.titlePlaceholder}
                     required
                   />
@@ -239,7 +239,7 @@ export default function JDInputPage() {
                 <div className="space-y-2">
                   <label
                     htmlFor="company"
-                    className="block text-sm font-medium text-gray-900"
+                    className="block text-sm font-medium text-foreground"
                   >
                     {jdCopy.companyLabel}
                   </label>
@@ -251,7 +251,7 @@ export default function JDInputPage() {
                       setCompany(e.target.value);
                       setValidationError(null);
                     }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder={jdCopy.companyPlaceholder}
                     required
                   />
@@ -261,7 +261,7 @@ export default function JDInputPage() {
               <div className="space-y-2">
                 <label
                   htmlFor="description"
-                  className="block text-sm font-medium text-gray-900"
+                  className="block text-sm font-medium text-foreground"
                 >
                   {jdCopy.descriptionLabel}
                 </label>
@@ -273,11 +273,11 @@ export default function JDInputPage() {
                       setValidationError(null);
                     }}
                   rows={10}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                   placeholder={jdCopy.descriptionPlaceholder}
                   required
                 />
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-muted-foreground">
                   {jdCopy.descriptionHelp}
                 </p>
               </div>
@@ -285,7 +285,7 @@ export default function JDInputPage() {
               <div className="space-y-2">
                 <label
                   htmlFor="requirements"
-                  className="block text-sm font-medium text-gray-900"
+                  className="block text-sm font-medium text-foreground"
                 >
                   {jdCopy.requirementsLabel}
                 </label>
@@ -294,10 +294,10 @@ export default function JDInputPage() {
                   value={requirements}
                   onChange={(e) => setRequirements(e.target.value)}
                   rows={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                   placeholder={jdCopy.requirementsPlaceholder}
                 />
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-muted-foreground">
                   {jdCopy.requirementsHelp}
                 </p>
               </div>
@@ -336,8 +336,8 @@ export default function JDInputPage() {
 
           {/* Saved JDs */}
           {jobDescriptions.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm p-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            <div className="bg-card rounded-2xl shadow-sm p-8">
+              <h2 className="text-xl font-semibold text-foreground mb-6">
                 {jdCopy.savedTitle} ({jobDescriptions.length})
               </h2>
 
@@ -346,16 +346,16 @@ export default function JDInputPage() {
                   <button
                     key={jd.id}
                     onClick={() => handleSelectJD(jd)}
-                    className="w-full text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="w-full text-left p-4 bg-muted/40 rounded-lg hover:bg-muted transition-colors"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white rounded-lg shadow-sm">
-                          <Briefcase className="h-5 w-5 text-gray-700" />
+                        <div className="p-2 bg-card rounded-lg shadow-sm">
+                          <Briefcase className="h-5 w-5 text-muted-foreground" />
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{jd.title}</p>
-                          <p className="text-sm text-gray-700">{jd.company}</p>
+                          <p className="font-medium text-foreground">{jd.title}</p>
+                          <p className="text-sm text-muted-foreground">{jd.company}</p>
                         </div>
                       </div>
 

@@ -69,38 +69,38 @@ export function MatchRankingControls({
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-1">
             <TrendingUp className="h-4 w-4 text-blue-600" />
-            <span className="text-xs text-gray-600">{copy.averageMatch}</span>
+            <span className="text-xs text-muted-foreground">{copy.averageMatch}</span>
           </div>
-          <div className="text-2xl font-bold text-gray-900">{stats.average}%</div>
+          <div className="text-2xl font-bold text-foreground">{stats.average}%</div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-1">
             <Award className="h-4 w-4 text-green-600" />
-            <span className="text-xs text-gray-600">{copy.highestMatch}</span>
+            <span className="text-xs text-muted-foreground">{copy.highestMatch}</span>
           </div>
-          <div className="text-2xl font-bold text-gray-900">{stats.max}%</div>
+          <div className="text-2xl font-bold text-foreground">{stats.max}%</div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-1">
             <div className="h-4 w-4 rounded-full bg-green-600" />
-            <span className="text-xs text-gray-600">{copy.excellentMatch}</span>
+            <span className="text-xs text-muted-foreground">{copy.excellentMatch}</span>
           </div>
-          <div className="text-2xl font-bold text-gray-900">{stats.excellent}</div>
+          <div className="text-2xl font-bold text-foreground">{stats.excellent}</div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-1">
             <div className="h-4 w-4 rounded-full bg-blue-600" />
-            <span className="text-xs text-gray-600">{copy.goodMatch}</span>
+            <span className="text-xs text-muted-foreground">{copy.goodMatch}</span>
           </div>
-          <div className="text-2xl font-bold text-gray-900">{stats.good}</div>
+          <div className="text-2xl font-bold text-foreground">{stats.good}</div>
         </Card>
       </div>
 
       {/* Controls */}
       <Card className="p-4">
         <div className="flex items-center gap-2 mb-4">
-          <Filter className="h-4 w-4 text-gray-600" />
-          <h3 className="font-semibold text-gray-900">{copy.sortAndFilter}</h3>
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <h3 className="font-semibold text-foreground">{copy.sortAndFilter}</h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -195,9 +195,9 @@ export function MatchRankingControls({
         {/* Active Filters */}
         {(options.filterBy?.matchLevel !== "all" ||
           (options.filterBy?.minMatchScore ?? 0) > 0) && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="mt-4 pt-4 border-t border-border">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm text-gray-600">{copy.activeFilters}</span>
+              <span className="text-sm text-muted-foreground">{copy.activeFilters}</span>
               {options.filterBy?.matchLevel !== "all" && options.filterBy && (
                 <Badge variant="secondary">
                   {copy.matchLevelFilter}: {options.filterBy.matchLevel}
@@ -224,9 +224,9 @@ export function MatchRankingControls({
         )}
 
         {/* Results Count */}
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <p className="text-sm text-gray-600">
-            {copy.showing} <span className="font-semibold text-gray-900">{ranked.length}</span> {copy.results},
+        <div className="mt-4 pt-4 border-t border-border">
+          <p className="text-sm text-muted-foreground">
+            {copy.showing} <span className="font-semibold text-foreground">{ranked.length}</span> {copy.results},
             {" "}{applications.length} {copy.total}
           </p>
         </div>

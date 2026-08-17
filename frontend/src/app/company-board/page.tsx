@@ -257,12 +257,12 @@ export default function CompanyBoardPage() {
       className={`rounded-lg border p-4 flex flex-wrap items-center gap-3 transition-colors ${
         pinned
           ? "border-indigo-300 bg-indigo-50/60"
-          : "border-gray-200 bg-white hover:border-indigo-200"
+          : "border-border bg-card hover:border-indigo-200"
       }`}
     >
       <span
         className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold ${
-          pinned ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-500"
+          pinned ? "bg-indigo-600 text-white" : "bg-muted text-muted-foreground"
         }`}
         aria-hidden
       >
@@ -270,7 +270,7 @@ export default function CompanyBoardPage() {
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-semibold text-gray-900">{company.name}</span>
+          <span className="font-semibold text-foreground">{company.name}</span>
           {pinned && company.signal_batch && (
             <span className="rounded bg-indigo-600 px-1.5 py-0.5 text-xs font-semibold text-white">
               {company.signal_batch}
@@ -279,13 +279,13 @@ export default function CompanyBoardPage() {
           {!company.verified && (
             <span
               title={t.unverified}
-              className="text-xs text-gray-400 border border-gray-200 rounded px-1"
+              className="text-xs text-muted-foreground/80 border border-border rounded px-1"
             >
               ?
             </span>
           )}
         </div>
-        <p className="text-xs text-gray-500 mt-0.5">
+        <p className="text-xs text-muted-foreground mt-0.5">
           {pinned && company.signal_detected_at
             ? `${t.detected} ${daysAgo(company.signal_detected_at, nowMs)}${
                 company.signal_url ? " · " : ""
@@ -308,7 +308,7 @@ export default function CompanyBoardPage() {
           href={company.career_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-input bg-card px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted/40"
         >
           <ExternalLink className="h-4 w-4" aria-hidden />
           {locale === "zh-CN" ? "官网" : "Site"}
@@ -320,18 +320,18 @@ export default function CompanyBoardPage() {
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Radar className="h-6 w-6 text-indigo-600" aria-hidden />
           {t.title}
         </h1>
-        <p className="text-sm text-gray-500 mt-1 max-w-3xl">{t.subtitle}</p>
+        <p className="text-sm text-muted-foreground mt-1 max-w-3xl">{t.subtitle}</p>
       </div>
 
-      <section className="rounded-lg border border-gray-200 bg-white p-4 mb-6">
+      <section className="rounded-lg border border-border bg-card p-4 mb-6">
         <div className="flex flex-wrap gap-3">
           <div className="relative flex-1 min-w-[260px]">
             <Link2
-              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/80"
               aria-hidden
             />
             <input
@@ -339,7 +339,7 @@ export default function CompanyBoardPage() {
               value={signalInput}
               onChange={(e) => setSignalInput(e.target.value)}
               placeholder={t.signalPlaceholder}
-              className="w-full rounded-md border border-gray-300 pl-9 pr-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="w-full rounded-md border border-input pl-9 pr-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               aria-label={t.signalPlaceholder}
             />
           </div>
@@ -356,7 +356,7 @@ export default function CompanyBoardPage() {
             type="button"
             onClick={() => void seed()}
             disabled={detecting}
-            className="inline-flex items-center gap-2 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-md border border-input px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/40 disabled:opacity-50"
           >
             <Building2 className="h-4 w-4" aria-hidden />
             {t.seed}
@@ -365,7 +365,7 @@ export default function CompanyBoardPage() {
         <div className="flex flex-wrap gap-3 mt-3">
           <div className="relative flex-1 min-w-[200px]">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/80"
               aria-hidden
             />
             <input
@@ -373,7 +373,7 @@ export default function CompanyBoardPage() {
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               placeholder={t.searchPlaceholder}
-              className="w-full rounded-md border border-gray-300 pl-9 pr-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none"
+              className="w-full rounded-md border border-input pl-9 pr-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none"
               aria-label={t.searchPlaceholder}
             />
           </div>
@@ -381,7 +381,7 @@ export default function CompanyBoardPage() {
             value={industry}
             onChange={(e) => setIndustry(e.target.value)}
             aria-label={t.allIndustries}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm bg-white focus:border-indigo-500 focus:outline-none"
+            className="rounded-md border border-input px-3 py-1.5 text-sm bg-card focus:border-indigo-500 focus:outline-none"
           >
             <option value="">{t.allIndustries}</option>
             {industries.map((tag) => (
@@ -396,7 +396,7 @@ export default function CompanyBoardPage() {
             onChange={(e) => setNewName(e.target.value)}
             placeholder={t.addName}
             aria-label={t.addName}
-            className="w-36 rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none"
+            className="w-36 rounded-md border border-input px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none"
           />
           <input
             type="url"
@@ -404,7 +404,7 @@ export default function CompanyBoardPage() {
             onChange={(e) => setNewUrl(e.target.value)}
             placeholder={t.addUrl}
             aria-label={t.addUrl}
-            className="flex-1 min-w-[200px] rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none"
+            className="flex-1 min-w-[200px] rounded-md border border-input px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none"
           />
           <button
             type="button"
@@ -428,12 +428,12 @@ export default function CompanyBoardPage() {
         </div>
       )}
 
-      <section className="rounded-lg border border-gray-200 bg-white p-4 mb-6">
-        <h2 className="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+      <section className="rounded-lg border border-border bg-card p-4 mb-6">
+        <h2 className="text-sm font-semibold text-muted-foreground mb-1 flex items-center gap-2">
           <Rss className="h-4 w-4 text-indigo-600" aria-hidden />
           {t.feedsTitle}
         </h2>
-        <p className="text-xs text-gray-500 mb-3">{t.feedsHint}</p>
+        <p className="text-xs text-muted-foreground mb-3">{t.feedsHint}</p>
         <form
           className="flex gap-2"
           onSubmit={(e) => {
@@ -447,7 +447,7 @@ export default function CompanyBoardPage() {
             onChange={(e) => setFeedUrl(e.target.value)}
             placeholder={t.feedPlaceholder}
             aria-label={t.feedPlaceholder}
-            className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="flex-1 rounded-md border border-input px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
           <button
             type="submit"
@@ -462,7 +462,7 @@ export default function CompanyBoardPage() {
             {feeds.map((feed) => (
               <li
                 key={feed.id}
-                className="flex flex-wrap items-center gap-3 rounded-md border border-gray-200 px-3 py-2 text-sm"
+                className="flex flex-wrap items-center gap-3 rounded-md border border-border px-3 py-2 text-sm"
               >
                 <span
                   className={`h-2 w-2 rounded-full ${
@@ -477,7 +477,7 @@ export default function CompanyBoardPage() {
                 <span className="font-medium text-gray-800 truncate max-w-[240px]">
                   {feed.name}
                 </span>
-                <span className="text-xs text-gray-500 truncate flex-1">
+                <span className="text-xs text-muted-foreground truncate flex-1">
                   {feed.last_fetched_at
                     ? `${new Date(feed.last_fetched_at).toLocaleString()} · ${feed.last_new_signals} 信号`
                     : t.feedEmpty}
@@ -486,7 +486,7 @@ export default function CompanyBoardPage() {
                   type="button"
                   onClick={() => void syncFeed(feed.id)}
                   disabled={feedBusy}
-                  className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className="rounded-md border border-input px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/40 disabled:opacity-50"
                 >
                   {t.feedSync}
                 </button>
@@ -497,7 +497,7 @@ export default function CompanyBoardPage() {
                       .update(feed.id, { enabled: !feed.enabled })
                       .then(loadFeeds)
                   }
-                  className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-md border border-input px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/40"
                 >
                   {feed.enabled ? (locale === "zh-CN" ? "停用" : "Disable") : locale === "zh-CN" ? "启用" : "Enable"}
                 </button>
@@ -520,16 +520,16 @@ export default function CompanyBoardPage() {
       </section>
 
       {loading && companies.length === 0 ? (
-        <p className="text-sm text-gray-500 py-12 text-center">{t.loading}</p>
+        <p className="text-sm text-muted-foreground py-12 text-center">{t.loading}</p>
       ) : companies.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-gray-300 py-12 text-center">
-          <p className="text-sm text-gray-500">{t.empty}</p>
+        <div className="rounded-lg border border-dashed border-input py-12 text-center">
+          <p className="text-sm text-muted-foreground">{t.empty}</p>
         </div>
       ) : (
         <div className="space-y-6">
           {signaled.length > 0 && (
             <section aria-label={t.hiringNow}>
-              <h2 className="text-sm font-semibold text-gray-500 mb-2">
+              <h2 className="text-sm font-semibold text-muted-foreground mb-2">
                 {t.hiringNow}（{signaled.length}）
               </h2>
               <ul className="space-y-3">{signaled.map((c) => card(c, true))}</ul>
@@ -537,7 +537,7 @@ export default function CompanyBoardPage() {
           )}
           {quiet.length > 0 && (
             <section aria-label={t.noSignal}>
-              <h2 className="text-sm font-semibold text-gray-500 mb-2">
+              <h2 className="text-sm font-semibold text-muted-foreground mb-2">
                 {t.noSignal}（{quiet.length}）
               </h2>
               <ul className="space-y-3">{quiet.map((c) => card(c, false))}</ul>

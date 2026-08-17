@@ -544,7 +544,7 @@ export function ApplicationCreateDialog({
                         variants={fadeInUp}
                         initial="hidden"
                         animate="visible"
-                        className="text-xs text-gray-500"
+                        className="text-xs text-muted-foreground"
                       >
                         {dialogCopy.noResumePrefix}{" "}
                         <Link href="/upload" className="text-blue-600 hover:underline">
@@ -577,7 +577,7 @@ export function ApplicationCreateDialog({
                         variants={fadeInUp}
                         initial="hidden"
                         animate="visible"
-                        className="text-xs text-gray-500"
+                        className="text-xs text-muted-foreground"
                       >
                         {dialogCopy.noJdPrefix}{" "}
                         <Link href="/jd-input" className="text-blue-600 hover:underline">
@@ -617,36 +617,36 @@ export function ApplicationCreateDialog({
                     variants={staggerContainer}
                     initial="hidden"
                     animate="visible"
-                    className="bg-gray-50 rounded-lg p-4 space-y-3"
+                    className="bg-muted/40 rounded-lg p-4 space-y-3"
                   >
                     <motion.div variants={staggerItem}>
-                      <h4 className="text-sm font-medium text-gray-700 mb-1">
+                      <h4 className="text-sm font-medium text-muted-foreground mb-1">
                         {dialogCopy.resumeUsed}
                       </h4>
                       <div className="flex items-center gap-2 text-sm">
-                        <FileText className="h-4 w-4 text-gray-500" />
+                        <FileText className="h-4 w-4 text-muted-foreground" />
                         <span>{selectedResume?.name}</span>
                       </div>
                     </motion.div>
 
                     <motion.div variants={staggerItem}>
-                      <h4 className="text-sm font-medium text-gray-700 mb-1">
+                      <h4 className="text-sm font-medium text-muted-foreground mb-1">
                         {dialogCopy.targetRole}
                       </h4>
                       <div className="flex items-center gap-2 text-sm">
-                        <Briefcase className="h-4 w-4 text-gray-500" />
+                        <Briefcase className="h-4 w-4 text-muted-foreground" />
                         <span>{selectedJD?.title}</span>
-                        <span className="text-gray-500">{dialogCopy.at}</span>
+                        <span className="text-muted-foreground">{dialogCopy.at}</span>
                         <span>{selectedJD?.company}</span>
                       </div>
                     </motion.div>
 
                     {notes && (
                       <motion.div variants={staggerItem}>
-                        <h4 className="text-sm font-medium text-gray-700 mb-1">
+                        <h4 className="text-sm font-medium text-muted-foreground mb-1">
                           {dialogCopy.notes}
                         </h4>
-                        <p className="text-sm text-gray-600">{notes}</p>
+                        <p className="text-sm text-muted-foreground">{notes}</p>
                       </motion.div>
                     )}
                   </motion.div>

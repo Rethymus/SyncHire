@@ -118,7 +118,7 @@ function SearchPage() {
       case "application":
         return "text-purple-600 bg-purple-50";
       default:
-        return "text-gray-600 bg-gray-50";
+        return "text-muted-foreground bg-muted/40";
     }
   };
 
@@ -136,31 +136,31 @@ function SearchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/40">
       
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-foreground">
             {copy.title}
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-muted-foreground">
             {copy.subtitle}
           </p>
         </div>
 
         {/* Search Input */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <div className="bg-card rounded-lg shadow p-6 mb-8">
           <div className="flex gap-4 mb-4">
             <div className="flex-1 relative">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground/80" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={copy.placeholder}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
                 aria-label={copy.searchLabel}
               />
             </div>
@@ -225,10 +225,10 @@ function SearchPage() {
 
         {/* Loading State */}
         {loading && (
-          <div className="bg-white rounded-lg shadow p-8 mb-8">
+          <div className="bg-card rounded-lg shadow p-8 mb-8">
             <div className="flex items-center justify-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-600">{copy.searching}</span>
+              <span className="ml-3 text-muted-foreground">{copy.searching}</span>
             </div>
           </div>
         )}
@@ -236,7 +236,7 @@ function SearchPage() {
         {/* Results */}
         {!loading && results.length > 0 && (
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {copy.found} {results.length} {zh ? copy.result : `${copy.result}${results.length !== 1 ? "s" : ""}`}
             </p>
             {results.map((result) => {
@@ -248,7 +248,7 @@ function SearchPage() {
                 <a
                   key={`${result.type}-${result.id}`}
                   href={href}
-                  className="block bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+                  className="block bg-card rounded-lg shadow p-6 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start gap-4">
                     <div className={`p-3 rounded-lg ${colorClass} flex-shrink-0`}>
@@ -257,19 +257,19 @@ function SearchPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
-                          <h3 className="text-lg font-medium text-gray-900">
+                          <h3 className="text-lg font-medium text-foreground">
                             {result.title}
                           </h3>
                           {result.company && (
-                            <p className="text-sm text-gray-600">{result.company}</p>
+                            <p className="text-sm text-muted-foreground">{result.company}</p>
                           )}
                           {result.highlight ? (
                             <p
-                              className="text-sm text-gray-700 mt-2"
+                              className="text-sm text-muted-foreground mt-2"
                               dangerouslySetInnerHTML={{ __html: sanitizeHighlight(result.highlight) }}
                             />
                           ) : result.content ? (
-                            <p className="text-sm text-gray-600 mt-2">
+                            <p className="text-sm text-muted-foreground mt-2">
                               {result.content}
                               {result.content.length >= 200 && "..."}
                             </p>
@@ -293,12 +293,12 @@ function SearchPage() {
 
         {/* No Results */}
         {!loading && query.length >= 2 && results.length === 0 && (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <SearchIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <div className="bg-card rounded-lg shadow p-8 text-center">
+            <SearchIcon className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">
               {copy.noResults}
             </h3>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               {copy.noResultsHint}
             </p>
           </div>
@@ -306,12 +306,12 @@ function SearchPage() {
 
         {/* Initial State */}
         {!loading && query.length < 2 && (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <SearchIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <div className="bg-card rounded-lg shadow p-8 text-center">
+            <SearchIcon className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">
               {copy.start}
             </h3>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               {copy.startHint}
             </p>
           </div>

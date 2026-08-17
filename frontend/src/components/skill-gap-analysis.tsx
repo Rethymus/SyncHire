@@ -103,29 +103,29 @@ export function SkillGapAnalysis({
     <div className="space-y-4">
       {/* Statistics Overview */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">技能缺口概览</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-4">技能缺口概览</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
-            <p className="text-sm text-gray-600">总技能数</p>
+            <div className="text-3xl font-bold text-foreground">{stats.total}</div>
+            <p className="text-sm text-muted-foreground">总技能数</p>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-green-600">{stats.matched}</div>
-            <p className="text-sm text-gray-600">已匹配</p>
+            <p className="text-sm text-muted-foreground">已匹配</p>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-red-600">{stats.missingRequired}</div>
-            <p className="text-sm text-gray-600">必需缺失</p>
+            <p className="text-sm text-muted-foreground">必需缺失</p>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-yellow-600">{stats.missingOptional}</div>
-            <p className="text-sm text-gray-600">可选缺失</p>
+            <p className="text-sm text-muted-foreground">可选缺失</p>
           </div>
         </div>
-        <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="mt-4 pt-4 border-t border-border">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">整体匹配率</span>
-            <span className="text-lg font-bold text-gray-900">
+            <span className="text-sm font-medium text-muted-foreground">整体匹配率</span>
+            <span className="text-lg font-bold text-foreground">
               {stats.matchRate.toFixed(1)}%
             </span>
           </div>
@@ -210,7 +210,7 @@ export function SkillGapAnalysis({
       <Card className="p-4">
         <div className="space-y-2">
           {filteredSkills.length === 0 ? (
-            <p className="text-center text-gray-500 py-8">没有符合条件的技能</p>
+            <p className="text-center text-muted-foreground py-8">没有符合条件的技能</p>
           ) : (
             filteredSkills.map((match) => (
               <div
@@ -231,7 +231,7 @@ export function SkillGapAnalysis({
                       <span
                         className={cn(
                           "font-medium",
-                          match.hasSkill ? "text-gray-900" : "text-gray-700"
+                          match.hasSkill ? "text-foreground" : "text-muted-foreground"
                         )}
                       >
                         {match.skill}
@@ -281,9 +281,9 @@ export function SkillGapAnalysis({
             {missingRequiredSkills.slice(0, 3).map((skill) => (
               <div
                 key={skill}
-                className="flex items-center justify-between p-2 bg-white rounded border border-blue-200"
+                className="flex items-center justify-between p-2 bg-card rounded border border-blue-200"
               >
-                <span className="text-sm font-medium text-gray-900">{skill}</span>
+                <span className="text-sm font-medium text-foreground">{skill}</span>
                 <Button variant="ghost" size="sm" asChild>
                   <a
                     href={`https://www.google.com/search?q=${encodeURIComponent(`${skill} course tutorial`)}`}

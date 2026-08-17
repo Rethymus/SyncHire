@@ -761,14 +761,14 @@ function DataManagementPage() {
   }, [copy.tabKeysCleared, showMessage]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/40">
       
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">{copy.title}</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">{copy.title}</h1>
+          <p className="mt-2 text-muted-foreground">
             {copy.subtitle}
           </p>
         </div>
@@ -826,7 +826,7 @@ function DataManagementPage() {
               </div>
               <button
                 onClick={() => setMessage(null)}
-                className="ml-3 text-gray-400 hover:text-gray-600"
+                className="ml-3 text-muted-foreground/80 hover:text-muted-foreground"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -836,10 +836,10 @@ function DataManagementPage() {
 
         {/* Data Status */}
         {status && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="bg-card rounded-lg shadow p-6 mb-8">
             <div className="flex items-center mb-4">
               <Database className="h-6 w-6 text-blue-600 mr-2" />
-              <h2 className="text-xl font-semibold text-gray-900">{copy.status}</h2>
+              <h2 className="text-xl font-semibold text-foreground">{copy.status}</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="p-4 bg-blue-50 rounded-lg">
@@ -854,15 +854,15 @@ function DataManagementPage() {
                 <p className="text-sm text-purple-700">{copy.applications}</p>
                 <p className="text-2xl font-bold text-purple-900">{status.applications_count}</p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-700">{copy.databaseSize}</p>
-                <p className="text-2xl font-bold text-gray-900">
+              <div className="p-4 bg-muted/40 rounded-lg">
+                <p className="text-sm text-muted-foreground">{copy.databaseSize}</p>
+                <p className="text-2xl font-bold text-foreground">
                   {formatFileSize(status.database_size)}
                 </p>
               </div>
             </div>
             {status.last_backup && (
-              <p className="mt-4 text-sm text-gray-600">
+              <p className="mt-4 text-sm text-muted-foreground">
                 {copy.lastBackup} {new Date(status.last_backup).toLocaleString(locale)}
               </p>
             )}
@@ -870,11 +870,11 @@ function DataManagementPage() {
         )}
 
         {/* Export Data */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <div className="bg-card rounded-lg shadow p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
               <Download className="h-6 w-6 text-green-600 mr-2" />
-              <h2 className="text-xl font-semibold text-gray-900">{copy.exportData}</h2>
+              <h2 className="text-xl font-semibold text-foreground">{copy.exportData}</h2>
             </div>
             <Button
               variant="outline"
@@ -886,7 +886,7 @@ function DataManagementPage() {
             </Button>
           </div>
 
-          <p className="text-gray-600 mb-4">
+          <p className="text-muted-foreground mb-4">
             {copy.exportDescription}
           </p>
           {pagesMode ? (
@@ -897,13 +897,13 @@ function DataManagementPage() {
 
           {/* Export Filters */}
           {showExportFilters && (
-            <div className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
-              <h3 className="font-medium text-gray-900 mb-3">{copy.exportOptions}</h3>
+            <div className="bg-muted/40 rounded-lg p-4 mb-4 border border-border">
+              <h3 className="font-medium text-foreground mb-3">{copy.exportOptions}</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Data Types */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     {copy.dataTypes}
                   </label>
                   <div className="space-y-2">
@@ -931,7 +931,7 @@ function DataManagementPage() {
                           }}
                           className="mr-2"
                         />
-                        <span className="text-sm text-gray-700">{type.label}</span>
+                        <span className="text-sm text-muted-foreground">{type.label}</span>
                       </label>
                     ))}
                   </div>
@@ -939,7 +939,7 @@ function DataManagementPage() {
 
                 {/* Date Range */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     {copy.dateRange}
                   </label>
                   <div className="space-y-2">
@@ -952,7 +952,7 @@ function DataManagementPage() {
                           dateRange: { ...prev.dateRange, from: e.target.value },
                         }))
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <input
                       type="date"
@@ -963,14 +963,14 @@ function DataManagementPage() {
                           dateRange: { ...prev.dateRange, to: e.target.value },
                         }))
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 </div>
 
                 {/* Status Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     {copy.applicationStatus}
                   </label>
                   <div className="space-y-2">
@@ -1000,7 +1000,7 @@ function DataManagementPage() {
                           }}
                           className="mr-2"
                         />
-                        <span className="text-sm text-gray-700">{status.label}</span>
+                        <span className="text-sm text-muted-foreground">{status.label}</span>
                       </label>
                     ))}
                   </div>
@@ -1008,13 +1008,13 @@ function DataManagementPage() {
 
                 {/* Template Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     {copy.exportTemplate}
                   </label>
                   <select
                     value={selectedTemplate}
                     onChange={(e) => setSelectedTemplate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     {Object.entries(EXPORT_TEMPLATES).map(([key, template]) => (
                       <option key={key} value={key}>
@@ -1065,13 +1065,13 @@ function DataManagementPage() {
         </div>
 
         {/* Import Data */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <div className="bg-card rounded-lg shadow p-6 mb-8">
           <div className="flex items-center mb-4">
             <Upload className="h-6 w-6 text-orange-600 mr-2" />
-            <h2 className="text-xl font-semibold text-gray-900">{copy.importData}</h2>
+            <h2 className="text-xl font-semibold text-foreground">{copy.importData}</h2>
           </div>
 
-          <p className="text-gray-600 mb-4">
+          <p className="text-muted-foreground mb-4">
             {copy.importDescription}
           </p>
 
@@ -1091,7 +1091,7 @@ function DataManagementPage() {
               </Button>
             </label>
             {importFile && (
-              <div className="mt-2 flex items-center text-sm text-gray-600">
+              <div className="mt-2 flex items-center text-sm text-muted-foreground">
                 <FileText className="h-4 w-4 mr-2" />
                 {importFile.name} ({formatFileSize(importFile.size)})
                 <button
@@ -1110,9 +1110,9 @@ function DataManagementPage() {
 
           {/* Import Preview */}
           {importPreview && (
-            <div className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
+            <div className="bg-muted/40 rounded-lg p-4 mb-4 border border-border">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium text-gray-900">{copy.importPreview}</h3>
+                <h3 className="font-medium text-foreground">{copy.importPreview}</h3>
                 <Button
                   variant="outline"
                   size="sm"
@@ -1124,18 +1124,18 @@ function DataManagementPage() {
               </div>
 
               <div className="grid grid-cols-3 gap-4 mb-3">
-                <div className="bg-white p-3 rounded-lg">
-                  <p className="text-sm text-gray-600">{copy.totalRecords}</p>
-                  <p className="text-xl font-bold text-gray-900">{importPreview.total_records}</p>
+                <div className="bg-card p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground">{copy.totalRecords}</p>
+                  <p className="text-xl font-bold text-foreground">{importPreview.total_records}</p>
                 </div>
-                <div className="bg-white p-3 rounded-lg">
-                  <p className="text-sm text-gray-600">{copy.conflicts}</p>
+                <div className="bg-card p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground">{copy.conflicts}</p>
                   <p className="text-xl font-bold text-orange-600">
                     {importPreview.conflicts.length}
                   </p>
                 </div>
-                <div className="bg-white p-3 rounded-lg">
-                  <p className="text-sm text-gray-600">{copy.errors}</p>
+                <div className="bg-card p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground">{copy.errors}</p>
                   <p className="text-xl font-bold text-red-600">
                     {importPreview.validation_errors.length}
                   </p>
@@ -1146,7 +1146,7 @@ function DataManagementPage() {
                 <div className="space-y-3">
                   {/* Record breakdown */}
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Records to Import:</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">Records to Import:</h4>
                     <div className="grid grid-cols-3 gap-2 text-sm">
                       <div>Resumes: {importPreview.resumes}</div>
                       <div>JDs: {importPreview.jds}</div>
@@ -1162,7 +1162,7 @@ function DataManagementPage() {
                       </h4>
                       <div className="space-y-2 max-h-40 overflow-y-auto">
                         {importPreview.conflicts.slice(0, 5).map((conflict, i) => (
-                          <div key={i} className="bg-white p-2 rounded border border-orange-200">
+                          <div key={i} className="bg-card p-2 rounded border border-orange-200">
                             <div className="flex items-center">
                               <AlertTriangle className="h-4 w-4 text-orange-600 mr-2" />
                               <span className="text-sm">
@@ -1172,7 +1172,7 @@ function DataManagementPage() {
                           </div>
                         ))}
                         {importPreview.conflicts.length > 5 && (
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-muted-foreground">
                             ... and {importPreview.conflicts.length - 5} more conflicts
                           </p>
                         )}
@@ -1188,7 +1188,7 @@ function DataManagementPage() {
                       </h4>
                       <div className="space-y-2 max-h-40 overflow-y-auto">
                         {importPreview.validation_errors.slice(0, 5).map((error, i) => (
-                          <div key={i} className="bg-white p-2 rounded border border-red-200">
+                          <div key={i} className="bg-card p-2 rounded border border-red-200">
                             <div className="flex items-center">
                               <AlertCircle className="h-4 w-4 text-red-600 mr-2" />
                               <span className="text-sm">
@@ -1198,7 +1198,7 @@ function DataManagementPage() {
                           </div>
                         ))}
                         {importPreview.validation_errors.length > 5 && (
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-muted-foreground">
                             ... and {importPreview.validation_errors.length - 5} more errors
                           </p>
                         )}
@@ -1212,13 +1212,13 @@ function DataManagementPage() {
 
           {/* Import Options */}
           {importFile && importPreview && importPreview.validation_errors.length === 0 && (
-            <div className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
-              <h3 className="font-medium text-gray-900 mb-3">Import Options</h3>
+            <div className="bg-muted/40 rounded-lg p-4 mb-4 border border-border">
+              <h3 className="font-medium text-foreground mb-3">Import Options</h3>
 
               <div className="space-y-4">
                 {/* Import Mode */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
                     Import Mode
                   </label>
                   <div className="flex gap-4">
@@ -1230,7 +1230,7 @@ function DataManagementPage() {
                         onChange={(e) => setImportMode(e.target.value as "merge" | "replace")}
                         className="mr-2"
                       />
-                      <span className="text-sm text-gray-700">
+                      <span className="text-sm text-muted-foreground">
                         Merge - Add new records, keep existing
                       </span>
                     </label>
@@ -1242,7 +1242,7 @@ function DataManagementPage() {
                         onChange={(e) => setImportMode(e.target.value as "merge" | "replace")}
                         className="mr-2"
                       />
-                      <span className="text-sm text-gray-700">
+                      <span className="text-sm text-muted-foreground">
                         Replace - Delete all, import new
                       </span>
                     </label>
@@ -1252,7 +1252,7 @@ function DataManagementPage() {
                 {/* Conflict Resolution */}
                 {importPreview.conflicts.length > 0 && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                       Conflict Resolution
                     </label>
                     <select
@@ -1260,7 +1260,7 @@ function DataManagementPage() {
                       onChange={(e) =>
                         setResolveConflicts(e.target.value as "skip" | "overwrite" | "rename")
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="skip">Skip conflicting records</option>
                       <option value="overwrite">Overwrite existing records</option>
@@ -1329,11 +1329,11 @@ function DataManagementPage() {
         </div>
 
         {/* Backup Management */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <div className="bg-card rounded-lg shadow p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
               <HardDrive className="h-6 w-6 text-purple-600 mr-2" />
-              <h2 className="text-xl font-semibold text-gray-900">{copy.backupManagement}</h2>
+              <h2 className="text-xl font-semibold text-foreground">{copy.backupManagement}</h2>
             </div>
             <Button
               onClick={handleCreateBackup}
@@ -1345,7 +1345,7 @@ function DataManagementPage() {
             </Button>
           </div>
 
-          <p className="text-gray-600 mb-4">
+          <p className="text-muted-foreground mb-4">
             {copy.backupManagementDescription}
           </p>
 
@@ -1354,13 +1354,13 @@ function DataManagementPage() {
               {backups.map((backup) => (
                 <div
                   key={backup.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                  className="flex items-center justify-between p-4 bg-muted/40 rounded-lg"
                 >
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-foreground">
                       {new Date(backup.created_at).toLocaleString()}
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       {backup.files_count} {copy.backupFiles} • {formatFileSize(backup.size)}
                     </p>
                   </div>
@@ -1378,7 +1378,7 @@ function DataManagementPage() {
               ))}
             </div>
           ) : (
-            <p className="text-center py-8 text-gray-600">
+            <p className="text-center py-8 text-muted-foreground">
               {copy.emptyBackups}
             </p>
           )}

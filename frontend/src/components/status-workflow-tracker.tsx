@@ -46,7 +46,7 @@ const statusConfig: Record<ApplicationStatus, {
     label: '草稿',
     description: '准备申请材料',
     icon: FileText,
-    color: 'bg-gray-100 text-gray-800 border-gray-300',
+    color: 'bg-muted text-gray-800 border-input',
     order: 1,
     category: 'neutral',
   },
@@ -135,7 +135,7 @@ export function StatusWorkflowTracker({
     } else if (state === 'error') {
       return <XCircle className="h-5 w-5 text-red-600" />;
     } else {
-      return <Circle className="h-5 w-5 text-gray-400" />;
+      return <Circle className="h-5 w-5 text-muted-foreground/80" />;
     }
   };
 
@@ -153,8 +153,8 @@ export function StatusWorkflowTracker({
   return (
     <Card className="p-6">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">申请状态流程</h3>
-        <p className="text-sm text-gray-600">
+        <h3 className="text-lg font-semibold text-foreground">申请状态流程</h3>
+        <p className="text-sm text-muted-foreground">
           跟踪您的申请进度和状态变更
         </p>
       </div>
@@ -178,7 +178,7 @@ export function StatusWorkflowTracker({
                         state === 'current' ? 'bg-blue-50 border-2 border-blue-200' :
                         state === 'completed' ? 'bg-green-50' :
                         state === 'error' ? 'bg-red-50' :
-                        'bg-gray-50 hover:bg-gray-100 cursor-pointer'
+                        'bg-muted/40 hover:bg-muted cursor-pointer'
                       }`}
                       onClick={() => isClickable && onStatusClick(status)}
                     >
@@ -192,7 +192,7 @@ export function StatusWorkflowTracker({
                             state === 'current' ? 'text-blue-900' :
                             state === 'completed' ? 'text-green-900' :
                             state === 'error' ? 'text-red-900' :
-                            'text-gray-900'
+                            'text-foreground'
                           }`}>
                             {config.label}
                           </h4>
@@ -206,14 +206,14 @@ export function StatusWorkflowTracker({
                           state === 'current' ? 'text-blue-700' :
                           state === 'completed' ? 'text-green-700' :
                           state === 'error' ? 'text-red-700' :
-                          'text-gray-600'
+                          'text-muted-foreground'
                         }`}>
                           {config.description}
                         </p>
 
                         {/* Show history timestamp if available */}
                         {showHistory && history.some(h => h.status === status) && (
-                          <div className="mt-2 text-xs text-gray-500">
+                          <div className="mt-2 text-xs text-muted-foreground">
                             {new Date(history.find(h => h.status === status)!.timestamp).toLocaleString()}
                           </div>
                         )}
@@ -223,7 +223,7 @@ export function StatusWorkflowTracker({
                   <TooltipContent>
                     <p>{config.description}</p>
                     {isClickable && (
-                      <p className="text-xs text-gray-500 mt-1">点击更改状态</p>
+                      <p className="text-xs text-muted-foreground mt-1">点击更改状态</p>
                     )}
                   </TooltipContent>
                 </Tooltip>
@@ -236,7 +236,7 @@ export function StatusWorkflowTracker({
       {/* Quick Actions */}
       {onStatusClick && (
         <div className="mt-6 pt-6 border-t">
-          <h4 className="text-sm font-medium text-gray-900 mb-3">快速操作</h4>
+          <h4 className="text-sm font-medium text-foreground mb-3">快速操作</h4>
           <div className="flex flex-wrap gap-2">
             {orderedStatuses.map(({ status, config }) => {
               const state = getStatusState(status);
@@ -324,7 +324,7 @@ export function StatusProgressBar({
       </div>
 
       {showLabels && (
-        <div className="flex justify-between text-xs text-gray-600">
+        <div className="flex justify-between text-xs text-muted-foreground">
           {progressSteps.map((step, index) => {
             const isCompleted = index <= currentStepIndex;
             const isCurrent = index === currentStepIndex;
@@ -335,7 +335,7 @@ export function StatusProgressBar({
                 className={`flex flex-col items-center ${
                   isCurrent ? 'text-blue-600 font-medium' :
                   isCompleted ? 'text-green-600' :
-                  'text-gray-400'
+                  'text-muted-foreground/80'
                 }`}
               >
                 <span>{step.label}</span>

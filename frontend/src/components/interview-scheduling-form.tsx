@@ -500,18 +500,18 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
     return (
       <div className="flex items-center justify-center p-12">
         <Loader2 className="h-8 w-8 text-purple-600 animate-spin" />
-        <span className="ml-3 text-lg font-medium text-gray-900">{copy.loading}</span>
+        <span className="ml-3 text-lg font-medium text-foreground">{copy.loading}</span>
       </div>
     );
   }
 
   return (
-    <div className={cn("bg-white rounded-xl shadow-sm border border-gray-200", className)}>
-      <div className="p-6 border-b border-gray-200">
-        <h2 className="text-2xl font-bold text-gray-900">
+    <div className={cn("bg-card rounded-xl shadow-sm border border-border", className)}>
+      <div className="p-6 border-b border-border">
+        <h2 className="text-2xl font-bold text-foreground">
           {interviewId ? copy.editTitle : copy.createTitle}
         </h2>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mt-2 text-sm text-muted-foreground">
           {copy.subtitle}
         </p>
       </div>
@@ -526,11 +526,11 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
 
         {/* Basic Information */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">{copy.basicInformation}</h3>
+          <h3 className="text-lg font-semibold text-foreground">{copy.basicInformation}</h3>
 
         {/* Title */}
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="title" className="block text-sm font-medium text-muted-foreground mb-1">
             {copy.titleLabel}
           </label>
           <input
@@ -539,7 +539,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
             {...register("title")}
             placeholder={copy.titlePlaceholder}
             className={cn(
-              "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+              "w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
               errors.title && "border-red-500"
             )}
           />
@@ -550,7 +550,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="description" className="block text-sm font-medium text-muted-foreground mb-1">
             {copy.descriptionLabel}
           </label>
           <textarea
@@ -558,13 +558,13 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
             {...register("description")}
             rows={3}
             placeholder={copy.descriptionPlaceholder}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
         {/* Interview Type */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
             {copy.interviewTypeLabel}
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -577,7 +577,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                     "flex items-start p-3 border rounded-lg cursor-pointer transition-colors",
                     watch("interview_type") === type.value
                       ? "border-blue-500 bg-blue-50"
-                      : "border-gray-300 hover:border-gray-400"
+                      : "border-input hover:border-gray-400"
                   )}
                 >
                   <input
@@ -587,8 +587,8 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                     className="mt-1 mr-3"
                   />
                   <div>
-                    <div className="font-medium text-gray-900">{typeCopy.label}</div>
-                    <div className="text-sm text-gray-600">{typeCopy.description}</div>
+                    <div className="font-medium text-foreground">{typeCopy.label}</div>
+                    <div className="text-sm text-muted-foreground">{typeCopy.description}</div>
                   </div>
                 </label>
               );
@@ -602,7 +602,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
 
       {/* Scheduling */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
           <Calendar className="h-5 w-5" />
           {copy.scheduling}
         </h3>
@@ -610,7 +610,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Date */}
           <div>
-            <label htmlFor="scheduled_date" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="scheduled_date" className="block text-sm font-medium text-muted-foreground mb-1">
               {copy.dateTime}
             </label>
             <input
@@ -618,7 +618,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
               type="datetime-local"
               {...register("scheduled_date")}
               className={cn(
-                "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                "w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
                 errors.scheduled_date && "border-red-500"
               )}
             />
@@ -629,14 +629,14 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
 
           {/* Duration */}
           <div>
-            <label htmlFor="duration_minutes" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="duration_minutes" className="block text-sm font-medium text-muted-foreground mb-1">
               {copy.duration}
             </label>
             <select
               id="duration_minutes"
               {...register("duration_minutes", { valueAsNumber: true })}
               className={cn(
-                "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                "w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
                 errors.duration_minutes && "border-red-500"
               )}
             >
@@ -656,13 +656,13 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
 
         {/* Timezone */}
         <div>
-          <label htmlFor="timezone" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="timezone" className="block text-sm font-medium text-muted-foreground mb-1">
             {copy.timezone}
           </label>
           <select
             id="timezone"
             {...register("timezone")}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="UTC">UTC</option>
             <option value="America/New_York">{copy.timezones.eastern}</option>
@@ -679,14 +679,14 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
 
       {/* Location */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
           <MapPin className="h-5 w-5" />
           {copy.location}
         </h3>
 
         {/* Location Type */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
             {copy.locationType}
           </label>
           <div className="flex gap-3">
@@ -699,7 +699,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                     "flex items-center gap-2 px-4 py-3 border rounded-lg cursor-pointer transition-colors flex-1 justify-center",
                     locationType === type.value
                       ? "border-blue-500 bg-blue-50 text-blue-700"
-                      : "border-gray-300 hover:border-gray-400"
+                      : "border-input hover:border-gray-400"
                   )}
                 >
                   <input
@@ -720,13 +720,13 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
         {locationType === "remote" && (
           <div className="space-y-4">
             <div>
-              <label htmlFor="meeting_platform" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="meeting_platform" className="block text-sm font-medium text-muted-foreground mb-1">
                 {copy.meetingPlatform}
               </label>
               <select
                 id="meeting_platform"
                 {...register("meeting_platform")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">{copy.selectPlatform}</option>
                 <option value="zoom">Zoom</option>
@@ -738,7 +738,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
             </div>
 
             <div>
-              <label htmlFor="location_url" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="location_url" className="block text-sm font-medium text-muted-foreground mb-1">
                 {copy.meetingUrl}
               </label>
               <input
@@ -746,7 +746,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                 type="url"
                 {...register("location_url")}
                 placeholder="https://zoom.us/j/..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
               {errors.location_url && (
                 <p className="mt-1 text-sm text-red-600">{errors.location_url.message}</p>
@@ -755,7 +755,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="meeting_id" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="meeting_id" className="block text-sm font-medium text-muted-foreground mb-1">
                   {copy.meetingId}
                 </label>
                 <input
@@ -763,12 +763,12 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                   type="text"
                   {...register("meeting_id")}
                   placeholder="123-456-789"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label htmlFor="meeting_password" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="meeting_password" className="block text-sm font-medium text-muted-foreground mb-1">
                   {copy.meetingPassword}
                 </label>
                 <input
@@ -776,7 +776,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                   type="text"
                   {...register("meeting_password")}
                   placeholder={copy.optionalPassword}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
@@ -786,7 +786,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
         {/* Location Address (for in-person) */}
         {locationType === "in_person" && (
           <div>
-            <label htmlFor="location_address" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="location_address" className="block text-sm font-medium text-muted-foreground mb-1">
               {copy.address}
             </label>
             <textarea
@@ -794,7 +794,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
               {...register("location_address")}
               rows={3}
               placeholder={copy.addressPlaceholder}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         )}
@@ -802,15 +802,15 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
 
       {/* Interviewers */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
           <Users className="h-5 w-5" />
           {copy.interviewers}
         </h3>
 
         {interviewers.map((interviewer, index) => (
-          <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-3">
+          <div key={index} className="p-4 border border-border rounded-lg space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">{copy.interviewer(index + 1)}</span>
+              <span className="text-sm font-medium text-muted-foreground">{copy.interviewer(index + 1)}</span>
               <button
                 type="button"
                 onClick={() => removeInterviewer(index)}
@@ -827,7 +827,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                   value={interviewer.name}
                   onChange={(e) => updateInterviewer(index, "name", e.target.value)}
                   placeholder={copy.namePlaceholder}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -837,7 +837,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                   value={interviewer.role || ""}
                   onChange={(e) => updateInterviewer(index, "role", e.target.value)}
                   placeholder={copy.rolePlaceholder}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -847,7 +847,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                   value={interviewer.email || ""}
                   onChange={(e) => updateInterviewer(index, "email", e.target.value)}
                   placeholder={copy.emailPlaceholder}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
@@ -867,13 +867,13 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
 
       {/* Preparation Notes */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
           <FileText className="h-5 w-5" />
           {copy.preparation}
         </h3>
 
         <div>
-          <label htmlFor="preparation_notes" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="preparation_notes" className="block text-sm font-medium text-muted-foreground mb-1">
             {copy.preparationNotes}
           </label>
           <textarea
@@ -881,14 +881,14 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
             {...register("preparation_notes")}
             rows={4}
             placeholder={copy.preparationPlaceholder}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
       </div>
 
       {/* Reminders */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
           <Bell className="h-5 w-5" />
           {copy.reminders}
         </h3>
@@ -898,16 +898,16 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
             type="checkbox"
             id="reminder_enabled"
             {...register("reminder_enabled")}
-            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500"
           />
-          <label htmlFor="reminder_enabled" className="text-sm font-medium text-gray-700">
+          <label htmlFor="reminder_enabled" className="text-sm font-medium text-muted-foreground">
             {copy.enableReminders}
           </label>
         </div>
 
         {reminderEnabled && (
           <div className="ml-6 space-y-2">
-            <p className="text-sm text-gray-600">{copy.remindedBefore}</p>
+            <p className="text-sm text-muted-foreground">{copy.remindedBefore}</p>
             <div className="flex flex-wrap gap-2">
               {[
                 { value: 24, label: copy.reminderOptions.hours24 },
@@ -925,9 +925,9 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
                         : reminderTimings.filter((t: number) => t !== option.value);
                       setValue("reminder_timings", newTimings);
                     }}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-gray-700">{option.label}</span>
+                  <span className="text-sm text-muted-foreground">{option.label}</span>
                 </label>
               ))}
             </div>
@@ -936,16 +936,16 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
 
         {/* Link to Application */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">{copy.linkToApplication}</h3>
+          <h3 className="text-lg font-semibold text-foreground">{copy.linkToApplication}</h3>
 
           <div>
-            <label htmlFor="application_id" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="application_id" className="block text-sm font-medium text-muted-foreground mb-1">
               {copy.relatedApplication}
             </label>
             <select
               id="application_id"
               {...register("application_id")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">{copy.selectApplication}</option>
               {applications.map((app) => (
@@ -959,7 +959,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
       </div>
 
       {/* Form Actions */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
         {onCancel && (
           <Button
             type="button"

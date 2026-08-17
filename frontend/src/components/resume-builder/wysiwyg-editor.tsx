@@ -153,8 +153,8 @@ export const WysiwygEditor = forwardRef<WysiwygEditorHandle, WysiwygEditorProps>
     };
 
     return (
-      <div className="h-full flex flex-col bg-white">
-        <div className="flex items-center gap-1 px-3 py-1.5 border-b border-gray-100 bg-gray-50">
+      <div className="h-full flex flex-col bg-card">
+        <div className="flex items-center gap-1 px-3 py-1.5 border-b border-gray-100 bg-muted/40">
           <ToolbarButton title="加粗" onClick={() => exec("bold")}>
             <Bold className="h-4 w-4" />
           </ToolbarButton>
@@ -210,7 +210,7 @@ function ToolbarButton({
       aria-label={title}
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
-      className="h-8 w-8 inline-flex items-center justify-center rounded text-gray-600 hover:bg-gray-200 transition"
+      className="h-8 w-8 inline-flex items-center justify-center rounded text-muted-foreground hover:bg-gray-200 transition"
     >
       {children}
     </button>

@@ -80,7 +80,7 @@ function DashboardPage() {
       case "offer":
         return "bg-emerald-100 text-emerald-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-gray-800";
     }
   };
 
@@ -106,7 +106,7 @@ function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/40">
       
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -118,10 +118,10 @@ function DashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-foreground">
               {dashboard.welcome}
             </h1>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-muted-foreground">
               {dashboard.subtitle}
             </p>
           </div>
@@ -139,7 +139,7 @@ function DashboardPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white rounded-lg shadow p-6 animate-pulse">
+              <div key={i} className="bg-card rounded-lg shadow p-6 animate-pulse">
                 <div className="h-8 bg-gray-200 rounded w-1/3"></div>
                 <div className="mt-4 h-6 bg-gray-200 rounded w-1/2"></div>
               </div>
@@ -153,12 +153,12 @@ function DashboardPage() {
                 <Link
                   key={stat.name}
                   href={stat.href}
-                  className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+                  className="bg-card rounded-lg shadow p-6 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                      <p className="text-3xl font-bold text-gray-900 mt-2">
+                      <p className="text-sm font-medium text-muted-foreground">{stat.name}</p>
+                      <p className="text-3xl font-bold text-foreground mt-2">
                         {stat.value}
                       </p>
                     </div>
@@ -173,14 +173,14 @@ function DashboardPage() {
         )}
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">{dashboard.quickActions}</h2>
+        <div className="bg-card rounded-lg shadow p-6 mb-8">
+          <h2 className="text-xl font-semibold text-foreground mb-4">{dashboard.quickActions}</h2>
           <Link
             href="/resume-builder"
             className="group mb-4 flex items-center justify-between gap-4 p-5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-colors"
           >
             <div className="flex items-center gap-4">
-              <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-lg bg-card/20 flex items-center justify-center">
                 <FileText className="h-5 w-5" />
               </div>
               <div>
@@ -197,32 +197,32 @@ function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link
               href="/upload"
-              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-muted/40 transition-colors"
             >
               <FileText className="h-5 w-5 text-blue-600" />
-              <span className="font-medium text-gray-700">{dashboard.manageResumes}</span>
+              <span className="font-medium text-muted-foreground">{dashboard.manageResumes}</span>
             </Link>
             <Link
               href="/jd-input"
-              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-muted/40 transition-colors"
             >
               <Briefcase className="h-5 w-5 text-green-600" />
-              <span className="font-medium text-gray-700">{dashboard.stats.jobDescriptions}</span>
+              <span className="font-medium text-muted-foreground">{dashboard.stats.jobDescriptions}</span>
             </Link>
             <Link
               href="/applications"
-              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-muted/40 transition-colors"
             >
               <BarChart3 className="h-5 w-5 text-purple-600" />
-              <span className="font-medium text-gray-700">{dashboard.trackApplications}</span>
+              <span className="font-medium text-muted-foreground">{dashboard.trackApplications}</span>
             </Link>
           </div>
         </div>
 
         {/* Getting Started */}
         {(resumes.length === 0 || jobDescriptions.length === 0) && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <div className="bg-card rounded-lg shadow p-6 mb-8">
+            <h2 className="text-xl font-semibold text-foreground mb-4">
               {dashboard.gettingStarted}
             </h2>
             <div className="space-y-4">
@@ -232,8 +232,8 @@ function DashboardPage() {
                     {index + 1}
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900">{step.title}</h3>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <h3 className="font-medium text-foreground">{step.title}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
                       {step.description}
                     </p>
                   </div>
@@ -244,9 +244,9 @@ function DashboardPage() {
         )}
 
         {/* Recent Applications */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <div className="bg-card rounded-lg shadow p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-foreground">
               {dashboard.recentApplications}
             </h2>
             {applications.length > 5 && (
@@ -267,10 +267,10 @@ function DashboardPage() {
                     className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
                   >
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-foreground">
                         {jd?.title || dashboard.unknownPosition}
                       </p>
-                      <p className="text-sm text-gray-700">
+                      <p className="text-sm text-muted-foreground">
                         {jd?.company || dashboard.unknownCompany} • {resume?.name || dashboard.unknownResume}
                       </p>
                     </div>
@@ -280,7 +280,7 @@ function DashboardPage() {
                       >
                         {getStatusLabel(app.status)}
                       </span>
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-muted-foreground">
                         {formatLiteDate(app.createdAt, locale)}
                       </span>
                     </div>
@@ -289,36 +289,36 @@ function DashboardPage() {
               })}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-600">
+            <div className="text-center py-8 text-muted-foreground">
               {dashboard.emptyApplications}
             </div>
           )}
         </div>
 
         {/* Data Management */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">{dashboard.dataManagement}</h2>
+        <div className="bg-card rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-foreground mb-4">{dashboard.dataManagement}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Link
               href="/data"
-              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-muted/40 transition-colors"
             >
               <FolderOpen className="h-5 w-5 text-orange-600" />
               <div>
-                <p className="font-medium text-gray-700">{dashboard.manageData}</p>
-                <p className="text-sm text-gray-500">
+                <p className="font-medium text-muted-foreground">{dashboard.manageData}</p>
+                <p className="text-sm text-muted-foreground">
                   {dashboard.manageDataDescription}
                 </p>
               </div>
             </Link>
             <Link
               href="/search"
-              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-muted/40 transition-colors"
             >
               <TrendingUp className="h-5 w-5 text-indigo-600" />
               <div>
-                <p className="font-medium text-gray-700">{dashboard.search}</p>
-                <p className="text-sm text-gray-500">
+                <p className="font-medium text-muted-foreground">{dashboard.search}</p>
+                <p className="text-sm text-muted-foreground">
                   {dashboard.searchDescription}
                 </p>
               </div>

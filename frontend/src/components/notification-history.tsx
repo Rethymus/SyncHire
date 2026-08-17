@@ -242,8 +242,8 @@ export function NotificationHistory({ className }: NotificationHistoryProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{copy.title}</h2>
-          <p className="text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-foreground">{copy.title}</h2>
+          <p className="text-muted-foreground mt-1">
             {unreadCount > 0 ? copy.unreadCount(unreadCount) : copy.totalCount(total)}
           </p>
         </div>
@@ -290,7 +290,7 @@ export function NotificationHistory({ className }: NotificationHistoryProps) {
 
       {/* Filters */}
       <div className="flex items-center gap-2 flex-wrap">
-        <Filter className="h-4 w-4 text-gray-500" />
+        <Filter className="h-4 w-4 text-muted-foreground" />
         {(Object.keys(copy.filters) as FilterType[]).map((filterType) => (
           <Button
             key={filterType}
@@ -313,8 +313,8 @@ export function NotificationHistory({ className }: NotificationHistoryProps) {
         </div>
       ) : filteredNotifications.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">{copy.emptyTitle}</p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-muted-foreground">{copy.emptyTitle}</p>
+          <p className="text-sm text-muted-foreground mt-1">
             {filter === "unread" ? copy.emptyUnread : copy.emptyDefault}
           </p>
         </div>
@@ -329,7 +329,7 @@ export function NotificationHistory({ className }: NotificationHistoryProps) {
                 className={cn(
                   "border rounded-lg p-4 transition-colors",
                   !notification.read && "bg-blue-50/50 border-blue-200",
-                  notification.read && "bg-white border-gray-200 hover:bg-gray-50"
+                  notification.read && "bg-card border-border hover:bg-muted/40"
                 )}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -342,14 +342,14 @@ export function NotificationHistory({ className }: NotificationHistoryProps) {
                     </div>
                     <h3 className={cn(
                       "text-lg font-medium",
-                      notification.read ? "text-gray-700" : "text-gray-900"
+                      notification.read ? "text-muted-foreground" : "text-foreground"
                     )}>
                       {notification.title}
                     </h3>
-                    <p className="text-gray-600 mt-1">
+                    <p className="text-muted-foreground mt-1">
                       {notification.message}
                     </p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                       <span>
                         {formatDistanceToNow(new Date(notification.created_at), {
                           addSuffix: true,
@@ -399,7 +399,7 @@ export function NotificationHistory({ className }: NotificationHistoryProps) {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-muted-foreground">
             {copy.showing(((page - 1) * limit) + 1, Math.min(page * limit, total), total)}
           </div>
           <div className="flex items-center gap-2">
@@ -411,7 +411,7 @@ export function NotificationHistory({ className }: NotificationHistoryProps) {
             >
               {copy.previous}
             </Button>
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-muted-foreground">
               {copy.page(page, totalPages)}
             </span>
             <Button

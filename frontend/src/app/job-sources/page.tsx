@@ -268,7 +268,7 @@ export default function JobSourcesPage() {
 
   const statusIcon = (source: JobSource) => {
     if (!source.last_synced_at)
-      return <CircleSlash className="h-4 w-4 text-gray-400" aria-label={t.statusNever} />;
+      return <CircleSlash className="h-4 w-4 text-muted-foreground/80" aria-label={t.statusNever} />;
     if (source.last_sync_status === "ok")
       return <CheckCircle2 className="h-4 w-4 text-green-600" aria-label={t.statusOk} />;
     if (source.last_sync_status === "empty")
@@ -280,29 +280,29 @@ export default function JobSourcesPage() {
     <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Rss className="h-6 w-6 text-indigo-600" aria-hidden />
             {t.title}
           </h1>
-          <p className="text-sm text-gray-500 mt-1 max-w-2xl">{t.subtitle}</p>
+          <p className="text-sm text-muted-foreground mt-1 max-w-2xl">{t.subtitle}</p>
         </div>
         <Link
           href="/job-feed"
-          className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="inline-flex items-center gap-2 rounded-md border border-input bg-card px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/40"
         >
           <Link2 className="h-4 w-4" aria-hidden />
           {t.viewFeed}
         </Link>
       </div>
 
-      <section className="rounded-lg border border-gray-200 bg-white p-4 mb-6">
+      <section className="rounded-lg border border-border bg-card p-4 mb-6">
         <div className="flex flex-wrap gap-3">
           <input
             type="url"
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
             placeholder={t.urlPlaceholder}
-            className="flex-1 min-w-[260px] rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="flex-1 min-w-[260px] rounded-md border border-input px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             aria-label={t.urlPlaceholder}
           />
           <input
@@ -310,7 +310,7 @@ export default function JobSourcesPage() {
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
             placeholder={t.namePlaceholder}
-            className="w-44 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="w-44 rounded-md border border-input px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             aria-label={t.namePlaceholder}
           />
           <button
@@ -345,8 +345,8 @@ export default function JobSourcesPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-gray-200 bg-white p-4 mb-6">
-        <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+      <section className="rounded-lg border border-border bg-card p-4 mb-6">
+        <h2 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
           <Library className="h-4 w-4 text-indigo-600" aria-hidden />
           {t.catalogTitle}
         </h2>
@@ -363,7 +363,7 @@ export default function JobSourcesPage() {
             onChange={(e) => setCatalogQuery(e.target.value)}
             placeholder={t.catalogPlaceholder}
             aria-label={t.catalogPlaceholder}
-            className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="flex-1 rounded-md border border-input px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
           <button
             type="submit"
@@ -381,9 +381,9 @@ export default function JobSourcesPage() {
               return (
                 <li
                   key={key}
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 px-3 py-1 text-sm"
                 >
-                  <span className="font-mono text-xs text-gray-500">
+                  <span className="font-mono text-xs text-muted-foreground">
                     {ATS_LABELS[hit.ats_type] ?? hit.ats_type}
                   </span>
                   <span className="font-medium text-gray-800">{hit.org_key}</span>
@@ -404,7 +404,7 @@ export default function JobSourcesPage() {
             })}
           </ul>
         ) : (
-          <p className="mt-3 text-xs text-gray-400">{t.catalogEmpty}</p>
+          <p className="mt-3 text-xs text-muted-foreground/80">{t.catalogEmpty}</p>
         )}
       </section>
 
@@ -420,32 +420,32 @@ export default function JobSourcesPage() {
       )}
 
       {loading && sources.length === 0 ? (
-        <p className="text-sm text-gray-500 py-12 text-center">{t.loading}</p>
+        <p className="text-sm text-muted-foreground py-12 text-center">{t.loading}</p>
       ) : sources.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-gray-300 py-12 text-center">
-          <p className="text-sm text-gray-500">{t.empty}</p>
+        <div className="rounded-lg border border-dashed border-input py-12 text-center">
+          <p className="text-sm text-muted-foreground">{t.empty}</p>
         </div>
       ) : (
         <ul className="space-y-3">
           {sources.map((source) => (
             <li
               key={source.id}
-              className="rounded-lg border border-gray-200 bg-white p-4 flex flex-wrap items-center gap-4"
+              className="rounded-lg border border-border bg-card p-4 flex flex-wrap items-center gap-4"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   {statusIcon(source)}
-                  <span className="font-semibold text-gray-900">{source.name}</span>
-                  <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono text-gray-600">
+                  <span className="font-semibold text-foreground">{source.name}</span>
+                  <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono text-muted-foreground">
                     {ATS_LABELS[source.ats_type] ?? source.ats_type}:{source.org_key}
                   </span>
                   {!source.enabled && (
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-muted-foreground/80">
                       ({locale === "zh-CN" ? "已停用" : "disabled"})
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   {t.lastSync}:{" "}
                   {source.last_synced_at
                     ? new Date(source.last_synced_at).toLocaleString()
@@ -464,7 +464,7 @@ export default function JobSourcesPage() {
                   type="button"
                   onClick={() => void syncSource(source.id)}
                   disabled={syncingId === source.id}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted/40 disabled:opacity-50"
                 >
                   <RefreshCw
                     className={`h-3.5 w-3.5 ${syncingId === source.id ? "animate-spin" : ""}`}
@@ -475,7 +475,7 @@ export default function JobSourcesPage() {
                 <button
                   type="button"
                   onClick={() => void toggleEnabled(source)}
-                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-md border border-input px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted/40"
                 >
                   {source.enabled ? t.disable : t.enable}
                 </button>

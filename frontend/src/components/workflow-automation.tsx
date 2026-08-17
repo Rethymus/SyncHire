@@ -51,7 +51,7 @@ import {
 } from 'lucide-react';
 
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; icon: any }> = {
-  draft: { label: '草稿', color: 'bg-gray-100 text-gray-800', icon: Clock },
+  draft: { label: '草稿', color: 'bg-muted text-gray-800', icon: Clock },
   applied: { label: '已申请', color: 'bg-blue-100 text-blue-800', icon: Clock },
   interview: { label: '面试中', color: 'bg-purple-100 text-purple-800', icon: Bell },
   offer: { label: '已录用', color: 'bg-green-100 text-green-800', icon: CheckCircle2 },
@@ -230,8 +230,8 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">智能状态建议</h3>
-                <p className="text-sm text-gray-600">基于您的行为模式和申请数据生成的个性化建议</p>
+                <h3 className="text-lg font-semibold text-foreground">智能状态建议</h3>
+                <p className="text-sm text-muted-foreground">基于您的行为模式和申请数据生成的个性化建议</p>
               </div>
               <Button
                 onClick={loadSuggestions}
@@ -246,8 +246,8 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
 
             {loading ? (
               <div className="text-center py-8">
-                <Clock className="h-8 w-8 text-gray-400 mx-auto mb-2 animate-spin" />
-                <p className="text-gray-600">正在分析...</p>
+                <Clock className="h-8 w-8 text-muted-foreground/80 mx-auto mb-2 animate-spin" />
+                <p className="text-muted-foreground">正在分析...</p>
               </div>
             ) : suggestions.length > 0 ? (
               <div className="space-y-3">
@@ -268,7 +268,7 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
                               置信度: {Math.round(suggestion.confidence * 100)}%
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-700">{suggestion.reason}</p>
+                          <p className="text-sm text-muted-foreground">{suggestion.reason}</p>
                         </div>
                         <Button
                           onClick={() => executeTransition(suggestion)}
@@ -294,9 +294,9 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Info className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">暂无建议</p>
-                <p className="text-sm text-gray-500 mt-2">
+                <Info className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />
+                <p className="text-muted-foreground">暂无建议</p>
+                <p className="text-sm text-muted-foreground mt-2">
                   当有相关建议时，我们会在这里显示
                 </p>
               </div>
@@ -309,8 +309,8 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">状态变更历史</h3>
-                <p className="text-sm text-gray-600">跟踪所有状态变更的完整记录</p>
+                <h3 className="text-lg font-semibold text-foreground">状态变更历史</h3>
+                <p className="text-sm text-muted-foreground">跟踪所有状态变更的完整记录</p>
               </div>
               <div className="flex items-center gap-2">
                 <Label htmlFor="filter">筛选:</Label>
@@ -338,14 +338,14 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
                     const StatusIcon = config.icon;
 
                     return (
-                      <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                        <StatusIcon className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                      <div key={index} className="flex items-start gap-3 p-3 bg-muted/40 rounded-lg">
+                        <StatusIcon className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 text-sm mb-1">
                             <Badge className={config.color} variant="secondary">
                               {config.label}
                             </Badge>
-                            <span className="text-gray-500">
+                            <span className="text-muted-foreground">
                               {new Date(entry.changedAt).toLocaleString()}
                             </span>
                             <Badge variant="outline" className="text-xs">
@@ -354,10 +354,10 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
                             </Badge>
                           </div>
                           {entry.notes && (
-                            <p className="text-sm text-gray-600">{entry.notes}</p>
+                            <p className="text-sm text-muted-foreground">{entry.notes}</p>
                           )}
                           {entry.trigger && (
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-muted-foreground mt-1">
                               触发原因: {entry.trigger}
                             </p>
                           )}
@@ -368,8 +368,8 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <History className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">暂无历史记录</p>
+                  <History className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />
+                  <p className="text-muted-foreground">暂无历史记录</p>
                 </div>
               )}
             </ScrollArea>
@@ -381,8 +381,8 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">自动化规则</h3>
-                <p className="text-sm text-gray-600">配置和管理智能工作流规则</p>
+                <h3 className="text-lg font-semibold text-foreground">自动化规则</h3>
+                <p className="text-sm text-muted-foreground">配置和管理智能工作流规则</p>
               </div>
             </div>
 
@@ -392,12 +392,12 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-medium text-gray-900">{rule.name}</h4>
+                        <h4 className="font-medium text-foreground">{rule.name}</h4>
                         <Badge variant="outline" className="text-xs">
                           优先级: {rule.priority}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{rule.description}</p>
+                      <p className="text-sm text-muted-foreground mb-2">{rule.description}</p>
                       <div className="flex items-center gap-2">
                         <Switch
                           checked={rule.enabled}
@@ -408,7 +408,7 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
                         </Label>
                       </div>
                     </div>
-                    <Zap className={`h-5 w-5 ${rule.enabled ? 'text-yellow-500' : 'text-gray-400'}`} />
+                    <Zap className={`h-5 w-5 ${rule.enabled ? 'text-yellow-500' : 'text-muted-foreground/80'}`} />
                   </div>
                 </Card>
               ))}
@@ -421,8 +421,8 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">工作流统计分析</h3>
-                <p className="text-sm text-gray-600">了解您的申请流程效率和趋势</p>
+                <h3 className="text-lg font-semibold text-foreground">工作流统计分析</h3>
+                <p className="text-sm text-muted-foreground">了解您的申请流程效率和趋势</p>
               </div>
             </div>
 
@@ -431,12 +431,12 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
                 <Card className="p-4">
                   <div className="flex items-center gap-3 mb-2">
                     <TrendingUp className="h-5 w-5 text-blue-600" />
-                    <span className="text-sm text-gray-600">总状态变更</span>
+                    <span className="text-sm text-muted-foreground">总状态变更</span>
                   </div>
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-2xl font-bold text-foreground">
                     {statistics.totalTransitions}
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     自动化: {statistics.automatedTransitions} | 手动: {statistics.manualTransitions}
                   </p>
                 </Card>
@@ -444,20 +444,20 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
                 <Card className="p-4">
                   <div className="flex items-center gap-3 mb-2">
                     <Zap className="h-5 w-5 text-yellow-600" />
-                    <span className="text-sm text-gray-600">自动化率</span>
+                    <span className="text-sm text-muted-foreground">自动化率</span>
                   </div>
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-2xl font-bold text-foreground">
                     {statistics.totalTransitions > 0
                       ? Math.round((statistics.automatedTransitions / statistics.totalTransitions) * 100)
                       : 0}%
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     节省时间，提高效率
                   </p>
                 </Card>
 
                 <Card className="p-4 md:col-span-2">
-                  <h4 className="font-medium text-gray-900 mb-3">状态分布</h4>
+                  <h4 className="font-medium text-foreground mb-3">状态分布</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {Object.entries(statistics.statusDistribution).map(([status, count]) => {
                       const config = statusConfig[status as ApplicationStatus];
@@ -475,7 +475,7 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
 
                 {statistics.mostCommonTransitions.length > 0 && (
                   <Card className="p-4 md:col-span-2">
-                    <h4 className="font-medium text-gray-900 mb-3">常见转换路径</h4>
+                    <h4 className="font-medium text-foreground mb-3">常见转换路径</h4>
                     <div className="space-y-2">
                       {statistics.mostCommonTransitions.slice(0, 5).map((transition: any, index: number) => {
                         const fromConfig = statusConfig[transition.from as ApplicationStatus];
@@ -486,7 +486,7 @@ export function WorkflowAutomation({ applicationId }: WorkflowAutomationProps) {
                               <Badge className={fromConfig.color} variant="secondary">
                                 {fromConfig.label}
                               </Badge>
-                              <ChevronRight className="h-4 w-4 text-gray-400" />
+                              <ChevronRight className="h-4 w-4 text-muted-foreground/80" />
                               <Badge className={toConfig.color} variant="secondary">
                                 {toConfig.label}
                               </Badge>

@@ -217,7 +217,7 @@ export const UniversalSearch = memo(function UniversalSearch({
       {/* Search Input */}
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
+          <Search className="h-5 w-5 text-muted-foreground/80" aria-hidden="true" />
         </div>
         <Input
           ref={inputRef}
@@ -236,7 +236,7 @@ export const UniversalSearch = memo(function UniversalSearch({
         {query && (
           <button
             onClick={handleClearSearch}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground/80 hover:text-muted-foreground transition-colors"
             aria-label={copy.clearSearch}
           >
             <X className="h-5 w-5" />
@@ -248,12 +248,12 @@ export const UniversalSearch = memo(function UniversalSearch({
       {showSuggestions && (
         <div
           id="search-suggestions"
-          className="absolute z-50 w-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 py-2"
+          className="absolute z-50 w-full mt-2 bg-card rounded-lg shadow-lg border border-border py-2"
           role="listbox"
         >
           {recentSearchesList.length > 0 && (
             <div className="px-3 py-2">
-              <div className="flex items-center gap-2 text-xs font-medium text-gray-500 mb-2">
+              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-2">
                 <Clock className="h-3 w-3" />
                 {copy.recentSearches}
               </div>
@@ -262,12 +262,12 @@ export const UniversalSearch = memo(function UniversalSearch({
                   <button
                     key={recentQuery}
                     onClick={() => handleSelectRecentSearch(recentQuery)}
-                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                    className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md transition-colors"
                     role="option"
                     aria-selected="false"
                   >
                     <div className="flex items-center gap-2">
-                      <Clock className="h-3 w-3 text-gray-400" />
+                      <Clock className="h-3 w-3 text-muted-foreground/80" />
                       {recentQuery}
                     </div>
                   </button>
@@ -314,14 +314,14 @@ export const UniversalSearch = memo(function UniversalSearch({
 
             {/* Sort Options */}
             <div className="flex items-center gap-2">
-              <label htmlFor="sort-by" className="text-sm text-gray-600">
+              <label htmlFor="sort-by" className="text-sm text-muted-foreground">
                 {copy.sortBy}
               </label>
               <select
                 id="sort-by"
                 value={filters.sortBy}
                 onChange={(e) => handleFilterChange("sortBy", e.target.value)}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-1.5 text-sm border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="updated_at">{copy.recent}</option>
                 <option value="created_at">{copy.created}</option>
@@ -339,7 +339,7 @@ export const UniversalSearch = memo(function UniversalSearch({
               <select
                 value={filters.sortOrder}
                 onChange={(e) => handleFilterChange("sortOrder", e.target.value)}
-                className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-1.5 text-sm border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="desc">{copy.descending}</option>
                 <option value="asc">{copy.ascending}</option>
@@ -351,14 +351,14 @@ export const UniversalSearch = memo(function UniversalSearch({
           {showAdvancedFilters && (
             <div
               id="advanced-filters"
-              className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200"
+              className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 bg-muted/40 rounded-lg border border-border"
             >
               {/* Status Filter (for applications) */}
               {searchType === "application" && (
                 <div>
                   <label
                     htmlFor="status-filter"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium text-muted-foreground mb-1"
                   >
                     {copy.status}
                   </label>
@@ -371,7 +371,7 @@ export const UniversalSearch = memo(function UniversalSearch({
                         e.target.value === "all" ? undefined : e.target.value
                       )
                     }
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="all">{copy.allStatuses}</option>
                     <option value="draft">{copy.draft}</option>
@@ -388,7 +388,7 @@ export const UniversalSearch = memo(function UniversalSearch({
                 <div>
                   <label
                     htmlFor="match-score-filter"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium text-muted-foreground mb-1"
                   >
                     {copy.matchScoreFilter}
                   </label>
@@ -408,7 +408,7 @@ export const UniversalSearch = memo(function UniversalSearch({
                       }
                       className="flex-1 h-9"
                     />
-                    <span className="text-gray-500">-</span>
+                    <span className="text-muted-foreground">-</span>
                     <Input
                       type="number"
                       min="0"
@@ -431,7 +431,7 @@ export const UniversalSearch = memo(function UniversalSearch({
               <div>
                 <label
                   htmlFor="date-from-filter"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-muted-foreground mb-1"
                 >
                   {copy.dateRange}
                 </label>
@@ -452,7 +452,7 @@ export const UniversalSearch = memo(function UniversalSearch({
                     }
                     className="flex-1 h-9"
                   />
-                  <span className="text-gray-500">{copy.to}</span>
+                  <span className="text-muted-foreground">{copy.to}</span>
                   <Input
                     type="date"
                     value={

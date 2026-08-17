@@ -353,7 +353,7 @@ export default function ProfilePage() {
   const fields = copy.fields;
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-muted/40">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-4">
           <Breadcrumb />
@@ -366,20 +366,20 @@ export default function ProfilePage() {
               {copy.privacy}
             </div>
             <h1 className="text-3xl font-bold text-gray-950">{copy.title}</h1>
-            <p className="mt-2 max-w-3xl text-gray-700">{copy.subtitle}</p>
+            <p className="mt-2 max-w-3xl text-muted-foreground">{copy.subtitle}</p>
           </div>
-          <div className="grid grid-cols-3 gap-3 rounded-xl border border-gray-200 bg-white p-3 text-center shadow-sm">
+          <div className="grid grid-cols-3 gap-3 rounded-xl border border-border bg-card p-3 text-center shadow-sm">
             <div>
               <p className="text-2xl font-bold text-gray-950">{candidateProfile.skills.length}</p>
-              <p className="text-xs text-gray-600">{fields.skills}</p>
+              <p className="text-xs text-muted-foreground">{fields.skills}</p>
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-950">{browserFillSessions.length}</p>
-              <p className="text-xs text-gray-600">{copy.recentSessions}</p>
+              <p className="text-xs text-muted-foreground">{copy.recentSessions}</p>
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-950">0</p>
-              <p className="text-xs text-gray-600">{copy.autoSubmit}</p>
+              <p className="text-xs text-muted-foreground">{copy.autoSubmit}</p>
             </div>
           </div>
         </header>
@@ -393,7 +393,7 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <CardTitle>{copy.profileTitle}</CardTitle>
-                  <p className="mt-1 text-sm text-gray-600">{copy.profileSubtitle}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{copy.profileSubtitle}</p>
                 </div>
               </div>
             </CardHeader>
@@ -474,7 +474,7 @@ export default function ProfilePage() {
                   </div>
                   <div>
                     <CardTitle>{copy.fillTitle}</CardTitle>
-                    <p className="mt-1 text-sm text-gray-600">{copy.fillSubtitle}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{copy.fillSubtitle}</p>
                   </div>
                 </div>
               </CardHeader>
@@ -547,7 +547,7 @@ export default function ProfilePage() {
                     </div>
                     <div>
                       <CardTitle>{copy.instructionTitle}</CardTitle>
-                      <p className="mt-1 text-sm text-gray-600">{copy.instructionHint}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{copy.instructionHint}</p>
                     </div>
                   </div>
                 </CardHeader>
@@ -566,12 +566,12 @@ export default function ProfilePage() {
             <Card>
               <CardHeader>
                 <div className="flex items-start gap-3">
-                  <div className="rounded-lg bg-gray-100 p-2 text-gray-700">
+                  <div className="rounded-lg bg-muted p-2 text-muted-foreground">
                     <FileText className="h-5 w-5" />
                   </div>
                   <div>
                     <CardTitle>{copy.demoForm}</CardTitle>
-                    <p className="mt-1 text-sm text-gray-600">{copy.demoNotice}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{copy.demoNotice}</p>
                   </div>
                 </div>
               </CardHeader>
@@ -610,7 +610,7 @@ export default function ProfilePage() {
                             }
                           />
                         )}
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted-foreground">
                           {Math.round(suggestion.confidence * 100)}% {copy.confidence} - {suggestion.reason}
                         </p>
                       </div>
@@ -631,7 +631,7 @@ export default function ProfilePage() {
                   </div>
                   <div>
                     <CardTitle>{copy.reviewTitle}</CardTitle>
-                    <p className="mt-1 text-sm text-gray-600">{copy.reviewSubtitle}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{copy.reviewSubtitle}</p>
                   </div>
                 </div>
               </CardHeader>
@@ -670,20 +670,20 @@ export default function ProfilePage() {
                     {learningUpdates.map((update) => (
                       <div
                         key={`${update.profileKey}-${update.reviewedValue}`}
-                        className="rounded-lg border border-gray-200 bg-gray-50 p-4"
+                        className="rounded-lg border border-border bg-muted/40 p-4"
                       >
-                        <p className="text-sm font-semibold text-gray-900">
+                        <p className="text-sm font-semibold text-foreground">
                           {fields[update.profileKey]}
                         </p>
-                        <p className="mt-2 text-xs text-gray-500">{copy.before}</p>
-                        <p className="text-sm text-gray-700">{update.previousValue}</p>
-                        <p className="mt-2 text-xs text-gray-500">{copy.afterUserEdit}</p>
+                        <p className="mt-2 text-xs text-muted-foreground">{copy.before}</p>
+                        <p className="text-sm text-muted-foreground">{update.previousValue}</p>
+                        <p className="mt-2 text-xs text-muted-foreground">{copy.afterUserEdit}</p>
                         <p className="text-sm font-medium text-gray-950">{update.reviewedValue}</p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+                  <p className="rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
                     {copy.noChanges}
                   </p>
                 )}
@@ -709,17 +709,17 @@ export default function ProfilePage() {
                       setAgentReport("");
                       setLearningMessage("");
                     }}
-                    className="rounded-lg border border-gray-200 bg-white p-4 text-left transition hover:border-blue-300 hover:shadow-sm"
+                    className="rounded-lg border border-border bg-card p-4 text-left transition hover:border-blue-300 hover:shadow-sm"
                   >
                     <p className="font-semibold text-gray-950">{session.position || copy.position}</p>
-                    <p className="text-sm text-gray-600">{session.company || copy.company}</p>
-                    <p className="mt-2 text-xs text-gray-500">{session.targetUrl}</p>
+                    <p className="text-sm text-muted-foreground">{session.company || copy.company}</p>
+                    <p className="mt-2 text-xs text-muted-foreground">{session.targetUrl}</p>
                     <p className="mt-3 text-xs font-medium text-blue-700">{session.status}</p>
                   </button>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-600">{copy.emptySessions}</p>
+              <p className="text-sm text-muted-foreground">{copy.emptySessions}</p>
             )}
           </CardContent>
         </Card>

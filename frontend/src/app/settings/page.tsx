@@ -605,7 +605,7 @@ function FloatingToast({ message }: { message: { type: "success" | "error"; titl
   return (
     <div
       className={cn(
-        "fixed right-4 top-4 z-50 max-w-md rounded-md border bg-white p-4 shadow-lg",
+        "fixed right-4 top-4 z-50 max-w-md rounded-md border bg-card p-4 shadow-lg",
         message.type === "success" ? "border-emerald-200" : "border-red-200"
       )}
       role="status"
@@ -621,7 +621,7 @@ function FloatingToast({ message }: { message: { type: "success" | "error"; titl
           <div className={cn("text-sm font-semibold", message.type === "success" ? "text-emerald-900" : "text-red-900")}>
             {message.title}
           </div>
-          <p className="mt-1 text-sm leading-6 text-gray-700">{message.text}</p>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">{message.text}</p>
         </div>
       </div>
     </div>
@@ -645,7 +645,7 @@ function SectionHeader({
         </div>
         <div>
           <h2 className="text-xl font-semibold text-gray-950">{title}</h2>
-          <p className="mt-1 max-w-3xl text-sm leading-6 text-gray-600">{subtitle}</p>
+          <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">{subtitle}</p>
         </div>
       </div>
     </div>
@@ -677,8 +677,8 @@ function MetricStrip({
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {metrics.map((metric) => (
-        <div key={metric.label} className="rounded-md border border-gray-200 bg-white px-4 py-3">
-          <div className="text-xs font-medium uppercase tracking-wide text-gray-500">{metric.label}</div>
+        <div key={metric.label} className="rounded-md border border-border bg-card px-4 py-3">
+          <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{metric.label}</div>
           <div className="mt-2 text-lg font-semibold text-gray-950">{metric.value}</div>
         </div>
       ))}
@@ -767,11 +767,11 @@ function AIProviderPanel({
         </div>
       </div>
 
-      <div className="rounded-md border border-gray-200 bg-white p-4">
+      <div className="rounded-md border border-border bg-card p-4">
         <div className="grid gap-4 lg:grid-cols-3">
           <div>
             <Label>{copy.ai.providerMode}</Label>
-            <div className="mt-2 grid grid-cols-2 gap-2 rounded-md bg-gray-100 p-1">
+            <div className="mt-2 grid grid-cols-2 gap-2 rounded-md bg-muted p-1">
               {(["auto", "manual"] as const).map((mode) => (
                 <button
                   key={mode}
@@ -780,8 +780,8 @@ function AIProviderPanel({
                   className={cn(
                     "rounded px-3 py-2 text-sm font-medium transition-colors",
                     settings.providerMode === mode
-                      ? "bg-white text-gray-950 shadow-sm"
-                      : "text-gray-600 hover:text-gray-950"
+                      ? "bg-card text-gray-950 shadow-sm"
+                      : "text-muted-foreground hover:text-gray-950"
                   )}
                   aria-pressed={settings.providerMode === mode}
                 >
@@ -812,7 +812,7 @@ function AIProviderPanel({
           </div>
           <div>
             <Label>{copy.status.updated}</Label>
-            <div className="mt-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+            <div className="mt-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
               {formatLiteDate(settings.updatedAt, locale)}
             </div>
           </div>
@@ -833,8 +833,8 @@ function AIProviderPanel({
             <section
               key={provider.id}
               className={cn(
-                "rounded-md border bg-white p-4",
-                provider.enabled ? "border-gray-200" : "border-gray-200 opacity-75"
+                "rounded-md border bg-card p-4",
+                provider.enabled ? "border-border" : "border-border opacity-75"
               )}
             >
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -860,12 +860,12 @@ function AIProviderPanel({
                           : copy.ai.connectionUntested}
                     </Badge>
                   </div>
-                  <p className="mt-1 text-sm leading-6 text-gray-600">
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
                     {getProviderDescription(provider, locale)}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Label htmlFor={`${provider.id}-enabled`} className="text-sm text-gray-700">
+                  <Label htmlFor={`${provider.id}-enabled`} className="text-sm text-muted-foreground">
                     {copy.ai.enabled}
                   </Label>
                   <Switch
@@ -944,7 +944,7 @@ function AIProviderPanel({
                       {keyVisible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                     </Button>
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {copy.ai.masked}: {getMaskedApiKey(provider.apiKey, locale, copy.ai.noKey)}
                   </p>
                 </div>
@@ -964,7 +964,7 @@ function AIProviderPanel({
                     <p
                       className={cn(
                         "text-xs leading-5",
-                        status?.type === "success" ? "text-emerald-700" : status?.type === "error" ? "text-red-700" : "text-gray-500"
+                        status?.type === "success" ? "text-emerald-700" : status?.type === "error" ? "text-red-700" : "text-muted-foreground"
                       )}
                     >
                       {status?.text ?? (pagesMode ? "直连请求将在你确认后、实际使用 AI 时发送。" : copy.ai.connectionDetail)}
@@ -973,7 +973,7 @@ function AIProviderPanel({
                 </div>
                 <div>
                   <Label>{copy.ai.modelMode}</Label>
-                  <div className="mt-2 grid grid-cols-2 gap-2 rounded-md bg-gray-100 p-1">
+                  <div className="mt-2 grid grid-cols-2 gap-2 rounded-md bg-muted p-1">
                     {(["auto", "manual"] as const).map((mode) => (
                       <button
                         key={mode}
@@ -989,8 +989,8 @@ function AIProviderPanel({
                         className={cn(
                           "rounded px-3 py-2 text-sm font-medium transition-colors",
                           provider.modelMode === mode
-                            ? "bg-white text-gray-950 shadow-sm"
-                            : "text-gray-600 hover:text-gray-950"
+                            ? "bg-card text-gray-950 shadow-sm"
+                            : "text-muted-foreground hover:text-gray-950"
                         )}
                         aria-pressed={provider.modelMode === mode}
                       >
@@ -1080,7 +1080,7 @@ function CapabilityCard({
   const display = getCapabilityDisplay(item, locale);
 
   return (
-    <article className="rounded-md border border-gray-200 bg-white p-4">
+    <article className="rounded-md border border-border bg-card p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -1093,10 +1093,10 @@ function CapabilityCard({
               {copy.capability.risk}: {riskCopy}
             </Badge>
           </div>
-          <p className="mt-2 text-sm leading-6 text-gray-600">{display.description}</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">{display.description}</p>
         </div>
         <div className="flex shrink-0 items-center gap-3">
-          <Label htmlFor={`${item.id}-enabled`} className="text-sm text-gray-700">
+          <Label htmlFor={`${item.id}-enabled`} className="text-sm text-muted-foreground">
             {item.enabled ? copy.capability.enabled : copy.capability.disabled}
           </Label>
           <Switch
@@ -1110,7 +1110,7 @@ function CapabilityCard({
 
       <div className="mt-3 flex flex-wrap gap-2">
         {display.tags.map((tag) => (
-          <span key={tag} className="rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-700">
+          <span key={tag} className="rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">
             {tag}
           </span>
         ))}
@@ -1118,25 +1118,25 @@ function CapabilityCard({
 
       <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
         <div>
-          <dt className="font-medium text-gray-700">{copy.capability.source}</dt>
-          <dd className="mt-1 text-gray-600">{display.source}</dd>
+          <dt className="font-medium text-muted-foreground">{copy.capability.source}</dt>
+          <dd className="mt-1 text-muted-foreground">{display.source}</dd>
         </div>
         <div>
-          <dt className="font-medium text-gray-700">{copy.capability.category}</dt>
-          <dd className="mt-1 text-gray-600">{display.category}</dd>
+          <dt className="font-medium text-muted-foreground">{copy.capability.category}</dt>
+          <dd className="mt-1 text-muted-foreground">{display.category}</dd>
         </div>
         {item.command && (
           <div className="sm:col-span-2">
-            <dt className="font-medium text-gray-700">{copy.capability.command}</dt>
-            <dd className="mt-1 rounded-md bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700">
+            <dt className="font-medium text-muted-foreground">{copy.capability.command}</dt>
+            <dd className="mt-1 rounded-md bg-muted/40 px-3 py-2 font-mono text-xs text-muted-foreground">
               {item.command}
             </dd>
           </div>
         )}
         {display.permissionNote && (
           <div className="sm:col-span-2">
-            <dt className="font-medium text-gray-700">{copy.capability.permission}</dt>
-            <dd className="mt-1 text-gray-600">{display.permissionNote}</dd>
+            <dt className="font-medium text-muted-foreground">{copy.capability.permission}</dt>
+            <dd className="mt-1 text-muted-foreground">{display.permissionNote}</dd>
           </div>
         )}
       </dl>
@@ -1201,11 +1201,11 @@ function CapabilityPanel({
     <div className="space-y-6">
       <SectionHeader icon={Icon} title={title} subtitle={subtitle} />
 
-      <div className="flex flex-col gap-3 rounded-md border border-gray-200 bg-white p-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-md border border-border bg-card p-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="w-full sm:max-w-md">
           <Label htmlFor={`${kind}-filter`}>{copy.discover.search}</Label>
           <div className="relative mt-2">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/80" />
             <Input
               id={`${kind}-filter`}
               value={query}
@@ -1244,7 +1244,7 @@ function CapabilityPanel({
       </div>
 
       {filtered.length === 0 && (
-        <div className="rounded-md border border-gray-200 bg-white p-8 text-center text-sm text-gray-600">
+        <div className="rounded-md border border-border bg-card p-8 text-center text-sm text-muted-foreground">
           {copy.capability.empty}
         </div>
       )}
@@ -1338,11 +1338,11 @@ function DiscoveryPanel({
         </div>
       </div>
 
-      <div className="grid gap-4 rounded-md border border-gray-200 bg-white p-4 lg:grid-cols-[1fr_220px_220px]">
+      <div className="grid gap-4 rounded-md border border-border bg-card p-4 lg:grid-cols-[1fr_220px_220px]">
         <div>
           <Label htmlFor="catalog-search">{copy.discover.search}</Label>
           <div className="relative mt-2">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/80" />
             <Input
               id="catalog-search"
               value={query}
@@ -1377,10 +1377,10 @@ function DiscoveryPanel({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="flex items-center justify-between gap-3 rounded-md border border-gray-200 bg-white px-4 py-3">
+        <label className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-4 py-3">
           <span>
-            <span className="block text-sm font-medium text-gray-900">{copy.discover.allowRemote}</span>
-            <span className="block text-xs text-gray-500">Metadata only</span>
+            <span className="block text-sm font-medium text-foreground">{copy.discover.allowRemote}</span>
+            <span className="block text-xs text-muted-foreground">Metadata only</span>
           </span>
           <Switch
             checked={settings.allowRemoteMetadataRefresh}
@@ -1389,10 +1389,10 @@ function DiscoveryPanel({
             }
           />
         </label>
-        <label className="flex items-center justify-between gap-3 rounded-md border border-gray-200 bg-white px-4 py-3">
+        <label className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-4 py-3">
           <span>
-            <span className="block text-sm font-medium text-gray-900">{copy.discover.autoRefresh}</span>
-            <span className="block text-xs text-gray-500">{copy.discover.whenOpeningSettings}</span>
+            <span className="block text-sm font-medium text-foreground">{copy.discover.autoRefresh}</span>
+            <span className="block text-xs text-muted-foreground">{copy.discover.whenOpeningSettings}</span>
           </span>
           <Switch
             checked={settings.autoRefreshCatalogs}
@@ -1421,16 +1421,16 @@ function DiscoveryPanel({
       </div>
 
       {results.length === 0 && (
-        <div className="rounded-md border border-gray-200 bg-white p-8 text-center text-sm text-gray-600">
+        <div className="rounded-md border border-border bg-card p-8 text-center text-sm text-muted-foreground">
           {copy.discover.noResults}
         </div>
       )}
 
-      <section className="rounded-md border border-gray-200 bg-white p-4">
+      <section className="rounded-md border border-border bg-card p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 className="text-base font-semibold text-gray-950">{copy.discover.repositories}</h3>
-            <p className="mt-1 text-sm text-gray-600">{copy.discover.subtitle}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{copy.discover.subtitle}</p>
           </div>
           <Button type="button" variant="outline" onClick={onSave}>
             <CheckCircle2 className="size-4" />
@@ -1443,7 +1443,7 @@ function DiscoveryPanel({
             const isProtected = protectedRepositoryIds.has(repository.id);
 
             return (
-              <div key={repository.id} className="rounded-md border border-gray-200 bg-gray-50 p-4">
+              <div key={repository.id} className="rounded-md border border-border bg-muted/40 p-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -1454,9 +1454,9 @@ function DiscoveryPanel({
                       <Badge variant="outline">{repository.kind}</Badge>
                       {isProtected && <Badge variant="outline">{copy.discover.protectedRepo}</Badge>}
                     </div>
-                    <p className="mt-1 break-all text-sm text-gray-600">{repository.url}</p>
-                    <p className="mt-1 text-sm text-gray-600">{repository.description}</p>
-                    <p className="mt-2 text-xs text-gray-500">
+                    <p className="mt-1 break-all text-sm text-muted-foreground">{repository.url}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{repository.description}</p>
+                    <p className="mt-2 text-xs text-muted-foreground">
                       {copy.discover.lastRefresh}:{" "}
                       {formatOptionalDate(repository.lastRefreshedAt, locale, copy.status.never)}
                     </p>
@@ -1497,7 +1497,7 @@ function DiscoveryPanel({
         </div>
       </section>
 
-      <section className="rounded-md border border-gray-200 bg-white p-4">
+      <section className="rounded-md border border-border bg-card p-4">
         <h3 className="text-base font-semibold text-gray-950">{copy.discover.addRepository}</h3>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <div>
@@ -1640,9 +1640,9 @@ export default function SettingsPage() {
 
   if (!hasHydrated) {
     return (
-      <main className="min-h-screen bg-gray-50">
+      <main className="min-h-screen bg-muted/40">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="rounded-md border border-gray-200 bg-white p-8 text-sm text-gray-600">
+          <div className="rounded-md border border-border bg-card p-8 text-sm text-muted-foreground">
             {copy.status.loading}
           </div>
         </div>
@@ -1651,7 +1651,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-muted/40">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -1662,7 +1662,7 @@ export default function SettingsPage() {
                 {copy.privacyPill}
               </Badge>
             </div>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-600">{copy.pageSubtitle}</p>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{copy.pageSubtitle}</p>
           </div>
           <Button type="button" variant="outline" onClick={refreshCatalogs}>
             <RefreshCw className="size-4" />

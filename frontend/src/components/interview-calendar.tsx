@@ -166,13 +166,13 @@ const InterviewCalendar = memo(function InterviewCalendar({
   }, [currentDate]);
 
   return (
-    <div className={cn("bg-white rounded-xl shadow-sm border border-gray-200", className)}>
+    <div className={cn("bg-card rounded-xl shadow-sm border border-border", className)}>
       {/* Calendar Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-6 py-4 border-b border-border">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <CalendarIcon className="h-5 w-5 text-gray-600" />
-            <h2 className="text-xl font-semibold text-gray-900">
+            <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-xl font-semibold text-foreground">
               {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h2>
           </div>
@@ -211,7 +211,7 @@ const InterviewCalendar = memo(function InterviewCalendar({
           {weekDays.map(day => (
             <div
               key={day}
-              className="text-center text-sm font-medium text-gray-600 py-2"
+              className="text-center text-sm font-medium text-muted-foreground py-2"
             >
               {day}
             </div>
@@ -233,16 +233,16 @@ const InterviewCalendar = memo(function InterviewCalendar({
                 onClick={() => handleDateClick(date)}
                 className={cn(
                   "min-h-[80px] p-1 border border-gray-100 rounded-lg cursor-pointer transition-colors",
-                  "hover:bg-gray-50",
+                  "hover:bg-muted/40",
                   today && "bg-blue-50 border-blue-200",
                   selected && "ring-2 ring-blue-500 ring-offset-1",
-                  !currentMonth && "bg-gray-50 opacity-60"
+                  !currentMonth && "bg-muted/40 opacity-60"
                 )}
               >
                 <div className={cn(
                   "text-sm font-medium mb-1",
                   today && "text-blue-600",
-                  !currentMonth && "text-gray-400"
+                  !currentMonth && "text-muted-foreground/80"
                 )}>
                   {date.getDate()}
                 </div>
@@ -278,7 +278,7 @@ const InterviewCalendar = memo(function InterviewCalendar({
                   })}
 
                   {dayEvents.length > 2 && (
-                    <div className="text-xs text-gray-600 text-center">
+                    <div className="text-xs text-muted-foreground text-center">
                       +{dayEvents.length - 2} more
                     </div>
                   )}
@@ -290,13 +290,13 @@ const InterviewCalendar = memo(function InterviewCalendar({
       </div>
 
       {/* Legend */}
-      <div className="px-6 py-4 border-t border-gray-200">
+      <div className="px-6 py-4 border-t border-border">
         <div className="flex items-center gap-4 flex-wrap">
-          <span className="text-sm text-gray-600">Interview Types:</span>
+          <span className="text-sm text-muted-foreground">Interview Types:</span>
           {Object.entries(interviewTypeColors).map(([type, classes]) => (
             <div key={type} className="flex items-center gap-2">
               <div className={cn("w-3 h-3 rounded-full border", classes)} />
-              <span className="text-xs text-gray-700 capitalize">{type}</span>
+              <span className="text-xs text-muted-foreground capitalize">{type}</span>
             </div>
           ))}
         </div>

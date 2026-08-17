@@ -319,8 +319,8 @@ export function NotificationSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">{copy.title}</h2>
-        <p className="text-gray-600 mt-1">
+        <h2 className="text-2xl font-bold text-foreground">{copy.title}</h2>
+        <p className="text-muted-foreground mt-1">
           {copy.subtitle}
         </p>
       </div>
@@ -395,15 +395,15 @@ export function NotificationSettings() {
         </div>
       )}
 
-      <div className="bg-white shadow rounded-lg">
+      <div className="bg-card shadow rounded-lg">
         <div className="px-4 py-5 sm:p-6 space-y-6">
           {/* Email Master Toggle */}
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <label htmlFor={emailEnabledId} className="text-base font-medium text-gray-900">
+              <label htmlFor={emailEnabledId} className="text-base font-medium text-foreground">
                 {copy.emailNotifications}
               </label>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 {copy.emailDescription}
               </p>
             </div>
@@ -422,23 +422,23 @@ export function NotificationSettings() {
                 aria-hidden="true"
                 className={`${
                   preferences.email_enabled ? "translate-x-5" : "translate-x-0"
-                } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out`}
               />
             </button>
           </div>
 
-          <hr className="border-gray-200" />
+          <hr className="border-border" />
 
           {/* Individual Notification Types */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">{copy.notificationTypes}</h3>
+            <h3 className="text-lg font-medium text-foreground">{copy.notificationTypes}</h3>
 
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <label htmlFor={applicationStatusId} className="text-sm font-medium text-gray-900">
+                <label htmlFor={applicationStatusId} className="text-sm font-medium text-foreground">
                   {copy.applicationStatus}
                 </label>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {copy.applicationStatusDescription}
                 </p>
               </div>
@@ -457,17 +457,17 @@ export function NotificationSettings() {
                   aria-hidden="true"
                   className={`${
                     preferences.application_status_updates ? "translate-x-5" : "translate-x-0"
-                  } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                  } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out`}
                 />
               </button>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <label htmlFor={interviewRemindersId} className="text-sm font-medium text-gray-900">
+                <label htmlFor={interviewRemindersId} className="text-sm font-medium text-foreground">
                   {copy.interviewReminders}
                 </label>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {copy.interviewRemindersDescription}
                 </p>
               </div>
@@ -486,17 +486,17 @@ export function NotificationSettings() {
                   aria-hidden="true"
                   className={`${
                     preferences.interview_reminders ? "translate-x-5" : "translate-x-0"
-                  } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                  } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out`}
                 />
               </button>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <label htmlFor={weeklyDigestId} className="text-sm font-medium text-gray-900">
+                <label htmlFor={weeklyDigestId} className="text-sm font-medium text-foreground">
                   {copy.weeklyDigest}
                 </label>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {copy.weeklyDigestDescription}
                 </p>
               </div>
@@ -515,17 +515,17 @@ export function NotificationSettings() {
                   aria-hidden="true"
                   className={`${
                     preferences.weekly_digest ? "translate-x-5" : "translate-x-0"
-                  } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                  } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out`}
                 />
               </button>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <label htmlFor={jobRecommendationsId} className="text-sm font-medium text-gray-900">
+                <label htmlFor={jobRecommendationsId} className="text-sm font-medium text-foreground">
                   {copy.jobRecommendations}
                 </label>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {copy.jobRecommendationsDescription}
                 </p>
               </div>
@@ -544,17 +544,17 @@ export function NotificationSettings() {
                   aria-hidden="true"
                   className={`${
                     preferences.job_recommendations ? "translate-x-5" : "translate-x-0"
-                  } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                  } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out`}
                 />
               </button>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <label htmlFor={profileViewsId} className="text-sm font-medium text-gray-900">
+                <label htmlFor={profileViewsId} className="text-sm font-medium text-foreground">
                   {copy.profileViews}
                 </label>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {copy.profileViewsDescription}
                 </p>
               </div>
@@ -573,20 +573,20 @@ export function NotificationSettings() {
                   aria-hidden="true"
                   className={`${
                     preferences.profile_views ? "translate-x-5" : "translate-x-0"
-                  } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                  } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out`}
                 />
               </button>
             </div>
           </div>
 
-          <hr className="border-gray-200" />
+          <hr className="border-border" />
 
           {/* Notification Frequency */}
           <div>
-            <label htmlFor={notificationFrequencyId} className="text-base font-medium text-gray-900">
+            <label htmlFor={notificationFrequencyId} className="text-base font-medium text-foreground">
               {copy.frequency}
             </label>
-            <p className="text-sm text-gray-500 mt-1 mb-3">
+            <p className="text-sm text-muted-foreground mt-1 mb-3">
               {copy.frequencyDescription}
             </p>
             <select
@@ -594,7 +594,7 @@ export function NotificationSettings() {
               value={preferences.notification_frequency}
               onChange={(e) => handleFrequencyChange(e.target.value as NotificationPreferences["notification_frequency"])}
               disabled={!preferences.email_enabled || status?.email_unsubscribed}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-input focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md disabled:bg-muted disabled:cursor-not-allowed"
             >
               <option value="immediate">{copy.immediate}</option>
               <option value="daily">{copy.daily}</option>
@@ -605,7 +605,7 @@ export function NotificationSettings() {
         </div>
 
         {/* Actions */}
-        <div className="bg-gray-50 px-4 py-3 sm:px-6 flex justify-between items-center">
+        <div className="bg-muted/40 px-4 py-3 sm:px-6 flex justify-between items-center">
           <button
             type="button"
             onClick={handleUnsubscribe}
@@ -628,10 +628,10 @@ export function NotificationSettings() {
       </div>
 
       {/* Test Notifications */}
-      <div className="bg-white shadow rounded-lg">
+      <div className="bg-card shadow rounded-lg">
         <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">{copy.testTitle}</h3>
-          <p className="text-sm text-gray-500 mb-4">
+          <h3 className="text-lg font-medium text-foreground mb-4">{copy.testTitle}</h3>
+          <p className="text-sm text-muted-foreground mb-4">
             {copy.testDescription}
           </p>
           <div className="flex flex-wrap gap-3">
@@ -639,7 +639,7 @@ export function NotificationSettings() {
               type="button"
               onClick={() => handleTestNotification("application_status")}
               disabled={testLoading || status?.email_unsubscribed || !preferences.email_enabled}
-              className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex justify-center py-2 px-4 border border-input shadow-sm text-sm font-medium rounded-md text-muted-foreground bg-card hover:bg-muted/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {copy.testStatus}
             </button>
@@ -647,7 +647,7 @@ export function NotificationSettings() {
               type="button"
               onClick={() => handleTestNotification("interview_reminder")}
               disabled={testLoading || status?.email_unsubscribed || !preferences.email_enabled}
-              className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex justify-center py-2 px-4 border border-input shadow-sm text-sm font-medium rounded-md text-muted-foreground bg-card hover:bg-muted/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {copy.testInterview}
             </button>
@@ -655,7 +655,7 @@ export function NotificationSettings() {
               type="button"
               onClick={() => handleTestNotification("weekly_digest")}
               disabled={testLoading || status?.email_unsubscribed || !preferences.email_enabled}
-              className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex justify-center py-2 px-4 border border-input shadow-sm text-sm font-medium rounded-md text-muted-foreground bg-card hover:bg-muted/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {copy.testWeekly}
             </button>

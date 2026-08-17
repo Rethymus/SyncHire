@@ -75,8 +75,8 @@ export function ApplicationNotes({
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-gray-700" />
-          <h3 className="font-semibold text-gray-900">申请备注</h3>
+          <FileText className="h-5 w-5 text-muted-foreground" />
+          <h3 className="font-semibold text-foreground">申请备注</h3>
         </div>
         {lastSaved && (
           <div className="flex items-center gap-1 text-sm text-green-600">
@@ -107,7 +107,7 @@ export function ApplicationNotes({
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-muted-foreground">
             {notes.length > 0 && (
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
@@ -150,7 +150,7 @@ export function ApplicationNotes({
 
         {/* Quick Notes Templates */}
         <div className="border-t pt-4">
-          <Label className="text-sm text-gray-600 mb-2 block">快速添加</Label>
+          <Label className="text-sm text-muted-foreground mb-2 block">快速添加</Label>
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"

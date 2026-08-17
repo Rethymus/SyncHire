@@ -215,7 +215,7 @@ export default function ApplicationSearchPage() {
   }, [handleSearch]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/40">
       
 
       <main className="max-w-6xl mx-auto px-4 py-8">
@@ -226,10 +226,10 @@ export default function ApplicationSearchPage() {
               <Briefcase className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-foreground">
                 {copy.title}
               </h1>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {copy.subtitle}
               </p>
             </div>

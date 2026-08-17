@@ -54,7 +54,7 @@ interface BatchOperationsToolbarProps {
 }
 
 const statusColors: Record<string, { color: string }> = {
-  draft: { color: "bg-gray-100 text-gray-800" },
+  draft: { color: "bg-muted text-gray-800" },
   applied: { color: "bg-blue-100 text-blue-800" },
   interview: { color: "bg-purple-100 text-purple-800" },
   offer: { color: "bg-green-100 text-green-800" },
@@ -215,14 +215,14 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
 
   if (selectedCount === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+      <div className="bg-card rounded-xl shadow-sm border border-border p-4 mb-4">
         <div className="flex items-center gap-4">
           <Checkbox
             checked={allSelected}
             onCheckedChange={onSelectAll}
             aria-label={copy.selectAll}
           />
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-muted-foreground">
             {copy.selectForBatch}
           </span>
           <div className="ml-auto">
@@ -237,7 +237,7 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
   }
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-sm border-2 border-blue-200 p-4 mb-4">
+    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 rounded-xl shadow-sm border-2 border-blue-200 p-4 mb-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -254,7 +254,7 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
           <div className="h-6 w-px bg-gray-300" />
 
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-700">{copy.batchActions}</span>
+            <span className="text-sm text-muted-foreground">{copy.batchActions}</span>
 
             {/* Status Update */}
             <DropdownMenu>
@@ -394,10 +394,10 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
               value={newTags}
               onChange={(e) => setNewTags(e.target.value)}
               placeholder={copy.tagsPlaceholder}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={processing}
             />
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               {copy.tagsHelp}
             </p>
           </div>

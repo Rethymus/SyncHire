@@ -33,7 +33,7 @@ function scoreTier(score: number | null): { label: string; className: string } |
     return { label: score.toFixed(0), className: "bg-green-100 text-green-700" };
   if (score >= 45)
     return { label: score.toFixed(0), className: "bg-amber-100 text-amber-700" };
-  return { label: score.toFixed(0), className: "bg-gray-100 text-gray-600" };
+  return { label: score.toFixed(0), className: "bg-muted text-muted-foreground" };
 }
 
 export default function JobFeedPage() {
@@ -147,15 +147,15 @@ export default function JobFeedPage() {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Rss className="h-6 w-6 text-indigo-600" aria-hidden />
             {t.title}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">{t.subtitle}</p>
+          <p className="text-sm text-muted-foreground mt-1">{t.subtitle}</p>
         </div>
         <Link
           href="/job-sources"
-          className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="inline-flex items-center gap-2 rounded-md border border-input bg-card px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted/40"
         >
           <SlidersHorizontal className="h-4 w-4" aria-hidden />
           {t.manageSources}
@@ -165,7 +165,7 @@ export default function JobFeedPage() {
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="relative flex-1 min-w-[240px]">
           <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/80"
             aria-hidden
           />
           <input
@@ -173,7 +173,7 @@ export default function JobFeedPage() {
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             placeholder={t.searchPlaceholder}
-            className="w-full rounded-md border border-gray-300 pl-9 pr-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="w-full rounded-md border border-input pl-9 pr-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             aria-label={t.searchPlaceholder}
           />
         </div>
@@ -181,7 +181,7 @@ export default function JobFeedPage() {
           value={remote}
           onChange={(e) => setRemote(e.target.value)}
           aria-label={t.allRemote}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:border-indigo-500 focus:outline-none"
+          className="rounded-md border border-input px-3 py-2 text-sm bg-card focus:border-indigo-500 focus:outline-none"
         >
           <option value="">{t.allRemote}</option>
           <option value="remote">{t.remote}</option>
@@ -192,7 +192,7 @@ export default function JobFeedPage() {
           value={sourceFilter}
           onChange={(e) => setSourceFilter(e.target.value)}
           aria-label={t.allSources}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:border-indigo-500 focus:outline-none"
+          className="rounded-md border border-input px-3 py-2 text-sm bg-card focus:border-indigo-500 focus:outline-none"
         >
           <option value="">{t.allSources}</option>
           {sourceOptions.map((source) => (
@@ -205,7 +205,7 @@ export default function JobFeedPage() {
           value={sort}
           onChange={(e) => setSort(e.target.value as SortMode)}
           aria-label={sort === "match" ? t.sortMatch : t.sortNewest}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:border-indigo-500 focus:outline-none"
+          className="rounded-md border border-input px-3 py-2 text-sm bg-card focus:border-indigo-500 focus:outline-none"
         >
           <option value="newest">{t.sortNewest}</option>
           <option value="match">{t.sortMatch}</option>
@@ -245,22 +245,22 @@ export default function JobFeedPage() {
       )}
 
       {loading && jobs.length === 0 ? (
-        <p className="text-sm text-gray-500 py-12 text-center">{t.loading}</p>
+        <p className="text-sm text-muted-foreground py-12 text-center">{t.loading}</p>
       ) : jobs.length === 0 && !error ? (
-        <div className="rounded-lg border border-dashed border-gray-300 py-12 text-center">
-          <p className="text-sm text-gray-500">{t.empty}</p>
+        <div className="rounded-lg border border-dashed border-input py-12 text-center">
+          <p className="text-sm text-muted-foreground">{t.empty}</p>
         </div>
       ) : (
         <ul className="space-y-3">
           {jobs.map((job) => (
             <li
               key={job.id}
-              className="rounded-lg border border-gray-200 bg-white p-4 hover:border-indigo-300 transition-colors"
+              className="rounded-lg border border-border bg-card p-4 hover:border-indigo-300 transition-colors"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-base font-semibold text-gray-900 truncate">
+                    <h2 className="text-base font-semibold text-foreground truncate">
                       {job.title}
                     </h2>
                     {isNew(job) && (
@@ -281,8 +281,8 @@ export default function JobFeedPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600 mt-0.5">{job.company}</p>
-                  <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-500">
+                  <p className="text-sm text-muted-foreground mt-0.5">{job.company}</p>
+                  <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-muted-foreground">
                     {job.location && (
                       <span className="inline-flex items-center gap-1">
                         <MapPin className="h-3.5 w-3.5" aria-hidden />
@@ -296,7 +296,7 @@ export default function JobFeedPage() {
                       </span>
                     )}
                     {job.employment_type && <span>{job.employment_type}</span>}
-                    <span className="font-mono bg-gray-100 rounded px-1.5 py-0.5">
+                    <span className="font-mono bg-muted rounded px-1.5 py-0.5">
                       {job.source}
                     </span>
                   </div>
@@ -318,7 +318,7 @@ export default function JobFeedPage() {
                       href={job.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted/40"
                     >
                       <ExternalLink className="h-4 w-4" aria-hidden />
                       {locale === "zh-CN" ? "查看" : "View"}

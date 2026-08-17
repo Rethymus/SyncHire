@@ -105,12 +105,12 @@ function ExportMenuBase({ filename, content, themeId, portraitUrl, pageRef }: Ex
       {open && (
         <div
           role="menu"
-          className="absolute right-0 mt-1 w-44 rounded-lg border border-gray-200 bg-white shadow-lg z-30 py-1"
+          className="absolute right-0 mt-1 w-44 rounded-lg border border-border bg-card shadow-lg z-30 py-1"
         >
           <button
             onClick={handlePdf}
             role="menuitem"
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted/40"
           >
             <FileText className="h-4 w-4 text-rose-500" />
             导出 PDF
@@ -118,7 +118,7 @@ function ExportMenuBase({ filename, content, themeId, portraitUrl, pageRef }: Ex
           <button
             onClick={handlePng}
             role="menuitem"
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted/40"
           >
             <ImageIcon className="h-4 w-4 text-violet-500" />
             导出 PNG
@@ -126,7 +126,7 @@ function ExportMenuBase({ filename, content, themeId, portraitUrl, pageRef }: Ex
           <button
             onClick={handleMd}
             role="menuitem"
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted/40"
           >
             <FileType2 className="h-4 w-4 text-blue-500" />
             导出 Markdown

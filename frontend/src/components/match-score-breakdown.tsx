@@ -130,7 +130,7 @@ export function MatchScoreBreakdown({
           <div className="flex items-center gap-3">
             <LevelIcon className={cn("h-8 w-8", config.color)} />
             <div>
-              <h3 className="text-2xl font-bold text-gray-900">
+              <h3 className="text-2xl font-bold text-foreground">
                 {overallPercentage.toFixed(1)}%
               </h3>
               <p className={cn("text-sm font-medium", config.color)}>
@@ -139,8 +139,8 @@ export function MatchScoreBreakdown({
             </div>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-600">综合得分</p>
-            <p className="text-lg font-semibold text-gray-900">
+            <p className="text-sm text-muted-foreground">综合得分</p>
+            <p className="text-lg font-semibold text-foreground">
               {overallScore.toFixed(1)} 分
             </p>
           </div>
@@ -153,8 +153,8 @@ export function MatchScoreBreakdown({
         {categoryScores.map((category) => (
           <Card key={category.category} className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-semibold text-gray-900">{category.category}</h4>
-              <span className="text-sm text-gray-600">
+              <h4 className="font-semibold text-foreground">{category.category}</h4>
+              <span className="text-sm text-muted-foreground">
                 {category.score.toFixed(1)} / {category.maxScore}
               </span>
             </div>
@@ -162,30 +162,30 @@ export function MatchScoreBreakdown({
               value={category.percentage}
               className={cn("h-2", categoryColors[category.category as keyof typeof categoryColors])}
             />
-            <p className="text-xs text-gray-500 mt-2">{category.details[0]}</p>
+            <p className="text-xs text-muted-foreground mt-2">{category.details[0]}</p>
           </Card>
         ))}
       </div>
 
       {/* Skill Matching Statistics */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">技能匹配统计</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-4">技能匹配统计</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">{exactMatches.length}</div>
-            <p className="text-xs text-gray-600">完全匹配</p>
+            <p className="text-xs text-muted-foreground">完全匹配</p>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">{partialMatches.length}</div>
-            <p className="text-xs text-gray-600">部分匹配</p>
+            <p className="text-xs text-muted-foreground">部分匹配</p>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-red-600">{missingSkills.length}</div>
-            <p className="text-xs text-gray-600">缺失技能</p>
+            <p className="text-xs text-muted-foreground">缺失技能</p>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-purple-600">{additionalSkills.length}</div>
-            <p className="text-xs text-gray-600">额外技能</p>
+            <p className="text-xs text-muted-foreground">额外技能</p>
           </div>
         </div>
       </Card>

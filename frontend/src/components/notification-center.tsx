@@ -188,10 +188,10 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
         aria-expanded={isOpen}
         aria-haspopup="true"
         aria-controls={panelId}
-        className="relative p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+        className="relative p-2 rounded-full hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
         aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
       >
-        <Bell className="h-5 w-5 text-gray-700" aria-hidden="true" />
+        <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
         {unreadCount > 0 && (
           <span
             className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white"
@@ -215,16 +215,16 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
           {/* Panel */}
           <div
             id={panelId}
-            className="absolute right-0 mt-2 w-80 sm:w-96 max-h-[600px] bg-white rounded-lg shadow-lg border border-gray-200 z-50 flex flex-col"
+            className="absolute right-0 mt-2 w-80 sm:w-96 max-h-[600px] bg-card rounded-lg shadow-lg border border-border z-50 flex flex-col"
             role="dialog"
             aria-modal="true"
             aria-labelledby="notification-panel-title"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between p-4 border-b border-border">
               <h2
                 id="notification-panel-title"
-                className="text-lg font-semibold text-gray-900"
+                className="text-lg font-semibold text-foreground"
               >
                 Notifications
               </h2>
@@ -263,7 +263,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
               ) : error ? (
                 <div className="p-4 text-center">
                   <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">{error}</p>
+                  <p className="text-sm text-muted-foreground">{error}</p>
                   <Button
                     variant="outline"
                     size="sm"
@@ -275,9 +275,9 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="p-8 text-center">
-                  <Bell className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">No notifications yet</p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <Bell className="h-12 w-12 text-muted-foreground/80 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No notifications yet</p>
+                  <p className="text-xs text-muted-foreground mt-1">
                     We&apos;ll notify you when something happens
                   </p>
                 </div>
@@ -291,7 +291,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                       <div
                         key={notification.id}
                         className={cn(
-                          "p-4 hover:bg-gray-50 transition-colors",
+                          "p-4 hover:bg-muted/40 transition-colors",
                           !notification.read && "bg-blue-50/50"
                         )}
                       >
@@ -308,14 +308,14 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
                               <div className="flex-1">
                                 <h3 className={cn(
                                   "text-sm font-medium",
-                                  notification.read ? "text-gray-700" : "text-gray-900"
+                                  notification.read ? "text-muted-foreground" : "text-foreground"
                                 )}>
                                   {notification.title}
                                 </h3>
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-sm text-muted-foreground mt-1">
                                   {notification.message}
                                 </p>
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="text-xs text-muted-foreground mt-1">
                                   {formatDistanceToNow(new Date(notification.created_at), {
                                     addSuffix: true,
                                   })}
@@ -367,7 +367,7 @@ export function NotificationCenter({ className }: NotificationCenterProps) {
             </div>
 
             {/* Footer */}
-            <div className="p-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+            <div className="p-3 border-t border-border bg-muted/40 rounded-b-lg">
               <Button
                 variant="ghost"
                 size="sm"

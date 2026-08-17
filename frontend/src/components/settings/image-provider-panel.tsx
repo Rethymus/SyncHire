@@ -74,14 +74,14 @@ function ImageProviderPanelBase({ onSaved }: ImageProviderPanelProps) {
   }, [settings]);
 
   return (
-    <section className="rounded-md border border-gray-200 bg-white p-5 space-y-4">
+    <section className="rounded-md border border-border bg-card p-5 space-y-4">
       <header className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-gray-950 flex items-center gap-2">
             <PlugZap className="h-4 w-4 text-blue-600" />
             图像生成供应商
           </h3>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             独立于文本 AI 的图像接口。许多大模型不具备图像生成能力，因此证件照功能使用单独的 API key。
           </p>
         </div>
@@ -99,11 +99,11 @@ function ImageProviderPanelBase({ onSaved }: ImageProviderPanelProps) {
 
       {/* Preset */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">供应商</label>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">供应商</label>
         <select
           value={settings.presetId}
           onChange={(e) => handlePresetChange(e.target.value as ImagePresetId)}
-          className="w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none bg-white"
+          className="w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none bg-card"
         >
           {IMAGE_PROVIDER_PRESETS.map((p) => (
             <option key={p.id} value={p.id}>
@@ -115,20 +115,20 @@ function ImageProviderPanelBase({ onSaved }: ImageProviderPanelProps) {
 
       {/* Base URL */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Base URL</label>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">Base URL</label>
         <input
           value={settings.baseUrl}
           onChange={(e) => update({ baseUrl: e.target.value })}
           placeholder="https://api.example.com/v1"
-          className="w-full h-9 px-3 rounded-md border border-gray-200 text-sm font-mono focus:border-blue-400 focus:outline-none"
+          className="w-full h-9 px-3 rounded-md border border-border text-sm font-mono focus:border-blue-400 focus:outline-none"
         />
       </div>
 
       {/* API key */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">
+        <label className="block text-xs font-medium text-muted-foreground mb-1">
           API Key {preset.requiresApiKey && <span className="text-rose-500">*</span>}
-          <span className="ml-2 text-gray-400 font-normal">
+          <span className="ml-2 text-muted-foreground/80 font-normal">
             {settings.apiKey ? `已保存：${maskApiKey(settings.apiKey)}` : "（仅本地存储，不离开本机）"}
           </span>
         </label>
@@ -138,12 +138,12 @@ function ImageProviderPanelBase({ onSaved }: ImageProviderPanelProps) {
             value={settings.apiKey}
             onChange={(e) => update({ apiKey: e.target.value })}
             placeholder={preset.requiresApiKey ? "sk-..." : "可选"}
-            className="w-full h-9 px-3 pr-10 rounded-md border border-gray-200 text-sm font-mono focus:border-blue-400 focus:outline-none"
+            className="w-full h-9 px-3 pr-10 rounded-md border border-border text-sm font-mono focus:border-blue-400 focus:outline-none"
           />
           <button
             type="button"
             onClick={() => setShowKey((v) => !v)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/80 hover:text-muted-foreground"
             aria-label={showKey ? "隐藏" : "显示"}
           >
             {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -153,23 +153,23 @@ function ImageProviderPanelBase({ onSaved }: ImageProviderPanelProps) {
 
       {/* Model */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">模型 ID</label>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">模型 ID</label>
         <input
           value={settings.model}
           onChange={(e) => update({ model: e.target.value })}
           placeholder={preset.defaultModel}
-          className="w-full h-9 px-3 rounded-md border border-gray-200 text-sm font-mono focus:border-blue-400 focus:outline-none"
+          className="w-full h-9 px-3 rounded-md border border-border text-sm font-mono focus:border-blue-400 focus:outline-none"
         />
-        <p className="text-[11px] text-gray-400 mt-1">{preset.modelHint}</p>
+        <p className="text-[11px] text-muted-foreground/80 mt-1">{preset.modelHint}</p>
       </div>
 
       {/* Size */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">输出尺寸</label>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">输出尺寸</label>
         <select
           value={settings.size}
           onChange={(e) => update({ size: e.target.value as ImageProviderSettings["size"] })}
-          className="w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none bg-white"
+          className="w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none bg-card"
         >
           <option value="1024x1024">1024 × 1024（方形，推荐）</option>
           <option value="1:1">1:1（由模型决定）</option>
@@ -182,7 +182,7 @@ function ImageProviderPanelBase({ onSaved }: ImageProviderPanelProps) {
         <button
           onClick={handleTest}
           disabled={testing}
-          className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition"
+          className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md border border-border text-sm text-muted-foreground hover:bg-muted/40 disabled:opacity-60 transition"
         >
           {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlugZap className="h-4 w-4" />}
           测试连通性

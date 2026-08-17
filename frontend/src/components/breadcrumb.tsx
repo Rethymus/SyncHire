@@ -103,14 +103,14 @@ export function Breadcrumb({
         {breadcrumbs.map((crumb, index) => (
           <React.Fragment key={crumb.path}>
             {index > 0 && (
-              <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
+              <ChevronRight className="h-4 w-4 text-muted-foreground/80 flex-shrink-0" aria-hidden="true" />
             )}
             <li
               className={cn(
                 "flex items-center space-x-1",
                 crumb.isCurrent
-                  ? "text-gray-900 font-medium"
-                  : "text-gray-600 hover:text-gray-900"
+                  ? "text-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {showIcons && crumb.icon && !crumb.isCurrent && (
@@ -205,15 +205,15 @@ export function CompactBreadcrumb({
         <li className="flex items-center space-x-1">
           <Link
             href={firstCrumb.path}
-            className="flex items-center space-x-1 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+            className="flex items-center space-x-1 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
             aria-label={locale === "zh-CN" ? "前往首页" : "Navigate to home"}
           >
             <Home className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">{firstCrumb.title}</span>
           </Link>
         </li>
-        <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden="true" />
-        <li className="text-gray-900 font-medium truncate">
+        <ChevronRight className="h-4 w-4 text-muted-foreground/80" aria-hidden="true" />
+        <li className="text-foreground font-medium truncate">
           <span aria-current="page">{lastCrumb.title}</span>
         </li>
       </ol>
@@ -270,15 +270,15 @@ export function BreadcrumbWithSeparator({
         {breadcrumbs.map((crumb, index) => (
           <React.Fragment key={crumb.path}>
             {index > 0 && (
-              <li className="text-gray-400" aria-hidden="true">
+              <li className="text-muted-foreground/80" aria-hidden="true">
                 {separator || "/"}
               </li>
             )}
             <li
               className={cn(
                 crumb.isCurrent
-                  ? "text-gray-900 font-medium"
-                  : "text-gray-600 hover:text-gray-900"
+                  ? "text-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {crumb.isCurrent ? (

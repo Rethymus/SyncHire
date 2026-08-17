@@ -63,15 +63,15 @@ const DraggableApplication = memo(function DraggableApplication({
     <div
       draggable
       onDragStart={handleDragStart}
-      className="bg-white p-3 rounded-lg border-2 border-gray-200 shadow-sm cursor-grab active:cursor-grabbing transition-all hover:border-blue-400 hover:shadow-md"
+      className="bg-card p-3 rounded-lg border-2 border-border shadow-sm cursor-grab active:cursor-grabbing transition-all hover:border-blue-400 hover:shadow-md"
     >
       <div className="flex items-start gap-2">
-        <GripVertical className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+        <GripVertical className="h-4 w-4 text-muted-foreground/80 mt-0.5 flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-gray-900 text-sm truncate">
+          <p className="font-medium text-foreground text-sm truncate">
             {application.job_title}
           </p>
-          <p className="text-xs text-gray-600 truncate">{application.company_name}</p>
+          <p className="text-xs text-muted-foreground truncate">{application.company_name}</p>
           {application.match_score !== undefined && (
             <div className="mt-1 flex items-center gap-1">
               <div className="h-1.5 flex-1 bg-gray-200 rounded-full overflow-hidden">
@@ -80,7 +80,7 @@ const DraggableApplication = memo(function DraggableApplication({
                   style={{ width: `${application.match_score}%` }}
                 />
               </div>
-              <span className="text-xs text-gray-600">{application.match_score}%</span>
+              <span className="text-xs text-muted-foreground">{application.match_score}%</span>
             </div>
           )}
         </div>
@@ -144,14 +144,14 @@ const CalendarDay = memo(function CalendarDay({
         "hover:bg-blue-50 hover:border-blue-200",
         isToday && "bg-blue-50 border-blue-300",
         isSelected && "ring-2 ring-blue-500 ring-offset-1",
-        !isCurrentMonth && "bg-gray-50 opacity-60"
+        !isCurrentMonth && "bg-muted/40 opacity-60"
       )}
     >
       <div
         className={cn(
           "text-sm font-medium mb-1",
           isToday && "text-blue-600 font-bold",
-          !isCurrentMonth && "text-gray-400"
+          !isCurrentMonth && "text-muted-foreground/80"
         )}
       >
         {date.getDate()}
@@ -365,14 +365,14 @@ export function InterviewDragDropCalendar({
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Applications sidebar */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div className="bg-card rounded-xl shadow-sm border border-border p-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900">Applications</h3>
-              <span className="text-sm text-gray-600">
+              <h3 className="font-semibold text-foreground">Applications</h3>
+              <span className="text-sm text-muted-foreground">
                 {applicationsData?.applications.length || 0}
               </span>
             </div>
-            <p className="text-xs text-gray-600 mb-4">
+            <p className="text-xs text-muted-foreground mb-4">
               Drag applications to calendar dates to schedule interviews
             </p>
 
@@ -387,7 +387,7 @@ export function InterviewDragDropCalendar({
 
               {(!applicationsData?.applications.length ||
                 applicationsData.applications.length === 0) && (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-muted-foreground">
                   <Briefcase className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">No applications available</p>
                   <p className="text-xs">Apply to jobs first</p>
@@ -399,13 +399,13 @@ export function InterviewDragDropCalendar({
 
         {/* Calendar */}
         <div className="lg:col-span-3">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-card rounded-xl shadow-sm border border-border">
             {/* Calendar Header */}
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="px-6 py-4 border-b border-border">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <Calendar className="h-5 w-5 text-gray-600" />
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                  <h2 className="text-xl font-semibold text-foreground">
                     {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                   </h2>
                 </div>
@@ -430,7 +430,7 @@ export function InterviewDragDropCalendar({
                 {weekDays.map((day) => (
                   <div
                     key={day}
-                    className="text-center text-sm font-medium text-gray-600 py-2"
+                    className="text-center text-sm font-medium text-muted-foreground py-2"
                   >
                     {day}
                   </div>

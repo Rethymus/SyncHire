@@ -34,8 +34,8 @@ const statusStyles: Record<string, {
 }> = {
   draft: {
     icon: FileText,
-    color: "bg-gray-100 text-gray-800",
-    borderColor: "border-gray-200",
+    color: "bg-muted text-gray-800",
+    borderColor: "border-border",
   },
   applied: {
     icon: Clock,
@@ -97,8 +97,8 @@ const ApplicationItem = memo(function ApplicationItem({
   return (
     <div
       className={cn(
-        "bg-white rounded-xl shadow-sm border hover:shadow-md transition-all overflow-hidden",
-        isSelected ? "border-2 border-blue-400 bg-blue-50" : "border-gray-200"
+        "bg-card rounded-xl shadow-sm border hover:shadow-md transition-all overflow-hidden",
+        isSelected ? "border-2 border-blue-400 bg-blue-50" : "border-border"
       )}
     >
       <div className="p-6">
@@ -116,7 +116,7 @@ const ApplicationItem = memo(function ApplicationItem({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-2">
-              <h3 className="text-lg font-semibold text-gray-900 truncate">
+              <h3 className="text-lg font-semibold text-foreground truncate">
                 {application.position}
               </h3>
               <span
@@ -132,7 +132,7 @@ const ApplicationItem = memo(function ApplicationItem({
               {/* Tags */}
               {tags.length > 0 && (
                 <div className="flex items-center gap-1.5">
-                  <TagIcon className="h-3 w-3 text-gray-500" />
+                  <TagIcon className="h-3 w-3 text-muted-foreground" />
                   <div className="flex gap-1">
                     {tags.slice(0, 2).map((tag: string, idx: number) => (
                       <Badge
@@ -152,14 +152,14 @@ const ApplicationItem = memo(function ApplicationItem({
                 </div>
               )}
             </div>
-            <p className="text-sm text-gray-600 mb-3">{application.companyName}</p>
+            <p className="text-sm text-muted-foreground mb-3">{application.companyName}</p>
             <div className="flex items-center gap-4 text-sm">
               {/* Rank Badge */}
               {sortBy === "matchScore" && application.matchScore !== undefined && application.rank && (
                 <div className="flex items-center gap-1.5">
                   <div className={cn(
                     "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
-                    application.rank <= 3 ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white" : "bg-gray-200 text-gray-700"
+                    application.rank <= 3 ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white" : "bg-gray-200 text-muted-foreground"
                   )}>
                     {application.rank}
                   </div>
@@ -168,7 +168,7 @@ const ApplicationItem = memo(function ApplicationItem({
               {application.matchScore !== undefined && (
                 <div className="flex items-center gap-1.5">
                   <Target className="h-4 w-4 text-blue-600" />
-                  <span className="text-gray-700">
+                  <span className="text-muted-foreground">
                     {copy.match}: <span className="font-semibold">{application.matchScore}%</span>
                   </span>
                   <span className={cn(
@@ -183,8 +183,8 @@ const ApplicationItem = memo(function ApplicationItem({
                 </div>
               )}
               <div className="flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-gray-500" />
-                <span className="text-gray-600">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">
                   {formatLiteDate(application.updatedAt, locale)}
                 </span>
               </div>
@@ -214,7 +214,7 @@ const ApplicationItem = memo(function ApplicationItem({
       </div>
 
       {/* Action bar */}
-      <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between">
+      <div className="bg-muted/40 px-6 py-3 border-t border-border flex items-center justify-between">
         <div className="flex items-center gap-4 text-sm">
           <Link
             href={applicationDetailHref(application.id)}
@@ -227,7 +227,7 @@ const ApplicationItem = memo(function ApplicationItem({
         <div className="flex items-center gap-2">
           <Link
             href={applicationMatchHref(application.id)}
-            className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             {copy.viewMatchAnalysis}
           </Link>
@@ -310,10 +310,10 @@ export const BatchApplicationsList = memo(function BatchApplicationsList({
 
   if (applications.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-        <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{copy.emptyTitle}</h3>
-        <p className="text-sm text-gray-600 mb-6">
+      <div className="bg-card rounded-xl shadow-sm border border-border p-12 text-center">
+        <Briefcase className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-foreground mb-2">{copy.emptyTitle}</h3>
+        <p className="text-sm text-muted-foreground mb-6">
           {copy.emptyDescription}
         </p>
         <Button asChild>
@@ -327,9 +327,9 @@ export const BatchApplicationsList = memo(function BatchApplicationsList({
     <div className="space-y-4">
       {/* Sorting Controls */}
       {showRanking && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div className="bg-card rounded-xl shadow-sm border border-border p-4">
           <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-gray-700">{copy.sortBy}</span>
+            <span className="text-sm font-medium text-muted-foreground">{copy.sortBy}</span>
             <div className="flex gap-2">
               <Button
                 variant={sortBy === "matchScore" ? "default" : "outline"}
@@ -354,7 +354,7 @@ export const BatchApplicationsList = memo(function BatchApplicationsList({
                 )}
               </Button>
             </div>
-            <div className="ml-auto text-sm text-gray-600">
+            <div className="ml-auto text-sm text-muted-foreground">
               {copy.showingResults.replace("{count}", String(sortedApplications.length))}
             </div>
           </div>

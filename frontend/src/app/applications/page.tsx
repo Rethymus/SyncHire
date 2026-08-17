@@ -56,7 +56,7 @@ export default function ApplicationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-muted/40 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Breadcrumb */}
         <div className="mb-4">
@@ -66,8 +66,8 @@ export default function ApplicationsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{applicationsCopy.title}</h1>
-            <p className="text-gray-600">
+            <h1 className="text-3xl font-bold text-foreground mb-2">{applicationsCopy.title}</h1>
+            <p className="text-muted-foreground">
               {applicationsCopy.subtitle}
             </p>
           </div>
@@ -85,10 +85,10 @@ export default function ApplicationsPage() {
               <div className="p-2 bg-blue-100 rounded-lg">
                 <BarChart3 className="h-5 w-5 text-blue-600" />
               </div>
-              <span className="text-sm text-gray-600">{applicationsCopy.totalApplications}</span>
+              <span className="text-sm text-muted-foreground">{applicationsCopy.totalApplications}</span>
             </div>
-            <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
-            <p className="text-xs text-gray-500 mt-1">
+            <div className="text-3xl font-bold text-foreground">{stats.total}</div>
+            <p className="text-xs text-muted-foreground mt-1">
               {stats.withScores} {applicationsCopy.analyzedMatches}
             </p>
           </Card>
@@ -98,10 +98,10 @@ export default function ApplicationsPage() {
               <div className="p-2 bg-green-100 rounded-lg">
                 <TrendingUp className="h-5 w-5 text-green-600" />
               </div>
-              <span className="text-sm text-gray-600">{applicationsCopy.averageMatch}</span>
+              <span className="text-sm text-muted-foreground">{applicationsCopy.averageMatch}</span>
             </div>
-            <div className="text-3xl font-bold text-gray-900">{stats.average}%</div>
-            <p className="text-xs text-gray-500 mt-1">
+            <div className="text-3xl font-bold text-foreground">{stats.average}%</div>
+            <p className="text-xs text-muted-foreground mt-1">
               {applicationsCopy.max}: {stats.max}%, {applicationsCopy.min}: {stats.min}%
             </p>
           </Card>
@@ -111,10 +111,10 @@ export default function ApplicationsPage() {
               <div className="p-2 bg-yellow-100 rounded-lg">
                 <Award className="h-5 w-5 text-yellow-600" />
               </div>
-              <span className="text-sm text-gray-600">{applicationsCopy.excellentMatches}</span>
+              <span className="text-sm text-muted-foreground">{applicationsCopy.excellentMatches}</span>
             </div>
-            <div className="text-3xl font-bold text-gray-900">{stats.excellent}</div>
-            <p className="text-xs text-gray-500 mt-1">
+            <div className="text-3xl font-bold text-foreground">{stats.excellent}</div>
+            <p className="text-xs text-muted-foreground mt-1">
               {applicationsCopy.good}: {stats.good}, {applicationsCopy.fair}: {stats.fair}
             </p>
           </Card>
@@ -124,10 +124,10 @@ export default function ApplicationsPage() {
               <div className="p-2 bg-purple-100 rounded-lg">
                 <Target className="h-5 w-5 text-purple-600" />
               </div>
-              <span className="text-sm text-gray-600">{applicationsCopy.median}</span>
+              <span className="text-sm text-muted-foreground">{applicationsCopy.median}</span>
             </div>
-            <div className="text-3xl font-bold text-gray-900">{stats.median}%</div>
-            <p className="text-xs text-gray-500 mt-1">
+            <div className="text-3xl font-bold text-foreground">{stats.median}%</div>
+            <p className="text-xs text-muted-foreground mt-1">
               {stats.median >= 60 ? applicationsCopy.strong : applicationsCopy.improve}
             </p>
           </Card>
@@ -143,10 +143,10 @@ export default function ApplicationsPage() {
                   <Sparkles className="h-5 w-5 text-yellow-600" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">
+                  <h2 className="text-xl font-bold text-foreground">
                     {applicationsCopy.suggestionsTitle}
                   </h2>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     {applicationsCopy.suggestionsSubtitle}
                   </p>
                 </div>
@@ -167,21 +167,21 @@ export default function ApplicationsPage() {
                 return (
                   <div
                     key={applicationId}
-                    className="flex items-start justify-between p-4 bg-white rounded-lg border border-yellow-200"
+                    className="flex items-start justify-between p-4 bg-card rounded-lg border border-yellow-200"
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-gray-900">
+                        <h3 className="font-semibold text-foreground">
                           {application.position}
                         </h3>
                         <Badge variant="outline" className="text-xs">
                           {applicationsCopy.confidence}: {Math.round(suggestion.confidence * 100)}%
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-muted-foreground mb-2">
                         {application.companyName}
                       </p>
-                      <p className="text-sm text-gray-700">
+                      <p className="text-sm text-muted-foreground">
                         {applicationsCopy.suggestionReasons[
                           application.status as keyof typeof applicationsCopy.suggestionReasons
                         ] || suggestion.reason}
@@ -222,10 +222,10 @@ export default function ApplicationsPage() {
           <Card className="p-6 mb-8 border-2 border-green-200 bg-green-50">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-1">
+                <h2 className="text-xl font-bold text-foreground mb-1">
                   {applicationsCopy.recommendedTitle}
                 </h2>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   {applicationsCopy.recommendedSubtitle}
                 </p>
               </div>
@@ -236,17 +236,17 @@ export default function ApplicationsPage() {
                 <Link
                   key={app.id}
                   href={applicationMatchHref(app.id)}
-                  className="block p-4 bg-white rounded-lg border border-green-200 hover:border-green-400 hover:shadow-md transition-all"
+                  className="block p-4 bg-card rounded-lg border border-green-200 hover:border-green-400 hover:shadow-md transition-all"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 truncate">
+                    <h3 className="font-semibold text-foreground truncate">
                       {app.position}
                     </h3>
                     <span className="text-sm font-bold text-green-600">
                       {app.matchScore}%
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{app.companyName}</p>
+                  <p className="text-sm text-muted-foreground mb-2">{app.companyName}</p>
                   <div className="flex items-center gap-2">
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded ${
@@ -258,7 +258,7 @@ export default function ApplicationsPage() {
                       {app.matchLevel === "excellent" ? applicationsCopy.excellentMatch : applicationsCopy.goodMatch}
                     </span>
                     {app.percentile && (
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">
                         {applicationsCopy.percentilePrefix} {Math.round(100 - app.percentile)}%
                       </span>
                     )}
@@ -283,13 +283,13 @@ export default function ApplicationsPage() {
         {isEmpty && (
           <Card className="p-12 text-center">
             <div className="max-w-md mx-auto">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Target className="h-8 w-8 text-gray-400" />
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                <Target className="h-8 w-8 text-muted-foreground/80" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-foreground mb-2">
                 {applicationsCopy.emptyTitle}
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-muted-foreground mb-6">
                 {applicationsCopy.emptyDescription}
               </p>
               <Button size="lg" onClick={() => setCreateDialogOpen(true)}>

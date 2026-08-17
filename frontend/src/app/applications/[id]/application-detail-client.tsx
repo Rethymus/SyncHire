@@ -47,7 +47,7 @@ import {
 } from "lucide-react";
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
-  draft: { label: "草稿", color: "bg-gray-100 text-gray-800", icon: FileText },
+  draft: { label: "草稿", color: "bg-muted text-gray-800", icon: FileText },
   applied: { label: "已申请", color: "bg-blue-100 text-blue-800", icon: Clock },
   interview: { label: "面试中", color: "bg-purple-100 text-purple-800", icon: MessageSquare },
   offer: { label: "已录用", color: "bg-green-100 text-green-800", icon: CheckCircle2 },
@@ -372,10 +372,10 @@ export default function ApplicationDetailClient() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/40 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">加载申请详情...</p>
+          <p className="text-muted-foreground">加载申请详情...</p>
         </div>
       </div>
     );
@@ -383,13 +383,13 @@ export default function ApplicationDetailClient() {
 
   if (error && !application) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/40 flex items-center justify-center">
         <Card className="p-8 max-w-md">
           <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2 text-center">
+          <h2 className="text-xl font-semibold text-foreground mb-2 text-center">
             加载失败
           </h2>
-          <p className="text-gray-600 text-center mb-4">{error}</p>
+          <p className="text-muted-foreground text-center mb-4">{error}</p>
           <Button onClick={() => router.back()} className="w-full">
             返回
           </Button>
@@ -403,7 +403,7 @@ export default function ApplicationDetailClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-muted/40 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Breadcrumb */}
         <div className="mb-4">
@@ -427,7 +427,7 @@ export default function ApplicationDetailClient() {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-3xl font-bold text-foreground">
                   {jd?.title || "Unknown Position"}
                 </h1>
                 <Badge className={config.color}>
@@ -435,7 +435,7 @@ export default function ApplicationDetailClient() {
                   {config.label}
                 </Badge>
               </div>
-              <div className="flex items-center gap-4 text-gray-600">
+              <div className="flex items-center gap-4 text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Building2 className="h-4 w-4" />
                   <span>{jd?.company || "Unknown Company"}</span>
@@ -503,12 +503,12 @@ export default function ApplicationDetailClient() {
                     <FileText className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">使用的简历</h3>
-                    <p className="text-sm text-gray-600">{resume?.title || "Unknown"}</p>
+                    <h3 className="font-semibold text-foreground">使用的简历</h3>
+                    <p className="text-sm text-muted-foreground">{resume?.title || "Unknown"}</p>
                   </div>
                 </div>
                 <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-gray-600">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="h-4 w-4" />
                     上传于 {resume?.created_at ? new Date(resume.created_at).toLocaleDateString() : "Unknown"}
                   </div>
@@ -529,17 +529,17 @@ export default function ApplicationDetailClient() {
                     <Briefcase className="h-5 w-5 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">职位描述</h3>
-                    <p className="text-sm text-gray-600">{jd?.title || "Unknown"}</p>
+                    <h3 className="font-semibold text-foreground">职位描述</h3>
+                    <p className="text-sm text-muted-foreground">{jd?.title || "Unknown"}</p>
                   </div>
                 </div>
                 <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-gray-600">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <Building2 className="h-4 w-4" />
                     {jd?.company || "Unknown Company"}
                   </div>
                   {jd?.location && (
-                    <div className="flex items-center gap-2 text-gray-600">
+                    <div className="flex items-center gap-2 text-muted-foreground">
                       <MapPin className="h-4 w-4" />
                       {jd.location}
                     </div>
@@ -560,8 +560,8 @@ export default function ApplicationDetailClient() {
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">匹配度评分</h3>
-                    <p className="text-sm text-gray-600">
+                    <h3 className="font-semibold text-foreground mb-2">匹配度评分</h3>
+                    <p className="text-sm text-muted-foreground">
                       基于您的简历和职位要求的AI分析
                     </p>
                   </div>
@@ -587,8 +587,8 @@ export default function ApplicationDetailClient() {
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">匹配度分析</h2>
-                  <p className="text-sm text-gray-600">
+                  <h2 className="text-xl font-semibold text-foreground">匹配度分析</h2>
+                  <p className="text-sm text-muted-foreground">
                     AI 分析您的简历与职位要求的匹配情况
                   </p>
                 </div>
@@ -614,8 +614,8 @@ export default function ApplicationDetailClient() {
                 <MatchAnalysisDisplay matchData={matchScore} />
               ) : (
                 <div className="text-center py-12">
-                  <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">
+                  <Target className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-4">
                     点击上方按钮开始匹配度分析
                   </p>
                 </div>
@@ -628,8 +628,8 @@ export default function ApplicationDetailClient() {
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">简历优化</h2>
-                  <p className="text-sm text-gray-600">
+                  <h2 className="text-xl font-semibold text-foreground">简历优化</h2>
+                  <p className="text-sm text-muted-foreground">
                     AI 根据职位要求优化您的简历内容
                   </p>
                 </div>
@@ -674,8 +674,8 @@ export default function ApplicationDetailClient() {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">
+                  <TrendingUp className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-4">
                     点击上方按钮开始AI简历优化
                   </p>
                 </div>
@@ -691,7 +691,7 @@ export default function ApplicationDetailClient() {
           {/* Notes Tab */}
           <TabsContent value="notes">
             <Card className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">申请备注</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-4">申请备注</h2>
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="notes">备注内容</Label>
@@ -725,25 +725,25 @@ export default function ApplicationDetailClient() {
                 {/* Status History */}
                 {application.status_history && application.status_history.length > 0 && (
                   <div className="mt-8">
-                    <h3 className="font-semibold text-gray-900 mb-4">状态历史</h3>
+                    <h3 className="font-semibold text-foreground mb-4">状态历史</h3>
                     <div className="space-y-3">
                       {application.status_history.map((history: any) => (
                         <div
                           key={history.id}
-                          className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg"
+                          className="flex items-start gap-3 p-3 bg-muted/40 rounded-lg"
                         >
-                          <Clock className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                          <Clock className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 text-sm">
-                              <span className="font-medium text-gray-900">
+                              <span className="font-medium text-foreground">
                                 {statusConfig[history.old_status]?.label || "开始"} → {statusConfig[history.new_status]?.label}
                               </span>
-                              <span className="text-gray-500">
+                              <span className="text-muted-foreground">
                                 {new Date(history.changed_at).toLocaleString()}
                               </span>
                             </div>
                             {history.notes && (
-                              <p className="text-sm text-gray-600 mt-1">
+                              <p className="text-sm text-muted-foreground mt-1">
                                 {history.notes}
                               </p>
                             )}

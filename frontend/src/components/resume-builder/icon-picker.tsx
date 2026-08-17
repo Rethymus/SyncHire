@@ -45,17 +45,17 @@ function IconPickerBase({ open, onPick, onClose }: IconPickerProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden"
+        className="bg-card rounded-xl shadow-2xl max-w-md w-full overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">图标列表</h3>
-            <p className="text-sm text-gray-500 mt-0.5">点击插入 <code className="text-xs">icon:名称</code>。</p>
+            <h3 className="text-lg font-semibold text-foreground">图标列表</h3>
+            <p className="text-sm text-muted-foreground mt-0.5">点击插入 <code className="text-xs">icon:名称</code>。</p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+            className="text-muted-foreground/80 hover:text-muted-foreground text-2xl leading-none"
             aria-label="关闭"
           >
             ×
@@ -88,7 +88,7 @@ function IconPickerBase({ open, onPick, onClose }: IconPickerProps) {
                   }}
                   aria-hidden="true"
                 />
-                <span className="text-[11px] text-gray-600">{label}</span>
+                <span className="text-[11px] text-muted-foreground">{label}</span>
               </button>
             );
           })}

@@ -325,16 +325,16 @@ function InterviewReviewStudioBase({
       onClick={handleClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-auto"
+        className="bg-card rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white z-10">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-card z-10">
           <div className="flex items-center gap-2">
-            <Brain className="h-5 w-5 text-gray-900" />
-            <h3 className="text-lg font-semibold text-gray-900">面试复盘</h3>
+            <Brain className="h-5 w-5 text-foreground" />
+            <h3 className="text-lg font-semibold text-foreground">面试复盘</h3>
           </div>
-          <button onClick={handleClose} className="text-gray-400 hover:text-gray-600" aria-label="关闭">
+          <button onClick={handleClose} className="text-muted-foreground/80 hover:text-muted-foreground" aria-label="关闭">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -350,11 +350,11 @@ function InterviewReviewStudioBase({
           </div>
 
           {/* Provider status */}
-          <div className="flex items-center justify-between rounded-lg bg-gray-50 border border-gray-200 px-4 py-2.5">
-            <div className="text-xs text-gray-600">
+          <div className="flex items-center justify-between rounded-lg bg-muted/40 border border-border px-4 py-2.5">
+            <div className="text-xs text-muted-foreground">
               <span className="font-medium text-gray-800">文本模型</span>
               <span className="mx-2 text-gray-300">·</span>
-              <code className="text-gray-700">{provider.model || "未设置"}</code>
+              <code className="text-muted-foreground">{provider.model || "未设置"}</code>
               <span className="mx-2 text-gray-300">·</span>
               Key {provider.apiKey ? "已配置" : "未配置"}
             </div>
@@ -392,7 +392,7 @@ function InterviewReviewStudioBase({
 
           {/* Input mode selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">1. 选择输入方式</label>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">1. 选择输入方式</label>
             <div className="grid grid-cols-3 gap-2">
               {(Object.keys(SOURCE_META) as InterviewInputSource[]).map((key) => {
                 const meta = SOURCE_META[key];
@@ -406,15 +406,15 @@ function InterviewReviewStudioBase({
                     className={`flex flex-col items-start gap-1 rounded-lg border px-3 py-2.5 text-left transition ${
                       active
                         ? "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
-                        : "border-gray-200 hover:border-gray-300 bg-white"
+                        : "border-border hover:border-input bg-card"
                     }`}
                     aria-pressed={active}
                   >
-                    <Icon className={`h-4 w-4 ${active ? "text-blue-600" : "text-gray-500"}`} />
+                    <Icon className={`h-4 w-4 ${active ? "text-blue-600" : "text-muted-foreground"}`} />
                     <span className={`text-sm font-medium ${active ? "text-blue-700" : "text-gray-800"}`}>
                       {meta.label}
                     </span>
-                    <span className="text-[11px] leading-snug text-gray-500">{meta.hint}</span>
+                    <span className="text-[11px] leading-snug text-muted-foreground">{meta.hint}</span>
                   </button>
                 );
               })}
@@ -424,7 +424,7 @@ function InterviewReviewStudioBase({
           {/* Context fields */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="ivr-role" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="ivr-role" className="block text-sm font-medium text-muted-foreground mb-1.5">
                 目标岗位（可选）
               </label>
               <input
@@ -432,11 +432,11 @@ function InterviewReviewStudioBase({
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 placeholder="如 高级前端工程师"
-                className="w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none"
+                className="w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none"
               />
             </div>
             <div>
-              <label htmlFor="ivr-company" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="ivr-company" className="block text-sm font-medium text-muted-foreground mb-1.5">
                 目标公司（可选）
               </label>
               <input
@@ -444,7 +444,7 @@ function InterviewReviewStudioBase({
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
                 placeholder="如 字节跳动"
-                className="w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none"
+                className="w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none"
               />
             </div>
           </div>
@@ -484,14 +484,14 @@ function InterviewReviewStudioBase({
                       ? dictating
                         ? "bg-red-600 text-white hover:bg-red-700"
                         : "bg-gray-900 text-white hover:bg-gray-800"
-                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-muted text-muted-foreground/80 cursor-not-allowed"
                   }`}
                   title={dictSupported ? "" : "当前浏览器不支持语音识别"}
                 >
                   {dictating ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                   {dictating ? "停止听写" : "开始边说边听写"}
                 </button>
-                <label className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer">
+                <label className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted/40 cursor-pointer">
                   <Upload className="h-4 w-4" />
                   选择音频文件
                   <input
@@ -512,7 +512,7 @@ function InterviewReviewStudioBase({
                   />
                 </label>
                 {!dictSupported && (
-                  <span className="text-[11px] text-gray-400">
+                  <span className="text-[11px] text-muted-foreground/80">
                     当前浏览器不支持实时听写，请用 Chrome / Edge。
                   </span>
                 )}
@@ -523,10 +523,10 @@ function InterviewReviewStudioBase({
           {/* Raw text input */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label htmlFor="ivr-raw" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="ivr-raw" className="block text-sm font-medium text-muted-foreground">
                 2. {SOURCE_META[source].label}内容
               </label>
-              <span className="text-[11px] text-gray-400">{rawText.length} 字</span>
+              <span className="text-[11px] text-muted-foreground/80">{rawText.length} 字</span>
             </div>
             <textarea
               id="ivr-raw"
@@ -540,7 +540,7 @@ function InterviewReviewStudioBase({
                     ? "直接粘贴会议纪要全文，最好带说话人和时间戳…"
                     : "把转写后的文字粘贴在这里（或点上方「开始边说边听写」实时输入）…"
               }
-              className="w-full px-3 py-2 rounded-md border border-gray-200 text-sm leading-relaxed focus:border-blue-400 focus:outline-none resize-y"
+              className="w-full px-3 py-2 rounded-md border border-border text-sm leading-relaxed focus:border-blue-400 focus:outline-none resize-y"
             />
           </div>
 
@@ -584,7 +584,7 @@ function InterviewReviewStudioBase({
               <button
                 type="button"
                 onClick={reset}
-                className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm text-muted-foreground hover:bg-muted/40"
               >
                 清空结果
               </button>
@@ -599,7 +599,7 @@ function InterviewReviewStudioBase({
           {/* Focus notes (only after normalized) */}
           {normalized && !report && (
             <div>
-              <label htmlFor="ivr-focus" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="ivr-focus" className="block text-sm font-medium text-muted-foreground mb-1.5">
                 特别想听反馈的点（可选）
               </label>
               <input
@@ -607,7 +607,7 @@ function InterviewReviewStudioBase({
                 value={focusNotes}
                 onChange={(e) => setFocusNotes(e.target.value)}
                 placeholder="如：系统设计那题答得不好，想重点看怎么改"
-                className="w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none"
+                className="w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none"
               />
             </div>
           )}
@@ -630,11 +630,11 @@ function InterviewReviewStudioBase({
 
 function NormalizedPreview({ normalized }: { normalized: NormalizedInterview }) {
   return (
-    <div className="rounded-lg border border-gray-200 overflow-hidden">
-      <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 border-b border-gray-100">
+    <div className="rounded-lg border border-border overflow-hidden">
+      <div className="flex items-center gap-2 bg-muted/40 px-3 py-2 border-b border-gray-100">
         <Check className="h-4 w-4 text-emerald-600" />
         <span className="text-sm font-medium text-gray-800">已整理为 {normalized.turns.length} 轮对话</span>
-        <span className="ml-auto text-[11px] text-gray-400">可核对后再生成复盘报告</span>
+        <span className="ml-auto text-[11px] text-muted-foreground/80">可核对后再生成复盘报告</span>
       </div>
       <ol className="divide-y divide-gray-100 max-h-72 overflow-auto">
         {normalized.turns.map((t) => (
@@ -642,8 +642,8 @@ function NormalizedPreview({ normalized }: { normalized: NormalizedInterview }) 
         ))}
       </ol>
       {normalized.summary && (
-        <div className="px-3 py-2 bg-blue-50/50 text-xs text-gray-600 border-t border-gray-100">
-          <span className="font-medium text-gray-700">概述：</span>
+        <div className="px-3 py-2 bg-blue-50/50 text-xs text-muted-foreground border-t border-gray-100">
+          <span className="font-medium text-muted-foreground">概述：</span>
           {normalized.summary}
         </div>
       )}
@@ -665,15 +665,15 @@ function TurnRow({ turn }: { turn: NormalizedTurn }) {
       ? "bg-blue-100 text-blue-700"
       : turn.speaker === "candidate"
         ? "bg-emerald-100 text-emerald-700"
-        : "bg-gray-100 text-gray-500";
+        : "bg-muted text-muted-foreground";
   const speakerLabel =
     turn.speaker === "interviewer" ? "面试官" : turn.speaker === "candidate" ? "我" : "未明";
   return (
     <li className="px-3 py-2.5">
       <div className="flex items-center gap-2 mb-1">
-        <span className="text-[11px] font-mono text-gray-400">#{turn.order}</span>
+        <span className="text-[11px] font-mono text-muted-foreground/80">#{turn.order}</span>
         <span className={`text-[10px] px-1.5 py-0.5 rounded ${speakerStyle}`}>{speakerLabel}</span>
-        <span className="text-xs text-gray-600">{turn.topic}</span>
+        <span className="text-xs text-muted-foreground">{turn.topic}</span>
         {turn.note && <span className="text-[10px] text-amber-600">⚠ {turn.note}</span>}
       </div>
       <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">{turn.text}</p>
@@ -694,7 +694,7 @@ const DIMENSION_LABEL: Record<string, string> = {
 const PRIORITY_STYLE: Record<string, string> = {
   high: "bg-red-100 text-red-700",
   medium: "bg-amber-100 text-amber-700",
-  low: "bg-gray-100 text-gray-600",
+  low: "bg-muted text-muted-foreground",
 };
 
 const PRIORITY_LABEL: Record<string, string> = {
@@ -715,25 +715,25 @@ function ReportView({
   return (
     <div className="space-y-4">
       {/* Verdict */}
-      <div className="rounded-lg border border-gray-200 p-4">
+      <div className="rounded-lg border border-border p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-semibold text-gray-900">复盘结论</span>
+            <span className="text-sm font-semibold text-foreground">复盘结论</span>
           </div>
           <div className="flex items-center gap-2">
             <ScoreBadge score={report.overallScore} />
             <button
               type="button"
               onClick={onCopy}
-              className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
+              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted/40"
             >
               {copied ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
               {copied ? "已复制" : "复制全文"}
             </button>
           </div>
         </div>
-        <p className="text-sm text-gray-700 leading-relaxed">{report.verdict}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed">{report.verdict}</p>
         {report.caveats.length > 0 && (
           <div className="mt-2 text-xs text-amber-700">
             {report.caveats.map((c, i) => (
@@ -755,7 +755,7 @@ function ReportView({
                   </span>
                   <ScoreBadge score={d.score} small />
                 </div>
-                <p className="text-xs text-gray-600 mb-1">{d.rationale}</p>
+                <p className="text-xs text-muted-foreground mb-1">{d.rationale}</p>
                 <p className="text-xs text-blue-700">建议：{d.suggestion}</p>
               </div>
             ))}
@@ -768,12 +768,12 @@ function ReportView({
         <Section icon={MessageCircleQuestion} title="STAR 缺口">
           <ul className="space-y-2">
             {report.starGaps.map((g, i) => (
-              <li key={i} className="rounded-md bg-gray-50 p-2.5 text-sm">
+              <li key={i} className="rounded-md bg-muted/40 p-2.5 text-sm">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-medium text-gray-800">{g.topic}</span>
                   <span className="text-xs text-red-600">缺 {g.missing.join("/") || "?"}</span>
                 </div>
-                <p className="text-xs text-gray-600">{g.fix}</p>
+                <p className="text-xs text-muted-foreground">{g.fix}</p>
               </li>
             ))}
           </ul>
@@ -791,7 +791,7 @@ function ReportView({
                 >
                   {PRIORITY_LABEL[a.priority] ?? a.priority}
                 </span>
-                <span className="text-gray-700">{a.text}</span>
+                <span className="text-muted-foreground">{a.text}</span>
               </li>
             ))}
           </ul>
@@ -803,7 +803,7 @@ function ReportView({
         <Section icon={Sparkles} title="值得复用的好答案">
           <ul className="space-y-1.5">
             {report.highlights.map((h, i) => (
-              <li key={i} className="text-sm text-gray-700">
+              <li key={i} className="text-sm text-muted-foreground">
                 <span className="font-medium text-gray-800">{h.topic}：</span>
                 {h.text}
               </li>
@@ -817,7 +817,7 @@ function ReportView({
         <Section icon={Brain} title="下一轮前复习主题">
           <div className="flex flex-wrap gap-1.5">
             {report.followUpTopics.map((t, i) => (
-              <span key={i} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+              <span key={i} className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">
                 {t}
               </span>
             ))}
@@ -840,8 +840,8 @@ function Section({
   return (
     <div>
       <div className="flex items-center gap-1.5 mb-2">
-        <Icon className="h-4 w-4 text-gray-500" />
-        <h4 className="text-sm font-semibold text-gray-900">{title}</h4>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+        <h4 className="text-sm font-semibold text-foreground">{title}</h4>
       </div>
       {children}
     </div>

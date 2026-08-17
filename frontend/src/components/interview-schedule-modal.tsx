@@ -81,13 +81,13 @@ export const InterviewScheduleModal = memo(function InterviewScheduleModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between z-10">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Schedule Interview</h2>
+            <h2 className="text-xl font-semibold text-foreground">Schedule Interview</h2>
             {application && (
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 {application.company_name} - {application.job_title}
               </p>
             )}

@@ -222,18 +222,18 @@ const QuestionCategory = memo(function QuestionCategory({
   }, []);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div className={cn("px-6 py-4 border-b border-gray-200 flex items-center gap-3", color)}>
+    <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+      <div className={cn("px-6 py-4 border-b border-border flex items-center gap-3", color)}>
         <Icon className="h-5 w-5" />
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        <span className="ml-auto text-sm text-gray-600">{questions.length} {copy.questionCount}</span>
+        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+        <span className="ml-auto text-sm text-muted-foreground">{questions.length} {copy.questionCount}</span>
       </div>
       <div className="divide-y divide-gray-100">
         {questions.map((q, idx) => {
           const isExpanded = expandedQuestions.has(q.question);
           const IconComponent = categoryIcons[q.category];
           return (
-            <div key={idx} className="p-4 hover:bg-gray-50 transition-colors">
+            <div key={idx} className="p-4 hover:bg-muted/40 transition-colors">
               <button
                 onClick={() => toggleQuestion(q.question)}
                 className="w-full text-left flex items-start gap-3"
@@ -241,14 +241,14 @@ const QuestionCategory = memo(function QuestionCategory({
               >
                 <div className="flex-shrink-0 mt-1">
                   {isExpanded ? (
-                    <ChevronUp className="h-4 w-4 text-gray-500" />
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
                   ) : (
-                    <ChevronDown className="h-4 w-4 text-gray-500" />
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-gray-900 flex-1">{q.question}</span>
+                    <span className="text-sm font-medium text-foreground flex-1">{q.question}</span>
                     <span
                       className={cn(
                         "px-2 py-1 text-xs font-medium rounded-full border",
@@ -259,8 +259,8 @@ const QuestionCategory = memo(function QuestionCategory({
                     </span>
                   </div>
                   <div className="mt-2 flex items-center gap-2 flex-wrap">
-                    <IconComponent className="h-3 w-3 text-gray-500" />
-                    <span className="text-xs text-gray-600">{copy.categories[q.category]}</span>
+                    <IconComponent className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">{copy.categories[q.category]}</span>
                   </div>
                 </div>
               </button>
@@ -273,10 +273,10 @@ const QuestionCategory = memo(function QuestionCategory({
                     </div>
                   )}
                   <div>
-                    <p className="text-sm font-medium text-gray-900 mb-2">{copy.talkingPoints}</p>
+                    <p className="text-sm font-medium text-foreground mb-2">{copy.talkingPoints}</p>
                     <ul className="space-y-1">
                       {q.talkingPoints.map((point, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                        <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
                           <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
                           <span>{point}</span>
                         </li>
@@ -302,26 +302,26 @@ const SelfIntroduction = memo(function SelfIntroduction({
   copy: InterviewPrepCopy;
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-3 bg-gradient-to-r from-purple-50 to-blue-50">
+    <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+      <div className="px-6 py-4 border-b border-border flex items-center gap-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/40 dark:to-blue-950/40">
         <Sparkles className="h-5 w-5 text-purple-600" />
-        <h3 className="text-lg font-semibold text-gray-900">{copy.selfIntro}</h3>
+        <h3 className="text-lg font-semibold text-foreground">{copy.selfIntro}</h3>
       </div>
       <div className="p-6 space-y-6">
         <div>
-          <h4 className="text-sm font-semibold text-gray-900 mb-2">{copy.hook}</h4>
-          <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">{intro.hook}</p>
+          <h4 className="text-sm font-semibold text-foreground mb-2">{copy.hook}</h4>
+          <p className="text-sm text-muted-foreground bg-muted/40 p-3 rounded-lg">{intro.hook}</p>
         </div>
 
         <div>
-          <h4 className="text-sm font-semibold text-gray-900 mb-3">{copy.structure}</h4>
+          <h4 className="text-sm font-semibold text-foreground mb-3">{copy.structure}</h4>
           <div className="space-y-2">
             {intro.structure.map((step, i) => (
               <div key={i} className="flex items-start gap-3">
                 <div className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-semibold">
                   {i + 1}
                 </div>
-                <span className="text-sm text-gray-700">{step}</span>
+                <span className="text-sm text-muted-foreground">{step}</span>
               </div>
             ))}
           </div>
@@ -366,8 +366,8 @@ const SelfIntroduction = memo(function SelfIntroduction({
         </div>
 
         <div>
-          <h4 className="text-sm font-semibold text-gray-900 mb-3">{copy.example}</h4>
-          <div className="bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
+          <h4 className="text-sm font-semibold text-foreground mb-3">{copy.example}</h4>
+          <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/40 dark:to-blue-950/40 border border-purple-200 rounded-lg p-4">
             <p className="text-sm text-gray-800 whitespace-pre-line leading-relaxed">{intro.example}</p>
           </div>
         </div>
@@ -401,27 +401,27 @@ const ReverseQuestions = memo(function ReverseQuestions({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-3 bg-gradient-to-r from-green-50 to-teal-50">
+    <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+      <div className="px-6 py-4 border-b border-border flex items-center gap-3 bg-gradient-to-r from-green-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40">
         <Lightbulb className="h-5 w-5 text-green-600" />
-        <h3 className="text-lg font-semibold text-gray-900">{copy.reverseQuestions}</h3>
+        <h3 className="text-lg font-semibold text-foreground">{copy.reverseQuestions}</h3>
       </div>
       <div className="divide-y divide-gray-100">
         {questions.map((q, idx) => {
           const IconComponent = categoryIcons[q.category];
           return (
-            <div key={idx} className="p-4 hover:bg-gray-50 transition-colors">
+            <div key={idx} className="p-4 hover:bg-muted/40 transition-colors">
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0">
-                  <IconComponent className="h-5 w-5 text-gray-500" />
+                  <IconComponent className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 mb-1">{q.question}</p>
+                  <p className="text-sm font-medium text-foreground mb-1">{q.question}</p>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className={cn("px-2 py-1 text-xs font-medium rounded-full", categoryColors[q.category])}>
                       {copy.categories[q.category]}
                     </span>
-                    <span className="text-xs text-gray-600">{q.whenToAsk}</span>
+                    <span className="text-xs text-muted-foreground">{q.whenToAsk}</span>
                   </div>
                 </div>
               </div>
@@ -471,19 +471,19 @@ const PreparationChecklist = memo(function PreparationChecklist({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-3 bg-gradient-to-r from-orange-50 to-yellow-50">
+    <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden">
+      <div className="px-6 py-4 border-b border-border flex items-center gap-3 bg-gradient-to-r from-orange-50 to-yellow-50">
         <CheckSquare className="h-5 w-5 text-orange-600" />
-        <h3 className="text-lg font-semibold text-gray-900">{copy.checklist}</h3>
+        <h3 className="text-lg font-semibold text-foreground">{copy.checklist}</h3>
       </div>
       <div className="divide-y divide-gray-100">
         {checklist.map((section, idx) => {
           const IconComponent = categoryIcons[section.category as keyof typeof categoryIcons] || CheckSquare;
           return (
-            <div key={idx} className={cn("p-4", categoryColors[section.category as keyof typeof categoryColors] || "bg-gray-50 border-gray-200")}>
+            <div key={idx} className={cn("p-4", categoryColors[section.category as keyof typeof categoryColors] || "bg-muted/40 border-border")}>
               <div className="flex items-center gap-2 mb-3">
-                <IconComponent className="h-4 w-4 text-gray-700" />
-                <h4 className="text-sm font-semibold text-gray-900">{section.category}</h4>
+                <IconComponent className="h-4 w-4 text-muted-foreground" />
+                <h4 className="text-sm font-semibold text-foreground">{section.category}</h4>
               </div>
               <div className="space-y-2">
                 {section.items.map((item, i) => {
@@ -494,16 +494,16 @@ const PreparationChecklist = memo(function PreparationChecklist({
                       key={i}
                       className={cn(
                         "flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all",
-                        isChecked ? "bg-white bg-opacity-60" : "hover:bg-white hover:bg-opacity-30"
+                        isChecked ? "bg-card bg-opacity-60" : "hover:bg-card hover:bg-opacity-30"
                       )}
                     >
                       <input
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => toggleItem(section.category, item)}
-                        className="mt-0.5 h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                        className="mt-0.5 h-4 w-4 rounded border-input text-orange-600 focus:ring-orange-500"
                       />
-                      <span className={cn("text-sm", isChecked ? "line-through text-gray-500" : "text-gray-700")}>
+                      <span className={cn("text-sm", isChecked ? "line-through text-muted-foreground" : "text-muted-foreground")}>
                         {item}
                       </span>
                     </label>
@@ -616,7 +616,7 @@ function InterviewPrepContent() {
 
   if (!applicationId) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-muted/40">
         
         <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 flex items-start gap-4">
@@ -634,7 +634,7 @@ function InterviewPrepContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/40">
       
 
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -642,8 +642,8 @@ function InterviewPrepContent() {
         <div className="mb-8">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{copy.title}</h1>
-              <p className="mt-2 text-lg text-gray-700">
+              <h1 className="text-3xl font-bold text-foreground">{copy.title}</h1>
+              <p className="mt-2 text-lg text-muted-foreground">
                 {copy.subtitle}
               </p>
             </div>
@@ -671,7 +671,7 @@ function InterviewPrepContent() {
               onClick={() => setReviewOpen(true)}
               size="lg"
               variant="outline"
-              className="border-gray-300 text-gray-800 hover:bg-gray-50"
+              className="border-input text-gray-800 hover:bg-muted/40"
             >
               <Brain className="h-4 w-4 mr-2" />
               {locale === "zh-CN" ? "面试复盘" : "Interview Review"}
@@ -687,10 +687,10 @@ function InterviewPrepContent() {
         </div>
 
         {loading && !prepData && (
-          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+          <div className="bg-card rounded-xl shadow-sm p-12 text-center">
             <Clock className="h-12 w-12 text-purple-600 mx-auto mb-4 animate-spin" />
-            <p className="text-lg font-medium text-gray-900">{copy.analyzing}</p>
-            <p className="mt-2 text-sm text-gray-600">{copy.analyzingHint}</p>
+            <p className="text-lg font-medium text-foreground">{copy.analyzing}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{copy.analyzingHint}</p>
           </div>
         )}
 
@@ -698,33 +698,33 @@ function InterviewPrepContent() {
           <>
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+              <div className="bg-card rounded-xl shadow-sm p-6 border border-border">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{copy.totalQuestions}</p>
-                    <p className="mt-2 text-3xl font-bold text-gray-900">{totalQuestions}</p>
+                    <p className="text-sm font-medium text-muted-foreground">{copy.totalQuestions}</p>
+                    <p className="mt-2 text-3xl font-bold text-foreground">{totalQuestions}</p>
                   </div>
                   <MessageSquare className="h-10 w-10 text-purple-600" />
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+              <div className="bg-card rounded-xl shadow-sm p-6 border border-border">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{copy.highPriority}</p>
+                    <p className="text-sm font-medium text-muted-foreground">{copy.highPriority}</p>
                     <p className="mt-2 text-3xl font-bold text-red-600">{highPriorityCount}</p>
                   </div>
                   <AlertCircle className="h-10 w-10 text-red-600" />
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+              <div className="bg-card rounded-xl shadow-sm p-6 border border-border">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{copy.targetRole}</p>
-                    <p className="mt-2 text-xl font-bold text-gray-900">{prepData.targetRole}</p>
+                    <p className="text-sm font-medium text-muted-foreground">{copy.targetRole}</p>
+                    <p className="mt-2 text-xl font-bold text-foreground">{prepData.targetRole}</p>
                     {prepData.targetCompany && (
-                      <p className="text-sm text-gray-600">{prepData.targetCompany}</p>
+                      <p className="text-sm text-muted-foreground">{prepData.targetCompany}</p>
                     )}
                   </div>
                   <Target className="h-10 w-10 text-blue-600" />
@@ -800,7 +800,7 @@ function InterviewPrepContent() {
 
 function InterviewPrepPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><Clock className="h-8 w-8 text-purple-600 animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-muted/40 flex items-center justify-center"><Clock className="h-8 w-8 text-purple-600 animate-spin" /></div>}>
       <InterviewPrepContent />
     </Suspense>
   );

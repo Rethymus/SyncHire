@@ -76,7 +76,7 @@ function EditorPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/40">
       
       <div className="pt-16 h-[calc(100vh-64px)]">
         <ResumeEditor />
@@ -87,7 +87,7 @@ function EditorPageContent() {
 
 function EditorFallback() {
   return (
-    <div className="min-h-screen bg-gray-50" />
+    <div className="min-h-screen bg-muted/40" />
   );
 }
 

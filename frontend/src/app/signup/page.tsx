@@ -20,20 +20,20 @@ export default function SignupPage() {
   } = useSignupForm();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-background dark:to-background">
       
 
       <div className="flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="bg-card rounded-2xl shadow-xl p-8">
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
                 <Sparkles className="h-8 w-8 text-blue-600" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-foreground">
                 创建账户
               </h2>
-              <p className="mt-2 text-gray-700">
+              <p className="mt-2 text-muted-foreground">
                 开始您的 AI 求职之旅
               </p>
             </div>
@@ -102,7 +102,7 @@ export default function SignupPage() {
 
             <SocialLoginButtons />
 
-            <p className="mt-6 text-center text-sm text-gray-700">
+            <p className="mt-6 text-center text-sm text-muted-foreground">
               已有账户？{" "}
               <Link href="/login" className="text-blue-600 hover:underline font-medium">
                 立即登录
@@ -111,7 +111,7 @@ export default function SignupPage() {
           </div>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               注册即表示您同意我们的服务条款和隐私政策
             </p>
           </div>

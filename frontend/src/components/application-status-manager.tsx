@@ -41,7 +41,7 @@ interface ApplicationStatusManagerProps {
 }
 
 const STATUS_OPTIONS = [
-  { value: "pending", color: "text-gray-600" },
+  { value: "pending", color: "text-muted-foreground" },
   { value: "optimized", color: "text-blue-600" },
   { value: "applied", color: "text-green-600" },
   { value: "interview", color: "text-purple-600" },
@@ -233,10 +233,10 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
           <div className="py-4">
             {isLoadingHistory ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground/80" />
               </div>
             ) : history.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-muted-foreground">
                 {copy.emptyHistory}
               </div>
             ) : (
@@ -244,28 +244,28 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
                 {history.map((entry) => (
                   <div
                     key={entry.id}
-                    className="border-l-2 border-gray-200 pl-4 pb-4 last:pb-0"
+                    className="border-l-2 border-border pl-4 pb-4 last:pb-0"
                   >
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         {entry.old_status && (
                           <>
-                            <span className="text-sm font-medium text-gray-600">
+                            <span className="text-sm font-medium text-muted-foreground">
                               {copy[entry.old_status as keyof typeof copy] || entry.old_status}
                             </span>
-                            <span className="text-gray-400">→</span>
+                            <span className="text-muted-foreground/80">→</span>
                           </>
                         )}
-                        <span className="text-sm font-semibold text-gray-900">
+                        <span className="text-sm font-semibold text-foreground">
                           {copy[entry.new_status as keyof typeof copy] || entry.new_status}
                         </span>
                       </div>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">
                         {formatLiteDate(entry.changed_at, locale)}
                       </span>
                     </div>
                     {entry.notes && (
-                      <p className="text-sm text-gray-600 mt-1">{entry.notes}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{entry.notes}</p>
                     )}
                   </div>
                 ))}

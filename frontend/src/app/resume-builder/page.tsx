@@ -29,7 +29,7 @@ function ResumeBuilderPageContent() {
 
   if (!hasHydrated) {
     return (
-      <div className="flex items-center justify-center h-screen text-gray-400">
+      <div className="flex items-center justify-center h-screen text-muted-foreground/80">
         加载中…
       </div>
     );
@@ -45,7 +45,7 @@ export default function ResumeBuilderPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center h-screen text-gray-400">
+        <div className="flex items-center justify-center h-screen text-muted-foreground/80">
           加载中…
         </div>
       }

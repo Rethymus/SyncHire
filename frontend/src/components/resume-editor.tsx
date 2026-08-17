@@ -544,22 +544,22 @@ function ResumeEditorComponent() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-card">
       {/* Toolbar */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-semibold text-foreground">
             {copy.title}
           </h2>
           {currentResume && (
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-muted-foreground">
               - {currentResume.name}
             </span>
           )}
           {/* Save Status Indicator */}
           {getSaveStatusDisplay() && (
             <div className={cn(
-              "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100",
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-muted",
               getSaveStatusDisplay()?.className
             )}>
               {getSaveStatusDisplay()?.icon}
@@ -647,7 +647,7 @@ function ResumeEditorComponent() {
         {previewMode ? (
           <div className="synchire-resume-shell h-full">
             <style>{getResumeTemplateStyles(selectedTemplate)}</style>
-            <div className="mb-4 flex items-center justify-between text-sm text-gray-700">
+            <div className="mb-4 flex items-center justify-between text-sm text-muted-foreground">
               <div className="flex items-center gap-2 font-medium">
                 <FileText className="h-4 w-4" />
                 {copy.a4Preview}
@@ -666,7 +666,7 @@ function ResumeEditorComponent() {
         ) : (
           <div className="grid h-full lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.86fr)]">
             {/* Editor Area */}
-            <div className="min-h-0 border-r border-gray-200">
+            <div className="min-h-0 border-r border-border">
               <label htmlFor="resume-editor" className="sr-only">
                 {copy.editorLabel}
               </label>
@@ -686,7 +686,7 @@ function ResumeEditorComponent() {
             {/* Live Preview */}
             <div className="synchire-resume-shell min-h-0 pb-32">
               <style>{getResumeTemplateStyles(selectedTemplate)}</style>
-              <div className="mb-4 flex items-center justify-between gap-3 text-sm text-gray-700">
+              <div className="mb-4 flex items-center justify-between gap-3 text-sm text-muted-foreground">
                 <h3 className="flex items-center gap-2 font-medium">
                   <FileText className="h-4 w-4" />
                   {copy.livePreview}
@@ -753,19 +753,19 @@ function ResumeEditorComponent() {
       {/* Optimization Result Panel */}
       {showOptimization && optimizationResult && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-card rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             {/* Header */}
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-border">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">{copy.optimizationTitle}</h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <h3 className="text-xl font-semibold text-foreground">{copy.optimizationTitle}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
                     {copy.optimizationSubtitle}
                   </p>
                 </div>
                 <button
                   onClick={handleRejectOptimization}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-muted-foreground/80 hover:text-muted-foreground"
                   aria-label={copy.closeError}
                 >
                   <X className="h-6 w-6" />
@@ -824,8 +824,8 @@ function ResumeEditorComponent() {
 
                 {/* Original vs Optimized */}
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-3">{copy.original}</h4>
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 h-96 overflow-auto">
+                  <h4 className="font-medium text-foreground mb-3">{copy.original}</h4>
+                  <div className="bg-muted/40 border border-border rounded-lg p-4 h-96 overflow-auto">
                     <div
                       className="prose prose-sm max-w-none"
                       dangerouslySetInnerHTML={{
@@ -836,7 +836,7 @@ function ResumeEditorComponent() {
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-3">{copy.optimized}</h4>
+                  <h4 className="font-medium text-foreground mb-3">{copy.optimized}</h4>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 h-96 overflow-auto">
                     <div
                       className="prose prose-sm max-w-none"
@@ -850,7 +850,7 @@ function ResumeEditorComponent() {
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+            <div className="p-6 border-t border-border bg-muted/40 flex justify-end gap-3">
               <Button
                 variant="outline"
                 onClick={handleRejectOptimization}
@@ -873,14 +873,14 @@ function ResumeEditorComponent() {
       {/* Unsaved Changes Warning Modal */}
       {showUnsavedWarning && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+          <div className="bg-card rounded-lg shadow-xl max-w-md w-full p-6">
             <div className="flex items-start gap-3 mb-4">
               <AlertTriangle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-foreground">
                   {copy.unsavedTitle}
                 </h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {copy.unsavedDescription}
                 </p>
               </div>
@@ -902,13 +902,13 @@ function ResumeEditorComponent() {
               </Button>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="mt-4 pt-4 border-t border-border">
               <button
                 onClick={() => {
                   setShowUnsavedWarning(false);
                   setPendingNavigation(null);
                 }}
-                className="text-sm text-gray-600 hover:text-gray-900"
+                className="text-sm text-muted-foreground hover:text-foreground"
               >
                 {copy.stay}
               </button>

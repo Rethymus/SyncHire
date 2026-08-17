@@ -193,11 +193,11 @@ export function WorkflowNotificationCenter({
   if (notifications.length === 0) {
     return (
       <Card className="p-8 text-center">
-        <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <Bell className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           暂无通知
         </h3>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           当有重要事件发生时，通知将显示在这里
         </p>
       </Card>
@@ -211,7 +211,7 @@ export function WorkflowNotificationCenter({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Bell className="h-6 w-6 text-gray-700" />
+              <Bell className="h-6 w-6 text-muted-foreground" />
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">
                   {unreadCount > 9 ? '9+' : unreadCount}
@@ -219,8 +219,8 @@ export function WorkflowNotificationCenter({
               )}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">工作流通知中心</h2>
-              <p className="text-sm text-gray-600">
+              <h2 className="text-xl font-bold text-foreground">工作流通知中心</h2>
+              <p className="text-sm text-muted-foreground">
                 {unreadCount > 0 ? `${unreadCount} 条未读通知` : '所有通知已读'}
               </p>
             </div>
@@ -247,8 +247,8 @@ export function WorkflowNotificationCenter({
                 <Bell className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">总通知</p>
-                <p className="text-2xl font-bold text-gray-900">{statistics.total}</p>
+                <p className="text-sm text-muted-foreground">总通知</p>
+                <p className="text-2xl font-bold text-foreground">{statistics.total}</p>
               </div>
             </div>
           </Card>
@@ -259,8 +259,8 @@ export function WorkflowNotificationCenter({
                 <BellRing className="h-5 w-5 text-red-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">未读</p>
-                <p className="text-2xl font-bold text-gray-900">{statistics.unread}</p>
+                <p className="text-sm text-muted-foreground">未读</p>
+                <p className="text-2xl font-bold text-foreground">{statistics.unread}</p>
               </div>
             </div>
           </Card>
@@ -271,8 +271,8 @@ export function WorkflowNotificationCenter({
                 <Clock className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">今日</p>
-                <p className="text-2xl font-bold text-gray-900">{statistics.today}</p>
+                <p className="text-sm text-muted-foreground">今日</p>
+                <p className="text-2xl font-bold text-foreground">{statistics.today}</p>
               </div>
             </div>
           </Card>
@@ -283,8 +283,8 @@ export function WorkflowNotificationCenter({
                 <Archive className="h-5 w-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">本周</p>
-                <p className="text-2xl font-bold text-gray-900">{statistics.thisWeek}</p>
+                <p className="text-sm text-muted-foreground">本周</p>
+                <p className="text-2xl font-bold text-foreground">{statistics.thisWeek}</p>
               </div>
             </div>
           </Card>
@@ -297,11 +297,11 @@ export function WorkflowNotificationCenter({
           {(Object.entries(notificationTypeConfig) as Array<[keyof typeof notificationTypeConfig, typeof notificationTypeConfig[keyof typeof notificationTypeConfig]]>).map(([type, config]) => (
             <div
               key={type}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              className="flex items-center justify-between p-3 bg-muted/40 rounded-lg"
             >
               <div className="flex items-center gap-2">
                 <config.icon className={`h-4 w-4 ${config.color.split(' ')[1]}`} />
-                <span className="text-sm text-gray-700">{config.label}</span>
+                <span className="text-sm text-muted-foreground">{config.label}</span>
               </div>
               <Badge variant="outline" className="text-xs">
                 {statistics.byType[type]}
@@ -317,7 +317,7 @@ export function WorkflowNotificationCenter({
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex-1 min-w-[200px]">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/80" />
                 <Input
                   placeholder="搜索通知..."
                   value={searchTerm}
@@ -378,7 +378,7 @@ export function WorkflowNotificationCenter({
               key={notification.id}
               className={`relative p-4 rounded-lg border transition-all cursor-pointer ${
                 notification.read
-                  ? 'bg-white border-gray-200 hover:bg-gray-50'
+                  ? 'bg-card border-border hover:bg-muted/40'
                   : `bg-blue-50 border-blue-200 hover:bg-blue-100`
               }`}
             >
@@ -393,7 +393,7 @@ export function WorkflowNotificationCenter({
                 <div className={`w-4 h-4 rounded border-2 ${
                   isSelected
                     ? 'bg-blue-500 border-blue-500'
-                    : 'border-gray-300 hover:border-blue-400'
+                    : 'border-input hover:border-blue-400'
                 }`}>
                   {isSelected && <Check className="h-3 w-3 text-white" />}
                 </div>
@@ -410,17 +410,17 @@ export function WorkflowNotificationCenter({
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900">{notification.title}</h4>
-                      <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
+                      <h4 className="font-semibold text-foreground">{notification.title}</h4>
+                      <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-muted-foreground">
                         {formatTimeAgo(notification.timestamp)}
                       </p>
                       {notification.applicationName && (
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {notification.applicationName}
                         </p>
                       )}
@@ -434,7 +434,7 @@ export function WorkflowNotificationCenter({
                       }}
                       className="h-8 w-8 p-0"
                     >
-                      <Trash2 className="h-4 w-4 text-gray-400" />
+                      <Trash2 className="h-4 w-4 text-muted-foreground/80" />
                     </Button>
                   </div>
                 </div>
@@ -469,8 +469,8 @@ export function WorkflowNotificationCenter({
       {/* No results */}
       {filteredNotifications.length === 0 && (
         <Card className="p-8 text-center">
-          <Filter className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">没有找到匹配的通知</p>
+          <Filter className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />
+          <p className="text-muted-foreground">没有找到匹配的通知</p>
           <Button
             variant="outline"
             size="sm"

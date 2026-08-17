@@ -244,19 +244,19 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
   const toolbarButton = useMemo(
     () => ({
       base: "inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-sm border transition min-h-[36px]",
-      idle: "border-gray-200 text-gray-700 bg-white hover:bg-gray-50",
+      idle: "border-border text-muted-foreground bg-card hover:bg-muted/40",
       active: "border-blue-300 bg-blue-50 text-blue-700",
     }),
     [],
   );
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col h-screen bg-muted">
       {/* Toolbar */}
-      <header className="flex items-center gap-2 px-3 py-2 bg-white border-b border-gray-200 shadow-sm">
+      <header className="flex items-center gap-2 px-3 py-2 bg-card border-b border-border shadow-sm">
         <button
           onClick={() => router.back()}
-          className="h-9 w-9 inline-flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100"
+          className="h-9 w-9 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
           aria-label="返回"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -265,7 +265,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="h-9 min-w-0 flex-1 max-w-[220px] px-2 rounded-md border border-transparent hover:border-gray-200 focus:border-blue-400 focus:outline-none text-sm font-medium text-gray-800"
+          className="h-9 min-w-0 flex-1 max-w-[220px] px-2 rounded-md border border-transparent hover:border-border focus:border-blue-400 focus:outline-none text-sm font-medium text-gray-800"
           aria-label="简历名称"
           placeholder="请命名"
         />
@@ -273,12 +273,12 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
         <div className="h-5 w-px bg-gray-200 mx-1" />
 
         {/* Edit mode toggle */}
-        <div className="inline-flex rounded-md border border-gray-200 overflow-hidden">
+        <div className="inline-flex rounded-md border border-border overflow-hidden">
           <button
             onClick={() => setEditMode("source")}
             className={cn(
               "h-9 px-2.5 inline-flex items-center gap-1 text-xs",
-              editMode === "source" ? "bg-gray-900 text-white" : "bg-white text-gray-600 hover:bg-gray-50",
+              editMode === "source" ? "bg-gray-900 text-white" : "bg-card text-muted-foreground hover:bg-muted/40",
             )}
           >
             <Code2 className="h-3.5 w-3.5" /> 源码
@@ -287,7 +287,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
             onClick={() => setEditMode("wysiwyg")}
             className={cn(
               "h-9 px-2.5 inline-flex items-center gap-1 text-xs",
-              editMode === "wysiwyg" ? "bg-gray-900 text-white" : "bg-white text-gray-600 hover:bg-gray-50",
+              editMode === "wysiwyg" ? "bg-gray-900 text-white" : "bg-card text-muted-foreground hover:bg-muted/40",
             )}
           >
             <Eye className="h-3.5 w-3.5" /> 所见即所得
@@ -353,7 +353,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
         >
           <History className="h-4 w-4" /> 历史
           {snapshots.length > 0 && (
-            <span className="text-[10px] text-gray-400">{snapshots.length}</span>
+            <span className="text-[10px] text-muted-foreground/80">{snapshots.length}</span>
           )}
         </button>
 
@@ -391,7 +391,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
 
       {/* Body: editor + preview + detection */}
       <div className="flex-1 min-h-0 flex">
-        <section className="flex-1 min-w-0 border-r border-gray-200">
+        <section className="flex-1 min-w-0 border-r border-border">
           {editMode === "source" ? (
             <SourceEditor
               ref={sourceRef}
@@ -472,7 +472,7 @@ function PageIndicator({
         ? "text-amber-600"
         : fit.estimatedPages > 1
           ? "text-amber-600"
-          : "text-gray-500";
+          : "text-muted-foreground";
   return (
     <span className={cn("text-xs flex items-center gap-1", color)} title="页数估算 / 智能一页状态">
       {onePage && fit.scale < 1 && fit.state === "fit"
@@ -504,23 +504,23 @@ function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawerProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden"
+        className="bg-card rounded-xl shadow-2xl max-w-md w-full overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900">历史记录</h3>
+          <h3 className="text-lg font-semibold text-foreground">历史记录</h3>
           <div className="flex items-center gap-2">
             {snapshots.length > 0 && (
               <button
                 onClick={clearSnapshots}
-                className="text-xs text-gray-500 hover:text-rose-600"
+                className="text-xs text-muted-foreground hover:text-rose-600"
               >
                 清空
               </button>
             )}
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+              className="text-muted-foreground/80 hover:text-muted-foreground text-2xl leading-none"
               aria-label="关闭"
             >
               ×
@@ -529,7 +529,7 @@ function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawerProps) {
         </div>
         <div className="max-h-[60vh] overflow-auto">
           {snapshots.length === 0 ? (
-            <p className="text-sm text-gray-400 p-6 text-center">
+            <p className="text-sm text-muted-foreground/80 p-6 text-center">
               每次保存会自动留下一份快照。
             </p>
           ) : (
@@ -538,13 +538,13 @@ function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawerProps) {
                 <li key={snap.id} className="flex items-center justify-between px-5 py-3">
                   <div className="min-w-0">
                     <p className="text-sm text-gray-800 truncate">{snap.label}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-muted-foreground/80">
                       {new Date(snap.takenAt).toLocaleString("zh-CN")}
                     </p>
                   </div>
                   <button
                     onClick={() => onRestore(snap.content)}
-                    className="text-xs px-2.5 py-1 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    className="text-xs px-2.5 py-1 rounded-md bg-muted text-muted-foreground hover:bg-gray-200"
                   >
                     恢复
                   </button>

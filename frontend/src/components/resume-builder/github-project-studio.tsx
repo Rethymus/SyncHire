@@ -153,15 +153,15 @@ function GithubProjectStudioBase({ open, onClose, onApplyProject }: GithubProjec
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-auto"
+        className="bg-card rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white z-10">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-card z-10">
           <div className="flex items-center gap-2">
-            <GitBranch className="h-5 w-5 text-gray-900" />
-            <h3 className="text-lg font-semibold text-gray-900">GitHub 项目蒸馏</h3>
+            <GitBranch className="h-5 w-5 text-foreground" />
+            <h3 className="text-lg font-semibold text-foreground">GitHub 项目蒸馏</h3>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600" aria-label="关闭">
+          <button onClick={onClose} className="text-muted-foreground/80 hover:text-muted-foreground" aria-label="关闭">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -177,11 +177,11 @@ function GithubProjectStudioBase({ open, onClose, onApplyProject }: GithubProjec
           </div>
 
           {/* Provider status */}
-          <div className="flex items-center justify-between rounded-lg bg-gray-50 border border-gray-200 px-4 py-2.5">
-            <div className="text-xs text-gray-600">
+          <div className="flex items-center justify-between rounded-lg bg-muted/40 border border-border px-4 py-2.5">
+            <div className="text-xs text-muted-foreground">
               <span className="font-medium text-gray-800">文本模型</span>
               <span className="mx-2 text-gray-300">·</span>
-              <code className="text-gray-700">{provider.model || "未设置"}</code>
+              <code className="text-muted-foreground">{provider.model || "未设置"}</code>
               <span className="mx-2 text-gray-300">·</span>
               Key {provider.apiKey ? "已配置" : "未配置"}
             </div>
@@ -197,7 +197,7 @@ function GithubProjectStudioBase({ open, onClose, onApplyProject }: GithubProjec
           {/* Inputs */}
           <div className="space-y-3">
             <div>
-              <label htmlFor="gh-url" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="gh-url" className="block text-sm font-medium text-muted-foreground mb-1.5">
                 1. GitHub 仓库链接
               </label>
               <input
@@ -205,14 +205,14 @@ function GithubProjectStudioBase({ open, onClose, onApplyProject }: GithubProjec
                 value={repoUrl}
                 onChange={(e) => handleUrlChange(e.target.value)}
                 placeholder="https://github.com/owner/repo"
-                className="w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none"
+                className="w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none"
               />
               {urlError && <p className="text-xs text-red-600 mt-1">{urlError}</p>}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label htmlFor="gh-role" className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label htmlFor="gh-role" className="block text-sm font-medium text-muted-foreground mb-1.5">
                   目标岗位（可选）
                 </label>
                 <input
@@ -220,11 +220,11 @@ function GithubProjectStudioBase({ open, onClose, onApplyProject }: GithubProjec
                   value={focusRole}
                   onChange={(e) => setFocusRole(e.target.value)}
                   placeholder="如：前端工程师 / Go 后端"
-                  className="w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none"
+                  className="w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none"
                 />
               </div>
               <div>
-                <label htmlFor="gh-token" className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label htmlFor="gh-token" className="block text-sm font-medium text-muted-foreground mb-1.5">
                   GitHub Token（可选，避免限流）
                 </label>
                 <input
@@ -233,7 +233,7 @@ function GithubProjectStudioBase({ open, onClose, onApplyProject }: GithubProjec
                   value={token}
                   onChange={(e) => setToken(e.target.value)}
                   placeholder="ghp_…（仅用于读取公开仓库，本地保存）"
-                  className="w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none"
+                  className="w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none"
                   autoComplete="off"
                 />
               </div>
@@ -261,7 +261,7 @@ function GithubProjectStudioBase({ open, onClose, onApplyProject }: GithubProjec
               )}
               {status === "analyzing" ? "蒸馏中…" : "蒸馏项目"}
             </button>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-muted-foreground/80">
               将抓取静态信号并调用文本模型，可能需要数秒到数十秒。
             </span>
           </div>
@@ -270,7 +270,7 @@ function GithubProjectStudioBase({ open, onClose, onApplyProject }: GithubProjec
           {result && (
             <div className="space-y-4 border-t border-gray-100 pt-4">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700">2. 蒸馏结果（可编辑）</label>
+                <label className="block text-sm font-medium text-muted-foreground">2. 蒸馏结果（可编辑）</label>
                 {result.provenance.repoUrl && (
                   <a
                     href={result.provenance.repoUrl}
@@ -285,34 +285,34 @@ function GithubProjectStudioBase({ open, onClose, onApplyProject }: GithubProjec
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <span className="text-xs text-gray-500">项目名</span>
+                  <span className="text-xs text-muted-foreground">项目名</span>
                   <input
                     value={result.name}
                     onChange={(e) => setResult({ ...result, name: e.target.value })}
-                    className="mt-1 w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none"
+                    className="mt-1 w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <span className="text-xs text-gray-500">分类 / 角色</span>
+                  <span className="text-xs text-muted-foreground">分类 / 角色</span>
                   <input
                     value={result.category}
                     onChange={(e) => setResult({ ...result, category: e.target.value })}
-                    className="mt-1 w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none"
+                    className="mt-1 w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <span className="text-xs text-gray-500">一句话概述</span>
+                <span className="text-xs text-muted-foreground">一句话概述</span>
                 <input
                   value={result.tagline}
                   onChange={(e) => setResult({ ...result, tagline: e.target.value })}
-                  className="mt-1 w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none"
+                  className="mt-1 w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none"
                 />
               </div>
 
               <div>
-                <span className="text-xs text-gray-500">项目要点（每行一条，将写入「项目经历」）</span>
+                <span className="text-xs text-muted-foreground">项目要点（每行一条，将写入「项目经历」）</span>
                 <textarea
                   value={result.bullets.join("\n")}
                   onChange={(e) =>
@@ -322,12 +322,12 @@ function GithubProjectStudioBase({ open, onClose, onApplyProject }: GithubProjec
                     })
                   }
                   rows={5}
-                  className="mt-1 w-full px-3 py-2 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none font-mono"
+                  className="mt-1 w-full px-3 py-2 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none font-mono"
                 />
               </div>
 
               <div>
-                <span className="text-xs text-gray-500">技术栈（逗号分隔，将并入「技能清单」）</span>
+                <span className="text-xs text-muted-foreground">技术栈（逗号分隔，将并入「技能清单」）</span>
                 <input
                   value={result.techStack.join("、")}
                   onChange={(e) =>
@@ -339,17 +339,17 @@ function GithubProjectStudioBase({ open, onClose, onApplyProject }: GithubProjec
                         .filter(Boolean),
                     })
                   }
-                  className="mt-1 w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none"
+                  className="mt-1 w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none"
                 />
               </div>
 
               {result.innovations.length > 0 && (
                 <div>
-                  <span className="text-xs text-gray-500">亮点与设计取舍（参考，不写入简历）</span>
+                  <span className="text-xs text-muted-foreground">亮点与设计取舍（参考，不写入简历）</span>
                   <ul className="mt-1 space-y-1">
                     {result.innovations.map((item, idx) => (
-                      <li key={idx} className="text-xs text-gray-600 flex gap-1.5">
-                        <span className="text-gray-400">•</span>
+                      <li key={idx} className="text-xs text-muted-foreground flex gap-1.5">
+                        <span className="text-muted-foreground/80">•</span>
                         <span>{item}</span>
                       </li>
                     ))}
@@ -358,7 +358,7 @@ function GithubProjectStudioBase({ open, onClose, onApplyProject }: GithubProjec
               )}
 
               {meta && (
-                <p className="text-[11px] text-gray-400">
+                <p className="text-[11px] text-muted-foreground/80">
                   基于静态信号推断（未克隆/未运行）。抓取到 {meta.signalsGathered} 类仓库元信息。
                   {meta.rateLimited && " · 已触发未授权限流，建议配置 Token 后重试以获得更完整信号。"}
                 </p>
@@ -376,7 +376,7 @@ function GithubProjectStudioBase({ open, onClose, onApplyProject }: GithubProjec
                     setResult(null);
                     setStatus("idle");
                   }}
-                  className="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-gray-200 text-gray-700 text-sm hover:bg-gray-50 transition"
+                  className="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-border text-muted-foreground text-sm hover:bg-muted/40 transition"
                 >
                   重新蒸馏
                 </button>

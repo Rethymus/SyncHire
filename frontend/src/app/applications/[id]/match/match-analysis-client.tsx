@@ -334,10 +334,10 @@ export default function MatchAnalysisClient() {
 
   if (!hasHydrated || isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/40 flex items-center justify-center">
         <div className="text-center">
           <RefreshCw className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">正在分析匹配度...</p>
+          <p className="text-muted-foreground">正在分析匹配度...</p>
         </div>
       </div>
     );
@@ -345,13 +345,13 @@ export default function MatchAnalysisClient() {
 
   if (!applicationId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-muted/40 flex items-center justify-center p-4">
         <Card className="max-w-md w-full p-6">
           <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 text-center mb-2">
+          <h2 className="text-xl font-semibold text-foreground text-center mb-2">
             缺少申请 ID
           </h2>
-          <p className="text-gray-600 text-center mb-4">
+          <p className="text-muted-foreground text-center mb-4">
             请从申请列表进入匹配分析。
           </p>
           <Button onClick={() => router.push("/applications")} className="w-full">
@@ -364,13 +364,13 @@ export default function MatchAnalysisClient() {
 
   if (error || !matchDetails) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-muted/40 flex items-center justify-center p-4">
         <Card className="max-w-md w-full p-6">
           <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 text-center mb-2">
+          <h2 className="text-xl font-semibold text-foreground text-center mb-2">
             分析失败
           </h2>
-          <p className="text-gray-600 text-center mb-4">
+          <p className="text-muted-foreground text-center mb-4">
             无法加载匹配分析，请确保简历和职位描述已成功解析。
           </p>
           <div className="flex gap-2">
@@ -388,13 +388,13 @@ export default function MatchAnalysisClient() {
 
   if (!application) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-muted/40 flex items-center justify-center p-4">
         <Card className="max-w-md w-full p-6">
           <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 text-center mb-2">
+          <h2 className="text-xl font-semibold text-foreground text-center mb-2">
             申请未找到
           </h2>
-          <p className="text-gray-600 text-center mb-4">
+          <p className="text-muted-foreground text-center mb-4">
             该申请不存在或已被删除。
           </p>
           <Button onClick={() => router.push("/dashboard")} className="w-full">
@@ -406,7 +406,7 @@ export default function MatchAnalysisClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-muted/40 py-8">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="mb-6">
@@ -444,11 +444,11 @@ export default function MatchAnalysisClient() {
             </div>
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
               {application.position}
             </h1>
-            <p className="text-lg text-gray-600">{application.companyName}</p>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-lg text-muted-foreground">{application.companyName}</p>
+            <p className="text-sm text-muted-foreground mt-1">
               分析时间: {new Date(matchDetails.calculatedAt).toLocaleString()}
             </p>
           </div>
@@ -484,7 +484,7 @@ export default function MatchAnalysisClient() {
 
           <TabsContent value="recommendations" className="mt-6">
             <Card className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              <h3 className="text-xl font-semibold text-foreground mb-4">
                 改进建议
               </h3>
               {matchDetails.recommendations.length > 0 ? (
@@ -502,7 +502,7 @@ export default function MatchAnalysisClient() {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   暂无具体建议，您的简历与该职位匹配良好！
                 </p>
               )}

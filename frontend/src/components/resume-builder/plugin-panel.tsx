@@ -30,17 +30,17 @@ function PluginPanelBase({ open, onClose }: PluginPanelProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden"
+        className="bg-card rounded-xl shadow-2xl max-w-lg w-full overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">插件模式</h3>
-            <p className="text-sm text-gray-500 mt-0.5">可插拔式设置，随时给你一片清爽的编辑页面。</p>
+            <h3 className="text-lg font-semibold text-foreground">插件模式</h3>
+            <p className="text-sm text-muted-foreground mt-0.5">可插拔式设置，随时给你一片清爽的编辑页面。</p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+            className="text-muted-foreground/80 hover:text-muted-foreground text-2xl leading-none"
             aria-label="关闭"
           >
             ×
@@ -53,7 +53,7 @@ function PluginPanelBase({ open, onClose }: PluginPanelProps) {
               <li key={def.key} className="flex items-center justify-between gap-4 px-5 py-3.5">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900">{def.label}</span>
+                    <span className="text-sm font-medium text-foreground">{def.label}</span>
                     <span
                       className={cn(
                         "text-[10px] px-1.5 py-0.5 rounded-full",
@@ -65,7 +65,7 @@ function PluginPanelBase({ open, onClose }: PluginPanelProps) {
                       {def.kind === "render" ? "渲染" : "界面"}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-0.5 truncate">{def.description}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">{def.description}</p>
                 </div>
                 <button
                   role="switch"
@@ -79,7 +79,7 @@ function PluginPanelBase({ open, onClose }: PluginPanelProps) {
                 >
                   <span
                     className={cn(
-                      "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition",
+                      "absolute top-0.5 h-5 w-5 rounded-full bg-card shadow transition",
                       on ? "left-[22px]" : "left-0.5",
                     )}
                   />

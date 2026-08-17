@@ -66,7 +66,7 @@ export const SourceEditor = forwardRef<SourceEditorHandle, SourceEditorProps>(
     };
 
     return (
-      <div className="h-full flex flex-col bg-gray-50">
+      <div className="h-full flex flex-col bg-muted/40">
         <div className="flex-1 min-h-0">
           <textarea
             ref={taRef}

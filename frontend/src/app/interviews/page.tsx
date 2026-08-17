@@ -343,13 +343,13 @@ const StatsCard = memo(function StatsCard({
   trend?: string;
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+    <div className="bg-card rounded-xl shadow-sm p-6 border border-border">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <p className="mt-2 text-3xl font-bold text-foreground">{value}</p>
           {trend && (
-            <p className="mt-1 text-sm text-gray-600">{trend}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{trend}</p>
           )}
         </div>
         <div className={cn("p-3 rounded-lg", color)}>
@@ -400,7 +400,7 @@ const InterviewListItem = memo(function InterviewListItem({
   return (
     <div
       className={cn(
-        "bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer",
+        "bg-card rounded-lg shadow-sm border border-border p-4 hover:shadow-md transition-shadow cursor-pointer",
         isPast && "opacity-75"
       )}
       onClick={() => onView(interview)}
@@ -408,7 +408,7 @@ const InterviewListItem = memo(function InterviewListItem({
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
-            <h4 className="text-lg font-semibold text-gray-900 truncate">{interview.title}</h4>
+            <h4 className="text-lg font-semibold text-foreground truncate">{interview.title}</h4>
             <span
               className={cn(
                 "px-2 py-1 text-xs font-medium rounded-full border",
@@ -419,7 +419,7 @@ const InterviewListItem = memo(function InterviewListItem({
             </span>
           </div>
 
-          <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
               <span>
@@ -445,7 +445,7 @@ const InterviewListItem = memo(function InterviewListItem({
           </div>
 
           {(interview.company_name || interview.job_title) && (
-            <div className="text-sm text-gray-700">
+            <div className="text-sm text-muted-foreground">
               {interview.company_name && <span className="font-medium">{interview.company_name}</span>}
               {interview.company_name && interview.job_title && <span className="mx-1">•</span>}
               {interview.job_title && <span>{interview.job_title}</span>}
@@ -650,11 +650,11 @@ function InterviewsContent() {
 
   if (statsLoading || calendarLoading || interviewsLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-muted/40">
         <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
           <div className="text-center">
             <Clock className="h-12 w-12 text-purple-600 mx-auto mb-4 animate-spin" />
-            <p className="text-lg font-medium text-gray-900">{copy.loading}</p>
+            <p className="text-lg font-medium text-foreground">{copy.loading}</p>
           </div>
         </div>
       </div>
@@ -664,14 +664,14 @@ function InterviewsContent() {
   const visibleInterviews = interviewsData?.interviews ?? [];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/40">
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{copy.title}</h1>
-              <p className="mt-2 text-lg text-gray-700">
+              <h1 className="text-3xl font-bold text-foreground">{copy.title}</h1>
+              <p className="mt-2 text-lg text-muted-foreground">
                 {copy.subtitle}
               </p>
             </div>
@@ -717,10 +717,10 @@ function InterviewsContent() {
 
         {/* Next Interview Card */}
         {stats?.next_interview && (
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-6 mb-8">
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/40 dark:to-blue-950/40 border border-purple-200 rounded-xl p-6 mb-8">
             <div className="flex items-center gap-2 mb-4">
               <Clock className="h-5 w-5 text-purple-600" />
-              <h3 className="text-lg font-semibold text-gray-900">{copy.nextInterview}</h3>
+              <h3 className="text-lg font-semibold text-foreground">{copy.nextInterview}</h3>
             </div>
             <InterviewListItem
               interview={stats.next_interview}
@@ -736,14 +736,14 @@ function InterviewsContent() {
         {/* View Toggle and Filters */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <div className="flex bg-white rounded-lg border border-gray-200 p-1">
+            <div className="flex bg-card rounded-lg border border-border p-1">
               <button
                 onClick={() => setViewMode('dashboard')}
                 className={cn(
                   "px-4 py-2 rounded-md text-sm font-medium transition-colors",
                   viewMode === 'dashboard'
                     ? "bg-blue-500 text-white"
-                    : "text-gray-700 hover:bg-gray-100"
+                    : "text-muted-foreground hover:bg-muted"
                 )}
               >
                 <Plus className="h-4 w-4 inline mr-2" />
@@ -755,7 +755,7 @@ function InterviewsContent() {
                   "px-4 py-2 rounded-md text-sm font-medium transition-colors",
                   viewMode === 'drag-drop'
                     ? "bg-blue-500 text-white"
-                    : "text-gray-700 hover:bg-gray-100"
+                    : "text-muted-foreground hover:bg-muted"
                 )}
               >
                 <GripVertical className="h-4 w-4 inline mr-2" />
@@ -767,7 +767,7 @@ function InterviewsContent() {
                   "px-4 py-2 rounded-md text-sm font-medium transition-colors",
                   viewMode === 'enhanced-calendar'
                     ? "bg-blue-500 text-white"
-                    : "text-gray-700 hover:bg-gray-100"
+                    : "text-muted-foreground hover:bg-muted"
                 )}
               >
                 <Calendar className="h-4 w-4 inline mr-2" />
@@ -779,7 +779,7 @@ function InterviewsContent() {
                   "px-4 py-2 rounded-md text-sm font-medium transition-colors",
                   viewMode === 'calendar'
                     ? "bg-blue-500 text-white"
-                    : "text-gray-700 hover:bg-gray-100"
+                    : "text-muted-foreground hover:bg-muted"
                 )}
               >
                 <Calendar className="h-4 w-4 inline mr-2" />
@@ -791,7 +791,7 @@ function InterviewsContent() {
                   "px-4 py-2 rounded-md text-sm font-medium transition-colors",
                   viewMode === 'list'
                     ? "bg-blue-500 text-white"
-                    : "text-gray-700 hover:bg-gray-100"
+                    : "text-muted-foreground hover:bg-muted"
                 )}
               >
                 <Filter className="h-4 w-4 inline mr-2" />
@@ -803,7 +803,7 @@ function InterviewsContent() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">{copy.statusFilter.all}</option>
               <option value="scheduled">{copy.statusFilter.scheduled}</option>
@@ -816,7 +816,7 @@ function InterviewsContent() {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">{copy.typeFilter.all}</option>
               <option value="screening">{copy.typeFilter.screening}</option>
@@ -870,10 +870,10 @@ function InterviewsContent() {
                 />
               ))
             ) : (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{copy.emptyTitle}</h3>
-                <p className="text-gray-600 mb-4">
+              <div className="bg-card rounded-xl shadow-sm border border-border p-12 text-center">
+                <Calendar className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">{copy.emptyTitle}</h3>
+                <p className="text-muted-foreground mb-4">
                   {filterStatus !== 'all' || filterType !== 'all'
                     ? copy.emptyFiltered
                     : copy.emptyDefault}
@@ -900,10 +900,10 @@ export default function InterviewsPage() {
 
   if (!isClient) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/40 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">{copy.initialLoading}</p>
+          <p className="text-muted-foreground">{copy.initialLoading}</p>
         </div>
       </div>
     );
@@ -911,7 +911,7 @@ export default function InterviewsPage() {
 
 
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><Clock className="h-8 w-8 text-purple-600 animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-muted/40 flex items-center justify-center"><Clock className="h-8 w-8 text-purple-600 animate-spin" /></div>}>
       <InterviewsContent />
     </Suspense>
   );

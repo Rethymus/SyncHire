@@ -49,7 +49,7 @@ const statusConfig: Record<string, { label: string; icon: any; color: string }> 
   draft: {
     label: '草稿',
     icon: FileText,
-    color: 'bg-gray-100 text-gray-800 border-gray-300',
+    color: 'bg-muted text-gray-800 border-input',
   },
   applied: {
     label: '已申请',
@@ -92,7 +92,7 @@ const changedByConfig: Record<string, { label: string; icon: any; color: string 
   system: {
     label: '系统',
     icon: Settings,
-    color: 'bg-gray-100 text-gray-800',
+    color: 'bg-muted text-gray-800',
   },
   automation: {
     label: '自动化',
@@ -216,11 +216,11 @@ export function StatusHistoryTimeline({
   if (history.length === 0) {
     return (
       <Card className="p-8 text-center">
-        <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <Calendar className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           暂无历史记录
         </h3>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           状态变更记录将显示在这里
         </p>
       </Card>
@@ -237,8 +237,8 @@ export function StatusHistoryTimeline({
               <Calendar className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">总变更次数</p>
-              <p className="text-2xl font-bold text-gray-900">{statistics.totalChanges}</p>
+              <p className="text-sm text-muted-foreground">总变更次数</p>
+              <p className="text-2xl font-bold text-foreground">{statistics.totalChanges}</p>
             </div>
           </div>
         </Card>
@@ -249,8 +249,8 @@ export function StatusHistoryTimeline({
               <Briefcase className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">涉及状态</p>
-              <p className="text-2xl font-bold text-gray-900">{statistics.uniqueStatuses}</p>
+              <p className="text-sm text-muted-foreground">涉及状态</p>
+              <p className="text-2xl font-bold text-foreground">{statistics.uniqueStatuses}</p>
             </div>
           </div>
         </Card>
@@ -261,8 +261,8 @@ export function StatusHistoryTimeline({
               <User className="h-5 w-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">用户操作</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-muted-foreground">用户操作</p>
+              <p className="text-2xl font-bold text-foreground">
                 {statistics.changesByType.user || 0}
               </p>
             </div>
@@ -275,8 +275,8 @@ export function StatusHistoryTimeline({
               <Bot className="h-5 w-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">自动化操作</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-muted-foreground">自动化操作</p>
+              <p className="text-2xl font-bold text-foreground">
                 {statistics.changesByType.automation || 0}
               </p>
             </div>
@@ -290,7 +290,7 @@ export function StatusHistoryTimeline({
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex-1 min-w-[200px]">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/80" />
                 <Input
                   placeholder="搜索备注或触发器..."
                   value={searchTerm}
@@ -347,8 +347,8 @@ export function StatusHistoryTimeline({
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">状态变更历史</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="text-lg font-semibold text-foreground">状态变更历史</h3>
+            <p className="text-sm text-muted-foreground">
               显示 {filteredHistory.length} 条记录（共 {history.length} 条）
             </p>
           </div>
@@ -379,7 +379,7 @@ export function StatusHistoryTimeline({
 
                   <div
                     className={`p-4 rounded-lg border transition-all ${
-                      isExpanded ? 'bg-white border-gray-300 shadow-sm' : 'bg-gray-50 border-gray-200'
+                      isExpanded ? 'bg-card border-input shadow-sm' : 'bg-muted/40 border-border'
                     }`}
                   >
                     <div className="flex items-start justify-between mb-2">
@@ -391,7 +391,7 @@ export function StatusHistoryTimeline({
                               <Badge variant="outline" className={`text-xs ${oldConfig.color}`}>
                                 {oldConfig.label}
                               </Badge>
-                              <span className="text-gray-400">→</span>
+                              <span className="text-muted-foreground/80">→</span>
                             </>
                           )}
                           <Badge className={`text-xs ${newConfig.color}`}>
@@ -410,10 +410,10 @@ export function StatusHistoryTimeline({
                       {/* Timestamp and expand button */}
                       <div className="flex items-center gap-3">
                         <div className="text-right">
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-sm font-medium text-foreground">
                             {new Date(entry.changedAt).toLocaleDateString('zh-CN')}
                           </p>
-                          <p className="text-xs text-gray-600">
+                          <p className="text-xs text-muted-foreground">
                             {new Date(entry.changedAt).toLocaleTimeString('zh-CN')}
                           </p>
                         </div>
@@ -437,19 +437,19 @@ export function StatusHistoryTimeline({
                       <div className="mt-4 pt-4 border-t space-y-3">
                         {entry.notes && (
                           <div>
-                            <p className="text-xs text-gray-600 mb-1">备注</p>
-                            <p className="text-sm text-gray-900">{entry.notes}</p>
+                            <p className="text-xs text-muted-foreground mb-1">备注</p>
+                            <p className="text-sm text-foreground">{entry.notes}</p>
                           </div>
                         )}
 
                         {entry.trigger && (
                           <div>
-                            <p className="text-xs text-gray-600 mb-1">触发器</p>
-                            <p className="text-sm text-gray-900">{entry.trigger}</p>
+                            <p className="text-xs text-muted-foreground mb-1">触发器</p>
+                            <p className="text-sm text-foreground">{entry.trigger}</p>
                           </div>
                         )}
 
-                        <div className="flex items-center gap-4 text-xs text-gray-600">
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
                           <span>变更ID: {entry.id}</span>
                           {applicationId && <span>申请ID: {applicationId}</span>}
                         </div>
@@ -465,8 +465,8 @@ export function StatusHistoryTimeline({
         {/* No results */}
         {filteredHistory.length === 0 && (
           <div className="text-center py-8">
-            <Filter className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">没有找到匹配的历史记录</p>
+            <Filter className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />
+            <p className="text-muted-foreground">没有找到匹配的历史记录</p>
             <Button
               variant="outline"
               size="sm"
@@ -486,7 +486,7 @@ export function StatusHistoryTimeline({
       {/* Common transitions */}
       {Object.keys(statistics.statusChanges).length > 0 && (
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">常见状态转换</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">常见状态转换</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {Object.entries(statistics.statusChanges)
               .sort(([, a], [, b]) => b - a)
@@ -499,7 +499,7 @@ export function StatusHistoryTimeline({
                 return (
                   <div
                     key={transition}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-muted/40 rounded-lg"
                   >
                     <div className="flex items-center gap-2">
                       {fromConfig && (
@@ -507,7 +507,7 @@ export function StatusHistoryTimeline({
                           <Badge variant="outline" className="text-xs">
                             {fromConfig.label}
                           </Badge>
-                          <span className="text-gray-400">→</span>
+                          <span className="text-muted-foreground/80">→</span>
                         </>
                       )}
                       <Badge variant="outline" className="text-xs">

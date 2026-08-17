@@ -81,16 +81,16 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/40">
       
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-foreground">
             Welcome to SyncHire Lite
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-muted-foreground">
             Your local AI-powered job application assistant
           </p>
         </div>
@@ -99,7 +99,7 @@ export default function DashboardPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-lg shadow p-6 animate-pulse">
+              <div key={i} className="bg-card rounded-lg shadow p-6 animate-pulse">
                 <div className="h-8 bg-gray-200 rounded w-1/3"></div>
                 <div className="mt-4 h-6 bg-gray-200 rounded w-1/2"></div>
               </div>
@@ -117,7 +117,7 @@ export default function DashboardPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">{card.title}</p>
+                      <p className="text-sm font-medium text-muted-foreground">{card.title}</p>
                       <p className={`text-3xl font-bold ${card.color} mt-2`}>
                         {card.value}
                       </p>
@@ -131,36 +131,36 @@ export default function DashboardPage() {
         )}
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="bg-card rounded-lg shadow p-6 mb-8">
+          <h2 className="text-xl font-semibold text-foreground mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link
               href="/upload"
-              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-muted/40 transition-colors"
             >
               <FileText className="h-5 w-5 text-blue-600" />
-              <span className="font-medium text-gray-700">Create Resume</span>
+              <span className="font-medium text-muted-foreground">Create Resume</span>
             </Link>
             <Link
               href="/jd-input"
-              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-muted/40 transition-colors"
             >
               <Briefcase className="h-5 w-5 text-green-600" />
-              <span className="font-medium text-gray-700">Add Job Description</span>
+              <span className="font-medium text-muted-foreground">Add Job Description</span>
             </Link>
             <Link
               href="/applications"
-              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-muted/40 transition-colors"
             >
               <BarChart3 className="h-5 w-5 text-purple-600" />
-              <span className="font-medium text-gray-700">Track Application</span>
+              <span className="font-medium text-muted-foreground">Track Application</span>
             </Link>
           </div>
         </div>
 
         {/* Getting Started */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <div className="bg-card rounded-lg shadow p-6 mb-8">
+          <h2 className="text-xl font-semibold text-foreground mb-4">
             Getting Started with SyncHire Lite
           </h2>
           <div className="space-y-4">
@@ -169,8 +169,8 @@ export default function DashboardPage() {
                 1
               </div>
               <div>
-                <h3 className="font-medium text-gray-900">Create your resume</h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <h3 className="font-medium text-foreground">Create your resume</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Upload your resume or create one from scratch. Use AI to optimize it for
                   better ATS compatibility.
                 </p>
@@ -181,8 +181,8 @@ export default function DashboardPage() {
                 2
               </div>
               <div>
-                <h3 className="font-medium text-gray-900">Add job descriptions</h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <h3 className="font-medium text-foreground">Add job descriptions</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Import job descriptions from URLs or paste content. AI will parse and
                   structure the information.
                 </p>
@@ -193,8 +193,8 @@ export default function DashboardPage() {
                 3
               </div>
               <div>
-                <h3 className="font-medium text-gray-900">Track applications</h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <h3 className="font-medium text-foreground">Track applications</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Create applications by pairing resumes with job descriptions. Track
                   status and get AI-powered match scores.
                 </p>
@@ -205,8 +205,8 @@ export default function DashboardPage() {
                 4
               </div>
               <div>
-                <h3 className="font-medium text-gray-900">Use AI features</h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <h3 className="font-medium text-foreground">Use AI features</h3>
+                <p className="text-sm text-muted-foreground mt-1">
                   Leverage AI for resume optimization, job parsing, and intelligent
                   matching to find the best opportunities.
                 </p>
@@ -216,29 +216,29 @@ export default function DashboardPage() {
         </div>
 
         {/* Data Management */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Data Management</h2>
+        <div className="bg-card rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-foreground mb-4">Data Management</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Link
               href="/data"
-              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-muted/40 transition-colors"
             >
               <FolderOpen className="h-5 w-5 text-orange-600" />
               <div>
-                <p className="font-medium text-gray-700">Manage Data</p>
-                <p className="text-sm text-gray-500">
+                <p className="font-medium text-muted-foreground">Manage Data</p>
+                <p className="text-sm text-muted-foreground">
                   Export, import, backup your data
                 </p>
               </div>
             </Link>
             <Link
               href="/search"
-              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-muted/40 transition-colors"
             >
               <Search className="h-5 w-5 text-indigo-600" />
               <div>
-                <p className="font-medium text-gray-700">Search</p>
-                <p className="text-sm text-gray-500">
+                <p className="font-medium text-muted-foreground">Search</p>
+                <p className="text-sm text-muted-foreground">
                   Full-text and semantic search
                 </p>
               </div>

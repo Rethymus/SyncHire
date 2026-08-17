@@ -56,7 +56,7 @@ const DialogContent = React.forwardRef<
     aria-modal="true"
     tabIndex={-1}
     className={cn(
-      "relative z-50 grid w-full max-w-lg gap-4 rounded-lg border bg-white p-6 shadow-lg",
+      "relative z-50 grid w-full max-w-lg gap-4 rounded-lg border bg-card p-6 shadow-lg",
       className
     )}
     {...props}
@@ -115,7 +115,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-gray-600", className)}
+    className={cn("text-sm text-muted-foreground", className)}
     {...props}
   />
 ))

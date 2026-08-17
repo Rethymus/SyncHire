@@ -98,7 +98,7 @@ const DEFAULT_COPY: SearchResultsCopy = {
 };
 
 const statusColors = {
-  draft: "bg-gray-100 text-gray-800",
+  draft: "bg-muted text-gray-800",
   applied: "bg-blue-100 text-blue-800",
   interview: "bg-purple-100 text-purple-800",
   offer: "bg-green-100 text-green-800",
@@ -145,7 +145,7 @@ export const SearchResults = memo(function SearchResults({
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
-            className="bg-white rounded-lg border border-gray-200 p-6 animate-pulse"
+            className="bg-card rounded-lg border border-border p-6 animate-pulse"
           >
             <div className="h-6 bg-gray-200 rounded w-3/4 mb-3" />
             <div className="h-4 bg-gray-200 rounded w-full mb-2" />
@@ -158,13 +158,13 @@ export const SearchResults = memo(function SearchResults({
 
   if (results.length === 0) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-        {searchType === "resume" && <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />}
-        {searchType === "jd" && <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />}
-        {searchType === "application" && <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />}
+      <div className="bg-card rounded-lg border border-border p-12 text-center">
+        {searchType === "resume" && <FileText className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />}
+        {searchType === "jd" && <Briefcase className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />}
+        {searchType === "application" && <Building2 className="h-12 w-12 text-muted-foreground/80 mx-auto mb-4" />}
 
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{copy.noResults}</h3>
-        <p className="text-sm text-gray-600 mb-6">
+        <h3 className="text-lg font-semibold text-foreground mb-2">{copy.noResults}</h3>
+        <p className="text-sm text-muted-foreground mb-6">
           {query
             ? `${copy.noQueryPrefix} "${query}". ${copy.noQuerySuffix}`
             : copy.noQuery}
@@ -177,8 +177,8 @@ export const SearchResults = memo(function SearchResults({
     <div className="space-y-6">
       {/* Results Summary */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-600">
-          {copy.found} <span className="font-semibold text-gray-900">{total}</span>{" "}
+        <p className="text-sm text-muted-foreground">
+          {copy.found} <span className="font-semibold text-foreground">{total}</span>{" "}
           {total === 1 ? copy.result : copy.results}
           {query && (
             <span>
@@ -193,13 +193,13 @@ export const SearchResults = memo(function SearchResults({
         {results.map((result) => (
           <div
             key={result.id}
-            className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow p-6"
+            className="bg-card rounded-lg border border-border hover:shadow-md transition-shadow p-6"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 {/* Title and Type */}
                 <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-foreground">
                     {searchType === "application" ? result.position : result.title}
                   </h3>
                   {result.similarity !== undefined && (
@@ -220,7 +220,7 @@ export const SearchResults = memo(function SearchResults({
 
                 {/* Additional Info */}
                 {searchType === "application" && result.company_name && (
-                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                     <div className="flex items-center gap-1">
                       <Building2 className="h-4 w-4" />
                       {result.company_name}
@@ -228,7 +228,7 @@ export const SearchResults = memo(function SearchResults({
                     {result.match_score !== undefined && (
                       <div className="flex items-center gap-1">
                         <TrendingUp className="h-4 w-4 text-blue-600" />
-                        <span className="text-gray-700">
+                        <span className="text-muted-foreground">
                           {copy.match}: <span className="font-semibold">{result.match_score}%</span>
                         </span>
                       </div>
@@ -239,7 +239,7 @@ export const SearchResults = memo(function SearchResults({
                 {/* Highlighted Content Preview */}
                 {result.highlighted_content && (
                   <div
-                    className="text-sm text-gray-700 mb-3"
+                    className="text-sm text-muted-foreground mb-3"
                     style={{
                       display: "-webkit-box",
                       WebkitLineClamp: 3,
@@ -251,7 +251,7 @@ export const SearchResults = memo(function SearchResults({
                 )}
 
                 {/* Metadata */}
-                <div className="flex items-center gap-4 text-xs text-gray-500">
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
                     {new Date(result.created_at).toLocaleDateString()}
@@ -333,7 +333,7 @@ export const SearchResults = memo(function SearchResults({
                 return (
                   <div key={p} className="flex items-center">
                     {showEllipsis && (
-                      <span className="px-2 text-gray-400">...</span>
+                      <span className="px-2 text-muted-foreground/80">...</span>
                     )}
                     <Button
                       variant={p === page ? "default" : "outline"}

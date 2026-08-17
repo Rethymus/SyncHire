@@ -106,7 +106,7 @@ export default function WorkflowAnalyticsPage() {
   }, [applications]);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-muted/40 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -118,8 +118,8 @@ export default function WorkflowAnalyticsPage() {
               </Link>
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">工作流分析</h1>
-              <p className="text-gray-600">
+              <h1 className="text-3xl font-bold text-foreground">工作流分析</h1>
+              <p className="text-muted-foreground">
                 深入了解您的申请流程和智能建议
               </p>
             </div>
@@ -142,10 +142,10 @@ export default function WorkflowAnalyticsPage() {
               <div className="p-2 bg-blue-100 rounded-lg">
                 <BarChart3 className="h-5 w-5 text-blue-600" />
               </div>
-              <span className="text-sm text-gray-600">总申请数</span>
+              <span className="text-sm text-muted-foreground">总申请数</span>
             </div>
-            <div className="text-3xl font-bold text-gray-900">{applications.length}</div>
-            <p className="text-xs text-gray-500 mt-1">
+            <div className="text-3xl font-bold text-foreground">{applications.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">
               活跃申请: {applicationStats?.activeApplications || 0}
             </p>
           </Card>
@@ -155,10 +155,10 @@ export default function WorkflowAnalyticsPage() {
               <div className="p-2 bg-green-100 rounded-lg">
                 <Target className="h-5 w-5 text-green-600" />
               </div>
-              <span className="text-sm text-gray-600">智能建议</span>
+              <span className="text-sm text-muted-foreground">智能建议</span>
             </div>
-            <div className="text-3xl font-bold text-gray-900">{highPriorityCount}</div>
-            <p className="text-xs text-gray-500 mt-1">
+            <div className="text-3xl font-bold text-foreground">{highPriorityCount}</div>
+            <p className="text-xs text-muted-foreground mt-1">
               高优先级建议
             </p>
           </Card>
@@ -168,12 +168,12 @@ export default function WorkflowAnalyticsPage() {
               <div className="p-2 bg-purple-100 rounded-lg">
                 <TrendingUp className="h-5 w-5 text-purple-600" />
               </div>
-              <span className="text-sm text-gray-600">面试转化率</span>
+              <span className="text-sm text-muted-foreground">面试转化率</span>
             </div>
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-foreground">
               {((statistics?.successMetrics?.interviewRate || 0)).toFixed(1)}%
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {((statistics?.successMetrics?.interviewRate || 0)) >= 20 ? '表现优秀' : '有提升空间'}
             </p>
           </Card>
@@ -183,12 +183,12 @@ export default function WorkflowAnalyticsPage() {
               <div className="p-2 bg-yellow-100 rounded-lg">
                 <Award className="h-5 w-5 text-yellow-600" />
               </div>
-              <span className="text-sm text-gray-600">录用转化率</span>
+              <span className="text-sm text-muted-foreground">录用转化率</span>
             </div>
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-foreground">
               {((statistics?.successMetrics?.offerRate || 0)).toFixed(1)}%
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {((statistics?.successMetrics?.offerRate || 0)) >= 10 ? '表现优秀' : '继续努力'}
             </p>
           </Card>
@@ -223,8 +223,8 @@ export default function WorkflowAnalyticsPage() {
             <Card className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">状态变更历史</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="text-lg font-semibold text-foreground">状态变更历史</h3>
+                  <p className="text-sm text-muted-foreground">
                     查看所有申请的状态变更记录
                   </p>
                 </div>
@@ -255,8 +255,8 @@ export default function WorkflowAnalyticsPage() {
                   <TrendingUp className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">智能洞察</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="text-lg font-semibold text-foreground">智能洞察</h3>
+                  <p className="text-sm text-muted-foreground">
                     基于您的工作流数据生成的个性化建议
                   </p>
                 </div>

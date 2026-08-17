@@ -152,17 +152,17 @@ function PortraitStudioBase({ open, onClose }: PortraitStudioProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-auto"
+        className="bg-card rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white z-10">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-card z-10">
           <div className="flex items-center gap-2">
             <ImageIcon className="h-5 w-5 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-900">证件照生成</h3>
+            <h3 className="text-lg font-semibold text-foreground">证件照生成</h3>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-muted-foreground/80 hover:text-muted-foreground"
             aria-label="关闭"
           >
             <X className="h-5 w-5" />
@@ -171,8 +171,8 @@ function PortraitStudioBase({ open, onClose }: PortraitStudioProps) {
 
         <div className="p-5 space-y-5">
           {/* Provider status */}
-          <div className="flex items-center justify-between rounded-lg bg-gray-50 border border-gray-200 px-4 py-2.5">
-            <div className="text-xs text-gray-600">
+          <div className="flex items-center justify-between rounded-lg bg-muted/40 border border-border px-4 py-2.5">
+            <div className="text-xs text-muted-foreground">
               {(() => {
                 const p = provider ?? loadImageProviderSettings();
                 const preset = getImagePreset(p.presetId);
@@ -180,7 +180,7 @@ function PortraitStudioBase({ open, onClose }: PortraitStudioProps) {
                   <>
                     <span className="font-medium text-gray-800">{preset.label}</span>
                     <span className="mx-2 text-gray-300">·</span>
-                    模型 <code className="text-gray-700">{p.model || "未设置"}</code>
+                    模型 <code className="text-muted-foreground">{p.model || "未设置"}</code>
                     <span className="mx-2 text-gray-300">·</span>
                     Key {p.apiKey ? "已配置" : "未配置"}
                   </>
@@ -199,7 +199,7 @@ function PortraitStudioBase({ open, onClose }: PortraitStudioProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">1. 上传日常照片</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5">1. 上传日常照片</label>
               <div
                 onClick={() => fileInputRef.current?.click()}
                 onDragOver={(e) => {
@@ -213,7 +213,7 @@ function PortraitStudioBase({ open, onClose }: PortraitStudioProps) {
                   handleFile(e.dataTransfer.files?.[0]);
                 }}
                 className={`cursor-pointer rounded-lg border-2 border-dashed flex flex-col items-center justify-center h-44 transition ${
-                  dragging ? "border-blue-400 bg-blue-50" : "border-gray-300 hover:border-gray-400"
+                  dragging ? "border-blue-400 bg-blue-50" : "border-input hover:border-gray-400"
                 }`}
               >
                 {sourcePhoto ? (
@@ -221,9 +221,9 @@ function PortraitStudioBase({ open, onClose }: PortraitStudioProps) {
                   <img src={sourcePhoto} alt="原图" className="max-h-40 max-w-full object-contain rounded" />
                 ) : (
                   <>
-                    <Upload className="h-7 w-7 text-gray-400 mb-1.5" />
-                    <p className="text-sm text-gray-500">点击或拖拽上传</p>
-                    <p className="text-xs text-gray-400 mt-0.5">PNG / JPG / WEBP，≤ 8MB</p>
+                    <Upload className="h-7 w-7 text-muted-foreground/80 mb-1.5" />
+                    <p className="text-sm text-muted-foreground">点击或拖拽上传</p>
+                    <p className="text-xs text-muted-foreground/80 mt-0.5">PNG / JPG / WEBP，≤ 8MB</p>
                   </>
                 )}
               </div>
@@ -238,8 +238,8 @@ function PortraitStudioBase({ open, onClose }: PortraitStudioProps) {
 
             {/* Details */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">2. 信息栏（可选）</label>
-              <p className="text-xs text-gray-500 mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5">2. 信息栏（可选）</label>
+              <p className="text-xs text-muted-foreground mb-2">
                 中文会按规则自动翻译为正式英文显示在图片上。
               </p>
               <div className="space-y-2">
@@ -247,19 +247,19 @@ function PortraitStudioBase({ open, onClose }: PortraitStudioProps) {
                   value={details.name}
                   onChange={(e) => setDetails((d) => ({ ...d, name: e.target.value }))}
                   placeholder="姓名（如：陈宇）"
-                  className="w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none"
+                  className="w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none"
                 />
                 <input
                   value={details.title}
                   onChange={(e) => setDetails((d) => ({ ...d, title: e.target.value }))}
                   placeholder="职位（如：前端工程师）"
-                  className="w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none"
+                  className="w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none"
                 />
                 <input
                   value={details.department}
                   onChange={(e) => setDetails((d) => ({ ...d, department: e.target.value }))}
                   placeholder="部门（如：前端开发部）"
-                  className="w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none"
+                  className="w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none"
                 />
               </div>
             </div>
@@ -269,11 +269,11 @@ function PortraitStudioBase({ open, onClose }: PortraitStudioProps) {
           <div>
             <label
               htmlFor="portrait-bg"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
+              className="block text-sm font-medium text-muted-foreground mb-1.5"
             >
               背景颜色
             </label>
-            <p className="text-xs text-gray-500 mb-2">
+            <p className="text-xs text-muted-foreground mb-2">
               选择证件照底色，不同颜色适配不同场景，请以接收方要求为准。
             </p>
             <select
@@ -285,7 +285,7 @@ function PortraitStudioBase({ open, onClose }: PortraitStudioProps) {
                   backgroundId: e.target.value as PortraitBackgroundId,
                 }))
               }
-              className="w-full h-9 px-3 rounded-md border border-gray-200 text-sm focus:border-blue-400 focus:outline-none bg-white"
+              className="w-full h-9 px-3 rounded-md border border-border text-sm focus:border-blue-400 focus:outline-none bg-card"
             >
               {PORTRAIT_BACKGROUND_OPTIONS.map((option) => (
                 <option key={option.id} value={option.id}>
@@ -316,7 +316,7 @@ function PortraitStudioBase({ open, onClose }: PortraitStudioProps) {
               )}
               {status === "generating" ? "生成中…" : "生成商务证件照"}
             </button>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-muted-foreground/80">
               将调用配置的图像模型，可能需要数秒到数十秒。
             </span>
           </div>
@@ -324,10 +324,10 @@ function PortraitStudioBase({ open, onClose }: PortraitStudioProps) {
           {/* Result */}
           {result && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">3. 生成结果</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5">3. 生成结果</label>
               <div className="flex items-start gap-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={result} alt="证件照" className="w-40 h-40 object-cover rounded-lg border border-gray-200" />
+                <img src={result} alt="证件照" className="w-40 h-40 object-cover rounded-lg border border-border" />
                 <div className="flex flex-col gap-2">
                   <button
                     onClick={handleApply}
@@ -340,7 +340,7 @@ function PortraitStudioBase({ open, onClose }: PortraitStudioProps) {
                       setResult("");
                       setStatus("idle");
                     }}
-                    className="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-gray-200 text-gray-700 text-sm hover:bg-gray-50 transition"
+                    className="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-border text-muted-foreground text-sm hover:bg-muted/40 transition"
                   >
                     重新生成
                   </button>

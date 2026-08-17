@@ -122,8 +122,8 @@ const Toolbar = memo(function Toolbar(props: any) {
     <div className="rbc-toolbar mb-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <CalendarIcon className="h-5 w-5 text-gray-600" />
-          <span className="text-lg font-semibold text-gray-900">{label}</span>
+          <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+          <span className="text-lg font-semibold text-foreground">{label}</span>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -152,7 +152,7 @@ const Toolbar = memo(function Toolbar(props: any) {
             </Button>
           </div>
         </div>
-        <div className="flex bg-white rounded-lg border border-gray-200 p-1">
+        <div className="flex bg-card rounded-lg border border-border p-1">
           {Object.keys(views).map((v: string) => (
             <button
               key={v}
@@ -161,7 +161,7 @@ const Toolbar = memo(function Toolbar(props: any) {
                 "px-3 py-1 rounded text-sm font-medium transition-colors",
                 view === v
                   ? "bg-blue-500 text-white"
-                  : "text-gray-700 hover:bg-gray-100"
+                  : "text-muted-foreground hover:bg-muted"
               )}
             >
               {v.charAt(0).toUpperCase() + v.slice(1)}
@@ -253,7 +253,7 @@ const InterviewCalendarEnhanced = memo(function InterviewCalendarEnhanced({
   }, [events]);
 
   return (
-    <div className={cn("bg-white rounded-xl shadow-sm border border-gray-200 p-4", className)}>
+    <div className={cn("bg-card rounded-xl shadow-sm border border-border p-4", className)}>
       <Calendar
         localizer={localizer}
         events={calendarEvents}
@@ -288,9 +288,9 @@ const InterviewCalendarEnhanced = memo(function InterviewCalendarEnhanced({
       />
 
       {/* Legend */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
+      <div className="mt-4 pt-4 border-t border-border">
         <div className="flex items-center gap-4 flex-wrap">
-          <span className="text-sm text-gray-600">Interview Types:</span>
+          <span className="text-sm text-muted-foreground">Interview Types:</span>
           {Object.entries(interviewTypeColors).map(([type, colors]) => (
             <div key={type} className="flex items-center gap-2">
               <div
@@ -300,7 +300,7 @@ const InterviewCalendarEnhanced = memo(function InterviewCalendarEnhanced({
                   borderColor: colors.border
                 }}
               />
-              <span className="text-xs text-gray-700 capitalize">{type}</span>
+              <span className="text-xs text-muted-foreground capitalize">{type}</span>
             </div>
           ))}
         </div>

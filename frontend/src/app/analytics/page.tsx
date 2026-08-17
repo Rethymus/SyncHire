@@ -135,7 +135,7 @@ const INSIGHT_COLORS: Record<string, string> = {
   success: "bg-green-100 text-green-800 border-green-200",
   warning: "bg-yellow-100 text-yellow-800 border-yellow-200",
   opportunity: "bg-blue-100 text-blue-800 border-blue-200",
-  info: "bg-gray-100 text-gray-800 border-gray-200",
+  info: "bg-muted text-gray-800 border-border",
 };
 
 interface StatCardProps {
@@ -148,11 +148,11 @@ interface StatCardProps {
 
 function StatCard({ title, value, icon: Icon, color, trend }: StatCardProps) {
   return (
-    <div className="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-md transition-shadow">
+    <div className="bg-card rounded-lg p-6 border border-border hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-600 mb-1">{title}</p>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
+          <p className="text-sm text-muted-foreground mb-1">{title}</p>
+          <p className="text-3xl font-bold text-foreground">{value}</p>
           {trend !== undefined && (
             <div className="flex items-center gap-1 mt-2">
               {trend > 0 ? (
@@ -293,7 +293,7 @@ function AnalyticsPageContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-muted/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -305,7 +305,7 @@ function AnalyticsPageContent() {
 
   if (error || !analytics) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-muted/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6">
             <div className="flex items-center gap-3">
@@ -322,25 +322,25 @@ function AnalyticsPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/40">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{labels.title}</h1>
-            <p className="mt-2 text-gray-600">
+            <h1 className="text-3xl font-bold text-foreground">{labels.title}</h1>
+            <p className="mt-2 text-muted-foreground">
               {labels.subtitle}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <label htmlFor="timeRange" className="text-sm text-gray-600">
+            <label htmlFor="timeRange" className="text-sm text-muted-foreground">
               {labels.timeRange}
             </label>
             <select
               id="timeRange"
               value={timeRange}
               onChange={(e) => setTimeRange(Number(e.target.value))}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value={7}>{labels.day7}</option>
               <option value={30}>{labels.day30}</option>
@@ -379,49 +379,49 @@ function AnalyticsPageContent() {
 
         {/* Success Rates */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg p-6 border border-gray-200">
+          <div className="bg-card rounded-lg p-6 border border-border">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-foreground">
                 {labels.interviewRate}
               </h3>
               <Target className="h-5 w-5 text-blue-600" />
             </div>
-            <div className="text-4xl font-bold text-gray-900 mb-2">
+            <div className="text-4xl font-bold text-foreground mb-2">
               {analytics.success_rates.application_to_interview_rate}%
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {zh
                 ? `${analytics.success_rates.total_applications} ${labels.interviewRateDescription} ${analytics.overview.interview_count} ${labels.interviewUnit}`
                 : `${analytics.success_rates.total_applications} ${labels.interviewRateDescription} ${analytics.overview.interview_count} ${labels.interviewUnit}`}
             </p>
           </div>
 
-          <div className="bg-white rounded-lg p-6 border border-gray-200">
+          <div className="bg-card rounded-lg p-6 border border-border">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-foreground">
                 {labels.interviewSuccessRate}
               </h3>
               <TrendingUp className="h-5 w-5 text-green-600" />
             </div>
-            <div className="text-4xl font-bold text-gray-900 mb-2">
+            <div className="text-4xl font-bold text-foreground mb-2">
               {analytics.success_rates.interview_to_offer_rate}%
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {labels.interviewSuccessDescription}
             </p>
           </div>
 
-          <div className="bg-white rounded-lg p-6 border border-gray-200">
+          <div className="bg-card rounded-lg p-6 border border-border">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-foreground">
                 {labels.averageMatch}
               </h3>
               <Award className="h-5 w-5 text-purple-600" />
             </div>
-            <div className="text-4xl font-bold text-gray-900 mb-2">
+            <div className="text-4xl font-bold text-foreground mb-2">
               {analytics.success_rates.average_match_score}%
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {labels.averageMatchDescription}
             </p>
           </div>
@@ -430,8 +430,8 @@ function AnalyticsPageContent() {
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Activity Timeline */}
-          <div className="bg-white rounded-lg p-6 border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-card rounded-lg p-6 border border-border">
+            <h3 className="text-lg font-semibold text-foreground mb-4">
               {labels.activityTrend}
             </h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -471,8 +471,8 @@ function AnalyticsPageContent() {
           </div>
 
           {/* Status Distribution */}
-          <div className="bg-white rounded-lg p-6 border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-card rounded-lg p-6 border border-border">
+            <h3 className="text-lg font-semibold text-foreground mb-4">
               {labels.statusDistribution}
             </h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -506,8 +506,8 @@ function AnalyticsPageContent() {
         </div>
 
         {/* Weekly Trends */}
-        <div className="bg-white rounded-lg p-6 border border-gray-200 mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-card rounded-lg p-6 border border-border mb-8">
+          <h3 className="text-lg font-semibold text-foreground mb-4">
             {labels.weeklyTrend}
           </h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -536,8 +536,8 @@ function AnalyticsPageContent() {
 
         {/* Insights */}
         {analytics.insights.length > 0 && (
-          <div className="bg-white rounded-lg p-6 border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-card rounded-lg p-6 border border-border">
+            <h3 className="text-lg font-semibold text-foreground mb-4">
               {labels.insights}
             </h3>
             <div className="space-y-4">
@@ -547,7 +547,7 @@ function AnalyticsPageContent() {
                   <div
                     key={index}
                     className={`p-4 rounded-lg border ${
-                      INSIGHT_COLORS[insight.type] || "bg-gray-50"
+                      INSIGHT_COLORS[insight.type] || "bg-muted/40"
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -556,7 +556,7 @@ function AnalyticsPageContent() {
                         <div className="flex items-center gap-2">
                           <h4 className="font-medium">{insight.title}</h4>
                           {insight.actionable && (
-                            <span className="text-xs px-2 py-1 bg-white rounded-full">
+                            <span className="text-xs px-2 py-1 bg-card rounded-full">
                               {labels.actionable}
                             </span>
                           )}
@@ -572,7 +572,7 @@ function AnalyticsPageContent() {
         )}
 
         {/* Footer */}
-        <div className="mt-8 text-center text-sm text-gray-500">
+        <div className="mt-8 text-center text-sm text-muted-foreground">
           {labels.updatedAt}{" "}
           {new Date(analytics.generated_at).toLocaleString(locale)}
         </div>
@@ -584,7 +584,7 @@ function AnalyticsPageContent() {
 export default function AnalyticsPageWrapper() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/40 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     }>

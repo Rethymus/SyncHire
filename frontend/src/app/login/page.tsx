@@ -100,20 +100,20 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-background dark:to-background">
       
 
       <div className="flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="bg-card rounded-2xl shadow-xl p-8">
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
                 <Sparkles className="h-8 w-8 text-blue-600" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-foreground">
                 欢迎回来
               </h2>
-              <p className="mt-2 text-gray-700">
+              <p className="mt-2 text-muted-foreground">
                 登录知遇，继续您的求职之旅
               </p>
             </div>
@@ -126,12 +126,12 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="email" className="block text-sm font-medium text-muted-foreground mb-2">
                   邮箱地址
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-500" />
+                    <Mail className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <input
                     id="email"
@@ -143,7 +143,7 @@ export default function LoginPage() {
                     aria-invalid={!!errors.email}
                     aria-describedby={errors.email ? "email-error" : undefined}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg min-h-[44px] ${
-                      errors.email ? "border-red-500" : "border-gray-300"
+                      errors.email ? "border-red-500" : "border-input"
                     } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     placeholder="your@email.com"
                   />
@@ -156,12 +156,12 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-muted-foreground mb-2">
                   密码
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-500" />
+                    <Lock className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <input
                     id="password"
@@ -173,7 +173,7 @@ export default function LoginPage() {
                     aria-invalid={!!errors.password}
                     aria-describedby={errors.password ? "password-error" : undefined}
                     className={`block w-full pl-10 pr-10 py-3 border rounded-lg min-h-[44px] ${
-                      errors.password ? "border-red-500" : "border-gray-300"
+                      errors.password ? "border-red-500" : "border-input"
                     } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     placeholder="••••••••"
                   />
@@ -184,9 +184,9 @@ export default function LoginPage() {
                     aria-label={showPassword ? "隐藏密码" : "显示密码"}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-500" />
+                      <EyeOff className="h-5 w-5 text-muted-foreground" />
                     ) : (
-                      <Eye className="h-5 w-5 text-gray-500" />
+                      <Eye className="h-5 w-5 text-muted-foreground" />
                     )}
                   </button>
                 </div>
@@ -202,9 +202,9 @@ export default function LoginPage() {
                   <input
                     id="remember"
                     type="checkbox"
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-input rounded"
                   />
-                  <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">
+                  <label htmlFor="remember" className="ml-2 block text-sm text-muted-foreground">
                     记住我
                   </label>
                 </div>
@@ -225,10 +225,10 @@ export default function LoginPage() {
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
+                  <div className="w-full border-t border-input" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-600">或</span>
+                  <span className="px-2 bg-card text-muted-foreground">或</span>
                 </div>
               </div>
 
@@ -291,7 +291,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <p className="mt-8 text-center text-sm text-gray-700">
+            <p className="mt-8 text-center text-sm text-muted-foreground">
               还没有账户？{" "}
               <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
                 立即注册
