@@ -16,7 +16,7 @@ import {
 import {
   getWorkflowNotificationService,
 } from './workflow-notifications';
-import { applicationAPI } from './api-client-consolidated';
+import { applicationAPI } from './api-client';
 import { logger, LogCategory } from './logger';
 import { useState } from 'react';
 

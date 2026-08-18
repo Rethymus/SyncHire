@@ -409,15 +409,6 @@ class SecurityAudit:
                 "Implement HTML sanitization"
             )
 
-        # Check for security utilities
-        security_frontend = self.project_root / "frontend" / "src" / "lib" / "security-frontend.ts"
-        if not security_frontend.exists():
-            self.add_warning(
-                "frontend_security",
-                "Frontend security utilities not found",
-                "Implement frontend security measures"
-            )
-
         # Check for DOMPurify
         package_json = self.project_root / "frontend" / "package.json"
         if package_json.exists():

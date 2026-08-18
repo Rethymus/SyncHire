@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumb } from "@/components/breadcrumb";
+import { EmptyState } from "@/components/ui/empty-state";
 import Link from "next/link";
 import { Plus, TrendingUp, Award, Target, BarChart3, Sparkles, X } from "lucide-react";
 import { rankApplications, getMatchStatistics, getRecommendedApplications } from "@/lib/match-ranking";
@@ -281,22 +282,16 @@ export default function ApplicationsPage() {
 
         {/* Empty State */}
         {isEmpty && (
-          <Card className="p-12 text-center">
-            <div className="max-w-md mx-auto">
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                <Target className="h-8 w-8 text-muted-foreground/80" />
-              </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">
-                {applicationsCopy.emptyTitle}
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                {applicationsCopy.emptyDescription}
-              </p>
-              <Button size="lg" onClick={() => setCreateDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                {applicationsCopy.createApplication}
-              </Button>
-            </div>
+          <Card className="p-12">
+            <EmptyState
+              icon={Target}
+              title={applicationsCopy.emptyTitle}
+              description={applicationsCopy.emptyDescription}
+              action={{
+                label: applicationsCopy.createApplication,
+                onClick: () => setCreateDialogOpen(true),
+              }}
+            />
           </Card>
         )}
 

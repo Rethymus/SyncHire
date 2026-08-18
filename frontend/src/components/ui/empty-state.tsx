@@ -30,13 +30,13 @@ export const EmptyState = memo(function EmptyState({
       aria-live="polite"
     >
       {Icon && (
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-          <Icon className="h-8 w-8 text-gray-500" aria-hidden="true" />
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+          <Icon className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
         </div>
       )}
-      <h3 className="mb-2 text-lg font-semibold text-gray-900">{title}</h3>
+      <h3 className="mb-2 text-lg font-semibold text-foreground">{title}</h3>
       {description && (
-        <p className="mb-6 max-w-sm text-sm text-gray-700">{description}</p>
+        <p className="mb-6 max-w-sm text-sm text-muted-foreground">{description}</p>
       )}
       {action && (
         <button
