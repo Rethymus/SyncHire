@@ -13,11 +13,13 @@ import { SearchProvider } from "@/contexts/search-context";
 import { Providers } from "@/components/providers";
 import { PagesModeNotice } from "@/components/pages-mode-notice";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ServiceWorkerRegister } from "@/components/sw-register";
 
 export const metadata: Metadata = {
   title: "SyncHire Lite - Local Job Application Tool",
   description: "AI-powered local-first job application tool with complete privacy",
   keywords: ["job search", "resume", "application tracking", "AI", "local"],
+  manifest: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/manifest.webmanifest`,
 };
 
 export default function RootLayout({
@@ -33,10 +35,11 @@ export default function RootLayout({
             <SearchProvider>
               <ToastProvider>
                 <Navigation />
-                <PagesModeNotice />
+              <PagesModeNotice />
                 <div className="min-h-screen bg-muted/40">
                   {children}
                 </div>
+              <ServiceWorkerRegister />
               </ToastProvider>
             </SearchProvider>
           </Providers>

@@ -10,7 +10,14 @@ import { useState, useMemo, memo } from "react";
 import Link from "next/link";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { ApplicationCreateDialog } from "@/components/application-create-dialog";
+import dynamic from "next/dynamic";
+
+// The create dialog (and its framer-motion dependency) is only needed on
+// click, so keep it out of the dashboard's first-load bundle.
+const ApplicationCreateDialog = dynamic(
+  () => import("@/components/application-create-dialog").then((m) => m.ApplicationCreateDialog),
+  { ssr: false }
+);
 import { useAppStore } from "@/lib/store";
 import { formatLiteDate, useLiteCopy } from "@/lib/lite-i18n";
 import {

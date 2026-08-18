@@ -4,7 +4,13 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import { useAppStore } from "@/lib/store";
 import { BatchApplicationsList } from "@/components/batch-applications-list";
 import { MatchRankingControls } from "@/components/match-ranking-controls";
-import { ApplicationCreateDialog } from "@/components/application-create-dialog";
+import dynamic from "next/dynamic";
+
+// Only needed on click; keeps framer-motion out of first load.
+const ApplicationCreateDialog = dynamic(
+  () => import("@/components/application-create-dialog").then((m) => m.ApplicationCreateDialog),
+  { ssr: false }
+);
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

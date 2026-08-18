@@ -35,8 +35,18 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import InterviewCalendar from "@/components/interview-calendar";
-import InterviewCalendarEnhanced from "@/components/interview-calendar-enhanced";
-import { InterviewDragDropCalendar } from "@/components/interview-drag-drop-calendar";
+import dynamic from "next/dynamic";
+
+// Calendar variants load only when their view mode is selected, keeping
+// react-big-calendar + date-fns out of the interviews list's first load.
+const InterviewCalendarEnhanced = dynamic(
+  () => import("@/components/interview-calendar-enhanced"),
+  { ssr: false }
+);
+const InterviewDragDropCalendar = dynamic(
+  () => import("@/components/interview-drag-drop-calendar").then((m) => m.InterviewDragDropCalendar),
+  { ssr: false }
+);
 import { InterviewQuickSchedule } from "@/components/interview-quick-schedule";
 import { apiClient } from "@/lib/api-client";
 import { apiErrorMessage } from "@/lib/api-client";

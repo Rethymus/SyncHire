@@ -61,3 +61,24 @@
 | B2 瘦身 | ✅ | 卸载 `@dnd-kit`×3、`@radix-ui/react-accordion`；删除从未运行的 `api-integration-test.ts`；**新发现并删除** src 外平行旧目录 `frontend/components/`（3 文件，别名解析不可达，仅被 tsconfig glob 捎带编译）；`/saved-searches` 在搜索页头部接入「保存的搜索」入口。 |
 
 验证汇总：tsc/eslint/237 单测全绿；`next build` 44 页；`build:pages` 导出成功；smoke 17/17。
+
+## 五、批次 C 实施记录（2026-08-18，当日完成）
+
+### C1 路由级代码切分（数据驱动）
+先用路由 manifest × chunk 体积交叉测量建立基线（Turbopack 构建，webpack analyzer 不适用）：
+- 发现 recharts(390KB) 已被 Turbopack 按路由隔离在 analytics 内，**无需再切**；
+- 真正的问题：framer-motion(137KB) 随 `ApplicationCreateDialog` 进入 dashboard/applications 首载；interviews 路由 935KB 中日历变体只在视图切换时才需要。
+
+实施 `next/dynamic`（ssr:false）：
+- `ApplicationCreateDialog`（dashboard + applications 两处）
+- `InterviewCalendarEnhanced` / `InterviewDragDropCalendar`（interviews 视图切换懒加载）
+
+**实测收益**（路由 chunk 体积）：dashboard 498→333KB（**−33%**）、applications 584→447KB、interviews 935→717KB；framer 块不再被任何路由静态引用（完全懒加载）。功能回归：懒加载对话框点击即开、增强日历切换即载，零报错。
+
+### C2 PWA
+- `public/manifest.webmanifest`（相对 start_url/scope 兼容 basePath；SVG 图标复用品牌资产）
+- `public/sw.js` 极简策略：仅缓存不可变的 `/_next/static/**`（cache-first），页面与 API 一律直连网络——不拿数据新鲜度换离线
+- `components/sw-register.tsx`：仅生产 + http(s) 注册（dev 与 Electron/Tauri 的 file:// 壳自动跳过）
+- 生产实测：SW active、`synchire-static-v1` 缓存 11 条静态资源；`build:pages` 导出含 sw/manifest，href 正确注入 `/SyncHire` basePath。
+
+验证：tsc/eslint/237 单测/生产构建/build:pages/smoke 17/17 全绿。

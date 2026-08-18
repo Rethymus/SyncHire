@@ -1,0 +1,19 @@
+{
+  "name": "SyncHire Lite - 本地优先求职作战中心",
+  "short_name": "SyncHire",
+  "description": "本地优先的 AI 求职申请助手：简历、职位描述、申请跟踪、面试准备，数据全部留在你的设备上。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "./brand/synchire-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
