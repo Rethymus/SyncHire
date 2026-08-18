@@ -20,7 +20,9 @@ import {
   BarChart3,
   Sparkles,
   XCircle,
+  Bookmark,
 } from "lucide-react";
+import Link from "next/link";
 
 function SearchPage() {
   const { locale } = useLiteCopy();
@@ -29,6 +31,7 @@ function SearchPage() {
     ? {
         title: "搜索",
         subtitle: "搜索你的简历、职位描述和申请记录",
+        savedSearches: "保存的搜索",
         placeholder: "搜索任意内容...",
         all: "全部",
         resumes: "简历",
@@ -49,6 +52,7 @@ function SearchPage() {
     : {
         title: "Search",
         subtitle: "Search your resumes, job descriptions, and applications",
+        savedSearches: "Saved Searches",
         placeholder: "Search for anything...",
         all: "All",
         resumes: "Resumes",
@@ -141,13 +145,21 @@ function SearchPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">
-            {copy.title}
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            {copy.subtitle}
-          </p>
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">
+              {copy.title}
+            </h1>
+            <p className="mt-2 text-muted-foreground">
+              {copy.subtitle}
+            </p>
+          </div>
+          <Button variant="outline" asChild>
+            <Link href="/saved-searches">
+              <Bookmark className="h-4 w-4" aria-hidden="true" />
+              {copy.savedSearches}
+            </Link>
+          </Button>
         </div>
 
         {/* Search Input */}

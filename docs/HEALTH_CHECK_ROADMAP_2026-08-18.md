@@ -49,3 +49,15 @@
 ## 三、不建议做的
 - 恢复已删除的 websocket/realtime、error-recovery 家族——它们从未接线；真需要时按 Next 约定（error.tsx）与轻量轮询重新设计，而非从 git 历史捞回。
 - 把 api-client 两个请求核心强行合一——消费者语义真实分裂（信封 vs 抛错），合一必破坏一方；文档化的双核是当前正确形态。
+
+
+## 四、批次 A/B 实施记录（2026-08-18，当日完成）
+
+| 项 | 状态 | 说明 |
+|----|------|------|
+| A1 错误边界 | ✅ | 新增 `app/error.tsx`（路由级，保留全局导航 + 重试/返回仪表盘，双语文案进 lite-i18n）、`app/global-error.tsx`（自带 html/body、内联样式不依赖任何 provider）、`app/loading.tsx`（路由骨架屏）。用临时抛错路由实测渲染通过。 |
+| A2 e2e smoke | ✅ | 新增 `e2e/smoke.spec.ts`：16 路由 200+导航可见+零意外 console 错误 + saved-searches 可达性，本地 17/17 通过；CI 新增 `frontend-e2e-smoke` job（lite 后端就绪探测 + playwright chromium + 失败上传报告）。旧 4 个漂移 spec 暂不运行，留待专项修复。 |
+| B1 next-intl 链移除 | ✅ | 插件行、`src/i18n/`、`src/locales/`、root 依赖全部移除；`next build` 与 `build:pages` 静态导出（含 CSP 注入）均验证通过。 |
+| B2 瘦身 | ✅ | 卸载 `@dnd-kit`×3、`@radix-ui/react-accordion`；删除从未运行的 `api-integration-test.ts`；**新发现并删除** src 外平行旧目录 `frontend/components/`（3 文件，别名解析不可达，仅被 tsconfig glob 捎带编译）；`/saved-searches` 在搜索页头部接入「保存的搜索」入口。 |
+
+验证汇总：tsc/eslint/237 单测全绿；`next build` 44 页；`build:pages` 导出成功；smoke 17/17。

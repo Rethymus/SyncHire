@@ -104,6 +104,13 @@ export const LITE_COPY = {
       english: "EN",
       chinese: "中文",
     },
+    errorBoundary: {
+      title: "Something went wrong",
+      description: "An unexpected error interrupted this page. Your local data is safe — retry or return to the dashboard.",
+      retry: "Try again",
+      home: "Back to dashboard",
+      globalTitle: "SyncHire Lite hit an error",
+    },
     dashboard: {
       welcome: "Welcome to SyncHire Lite",
       subtitle: "Your local AI-powered job application assistant",
@@ -424,6 +431,13 @@ export const LITE_COPY = {
       closeMenu: "关闭菜单",
       english: "EN",
       chinese: "中文",
+    },
+    errorBoundary: {
+      title: "页面出了点问题",
+      description: "本页发生了意外错误。你的本地数据安全无损——可以重试，或返回仪表盘。",
+      retry: "重试",
+      home: "返回仪表盘",
+      globalTitle: "SyncHire Lite 遇到错误",
     },
     dashboard: {
       welcome: "欢迎使用 SyncHire Lite",
