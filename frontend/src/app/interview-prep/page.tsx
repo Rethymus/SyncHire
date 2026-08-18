@@ -571,8 +571,12 @@ function InterviewPrepContent() {
       const response = await applicationAPI.getInterviewPrep(applicationId);
 
       if (response.error) {
-        setError(response.error);
-        logger.error(LogCategory.API, "Failed to generate interview prep", new Error(response.error));
+        // Normalize error to string (handle both string and APIError types)
+        const errorMessage = typeof response.error === "string"
+          ? response.error
+          : response.error.message;
+        setError(errorMessage);
+        logger.error(LogCategory.API, "Failed to generate interview prep", new Error(errorMessage));
         return;
       }
 

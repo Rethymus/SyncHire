@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { logger } from "@/lib/logger";
 import { LogCategory } from "@/lib/logger";
 import { authAPI } from "@/lib/api-client";
+import { apiErrorMessage } from "@/lib/api-client";
 import { storeTokens, storeUserData } from "@/lib/auth";
 import { useAppStore } from "@/lib/store";
 import { initiateOAuthLogin } from "@/lib/oauth";
@@ -52,7 +53,7 @@ export default function LoginPage() {
       const response = await authAPI.login({ email, password });
 
       if (response.error || !response.data) {
-        setErrors({ general: response.error || "登录失败，请检查邮箱和密码" });
+        setErrors({ general: apiErrorMessage(response.error, "登录失败，请检查邮箱和密码") });
         return;
       }
 

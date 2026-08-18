@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { memo } from "react";
 import { TIMING, RESUME } from "@/lib/constants";
-import { resumeAPI } from "@/lib/api-client-consolidated";
+import { resumeAPI } from "@/lib/api-client";
 import { useRouter } from "next/navigation";
 import { TemplateGallery } from "@/components/template-gallery";
 import { SavedTemplatesManager } from "@/components/saved-templates-manager";

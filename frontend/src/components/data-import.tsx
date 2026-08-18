@@ -6,7 +6,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { apiClient } from "@/lib/api-client-unified";
+import { unifiedClient as apiClient } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
 import { Upload, CheckCircle2, AlertCircle } from "lucide-react";
 

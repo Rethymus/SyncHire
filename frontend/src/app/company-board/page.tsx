@@ -15,7 +15,7 @@ import {
   signalFeedAPI,
   type CompanyEntry,
   type SignalFeed,
-} from "@/lib/api-client-lite";
+} from "@/lib/api-client";
 import { useLiteCopy } from "@/lib/lite-i18n";
 import {
   Building2,

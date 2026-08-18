@@ -10,8 +10,8 @@ const apiMocks = vi.hoisted(() => ({
   createBackup: vi.fn(),
 }));
 
-vi.mock("@/lib/api-client-unified", () => ({
-  apiClient: {
+vi.mock("@/lib/api-client", () => ({
+  unifiedClient: {
     portability: {
       createBackup: apiMocks.createBackup,
       listBackups: apiMocks.listBackups,

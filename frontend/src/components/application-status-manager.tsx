@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Loader2, Save, History } from "lucide-react";
-import { applicationAPI } from "@/lib/api-client";
+import { apiErrorMessage, applicationAPI } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 import { formatLiteDate, interpolate, useLiteCopy } from "@/lib/lite-i18n";
@@ -76,7 +76,7 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
         );
 
         if (response.error) {
-          throw new Error(response.error);
+          throw new Error(apiErrorMessage(response.error));
         }
 
         logger.info(
@@ -108,7 +108,7 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
       const response = await applicationAPI.getStatusHistory(applicationId);
 
       if (response.error) {
-        throw new Error(response.error);
+        throw new Error(apiErrorMessage(response.error));
       }
 
       setHistory((response.data || []) as StatusHistoryEntry[]);

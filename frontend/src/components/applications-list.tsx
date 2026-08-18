@@ -20,7 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import { rankApplications, getMatchLevel } from "@/lib/match-ranking";
 import { useOptimisticMutation } from "@/lib/optimistic-updates";
-import { applicationAPI } from "@/lib/api-client-consolidated";
+import { applicationAPI } from "@/lib/api-client";
 import { applicationDetailHref, applicationMatchHref } from "@/lib/application-links";
 import { logger, LogCategory } from "@/lib/logger";
 import { useToast } from "@/hooks/use-toast";

@@ -281,16 +281,16 @@ describe('resumeAPI', () => {
   });
 
   it('should export resume to PDF', async () => {
-    const mockBlob = new Blob(['PDF content'], { type: 'application/pdf' });
     mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
-      blob: async () => mockBlob,
+      json: async () => ({ url: 'http://example.com/resume.pdf' }),
     });
 
-    const result = await resumeAPI.export('resume-123', { template: 'minimal', dpi: 300 });
+    const result = await resumeAPI.export('resume-123', 'minimal', 300);
 
-    expect(result).toEqual(mockBlob);
+    expect(result.data).toEqual({ url: 'http://example.com/resume.pdf' });
+    expect(result.success).toBe(true);
   });
 });
 

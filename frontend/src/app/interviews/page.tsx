@@ -39,6 +39,7 @@ import InterviewCalendarEnhanced from "@/components/interview-calendar-enhanced"
 import { InterviewDragDropCalendar } from "@/components/interview-drag-drop-calendar";
 import { InterviewQuickSchedule } from "@/components/interview-quick-schedule";
 import { apiClient } from "@/lib/api-client";
+import { apiErrorMessage } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
 import { toast } from "sonner";
 import { useLiteCopy, type LiteLocale } from "@/lib/lite-i18n";
@@ -581,7 +582,7 @@ function InterviewsContent() {
 
     try {
       const response = await apiClient.delete(`/interviews/${interview.id}`);
-      if (response.error) throw new Error(response.error);
+      if (response.error) throw new Error(apiErrorMessage(response.error));
 
       logger.info(LogCategory.UI, 'Interview deleted', { interviewId: interview.id });
       toast.success(copy.deleteSuccess);
@@ -594,7 +595,7 @@ function InterviewsContent() {
         // Direct retry without useCallback dependency
         try {
           const retryResponse = await apiClient.delete(`/interviews/${interview.id}`);
-          if (retryResponse.error) throw new Error(retryResponse.error);
+          if (retryResponse.error) throw new Error(apiErrorMessage(retryResponse.error));
           logger.info(LogCategory.UI, 'Interview deleted on retry', { interviewId: interview.id });
           toast.success(copy.deleteSuccess);
           refetch();
@@ -614,7 +615,7 @@ function InterviewsContent() {
         duration_minutes: Math.round((newEnd.getTime() - newStart.getTime()) / 60000),
       });
 
-      if (response.error) throw new Error(response.error);
+      if (response.error) throw new Error(apiErrorMessage(response.error));
 
       logger.info(LogCategory.UI, 'Interview rescheduled', { interviewId: event.id, newStart, newEnd });
       toast.success('Interview rescheduled successfully');
@@ -632,7 +633,7 @@ function InterviewsContent() {
         duration_minutes: Math.round((newEnd.getTime() - newStart.getTime()) / 60000),
       });
 
-      if (response.error) throw new Error(response.error);
+      if (response.error) throw new Error(apiErrorMessage(response.error));
 
       logger.info(LogCategory.UI, 'Interview duration updated', { interviewId: event.id, newDuration: Math.round((newEnd.getTime() - newStart.getTime()) / 60000) });
       toast.success('Interview duration updated successfully');

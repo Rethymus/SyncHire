@@ -9,7 +9,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { jobSourceAPI, type JobSourceFeedItem } from "@/lib/api-client-lite";
+import { jobSourceAPI, type JobSourceFeedItem } from "@/lib/api-client";
 import { useLiteCopy } from "@/lib/lite-i18n";
 import {
   ExternalLink,

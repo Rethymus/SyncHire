@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { InterviewScheduleModal } from "@/components/interview-schedule-modal";
 import { apiClient } from "@/lib/api-client";
+import { apiErrorMessage } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
 
 interface Application {
@@ -192,7 +193,7 @@ export function InterviewQuickSchedule() {
     queryKey: ['applications', 'interview-ready', refreshKey],
     queryFn: async () => {
       const response = await apiClient.get<{ applications: Application[] }>('/applications?status=applied&page_size=10');
-      if (response.error) throw new Error(response.error);
+      if (response.error) throw new Error(apiErrorMessage(response.error));
       return response.data;
     },
   });
@@ -202,7 +203,7 @@ export function InterviewQuickSchedule() {
     queryKey: ['interviews', 'upcoming', refreshKey],
     queryFn: async () => {
       const response = await apiClient.get<{ interviews: Interview[] }>('/interviews?status=scheduled&status=confirmed&page_size=5');
-      if (response.error) throw new Error(response.error);
+      if (response.error) throw new Error(apiErrorMessage(response.error));
       return response.data;
     },
   });

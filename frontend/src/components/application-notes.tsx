@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { logger, LogCategory } from "@/lib/logger";
-import { applicationAPI } from "@/lib/api-client-consolidated";
+import { applicationAPI } from "@/lib/api-client";
 import {
   FileText,
   Save,

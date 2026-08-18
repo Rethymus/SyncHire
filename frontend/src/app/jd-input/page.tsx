@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { logger } from "@/lib/logger";
 import { LogCategory } from "@/lib/logger";
 import { useLiteCopy } from "@/lib/lite-i18n";
-import { apiClient } from "@/lib/api-client-unified";
+import { unifiedClient as apiClient } from "@/lib/api-client";
 import { isGithubPagesDeployment } from "@/lib/deployment-mode";
 import {
   Briefcase,

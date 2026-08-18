@@ -24,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
+import { apiErrorMessage } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
 import { useLiteCopy, type LiteLocale } from "@/lib/lite-i18n";
 
@@ -364,7 +365,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
       try {
         const response = await apiClient.get<Interview>(`/interviews/${interviewId}`);
         if (response.error || !response.data) {
-          throw new Error(response.error || "Failed to fetch interview");
+          throw new Error(apiErrorMessage(response.error, "Failed to fetch interview"));
         }
 
         const interview = response.data;
@@ -462,7 +463,7 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
         }
 
         if (response.error || !response.data) {
-          throw new Error(response.error || "Failed to save interview");
+          throw new Error(apiErrorMessage(response.error, "Failed to save interview"));
         }
 
         logger.info(LogCategory.UI, `Interview ${interviewId ? 'updated' : 'created'}`, {

@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
+import { apiErrorMessage } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
 
 // Application types
@@ -221,7 +222,7 @@ export function InterviewDragDropCalendar({
       const response = await apiClient.get<{ applications: Application[] }>(
         "/applications?status=applied&page_size=20"
       );
-      if (response.error) throw new Error(response.error);
+      if (response.error) throw new Error(apiErrorMessage(response.error));
       return response.data;
     },
   });
@@ -233,7 +234,7 @@ export function InterviewDragDropCalendar({
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth() + 1;
       const response = await apiClient.get<any>(`/interviews/calendar?year=${year}&month=${month}`);
-      if (response.error) throw new Error(response.error);
+      if (response.error) throw new Error(apiErrorMessage(response.error));
       return response.data;
     },
   });

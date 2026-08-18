@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { logger, LogCategory } from "@/lib/logger";
-import { applicationAPI, resumeAPI, jdAPI } from "@/lib/api-client-consolidated";
+import { applicationAPI, resumeAPI, jdAPI } from "@/lib/api-client";
 import { generateTailoredResumeMarkdown } from "@/lib/tailored-resume";
 import { useLiteCopy } from "@/lib/lite-i18n";
 import { ApplicationNotes } from "@/components/application-notes";

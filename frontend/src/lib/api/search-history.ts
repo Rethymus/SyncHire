@@ -3,7 +3,7 @@
  * Provides comprehensive search tracking, management, and analytics functionality
  */
 
-import { apiClient } from '@/lib/api-client-unified';
+import { unifiedClient as apiClient } from '@/lib/api-client';
 
 // Types
 export interface SearchHistoryItem {

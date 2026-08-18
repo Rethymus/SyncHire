@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import InterviewSchedulingForm from "@/components/interview-scheduling-form";
 import { apiClient } from "@/lib/api-client";
+import { apiErrorMessage } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
 
 interface Application {
@@ -46,7 +47,7 @@ export const InterviewScheduleModal = memo(function InterviewScheduleModal({
         application_id: application.id,
       });
 
-      if (response.error) throw new Error(response.error);
+      if (response.error) throw new Error(apiErrorMessage(response.error));
 
       logger.info(LogCategory.UI, "Interview scheduled successfully", {
         applicationId: application.id,

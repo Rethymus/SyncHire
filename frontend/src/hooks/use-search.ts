@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useEffect } from "react";
-import { apiClient } from "@/lib/api-client-unified";
+import { unifiedClient as apiClient } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
 import { useAppStore } from "@/lib/store";
 

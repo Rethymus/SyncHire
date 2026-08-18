@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BulkDeleteActions } from "@/components/bulk-delete-actions";
 import { SelectableList, useSelectableList } from "@/components/selectable-list";
-import { resumeAPI, type APIResponse } from "@/lib/api-client-consolidated";
+import { resumeAPI, type APIResponse } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
 import { useAppStore, type Resume } from "@/lib/store";
 import {

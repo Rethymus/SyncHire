@@ -71,7 +71,12 @@ function NewInterviewContent() {
     queryFn: async () => {
       if (!applicationId) return null;
       const response = await apiClient.get<Application>(`/applications/${applicationId}`);
-      if (response.error) throw new Error(response.error);
+      if (response.error) {
+        // Normalize error to string (handle both string and APIError types)
+        throw new Error(
+          typeof response.error === "string" ? response.error : response.error.message
+        );
+      }
       return response.data;
     },
     enabled: !!applicationId,
@@ -98,8 +103,12 @@ function NewInterviewContent() {
       const response = await apiClient.post('/interviews', submitData);
 
       if (response.error) {
-        setError(response.error);
-        logger.error(LogCategory.UI, 'Failed to create interview', new Error(response.error));
+        // Normalize error to string (handle both string and APIError types)
+        const errorMessage = typeof response.error === 'string'
+          ? response.error
+          : response.error.message;
+        setError(errorMessage);
+        logger.error(LogCategory.UI, 'Failed to create interview', new Error(errorMessage));
         return;
       }
 

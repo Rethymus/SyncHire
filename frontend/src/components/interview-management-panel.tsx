@@ -25,6 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
+import { apiErrorMessage } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
 
 interface Interview {
@@ -165,7 +166,7 @@ export function InterviewManagementPanel({ interviewId, onClose }: InterviewMana
     queryKey: ['interviews', interviewId],
     queryFn: async () => {
       const response = await apiClient.get<Interview>(`/interviews/${interviewId}`);
-      if (response.error) throw new Error(response.error);
+      if (response.error) throw new Error(apiErrorMessage(response.error));
       return response.data;
     },
   });
@@ -174,7 +175,7 @@ export function InterviewManagementPanel({ interviewId, onClose }: InterviewMana
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const response = await apiClient.delete(`/interviews/${interviewId}`);
-      if (response.error) throw new Error(response.error);
+      if (response.error) throw new Error(apiErrorMessage(response.error));
       return response.data;
     },
     onSuccess: () => {
@@ -191,7 +192,7 @@ export function InterviewManagementPanel({ interviewId, onClose }: InterviewMana
   const sendReminderMutation = useMutation({
     mutationFn: async () => {
       const response = await apiClient.post(`/interviews/${interviewId}/reminders`, {});
-      if (response.error) throw new Error(response.error);
+      if (response.error) throw new Error(apiErrorMessage(response.error));
       return response.data;
     },
     onSuccess: () => {
@@ -229,7 +230,7 @@ export function InterviewManagementPanel({ interviewId, onClose }: InterviewMana
   const handleStatusUpdate = useCallback(async (newStatus: string) => {
     try {
       const response = await apiClient.patch(`/interviews/${interviewId}`, { status: newStatus });
-      if (response.error) throw new Error(response.error);
+      if (response.error) throw new Error(apiErrorMessage(response.error));
       logger.info(LogCategory.UI, 'Interview status updated', { interviewId, newStatus });
       queryClient.invalidateQueries({ queryKey: ['interviews'] });
     } catch (error) {

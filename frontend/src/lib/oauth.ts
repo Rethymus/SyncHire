@@ -4,7 +4,7 @@
 
 import { logger, LogCategory } from './logger';
 import { storeTokens, storeUserData } from './auth';
-import { authAPI } from './api-client';
+import { apiErrorMessage, authAPI } from './api-client';
 
 export interface OAuthConfig {
   clientId: string;
@@ -155,12 +155,13 @@ export async function handleOAuthCallback(
     });
 
     if (response.error || !response.data) {
-      logger.error(LogCategory.AUTH, `${provider} OAuth callback failed`, new Error(response.error || 'Authentication failed'), {
-        error: response.error,
+      const oauthError = apiErrorMessage(response.error, 'Authentication failed');
+      logger.error(LogCategory.AUTH, `${provider} OAuth callback failed`, new Error(oauthError), {
+        error: oauthError,
       } as Record<string, unknown>);
       return {
         success: false,
-        error: response.error || 'Authentication failed',
+        error: oauthError,
       };
     }
 

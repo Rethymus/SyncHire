@@ -7,6 +7,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { logger, LogCategory } from '@/lib/logger';
 import { authAPI } from '@/lib/api-client';
+import { apiErrorMessage } from "@/lib/api-client";
 import { storeTokens, storeUserData } from '@/lib/auth';
 import { useAppStore } from '@/lib/store';
 import { useToastMessage } from '@/components/ui/toast';
@@ -252,8 +253,8 @@ export function useSignupForm() {
       });
 
       if (response.error || !response.data) {
-        setErrors({ general: response.error || '注册失败，请稍后重试' });
-        toastError('注册失败', response.error || '请稍后重试');
+        setErrors({ general: apiErrorMessage(response.error, '注册失败，请稍后重试') });
+        toastError('注册失败', apiErrorMessage(response.error, '请稍后重试'));
         return;
       }
 

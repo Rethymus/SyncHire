@@ -30,7 +30,7 @@ import {
   useWorkflowNotifications,
 } from '@/lib/workflow-notifications';
 import { useAppStore } from '@/lib/store';
-import { applicationAPI } from '@/lib/api-client-consolidated';
+import { applicationAPI } from '@/lib/api-client';
 import { logger, LogCategory } from '@/lib/logger';
 import {
   Sparkles,
