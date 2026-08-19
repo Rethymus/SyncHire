@@ -99,3 +99,16 @@
 2. **前后端端点不匹配清单**（后端 lite 未实现或形状不符，详见 api-client 提交说明）：前端调用的 12 个端点不存在（interview-prep/history/optimize/bulk 系列/jd/parse 单数等）、`getMatchScore` 用 GET 而后端仅 POST、`resumeAPI.create` 发 JSON 而后端 `/api/resumes` 是 multipart——后续批次应逐一对齐或裁剪。
 
 验证：tsc/eslint/237 单测/生产构建(44 页)/静态导出/**全量 e2e 34/34（1.3 分钟）**。
+
+## 七、第二轮回溯项实施记录（2026-08-19，代理驱动）
+
+| 项 | 结果 |
+|----|------|
+| P1 契约对齐 | 逐端点消费者普查后处置：lite 后端补齐 5 端点（PATCH status[含旧状态别名+timeline]、GET history、GET match[持久化+词重叠启发式]、GET interview-prep[camelCase 全载荷]、POST optimize 改形）；前端删除 10 个零消费死方法与 3 个孤儿类型；optimize 留全栈。新增 test_lite_contract_drift.py 6 用例。 |
+| P2-2 README 数字 | 过时数字清零：237 单测/34 e2e/16 路由 smoke；后端改"由 CI 门禁保证"（静态计数失实）；删除描述不存在套件的"前端集成测试"行；CI E2E 行措辞对齐全量。 |
+| P2-3 填表引擎测试 | test-form.html 双语测试表单 + Electron 面板入口（file:// 零主进程改动）+ fill-engine.spec.ts（beforeAll 重建 IIFE 防假阳性；断言 API 面/14 字段双语检测/提交排除/填充全链路含事件派发）。e2e 总量 34→37。盲区（真实框架受控组件/自定义 combobox/iframe/Shadow DOM）已在 spec 头注明。 |
+| P2-4 CI pytest 扩容 | backend-tests 加入两个 lite 套件（TestClient/SQLite，无服务依赖）。顺带修复：5 个存量文件未过 black 使 CI 门禁在 main 上红灯——已格式化（本地用 CI 钉住的 ruff 0.9.2/black 26 验证：176 文件 clean）。 |
+
+验证：tsc/eslint/237 单测/**e2e 37/37**/生产构建/后端 black+ruff+10 lite 测试全绿。
+
+**新发现（后续项）**：① readme-screenshots 每次运行再生截图，且部分页面含实时时间戳导致必然 diff——建议改为按需手动生成或对时间敏感页面做时间冻结；② 全栈 pytest（test_api.py 链）本地缺 pgvector/botocore 依赖只能在 CI 验证，属预期。
