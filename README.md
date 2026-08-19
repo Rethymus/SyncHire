@@ -381,12 +381,11 @@ pip-audit
 
 | 检查项           | 当前基线                                                        |
 | ---------------- | --------------------------------------------------------------- |
-| 后端测试         | 344 个测试通过，warning 视为 error                              |
-| 前端单元测试     | 320 个测试通过                                                  |
-| 前端集成测试     | 18 个测试通过                                                   |
-| Playwright E2E   | 13 个测试通过                                                   |
-| CI e2e smoke     | 16 个路由逐页校验 + 导航可达，零意外 console 错误，CI 自动拉起 lite 后端 |
-| 用户视角路由回扫 | 桌面和移动端各 13 个关键路由，HTTP 200，0 console error/warning |
+| 后端测试         | 由 CI pytest 门禁保证，warning 视为 error                       |
+| 前端单元测试     | 237 个测试通过                                                  |
+| Playwright E2E   | 34 个测试通过                                                   |
+| CI E2E           | 全量 34 用例（含 16 路由 smoke），导航可达、零意外 console 错误，CI 自动拉起 lite 后端 |
+| 用户视角路由回扫 | 16 路由 smoke 逐页回扫 + 34 用例全量 E2E（chromium）           |
 | 安全检查         | Bandit、pip-audit、pip check 通过                               |
 | 生产构建         | 通过                                                            |
 
