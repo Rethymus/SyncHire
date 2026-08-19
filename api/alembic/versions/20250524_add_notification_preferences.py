@@ -59,7 +59,8 @@ def upgrade() -> None:
     op.add_column("users", sa.Column("email_bounced_at", sa.DateTime(), nullable=True))
 
     # Update existing users with default preferences
-    op.execute("""
+    op.execute(
+        """
         UPDATE users
         SET notification_preferences = '{
             "email_enabled": true,
@@ -71,7 +72,8 @@ def upgrade() -> None:
             "notification_frequency": "immediate"
         }'::jsonb
         WHERE notification_preferences IS NULL
-    """)
+    """
+    )
 
 
 def downgrade() -> None:

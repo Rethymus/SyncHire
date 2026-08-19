@@ -141,12 +141,14 @@ class TemplateEngine:
 
         # Executive summary (first for executive template)
         if template_name == "executive" and data.summary:
-            sections.append(f"""
+            sections.append(
+                f"""
             <div class="section">
                 <h2 class="section-title">Executive Summary</h2>
                 <p class="summary">{data.summary}</p>
             </div>
-            """)
+            """
+            )
 
         # Experience
         if data.experiences:
@@ -183,11 +185,13 @@ class TemplateEngine:
         sections = []
 
         # Contact
-        sections.append("""
+        sections.append(
+            """
         <div class="sidebar-section">
             <h3 class="sidebar-title">Contact</h3>
             <div class="sidebar-content">
-        """)
+        """
+        )
 
         if data.email:
             sections.append(
@@ -214,11 +218,13 @@ class TemplateEngine:
 
         # Skills
         if data.skills:
-            sections.append("""
+            sections.append(
+                """
             <div class="sidebar-section">
                 <h3 class="sidebar-title">Skills</h3>
                 <div class="sidebar-content">
-            """)
+            """
+            )
 
             for skill_group in data.skills:
                 skill_name = skill_group.get("name", "")
@@ -238,19 +244,23 @@ class TemplateEngine:
 
         # Languages
         if data.languages:
-            sections.append("""
+            sections.append(
+                """
             <div class="sidebar-section">
                 <h3 class="sidebar-title">Languages</h3>
                 <div class="sidebar-content">
-            """)
+            """
+            )
 
             for lang in data.languages:
-                sections.append(f"""
+                sections.append(
+                    f"""
                 <div class="language-item">
                     <span class="language-name">{lang.get("name", "")}</span>
                     <span class="language-level">{lang.get("level", "")}</span>
                 </div>
-                """)
+                """
+                )
 
             sections.append("</div></div>")
 
@@ -412,12 +422,14 @@ class TemplateEngine:
         for lang in languages:
             name = lang.get("name", "")
             level = lang.get("level", "")
-            items.append(f"""
+            items.append(
+                f"""
             <div class="language-item">
                 <span class="language-name">{name}</span>
                 <span class="language-level">{level}</span>
             </div>
-            """)
+            """
+            )
 
         return f"""
         <div class="section">
@@ -434,12 +446,14 @@ class TemplateEngine:
             name = award.get("name", "")
             year = award.get("year", "")
             issuer = award.get("issuer", "")
-            items.append(f"""
+            items.append(
+                f"""
             <div class="award-item">
                 <span class="award-name">{name} {f"({issuer})" if issuer else ""}</span>
                 <span class="award-year">{year}</span>
             </div>
-            """)
+            """
+            )
 
         return f"""
         <div class="section">
@@ -457,10 +471,12 @@ class TemplateEngine:
             description = item.get("description", "")
             date = item.get("date", "")
 
-            items.append(f"""
+            items.append(
+                f"""
             <div style="margin-bottom: 8pt;">
                 <div style="font-weight: 600;">{title}</div>
-            """)
+            """
+            )
 
             if date:
                 items.append(f'<div style="font-size: 9pt; color: #666;">{date}</div>')

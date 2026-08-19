@@ -63,33 +63,41 @@ def upgrade() -> None:
     )
 
     # Partial index for pending applications (common query)
-    op.execute("""
+    op.execute(
+        """
         CREATE INDEX ix_applications_pending
         ON applications (user_id, created_at DESC)
         WHERE status = 'pending'
-    """)
+    """
+    )
 
     # Partial index for optimized applications
-    op.execute("""
+    op.execute(
+        """
         CREATE INDEX ix_applications_optimized
         ON applications (user_id, created_at DESC)
         WHERE status = 'optimized'
-    """)
+    """
+    )
 
     # Create a vector similarity search index for resumes
     # Note: This requires the vector extension to be installed
-    op.execute("""
+    op.execute(
+        """
         CREATE INDEX ix_resumes_embedding_vector
         ON resumes USING ivfflat (embedding vector_cosine_ops)
         WITH (lists = 100)
-    """)
+    """
+    )
 
     # Create a vector similarity search index for JDs
-    op.execute("""
+    op.execute(
+        """
         CREATE INDEX ix_jds_embedding_vector
         ON job_descriptions USING ivfflat (embedding vector_cosine_ops)
         WITH (lists = 100)
-    """)
+    """
+    )
 
 
 def downgrade() -> None:

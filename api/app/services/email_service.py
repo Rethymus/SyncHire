@@ -47,7 +47,8 @@ class EmailTemplate:
 
     def get_default_template(self) -> Template:
         """Fallback template if file not found."""
-        return Template("""
+        return Template(
+            """
             <!DOCTYPE html>
             <html>
             <head>
@@ -78,7 +79,8 @@ class EmailTemplate:
                 </div>
             </body>
             </html>
-            """)
+            """
+        )
 
     def render(self, context: Dict[str, Any]) -> str:
         """Render template with context."""
@@ -92,7 +94,8 @@ class ApplicationStatusTemplate(EmailTemplate):
         super().__init__("application_status")
 
     def get_default_template(self) -> Template:
-        return Template("""
+        return Template(
+            """
             <!DOCTYPE html>
             <html>
             <head>
@@ -154,7 +157,8 @@ class ApplicationStatusTemplate(EmailTemplate):
                 </div>
             </body>
             </html>
-            """)
+            """
+        )
 
 
 class InterviewReminderTemplate(EmailTemplate):
@@ -164,7 +168,8 @@ class InterviewReminderTemplate(EmailTemplate):
         super().__init__("interview_reminder")
 
     def get_default_template(self) -> Template:
-        return Template("""
+        return Template(
+            """
             <!DOCTYPE html>
             <html>
             <head>
@@ -243,7 +248,8 @@ class InterviewReminderTemplate(EmailTemplate):
                 </div>
             </body>
             </html>
-            """)
+            """
+        )
 
 
 class PasswordResetTemplate(EmailTemplate):
@@ -253,7 +259,8 @@ class PasswordResetTemplate(EmailTemplate):
         super().__init__("password_reset")
 
     def get_default_template(self) -> Template:
-        return Template("""
+        return Template(
+            """
             <!DOCTYPE html>
             <html>
             <head>
@@ -304,7 +311,8 @@ class PasswordResetTemplate(EmailTemplate):
                 </div>
             </body>
             </html>
-            """)
+            """
+        )
 
 
 class WeeklyDigestTemplate(EmailTemplate):
@@ -314,7 +322,8 @@ class WeeklyDigestTemplate(EmailTemplate):
         super().__init__("weekly_digest")
 
     def get_default_template(self) -> Template:
-        return Template("""
+        return Template(
+            """
             <!DOCTYPE html>
             <html>
             <head>
@@ -391,7 +400,8 @@ class WeeklyDigestTemplate(EmailTemplate):
                 </div>
             </body>
             </html>
-            """)
+            """
+        )
 
 
 class EmailService:
