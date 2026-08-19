@@ -245,32 +245,179 @@ export const authAPI = {
     }>('/oauth/callback', data),
 };
 
+// ---------------------------------------------------------------------------
+// Envelope-core entity types
+//
+// Mirrored from the lite backend OpenAPI schema (GET http://localhost:8000/openapi.json):
+//   - LiteResume       ← ResumeResponse         (/api/resumes)
+//   - LiteJd           ← JobDescriptionResponse (/api/jds)
+//   - LiteApplication  ← ApplicationResponse    (/api/applications)
+// Field names stay snake_case because they match the backend JSON verbatim.
+//
+// The remaining interfaces (BulkOperationResult, ApplicationStatusHistory,
+// MatchDetails, etc.) document the legacy frontend contracts for endpoints
+// the lite backend does not (yet) expose in its OpenAPI schema.
+// ---------------------------------------------------------------------------
+
+/** Application status values (openapi: ApplicationStatus enum). */
+export type ApplicationStatus =
+  | 'saved'
+  | 'targeted'
+  | 'materials_ready'
+  | 'submitted'
+  | 'applied'
+  | 'screening'
+  | 'interview'
+  | 'technical'
+  | 'offer'
+  | 'hired'
+  | 'rejected'
+  | 'withdrawn';
+
+/** Resume as returned by the lite backend (openapi: ResumeResponse). */
+export interface LiteResume {
+  id: string;
+  title: string;
+  content: string;
+  file_name?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Job description as returned by the lite backend (openapi: JobDescriptionResponse). */
+export interface LiteJd {
+  id: string;
+  company: string;
+  title: string;
+  description: string;
+  url?: string | null;
+  /** Backend default: "manual". */
+  platform?: string;
+  source_url?: string | null;
+  raw_text?: string | null;
+  source?: string | null;
+  external_id?: string | null;
+  location?: string | null;
+  salary_min?: number | null;
+  salary_max?: number | null;
+  currency?: string;
+  employment_type?: string | null;
+  /** Backend default: "onsite". */
+  remote?: string;
+  parsed_json?: Record<string, unknown> | null;
+  match_score?: number | null;
+  match_detail?: Record<string, unknown> | null;
+  /** Backend default: "auto". */
+  language?: string;
+  deadline?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Application as returned by the lite backend (openapi: ApplicationResponse). */
+export interface LiteApplication {
+  id: string;
+  resume_id: string;
+  jd_id: string;
+  status: ApplicationStatus;
+  resume_variant_id?: string | null;
+  materials_id?: string | null;
+  /** Backend default: "manual". */
+  platform?: string;
+  source_url?: string | null;
+  notes?: string | null;
+  match_score?: number | null;
+  applied_date?: string | null;
+  submitted_manually_at?: string | null;
+  next_action?: string | null;
+  next_action_at?: string | null;
+  contact_name?: string | null;
+  contact_channel?: string | null;
+  timeline?: Array<Record<string, unknown>> | null;
+  last_updated?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Result shape of the bulk delete/update endpoints (legacy frontend contract). */
+export interface BulkOperationResult {
+  success_count: number;
+  failed_count: number;
+  errors: Array<{ id: string; error: string }>;
+}
+
+/** One entry of an application's status history (legacy frontend contract). */
+export interface ApplicationStatusHistory {
+  id: string;
+  old_status: string | null;
+  new_status: string;
+  notes: string | null;
+  changed_at: string;
+}
+
+/** Structured match breakdown (legacy frontend contract). */
+export interface MatchDetails {
+  skills_match: number;
+  experience_match: number;
+  education_match: number;
+  missing_skills: string[];
+  recommendations: string[];
+}
+
+/** Payload returned by the match-score endpoint (legacy frontend contract). */
+export interface MatchScoreResult {
+  match_score: number;
+  match_details: MatchDetails;
+}
+
+/** Fields shared by the AI optimize results (legacy frontend contract). */
+interface OptimizationResultFields {
+  changes_made: string[];
+  keywords_added: string[];
+  sections_improved: string[];
+}
+
+/** Result of resume optimization (legacy frontend contract). */
+export interface ResumeOptimizationResult extends OptimizationResultFields {
+  optimized_content: string;
+}
+
+/** Result of application-level resume optimization (legacy frontend contract). */
+export interface ApplicationOptimizationResult extends OptimizationResultFields {
+  optimized_resume: string;
+}
+
+/** Result of JD analysis (legacy frontend contract; camelCase field kept for compatibility). */
+export interface JdAnalysisResult {
+  score: number;
+  skills: string[];
+  missingSkills: string[];
+  recommendations: string[];
+}
+
+/** Result of JD text parsing (legacy frontend contract). */
+export interface JdParseResult {
+  title: string;
+  company: string;
+  description: string;
+  requirements: string[];
+}
+
 /**
  * Resume API endpoints (envelope core)
  */
 export const resumeAPI = {
-  list: () => apiClient.get<Array<{ id: string; title: string; created_at: string }>>('/resumes'),
+  list: () => apiClient.get<LiteResume[]>('/resumes'),
 
-  get: (id: string) => apiClient.get<{
-    id: string;
-    title: string;
-    content: string;
-    parsed_data: string;
-    created_at: string;
-  }>(`/resumes/${id}`),
+  get: (id: string) => apiClient.get<LiteResume>(`/resumes/${id}`),
 
-  getById: (id: string) => apiClient.get<{
-    id: string;
-    title: string;
-    content: string;
-    parsed_data: string;
-    created_at: string;
-  }>(`/resumes/${id}`),
+  getById: (id: string) => apiClient.get<LiteResume>(`/resumes/${id}`),
 
   create: (data: { title: string; content: string }) =>
-    apiClient.post<{ id: string }>('/resumes', data),
+    apiClient.post<LiteResume>('/resumes', data),
 
-  update: (id: string, data: unknown) => apiClient.put(`/resumes/${id}`, data),
+  update: (id: string, data: unknown) => apiClient.put<LiteResume>(`/resumes/${id}`, data),
 
   delete: (id: string) => apiClient.delete<void>(`/resumes/${id}`),
 
@@ -289,62 +436,25 @@ export const resumeAPI = {
   },
 
   optimize: (id: string, jdContent: string) =>
-    apiClient.post<{
-      optimized_content: string;
-      changes_made: string[];
-      keywords_added: string[];
-      sections_improved: string[];
-    }>(`/resumes/${id}/optimize`, { jd_content: jdContent }),
+    apiClient.post<ResumeOptimizationResult>(`/resumes/${id}/optimize`, { jd_content: jdContent }),
 
   bulkDelete: (ids: string[]) =>
-    apiClient.post<{
-      success_count: number;
-      failed_count: number;
-      errors: Array<{ id: string; error: string }>;
-    }>('/resumes/bulk-delete', { ids }),
+    apiClient.post<BulkOperationResult>('/resumes/bulk-delete', { ids }),
 };
 
 /**
  * Job Description API endpoints (envelope core)
  */
 export const jdAPI = {
-  list: () =>
-    apiClient.get<Array<{
-      id: string;
-      title: string;
-      company: string;
-      description: string;
-      requirements: string[];
-      skills: string[];
-      created_at: string;
-    }>>('/jds/'),
+  list: () => apiClient.get<LiteJd[]>('/jds/'),
 
-  getById: (id: string) =>
-    apiClient.get<{
-      id: string;
-      title: string;
-      company: string;
-      description: string;
-      requirements: string[];
-      skills: string[];
-      created_at: string;
-    }>(`/jds/${id}`),
+  getById: (id: string) => apiClient.get<LiteJd>(`/jds/${id}`),
 
   analyze: (data: { description: string; requirements?: string[] }) =>
-    apiClient.post<{
-      score: number;
-      skills: string[];
-      missingSkills: string[];
-      recommendations: string[];
-    }>('/jd/analyze', data),
+    apiClient.post<JdAnalysisResult>('/jd/analyze', data),
 
   parse: (text: string) =>
-    apiClient.post<{
-      title: string;
-      company: string;
-      description: string;
-      requirements: string[];
-    }>('/jd/parse', { text }),
+    apiClient.post<JdParseResult>('/jd/parse', { text }),
 
   upload: (file: File) => {
     const formData = new FormData();
@@ -362,11 +472,7 @@ export const jdAPI = {
   delete: (id: string) => apiClient.delete<void>(`/jds/${id}`),
 
   bulkDelete: (ids: string[]) =>
-    apiClient.post<{
-      success_count: number;
-      failed_count: number;
-      errors: Array<{ id: string; error: string }>;
-    }>('/jds/bulk-delete', { ids }),
+    apiClient.post<BulkOperationResult>('/jds/bulk-delete', { ids }),
 };
 
 /**
@@ -374,87 +480,14 @@ export const jdAPI = {
  */
 export const applicationAPI = {
   create: (data: { resume_id: string; jd_id: string; notes?: string }) =>
-    apiClient.post<{
-      id: string;
-      resume_id: string;
-      jd_id: string;
-      status: string;
-      match_score?: number;
-      created_at: string;
-      updated_at: string;
-      notes?: string;
-      resume?: {
-        id: string;
-        title: string;
-        content?: string;
-        created_at: string;
-      };
-      jd?: {
-        id: string;
-        title: string;
-        company: string;
-        description?: string;
-        created_at: string;
-      };
-    }>('/applications/', data),
+    apiClient.post<LiteApplication>('/applications/', data),
 
-  list: () =>
-    apiClient.get<Array<{
-      id: string;
-      resume_id: string;
-      jd_id: string;
-      status: string;
-      match_score?: number;
-      created_at: string;
-      updated_at: string;
-      notes?: string;
-    }>>('/applications/'),
+  list: () => apiClient.get<LiteApplication[]>('/applications/'),
 
-  getById: (id: string) =>
-    apiClient.get<{
-      id: string;
-      resume_id: string;
-      jd_id: string;
-      status: string;
-      match_score?: number;
-      match_details?: string;
-      optimized_resume?: string;
-      created_at: string;
-      updated_at: string;
-      notes?: string;
-      status_history?: Array<{
-        id: string;
-        old_status: string | null;
-        new_status: string;
-        notes: string | null;
-        changed_at: string;
-      }>;
-      resume?: {
-        id: string;
-        title: string;
-        content?: string;
-        created_at: string;
-      };
-      jd?: {
-        id: string;
-        title: string;
-        company: string;
-        description?: string;
-        created_at: string;
-      };
-    }>(`/applications/${id}`),
+  getById: (id: string) => apiClient.get<LiteApplication>(`/applications/${id}`),
 
   update: (id: string, data: { notes?: string; status?: string }) =>
-    apiClient.put<{
-      id: string;
-      resume_id: string;
-      jd_id: string;
-      status: string;
-      match_score?: number;
-      created_at: string;
-      updated_at: string;
-      notes?: string;
-    }>(`/applications/${id}`, data),
+    apiClient.put<LiteApplication>(`/applications/${id}`, data),
 
   // Accepts both historical signatures: (id, status, notes?) from the old
   // api-client and (id, { status, notes }) from api-client-consolidated.
@@ -467,79 +500,34 @@ export const applicationAPI = {
       ? { status: statusOrData, notes }
       : { status: statusOrData.status, notes: statusOrData.notes };
 
-    return apiClient.patch<{
-      id: string;
-      resume_id: string;
-      jd_id: string;
-      status: string;
-      match_score?: number;
-      created_at: string;
-      updated_at: string;
-      notes?: string;
-    }>(`/applications/${id}/status`, payload);
+    return apiClient.patch<LiteApplication>(`/applications/${id}/status`, payload);
   },
 
   delete: (id: string) => apiClient.delete<void>(`/applications/${id}`),
 
   bulkDelete: (ids: string[]) =>
-    apiClient.post<{
-      success_count: number;
-      failed_count: number;
-      errors: Array<{ id: string; error: string }>;
-    }>('/applications/bulk-delete', { ids }),
+    apiClient.post<BulkOperationResult>('/applications/bulk-delete', { ids }),
 
   bulkUpdate: (updates: Array<{ id: string; status?: string; notes?: string }>) =>
-    apiClient.post<{
-      success_count: number;
-      failed_count: number;
-      errors: Array<{ id: string; error: string }>;
-    }>('/applications/bulk-update', { updates }),
+    apiClient.post<BulkOperationResult>('/applications/bulk-update', { updates }),
 
   bulkStatusUpdate: (ids: string[], status: string, notes?: string) =>
-    apiClient.post<{
-      success_count: number;
-      failed_count: number;
-      errors: Array<{ id: string; error: string }>;
-    }>('/applications/bulk-status-update', { ids, status, notes }),
+    apiClient.post<BulkOperationResult>('/applications/bulk-status-update', { ids, status, notes }),
 
   bulkNotesUpdate: (ids: string[], notes: string, append: boolean = true) =>
-    apiClient.post<{
-      success_count: number;
-      failed_count: number;
-      errors: Array<{ id: string; error: string }>;
-    }>('/applications/bulk-notes-update', { ids, notes, append }),
+    apiClient.post<BulkOperationResult>('/applications/bulk-notes-update', { ids, notes, append }),
 
   getMatchScore: (id: string) =>
-    apiClient.get<{
-      match_score: number;
-      match_details: {
-        skills_match: number;
-        experience_match: number;
-        education_match: number;
-        missing_skills: string[];
-        recommendations: string[];
-      };
-    }>(`/applications/${id}/match`),
+    apiClient.get<MatchScoreResult>(`/applications/${id}/match`),
 
   optimizeResume: (id: string) =>
-    apiClient.post<{
-      optimized_resume: string;
-      changes_made: string[];
-      keywords_added: string[];
-      sections_improved: string[];
-    }>(`/applications/${id}/optimize`, {}),
+    apiClient.post<ApplicationOptimizationResult>(`/applications/${id}/optimize`, {}),
 
   getInterviewPrep: (id: string) =>
     apiClient.get<any>(`/applications/${id}/interview-prep`),
 
   getStatusHistory: (id: string) =>
-    apiClient.get<Array<{
-      id: string;
-      old_status: string | null;
-      new_status: string;
-      notes: string | null;
-      changed_at: string;
-    }>>(`/applications/${id}/history`),
+    apiClient.get<ApplicationStatusHistory[]>(`/applications/${id}/history`),
 };
 
 /**
