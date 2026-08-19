@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { collectConsoleSignals } from './helpers'
 
 function buildSeedStorage() {
   const now = new Date().toISOString()
@@ -94,15 +95,7 @@ test.describe('Lite route regression coverage', () => {
       window.localStorage.setItem('synchire-storage', JSON.stringify(storage))
     }, buildSeedStorage())
 
-    const signals: string[] = []
-    page.on('console', (message) => {
-      if (message.type() === 'error' || message.type() === 'warning') {
-        signals.push(`${message.type()}: ${message.text()}`)
-      }
-    })
-    page.on('pageerror', (error) => {
-      signals.push(`pageerror: ${error.message}`)
-    })
+    const signals = collectConsoleSignals(page)
 
     for (const route of routes) {
       signals.length = 0
@@ -132,7 +125,9 @@ test.describe('Lite route regression coverage', () => {
     await expect(page.getByText(/岗位化简历|优化完成/).first()).toBeVisible({ timeout: 10_000 })
 
     const stored = await page.evaluate(() => window.localStorage.getItem('synchire-storage'))
-    expect(stored).toContain('求职意向')
+    // The tailored resume markdown is locale-aware: zh-CN renders "求职意向",
+    // en-US renders "Target Role". Company and skill evidence are locale-independent.
+    expect(stored).toMatch(/求职意向|Target Role/)
     expect(stored).toContain('Acme Hiring')
     expect(stored).toContain('React')
 
@@ -149,15 +144,7 @@ test.describe('Lite route regression coverage', () => {
   })
 
   test('AI runtime settings support providers, skills, MCPs, discovery, and local persistence', async ({ page }) => {
-    const signals: string[] = []
-    page.on('console', (message) => {
-      if (message.type() === 'error' || message.type() === 'warning') {
-        signals.push(`${message.type()}: ${message.text()}`)
-      }
-    })
-    page.on('pageerror', (error) => {
-      signals.push(`pageerror: ${error.message}`)
-    })
+    const signals = collectConsoleSignals(page)
 
     await page.goto('/settings?locale=en-US', { waitUntil: 'domcontentloaded' })
     await page.locator('body').waitFor({ state: 'visible', timeout: 10_000 })
