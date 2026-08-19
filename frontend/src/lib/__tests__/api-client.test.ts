@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { APIClient, apiClient, authAPI, resumeAPI, jdAPI, mockAPI } from '../api-client';
+import { APIClient, apiClient, applicationAPI, authAPI, resumeAPI, mockAPI } from '../api-client';
 
 // Mock fetch for testing
 interface MockResponse {
@@ -280,63 +280,72 @@ describe('resumeAPI', () => {
     expect(response.status).toBe(201);
   });
 
-  it('should export resume to PDF', async () => {
+  it('should optimize a resume against a JD', async () => {
+    const mockResult = {
+      optimized_content: 'Optimized resume content',
+      changes_made: ['Rewrote summary'],
+      keywords_added: ['kubernetes'],
+      sections_improved: ['content'],
+    };
     mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
-      json: async () => ({ url: 'http://example.com/resume.pdf' }),
+      json: async () => mockResult,
     });
 
-    const result = await resumeAPI.export('resume-123', 'minimal', 300);
+    const result = await resumeAPI.optimize('resume-123', 'We need kubernetes');
 
-    expect(result.data).toEqual({ url: 'http://example.com/resume.pdf' });
-    expect(result.success).toBe(true);
+    expect(result.data).toEqual(mockResult);
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/resumes/resume-123/optimize',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ jd_content: 'We need kubernetes' }),
+      })
+    );
   });
 });
 
-describe('jdAPI', () => {
+describe('applicationAPI', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should analyze job description', async () => {
-    const mockAnalysis = {
-      score: 75,
-      skills: ['JavaScript', 'React'],
-      missingSkills: ['GraphQL'],
-      recommendations: ['Add more projects'],
-    };
+  it('should update application status via PATCH', async () => {
+    const mockApplication = { id: 'app-1', status: 'interview' };
     mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
-      json: async () => mockAnalysis,
+      json: async () => mockApplication,
     });
 
-    const result = await jdAPI.analyze({
-      description: 'Senior React Developer',
-      requirements: ['React', 'TypeScript'],
-    });
+    const result = await applicationAPI.updateStatus('app-1', 'interview', 'note');
 
-    expect(result.data).toEqual(mockAnalysis);
-    expect(result.status).toBe(200);
+    expect(result.data).toEqual(mockApplication);
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/applications/app-1/status',
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'interview', notes: 'note' }),
+      })
+    );
   });
 
-  it('should parse job description text', async () => {
-    const mockParsed = {
-      title: 'Senior React Developer',
-      company: 'Tech Corp',
-      description: 'We are looking for...',
-      requirements: ['React', 'TypeScript', 'Node.js'],
-    };
+  it('should accept the object-shaped updateStatus payload', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
-      json: async () => mockParsed,
+      json: async () => ({ id: 'app-1', status: 'offer' }),
     });
 
-    const result = await jdAPI.parse('Senior React Developer at Tech Corp...');
+    await applicationAPI.updateStatus('app-1', { status: 'offer' });
 
-    expect(result.data).toEqual(mockParsed);
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/applications/app-1/status',
+      expect.objectContaining({
+        body: JSON.stringify({ status: 'offer', notes: undefined }),
+      })
+    );
   });
 });
 

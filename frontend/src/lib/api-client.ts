@@ -254,9 +254,9 @@ export const authAPI = {
 //   - LiteApplication  ← ApplicationResponse    (/api/applications)
 // Field names stay snake_case because they match the backend JSON verbatim.
 //
-// The remaining interfaces (BulkOperationResult, ApplicationStatusHistory,
-// MatchDetails, etc.) document the legacy frontend contracts for endpoints
-// the lite backend does not (yet) expose in its OpenAPI schema.
+// The remaining interfaces document the shared frontend contracts that both
+// the lite backend (local derivations) and the full-stack backend (AI/MCP
+// services) return for the status/match/interview-prep/optimize endpoints.
 // ---------------------------------------------------------------------------
 
 /** Application status values (openapi: ApplicationStatus enum). */
@@ -340,14 +340,7 @@ export interface LiteApplication {
   updated_at: string;
 }
 
-/** Result shape of the bulk delete/update endpoints (legacy frontend contract). */
-export interface BulkOperationResult {
-  success_count: number;
-  failed_count: number;
-  errors: Array<{ id: string; error: string }>;
-}
-
-/** One entry of an application's status history (legacy frontend contract). */
+/** One entry of an application's status history (both backends return this shape). */
 export interface ApplicationStatusHistory {
   id: string;
   old_status: string | null;
@@ -356,7 +349,7 @@ export interface ApplicationStatusHistory {
   changed_at: string;
 }
 
-/** Structured match breakdown (legacy frontend contract). */
+/** Structured match breakdown (shared frontend contract). */
 export interface MatchDetails {
   skills_match: number;
   experience_match: number;
@@ -365,47 +358,39 @@ export interface MatchDetails {
   recommendations: string[];
 }
 
-/** Payload returned by the match-score endpoint (legacy frontend contract). */
+/** Payload returned by GET /applications/{id}/match. */
 export interface MatchScoreResult {
   match_score: number;
   match_details: MatchDetails;
 }
 
-/** Fields shared by the AI optimize results (legacy frontend contract). */
+/** Fields shared by the AI optimize results (shared frontend contract). */
 interface OptimizationResultFields {
   changes_made: string[];
   keywords_added: string[];
   sections_improved: string[];
 }
 
-/** Result of resume optimization (legacy frontend contract). */
+/** Result of POST /resumes/{id}/optimize (lite and full-stack return this shape). */
 export interface ResumeOptimizationResult extends OptimizationResultFields {
   optimized_content: string;
 }
 
-/** Result of application-level resume optimization (legacy frontend contract). */
+/**
+ * Result of POST /applications/{id}/optimize (full-stack only — the lite
+ * backend has no application-level AI optimize; lite pages generate a
+ * tailored resume locally instead).
+ */
 export interface ApplicationOptimizationResult extends OptimizationResultFields {
   optimized_resume: string;
 }
 
-/** Result of JD analysis (legacy frontend contract; camelCase field kept for compatibility). */
-export interface JdAnalysisResult {
-  score: number;
-  skills: string[];
-  missingSkills: string[];
-  recommendations: string[];
-}
-
-/** Result of JD text parsing (legacy frontend contract). */
-export interface JdParseResult {
-  title: string;
-  company: string;
-  description: string;
-  requirements: string[];
-}
-
 /**
  * Resume API endpoints (envelope core)
+ *
+ * Backend: POST /api/resumes accepts both JSON `{title, content}` and
+ * multipart file uploads (the OpenAPI schema only advertises the multipart
+ * variant because the lite router sniffs the content type manually).
  */
 export const resumeAPI = {
   list: () => apiClient.get<LiteResume[]>('/resumes'),
@@ -414,15 +399,9 @@ export const resumeAPI = {
 
   getById: (id: string) => apiClient.get<LiteResume>(`/resumes/${id}`),
 
-  create: (data: { title: string; content: string }) =>
-    apiClient.post<LiteResume>('/resumes', data),
-
   update: (id: string, data: unknown) => apiClient.put<LiteResume>(`/resumes/${id}`, data),
 
   delete: (id: string) => apiClient.delete<void>(`/resumes/${id}`),
-
-  export: (id: string, template: string = 'minimal', dpi?: number) =>
-    apiClient.get<{ url: string }>(`/resumes/${id}/export?template=${template}${dpi ? `&dpi=${dpi}` : ''}`),
 
   upload: (file: File, title?: string) => {
     const formData = new FormData();
@@ -435,44 +414,27 @@ export const resumeAPI = {
     });
   },
 
+  /**
+   * POST /resumes/{id}/optimize with `{jd_content}`. Both backends return
+   * `{optimized_content, changes_made, keywords_added, sections_improved}`.
+   */
   optimize: (id: string, jdContent: string) =>
     apiClient.post<ResumeOptimizationResult>(`/resumes/${id}/optimize`, { jd_content: jdContent }),
-
-  bulkDelete: (ids: string[]) =>
-    apiClient.post<BulkOperationResult>('/resumes/bulk-delete', { ids }),
 };
 
 /**
  * Job Description API endpoints (envelope core)
+ *
+ * JD text parsing lives at POST /api/jds/parse — see unifiedClient.jd.parse.
+ * The former singular `/jd/analyze` + `/jd/parse` methods pointed at routes
+ * neither backend exposes and were removed.
  */
 export const jdAPI = {
   list: () => apiClient.get<LiteJd[]>('/jds/'),
 
   getById: (id: string) => apiClient.get<LiteJd>(`/jds/${id}`),
 
-  analyze: (data: { description: string; requirements?: string[] }) =>
-    apiClient.post<JdAnalysisResult>('/jd/analyze', data),
-
-  parse: (text: string) =>
-    apiClient.post<JdParseResult>('/jd/parse', { text }),
-
-  upload: (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    return fetch('/api/jds/upload', {
-      method: 'POST',
-      headers: {
-        ...addCSRFHeaders({}),
-      },
-      body: formData,
-    });
-  },
-
   delete: (id: string) => apiClient.delete<void>(`/jds/${id}`),
-
-  bulkDelete: (ids: string[]) =>
-    apiClient.post<BulkOperationResult>('/jds/bulk-delete', { ids }),
 };
 
 /**
@@ -491,6 +453,8 @@ export const applicationAPI = {
 
   // Accepts both historical signatures: (id, status, notes?) from the old
   // api-client and (id, { status, notes }) from api-client-consolidated.
+  // PATCH /applications/{id}/status exists on both the lite and full-stack
+  // backends (lite also accepts the legacy pending/optimized status values).
   updateStatus: (
     id: string,
     statusOrData: string | { status: string; notes?: string },
@@ -505,27 +469,23 @@ export const applicationAPI = {
 
   delete: (id: string) => apiClient.delete<void>(`/applications/${id}`),
 
-  bulkDelete: (ids: string[]) =>
-    apiClient.post<BulkOperationResult>('/applications/bulk-delete', { ids }),
-
-  bulkUpdate: (updates: Array<{ id: string; status?: string; notes?: string }>) =>
-    apiClient.post<BulkOperationResult>('/applications/bulk-update', { updates }),
-
-  bulkStatusUpdate: (ids: string[], status: string, notes?: string) =>
-    apiClient.post<BulkOperationResult>('/applications/bulk-status-update', { ids, status, notes }),
-
-  bulkNotesUpdate: (ids: string[], notes: string, append: boolean = true) =>
-    apiClient.post<BulkOperationResult>('/applications/bulk-notes-update', { ids, notes, append }),
-
+  // GET /applications/{id}/match — returns {match_score, match_details} and
+  // persists the score. The lite backend also keeps a POST variant that
+  // returns the updated ApplicationResponse.
   getMatchScore: (id: string) =>
     apiClient.get<MatchScoreResult>(`/applications/${id}/match`),
 
+  // POST /applications/{id}/optimize — full-stack only (async AI task).
   optimizeResume: (id: string) =>
     apiClient.post<ApplicationOptimizationResult>(`/applications/${id}/optimize`, {}),
 
+  // GET /applications/{id}/interview-prep — camelCase payload
+  // {hrQuestions, technicalQuestions, behavioralQuestions, selfIntroduction,
+  //  reverseQuestions, checklist, generatedAt, targetRole, targetCompany}.
   getInterviewPrep: (id: string) =>
     apiClient.get<any>(`/applications/${id}/interview-prep`),
 
+  // GET /applications/{id}/history — status change history, newest first.
   getStatusHistory: (id: string) =>
     apiClient.get<ApplicationStatusHistory[]>(`/applications/${id}/history`),
 };

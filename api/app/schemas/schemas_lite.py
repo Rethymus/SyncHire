@@ -6,8 +6,8 @@ Pydantic models for API request/response validation without user dependencies.
 
 from datetime import datetime
 from enum import Enum
+
 from pydantic import BaseModel, ConfigDict, Field
-from typing import Optional, List
 
 # Resume Schemas
 
@@ -16,20 +16,28 @@ class ResumeBase(BaseModel):
     """Base resume schema."""
 
     title: str = Field(..., min_length=1, max_length=255)
-    content: Optional[str] = None
+    content: str | None = None
 
 
 class ResumeCreate(ResumeBase):
     """Schema for creating a resume."""
 
-    pass
-
 
 class ResumeUpdate(BaseModel):
     """Schema for updating a resume."""
 
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    content: Optional[str] = None
+    title: str | None = Field(None, min_length=1, max_length=255)
+    content: str | None = None
+
+
+class ResumeOptimizeRequest(BaseModel):
+    """Schema for POST /resumes/{id}/optimize (lite).
+
+    The body is optional for backwards compatibility with callers that
+    optimize without a target JD.
+    """
+
+    jd_content: str | None = None
 
 
 class ResumeResponse(BaseModel):
@@ -40,7 +48,7 @@ class ResumeResponse(BaseModel):
     id: str
     title: str
     content: str
-    file_name: Optional[str] = None
+    file_name: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -54,59 +62,57 @@ class JobDescriptionBase(BaseModel):
     company: str = Field(..., min_length=1, max_length=255)
     title: str = Field(..., min_length=1, max_length=255)
     description: str = Field(..., min_length=1)
-    url: Optional[str] = None
+    url: str | None = None
     platform: str = "manual"
-    source_url: Optional[str] = None
-    raw_text: Optional[str] = None
-    source: Optional[str] = None
-    external_id: Optional[str] = None
-    location: Optional[str] = None
-    salary_min: Optional[float] = None
-    salary_max: Optional[float] = None
+    source_url: str | None = None
+    raw_text: str | None = None
+    source: str | None = None
+    external_id: str | None = None
+    location: str | None = None
+    salary_min: float | None = None
+    salary_max: float | None = None
     currency: str = "USD"
-    employment_type: Optional[str] = None
+    employment_type: str | None = None
     remote: str = "onsite"
-    parsed_json: Optional[dict] = None
+    parsed_json: dict | None = None
     language: str = "auto"
-    deadline: Optional[datetime] = None
-    notes: Optional[str] = None
+    deadline: datetime | None = None
+    notes: str | None = None
 
 
 class JobDescriptionCreate(JobDescriptionBase):
     """Schema for creating a job description."""
 
-    pass
-
 
 class JobDescriptionUpdate(BaseModel):
     """Schema for updating a job description."""
 
-    company: Optional[str] = Field(None, min_length=1, max_length=255)
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    description: Optional[str] = None
-    url: Optional[str] = None
-    platform: Optional[str] = None
-    source_url: Optional[str] = None
-    raw_text: Optional[str] = None
-    source: Optional[str] = None
-    external_id: Optional[str] = None
-    location: Optional[str] = None
-    salary_min: Optional[float] = None
-    salary_max: Optional[float] = None
-    currency: Optional[str] = None
-    employment_type: Optional[str] = None
-    remote: Optional[str] = None
-    parsed_json: Optional[dict] = None
-    language: Optional[str] = None
-    deadline: Optional[datetime] = None
-    notes: Optional[str] = None
+    company: str | None = Field(None, min_length=1, max_length=255)
+    title: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = None
+    url: str | None = None
+    platform: str | None = None
+    source_url: str | None = None
+    raw_text: str | None = None
+    source: str | None = None
+    external_id: str | None = None
+    location: str | None = None
+    salary_min: float | None = None
+    salary_max: float | None = None
+    currency: str | None = None
+    employment_type: str | None = None
+    remote: str | None = None
+    parsed_json: dict | None = None
+    language: str | None = None
+    deadline: datetime | None = None
+    notes: str | None = None
 
 
 class JobDescriptionParseRequest(BaseModel):
     """Schema for parsing a raw job description."""
 
     content: str = Field(..., min_length=1)
-    url: Optional[str] = None
+    url: str | None = None
 
 
 class UrlImportRequest(BaseModel):
@@ -124,24 +130,24 @@ class JobDescriptionResponse(BaseModel):
     company: str
     title: str
     description: str
-    url: Optional[str] = None
+    url: str | None = None
     platform: str = "manual"
-    source_url: Optional[str] = None
-    raw_text: Optional[str] = None
-    source: Optional[str] = None
-    external_id: Optional[str] = None
-    location: Optional[str] = None
-    salary_min: Optional[float] = None
-    salary_max: Optional[float] = None
+    source_url: str | None = None
+    raw_text: str | None = None
+    source: str | None = None
+    external_id: str | None = None
+    location: str | None = None
+    salary_min: float | None = None
+    salary_max: float | None = None
     currency: str
-    employment_type: Optional[str] = None
+    employment_type: str | None = None
     remote: str
-    parsed_json: Optional[dict] = None
-    match_score: Optional[float] = None
-    match_detail: Optional[dict] = None
+    parsed_json: dict | None = None
+    match_score: float | None = None
+    match_detail: dict | None = None
     language: str = "auto"
-    deadline: Optional[datetime] = None
-    notes: Optional[str] = None
+    deadline: datetime | None = None
+    notes: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -152,19 +158,19 @@ class JobDescriptionResponse(BaseModel):
 class JobSourceCreate(BaseModel):
     """Schema for subscribing to an ATS-backed recruiting page."""
 
-    url: Optional[str] = Field(
+    url: str | None = Field(
         None, description="Recruiting page URL; ATS type auto-detected"
     )
-    ats_type: Optional[str] = None
-    org_key: Optional[str] = None
-    name: Optional[str] = Field(None, description="Company display name")
+    ats_type: str | None = None
+    org_key: str | None = None
+    name: str | None = Field(None, description="Company display name")
 
 
 class JobSourceUpdate(BaseModel):
     """Schema for updating a job source."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    enabled: Optional[bool] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    enabled: bool | None = None
 
 
 class JobSourceDetectRequest(BaseModel):
@@ -191,11 +197,11 @@ class JobSourceResponse(BaseModel):
     name: str
     ats_type: str
     org_key: str
-    portal_url: Optional[str] = None
+    portal_url: str | None = None
     enabled: bool
-    last_synced_at: Optional[datetime] = None
-    last_sync_status: Optional[str] = None
-    last_sync_message: Optional[str] = None
+    last_synced_at: datetime | None = None
+    last_sync_status: str | None = None
+    last_sync_message: str | None = None
     last_new_count: int = 0
     last_total_count: int = 0
     created_at: datetime
@@ -211,21 +217,21 @@ class JobSourceSyncResponse(BaseModel):
     new_count: int = 0
     updated_count: int = 0
     total_count: int = 0
-    message: Optional[str] = None
+    message: str | None = None
 
 
 class JobSourceScoreResponse(BaseModel):
     """Result of scoring feed jobs against the local resume."""
 
     scored_count: int = 0
-    resume_title: Optional[str] = None
+    resume_title: str | None = None
 
 
 class JobSourceImportRequest(BaseModel):
     """Bulk-subscribe a batch of ATS boards."""
 
     ats_type: str
-    org_keys: List[str] = Field(..., min_length=1, max_length=20000)
+    org_keys: list[str] = Field(..., min_length=1, max_length=20000)
     enabled: bool = False
 
 
@@ -240,7 +246,7 @@ class JobSourceCatalogRequest(BaseModel):
     """Search the bundled ATS board catalog."""
 
     query: str = ""
-    ats_type: Optional[str] = None
+    ats_type: str | None = None
     limit: int = Field(20, ge=1, le=200)
 
 
@@ -255,7 +261,7 @@ class JobSourceCatalogResponse(BaseModel):
     """Catalog search results."""
 
     total: int
-    results: List[JobSourceCatalogResult]
+    results: list[JobSourceCatalogResult]
     truncated: bool
 
 
@@ -266,14 +272,14 @@ class SignalFeedCreate(BaseModel):
     """Subscribe an RSS feed as a signal source."""
 
     rss_url: str = Field(..., min_length=1)
-    name: Optional[str] = Field(None, max_length=255)
+    name: str | None = Field(None, max_length=255)
 
 
 class SignalFeedUpdate(BaseModel):
     """Update a signal feed."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    enabled: Optional[bool] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    enabled: bool | None = None
 
 
 class SignalFeedResponse(BaseModel):
@@ -285,10 +291,10 @@ class SignalFeedResponse(BaseModel):
     name: str
     rss_url: str
     enabled: bool
-    last_fetched_at: Optional[datetime] = None
-    last_status: Optional[str] = None
+    last_fetched_at: datetime | None = None
+    last_status: str | None = None
     last_new_signals: int = 0
-    last_message: Optional[str] = None
+    last_message: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -300,16 +306,16 @@ class SignalFeedSyncResponse(BaseModel):
     feed_name: str
     status: str  # ok | empty | error
     items_seen: int = 0
-    signals: List[str] = []
-    message: Optional[str] = None
+    signals: list[str] = []
+    message: str | None = None
 
 
 class JobSourceLogApplicationRequest(BaseModel):
     """Log an application submitted through the job browser."""
 
     url: str = Field(..., min_length=1)
-    title: Optional[str] = None
-    company: Optional[str] = None
+    title: str | None = None
+    company: str | None = None
 
 
 class JobSourceLogApplicationResponse(BaseModel):
@@ -329,19 +335,19 @@ class CompanyCreate(BaseModel):
     """Add a company to the directory."""
 
     name: str = Field(..., min_length=1, max_length=255)
-    career_url: Optional[str] = None
-    aliases: Optional[List[str]] = None
+    career_url: str | None = None
+    aliases: list[str] | None = None
     career_type: str = "both"
-    industry: Optional[str] = None
+    industry: str | None = None
 
 
 class CompanyUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    career_url: Optional[str] = None
-    aliases: Optional[List[str]] = None
-    career_type: Optional[str] = None
-    industry: Optional[str] = None
-    verified: Optional[bool] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    career_url: str | None = None
+    aliases: list[str] | None = None
+    career_type: str | None = None
+    industry: str | None = None
+    verified: bool | None = None
 
 
 class CompanyResponse(BaseModel):
@@ -351,15 +357,15 @@ class CompanyResponse(BaseModel):
 
     id: str
     name: str
-    aliases: Optional[List[str]] = None
-    career_url: Optional[str] = None
+    aliases: list[str] | None = None
+    career_url: str | None = None
     career_type: str = "both"
-    industry: Optional[str] = None
+    industry: str | None = None
     verified: bool = False
-    signal_batch: Optional[str] = None
-    signal_title: Optional[str] = None
-    signal_url: Optional[str] = None
-    signal_detected_at: Optional[datetime] = None
+    signal_batch: str | None = None
+    signal_title: str | None = None
+    signal_url: str | None = None
+    signal_detected_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -367,38 +373,38 @@ class CompanyResponse(BaseModel):
 class SignalDetectRequest(BaseModel):
     """An article title (or URL to fetch it from) to scan for signals."""
 
-    title: Optional[str] = None
-    url: Optional[str] = None
+    title: str | None = None
+    url: str | None = None
 
 
 class SignalDetectResponse(BaseModel):
-    matched: List[CompanyResponse]
-    used_title: Optional[str] = None
+    matched: list[CompanyResponse]
+    used_title: str | None = None
 
 
 class ManualSignalRequest(BaseModel):
     """Pin a signal on one company by hand."""
 
     batch: str = Field(..., min_length=1, max_length=50)
-    title: Optional[str] = None
-    url: Optional[str] = None
-    detected_at: Optional[datetime] = None
+    title: str | None = None
+    url: str | None = None
+    detected_at: datetime | None = None
 
 
 class CompanyImportItem(BaseModel):
     """One company in a bulk import payload."""
 
     name: str = Field(..., min_length=1, max_length=255)
-    career_url: Optional[str] = None
-    aliases: Optional[List[str]] = None
-    industry: Optional[str] = None
+    career_url: str | None = None
+    aliases: list[str] | None = None
+    industry: str | None = None
     verified: bool = False
 
 
 class CompanyImportRequest(BaseModel):
     """Bulk-import companies (deduped by name)."""
 
-    companies: List[CompanyImportItem] = Field(..., min_length=1, max_length=10000)
+    companies: list[CompanyImportItem] = Field(..., min_length=1, max_length=10000)
 
 
 class CompanyImportResponse(BaseModel):
@@ -434,43 +440,52 @@ class ApplicationBase(BaseModel):
     resume_id: str
     jd_id: str
     status: ApplicationStatus = ApplicationStatus.SAVED
-    resume_variant_id: Optional[str] = None
-    materials_id: Optional[str] = None
+    resume_variant_id: str | None = None
+    materials_id: str | None = None
     platform: str = "manual"
-    source_url: Optional[str] = None
-    notes: Optional[str] = None
+    source_url: str | None = None
+    notes: str | None = None
 
 
 class ApplicationCreate(ApplicationBase):
     """Schema for creating an application."""
 
-    pass
-
 
 class ApplicationUpdate(BaseModel):
     """Schema for updating an application."""
 
-    status: Optional[ApplicationStatus] = None
-    resume_variant_id: Optional[str] = None
-    materials_id: Optional[str] = None
-    platform: Optional[str] = None
-    source_url: Optional[str] = None
-    notes: Optional[str] = None
-    match_score: Optional[float] = None
-    applied_date: Optional[datetime] = None
-    submitted_manually_at: Optional[datetime] = None
-    next_action: Optional[str] = None
-    next_action_at: Optional[datetime] = None
-    contact_name: Optional[str] = None
-    contact_channel: Optional[str] = None
-    timeline: Optional[List[dict]] = None
+    status: ApplicationStatus | None = None
+    resume_variant_id: str | None = None
+    materials_id: str | None = None
+    platform: str | None = None
+    source_url: str | None = None
+    notes: str | None = None
+    match_score: float | None = None
+    applied_date: datetime | None = None
+    submitted_manually_at: datetime | None = None
+    next_action: str | None = None
+    next_action_at: datetime | None = None
+    contact_name: str | None = None
+    contact_channel: str | None = None
+    timeline: list[dict] | None = None
+
+
+class ApplicationStatusUpdateRequest(BaseModel):
+    """Schema for PATCH /applications/{id}/status (lite).
+
+    Mirrors the full-stack ``ApplicationStatusUpdate`` contract so the
+    frontend status-transition loop works identically in both modes.
+    """
+
+    status: str
+    notes: str | None = None
 
 
 class ApplicationBatchUpdateRequest(BaseModel):
     """Schema for batch-updating applications."""
 
-    application_ids: List[str]
-    status: Optional[ApplicationStatus] = None
+    application_ids: list[str]
+    status: ApplicationStatus | None = None
 
 
 class ApplicationResponse(BaseModel):
@@ -482,20 +497,20 @@ class ApplicationResponse(BaseModel):
     resume_id: str
     jd_id: str
     status: str
-    resume_variant_id: Optional[str] = None
-    materials_id: Optional[str] = None
+    resume_variant_id: str | None = None
+    materials_id: str | None = None
     platform: str = "manual"
-    source_url: Optional[str] = None
-    notes: Optional[str] = None
-    match_score: Optional[float] = None
-    applied_date: Optional[datetime] = None
-    submitted_manually_at: Optional[datetime] = None
-    next_action: Optional[str] = None
-    next_action_at: Optional[datetime] = None
-    contact_name: Optional[str] = None
-    contact_channel: Optional[str] = None
-    timeline: Optional[List[dict]] = None
-    last_updated: Optional[datetime] = None
+    source_url: str | None = None
+    notes: str | None = None
+    match_score: float | None = None
+    applied_date: datetime | None = None
+    submitted_manually_at: datetime | None = None
+    next_action: str | None = None
+    next_action_at: datetime | None = None
+    contact_name: str | None = None
+    contact_channel: str | None = None
+    timeline: list[dict] | None = None
+    last_updated: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -507,32 +522,30 @@ class CandidateProfileBase(BaseModel):
     """Base candidate profile schema."""
 
     display_name: str = Field(..., min_length=1, max_length=255)
-    target_title: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    location: Optional[str] = None
-    links: Optional[List[dict]] = None
-    summary: Optional[str] = None
-    privacy_settings: Optional[dict] = None
+    target_title: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    location: str | None = None
+    links: list[dict] | None = None
+    summary: str | None = None
+    privacy_settings: dict | None = None
 
 
 class CandidateProfileCreate(CandidateProfileBase):
     """Schema for creating a candidate profile."""
 
-    pass
-
 
 class CandidateProfileUpdate(BaseModel):
     """Schema for updating a candidate profile."""
 
-    display_name: Optional[str] = Field(None, min_length=1, max_length=255)
-    target_title: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    location: Optional[str] = None
-    links: Optional[List[dict]] = None
-    summary: Optional[str] = None
-    privacy_settings: Optional[dict] = None
+    display_name: str | None = Field(None, min_length=1, max_length=255)
+    target_title: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    location: str | None = None
+    links: list[dict] | None = None
+    summary: str | None = None
+    privacy_settings: dict | None = None
 
 
 class CandidateProfileResponse(BaseModel):
@@ -542,13 +555,13 @@ class CandidateProfileResponse(BaseModel):
 
     id: str
     display_name: str
-    target_title: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    location: Optional[str] = None
-    links: Optional[List[dict]] = None
-    summary: Optional[str] = None
-    privacy_settings: Optional[dict] = None
+    target_title: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    location: str | None = None
+    links: list[dict] | None = None
+    summary: str | None = None
+    privacy_settings: dict | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -580,14 +593,14 @@ class CandidateProfileItemBase(BaseModel):
     profile_id: str
     item_type: CandidateProfileItemType
     title: str = Field(..., min_length=1, max_length=255)
-    organization: Optional[str] = None
-    role: Optional[str] = None
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
-    description: Optional[str] = None
-    highlights: Optional[List[str]] = None
-    skills: Optional[List[str]] = None
-    metrics: Optional[dict] = None
+    organization: str | None = None
+    role: str | None = None
+    start_date: str | None = None
+    end_date: str | None = None
+    description: str | None = None
+    highlights: list[str] | None = None
+    skills: list[str] | None = None
+    metrics: dict | None = None
     visibility: CandidateProfileItemVisibility = CandidateProfileItemVisibility.RESUME
     sort_order: int = 0
 
@@ -595,24 +608,22 @@ class CandidateProfileItemBase(BaseModel):
 class CandidateProfileItemCreate(CandidateProfileItemBase):
     """Schema for creating a candidate profile item."""
 
-    pass
-
 
 class CandidateProfileItemUpdate(BaseModel):
     """Schema for updating a candidate profile item."""
 
-    item_type: Optional[CandidateProfileItemType] = None
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    organization: Optional[str] = None
-    role: Optional[str] = None
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
-    description: Optional[str] = None
-    highlights: Optional[List[str]] = None
-    skills: Optional[List[str]] = None
-    metrics: Optional[dict] = None
-    visibility: Optional[CandidateProfileItemVisibility] = None
-    sort_order: Optional[int] = None
+    item_type: CandidateProfileItemType | None = None
+    title: str | None = Field(None, min_length=1, max_length=255)
+    organization: str | None = None
+    role: str | None = None
+    start_date: str | None = None
+    end_date: str | None = None
+    description: str | None = None
+    highlights: list[str] | None = None
+    skills: list[str] | None = None
+    metrics: dict | None = None
+    visibility: CandidateProfileItemVisibility | None = None
+    sort_order: int | None = None
 
 
 class CandidateProfileItemResponse(BaseModel):
@@ -624,14 +635,14 @@ class CandidateProfileItemResponse(BaseModel):
     profile_id: str
     item_type: str
     title: str
-    organization: Optional[str] = None
-    role: Optional[str] = None
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
-    description: Optional[str] = None
-    highlights: Optional[List[str]] = None
-    skills: Optional[List[str]] = None
-    metrics: Optional[dict] = None
+    organization: str | None = None
+    role: str | None = None
+    start_date: str | None = None
+    end_date: str | None = None
+    description: str | None = None
+    highlights: list[str] | None = None
+    skills: list[str] | None = None
+    metrics: dict | None = None
     visibility: str
     sort_order: int
     created_at: datetime
@@ -643,36 +654,34 @@ class CandidateRoleCardBase(BaseModel):
 
     profile_id: str
     name: str = Field(..., min_length=1, max_length=255)
-    target_roles: Optional[List[str]] = None
-    strengths: Optional[List[str]] = None
-    weaknesses: Optional[List[str]] = None
-    core_skills: Optional[List[str]] = None
-    proof_points: Optional[List[dict]] = None
-    tone_preferences: Optional[dict] = None
-    generated_from: Optional[dict] = None
-    model_provider: Optional[str] = None
-    model_name: Optional[str] = None
+    target_roles: list[str] | None = None
+    strengths: list[str] | None = None
+    weaknesses: list[str] | None = None
+    core_skills: list[str] | None = None
+    proof_points: list[dict] | None = None
+    tone_preferences: dict | None = None
+    generated_from: dict | None = None
+    model_provider: str | None = None
+    model_name: str | None = None
 
 
 class CandidateRoleCardCreate(CandidateRoleCardBase):
     """Schema for creating a candidate role card."""
 
-    pass
-
 
 class CandidateRoleCardUpdate(BaseModel):
     """Schema for updating a candidate role card."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=255)
-    target_roles: Optional[List[str]] = None
-    strengths: Optional[List[str]] = None
-    weaknesses: Optional[List[str]] = None
-    core_skills: Optional[List[str]] = None
-    proof_points: Optional[List[dict]] = None
-    tone_preferences: Optional[dict] = None
-    generated_from: Optional[dict] = None
-    model_provider: Optional[str] = None
-    model_name: Optional[str] = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    target_roles: list[str] | None = None
+    strengths: list[str] | None = None
+    weaknesses: list[str] | None = None
+    core_skills: list[str] | None = None
+    proof_points: list[dict] | None = None
+    tone_preferences: dict | None = None
+    generated_from: dict | None = None
+    model_provider: str | None = None
+    model_name: str | None = None
 
 
 class CandidateRoleCardResponse(BaseModel):
@@ -683,15 +692,15 @@ class CandidateRoleCardResponse(BaseModel):
     id: str
     profile_id: str
     name: str
-    target_roles: Optional[List[str]] = None
-    strengths: Optional[List[str]] = None
-    weaknesses: Optional[List[str]] = None
-    core_skills: Optional[List[str]] = None
-    proof_points: Optional[List[dict]] = None
-    tone_preferences: Optional[dict] = None
-    generated_from: Optional[dict] = None
-    model_provider: Optional[str] = None
-    model_name: Optional[str] = None
+    target_roles: list[str] | None = None
+    strengths: list[str] | None = None
+    weaknesses: list[str] | None = None
+    core_skills: list[str] | None = None
+    proof_points: list[dict] | None = None
+    tone_preferences: dict | None = None
+    generated_from: dict | None = None
+    model_provider: str | None = None
+    model_name: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -709,11 +718,11 @@ class AIProviderSettingsBase(BaseModel):
 
     provider: str = Field(..., min_length=1, max_length=100)
     mode: AIProviderMode = AIProviderMode.FALLBACK
-    display_name: Optional[str] = None
-    base_url: Optional[str] = None
-    model_name: Optional[str] = None
-    api_key_ref: Optional[str] = None
-    api_key: Optional[str] = None
+    display_name: str | None = None
+    base_url: str | None = None
+    model_name: str | None = None
+    api_key_ref: str | None = None
+    api_key: str | None = None
     enabled: bool = False
     send_confirmation_required: bool = True
 
@@ -721,21 +730,19 @@ class AIProviderSettingsBase(BaseModel):
 class AIProviderSettingsCreate(AIProviderSettingsBase):
     """Schema for creating AI provider settings."""
 
-    pass
-
 
 class AIProviderSettingsUpdate(BaseModel):
     """Schema for updating AI provider settings."""
 
-    provider: Optional[str] = Field(None, min_length=1, max_length=100)
-    mode: Optional[AIProviderMode] = None
-    display_name: Optional[str] = None
-    base_url: Optional[str] = None
-    model_name: Optional[str] = None
-    api_key_ref: Optional[str] = None
-    api_key: Optional[str] = None
-    enabled: Optional[bool] = None
-    send_confirmation_required: Optional[bool] = None
+    provider: str | None = Field(None, min_length=1, max_length=100)
+    mode: AIProviderMode | None = None
+    display_name: str | None = None
+    base_url: str | None = None
+    model_name: str | None = None
+    api_key_ref: str | None = None
+    api_key: str | None = None
+    enabled: bool | None = None
+    send_confirmation_required: bool | None = None
 
 
 class AIProviderSettingsResponse(BaseModel):
@@ -746,9 +753,9 @@ class AIProviderSettingsResponse(BaseModel):
     id: str
     provider: str
     mode: str
-    display_name: Optional[str] = None
-    base_url: Optional[str] = None
-    model_name: Optional[str] = None
+    display_name: str | None = None
+    base_url: str | None = None
+    model_name: str | None = None
     enabled: bool
     send_confirmation_required: bool
     has_api_key: bool
@@ -760,46 +767,44 @@ class ResumeVariantBase(BaseModel):
     """Base resume variant schema."""
 
     profile_id: str
-    role_card_id: Optional[str] = None
+    role_card_id: str | None = None
     jd_id: str
-    application_id: Optional[str] = None
+    application_id: str | None = None
     title: str = Field(..., min_length=1, max_length=255)
     language: str = "auto"
-    template_id: Optional[str] = None
+    template_id: str | None = None
     content_markdown: str = Field(..., min_length=1)
-    content_json: Optional[dict] = None
-    match_score: Optional[float] = None
-    keyword_hits: Optional[List[str]] = None
-    gap_warnings: Optional[List[str]] = None
-    generation_rationale: Optional[str] = None
-    ai_provider: Optional[str] = None
-    ai_model: Optional[str] = None
+    content_json: dict | None = None
+    match_score: float | None = None
+    keyword_hits: list[str] | None = None
+    gap_warnings: list[str] | None = None
+    generation_rationale: str | None = None
+    ai_provider: str | None = None
+    ai_model: str | None = None
     status: str = "draft"
 
 
 class ResumeVariantCreate(ResumeVariantBase):
     """Schema for creating a resume variant."""
 
-    pass
-
 
 class ResumeVariantUpdate(BaseModel):
     """Schema for updating a resume variant."""
 
-    role_card_id: Optional[str] = None
-    application_id: Optional[str] = None
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    language: Optional[str] = None
-    template_id: Optional[str] = None
-    content_markdown: Optional[str] = Field(None, min_length=1)
-    content_json: Optional[dict] = None
-    match_score: Optional[float] = None
-    keyword_hits: Optional[List[str]] = None
-    gap_warnings: Optional[List[str]] = None
-    generation_rationale: Optional[str] = None
-    ai_provider: Optional[str] = None
-    ai_model: Optional[str] = None
-    status: Optional[str] = None
+    role_card_id: str | None = None
+    application_id: str | None = None
+    title: str | None = Field(None, min_length=1, max_length=255)
+    language: str | None = None
+    template_id: str | None = None
+    content_markdown: str | None = Field(None, min_length=1)
+    content_json: dict | None = None
+    match_score: float | None = None
+    keyword_hits: list[str] | None = None
+    gap_warnings: list[str] | None = None
+    generation_rationale: str | None = None
+    ai_provider: str | None = None
+    ai_model: str | None = None
+    status: str | None = None
 
 
 class ResumeVariantResponse(BaseModel):
@@ -809,20 +814,20 @@ class ResumeVariantResponse(BaseModel):
 
     id: str
     profile_id: str
-    role_card_id: Optional[str] = None
+    role_card_id: str | None = None
     jd_id: str
-    application_id: Optional[str] = None
+    application_id: str | None = None
     title: str
     language: str
-    template_id: Optional[str] = None
+    template_id: str | None = None
     content_markdown: str
-    content_json: Optional[dict] = None
-    match_score: Optional[float] = None
-    keyword_hits: Optional[List[str]] = None
-    gap_warnings: Optional[List[str]] = None
-    generation_rationale: Optional[str] = None
-    ai_provider: Optional[str] = None
-    ai_model: Optional[str] = None
+    content_json: dict | None = None
+    match_score: float | None = None
+    keyword_hits: list[str] | None = None
+    gap_warnings: list[str] | None = None
+    generation_rationale: str | None = None
+    ai_provider: str | None = None
+    ai_model: str | None = None
     status: str
     created_at: datetime
     updated_at: datetime
@@ -835,26 +840,24 @@ class ResumeExportBase(BaseModel):
     export_format: str = "pdf"
     file_path: str = Field(..., min_length=1)
     file_name: str = Field(..., min_length=1, max_length=255)
-    checksum: Optional[str] = None
-    byte_size: Optional[int] = None
+    checksum: str | None = None
+    byte_size: int | None = None
     status: str = "created"
 
 
 class ResumeExportCreate(ResumeExportBase):
     """Schema for creating a resume export."""
 
-    pass
-
 
 class ResumeExportUpdate(BaseModel):
     """Schema for updating a resume export."""
 
-    export_format: Optional[str] = None
-    file_path: Optional[str] = Field(None, min_length=1)
-    file_name: Optional[str] = Field(None, min_length=1, max_length=255)
-    checksum: Optional[str] = None
-    byte_size: Optional[int] = None
-    status: Optional[str] = None
+    export_format: str | None = None
+    file_path: str | None = Field(None, min_length=1)
+    file_name: str | None = Field(None, min_length=1, max_length=255)
+    checksum: str | None = None
+    byte_size: int | None = None
+    status: str | None = None
 
 
 class ResumeExportResponse(BaseModel):
@@ -867,8 +870,8 @@ class ResumeExportResponse(BaseModel):
     export_format: str
     file_path: str
     file_name: str
-    checksum: Optional[str] = None
-    byte_size: Optional[int] = None
+    checksum: str | None = None
+    byte_size: int | None = None
     status: str
     created_at: datetime
     updated_at: datetime
@@ -879,37 +882,35 @@ class ApplicationMaterialBase(BaseModel):
 
     profile_id: str
     jd_id: str
-    resume_variant_id: Optional[str] = None
-    application_id: Optional[str] = None
+    resume_variant_id: str | None = None
+    application_id: str | None = None
     language: str = "auto"
     platform: str = "manual"
-    form_fields: Optional[dict] = None
-    cover_letter: Optional[str] = None
-    opening_message: Optional[str] = None
-    self_introduction: Optional[str] = None
-    checklist: Optional[List[dict]] = None
+    form_fields: dict | None = None
+    cover_letter: str | None = None
+    opening_message: str | None = None
+    self_introduction: str | None = None
+    checklist: list[dict] | None = None
     review_status: str = "draft"
 
 
 class ApplicationMaterialCreate(ApplicationMaterialBase):
     """Schema for creating an application material pack."""
 
-    pass
-
 
 class ApplicationMaterialUpdate(BaseModel):
     """Schema for updating an application material pack."""
 
-    resume_variant_id: Optional[str] = None
-    application_id: Optional[str] = None
-    language: Optional[str] = None
-    platform: Optional[str] = None
-    form_fields: Optional[dict] = None
-    cover_letter: Optional[str] = None
-    opening_message: Optional[str] = None
-    self_introduction: Optional[str] = None
-    checklist: Optional[List[dict]] = None
-    review_status: Optional[str] = None
+    resume_variant_id: str | None = None
+    application_id: str | None = None
+    language: str | None = None
+    platform: str | None = None
+    form_fields: dict | None = None
+    cover_letter: str | None = None
+    opening_message: str | None = None
+    self_introduction: str | None = None
+    checklist: list[dict] | None = None
+    review_status: str | None = None
 
 
 class ApplicationMaterialResponse(BaseModel):
@@ -920,15 +921,15 @@ class ApplicationMaterialResponse(BaseModel):
     id: str
     profile_id: str
     jd_id: str
-    resume_variant_id: Optional[str] = None
-    application_id: Optional[str] = None
+    resume_variant_id: str | None = None
+    application_id: str | None = None
     language: str
     platform: str
-    form_fields: Optional[dict] = None
-    cover_letter: Optional[str] = None
-    opening_message: Optional[str] = None
-    self_introduction: Optional[str] = None
-    checklist: Optional[List[dict]] = None
+    form_fields: dict | None = None
+    cover_letter: str | None = None
+    opening_message: str | None = None
+    self_introduction: str | None = None
+    checklist: list[dict] | None = None
     review_status: str
     created_at: datetime
     updated_at: datetime
@@ -950,7 +951,7 @@ class SearchResponse(BaseModel):
     """Schema for search response."""
 
     total: int
-    results: List[dict]
+    results: list[dict]
     query: str
     type: str
 
@@ -968,7 +969,7 @@ class MatchResponse(BaseModel):
     resume_id: str
     jd_id: str
     match_score: float
-    insights: List[str]
+    insights: list[str]
 
 
 # Data Portability Schemas
@@ -978,8 +979,8 @@ class ExportResponse(BaseModel):
     """Schema for export response."""
 
     format: str  # json, csv
-    data: Optional[dict] = None
-    file_url: Optional[str] = None
+    data: dict | None = None
+    file_url: str | None = None
     created_at: datetime
 
 
@@ -997,7 +998,7 @@ class ImportResponse(BaseModel):
     imported: int
     skipped: int
     failed: int
-    errors: List[str]
+    errors: list[str]
 
 
 # Local Profile Schemas
@@ -1006,16 +1007,16 @@ class ImportResponse(BaseModel):
 class LocalProfileBase(BaseModel):
     """Base local profile schema."""
 
-    name: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    preferences: Optional[dict] = None
+    name: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    preferences: dict | None = None
 
 
 class LocalProfileUpdate(LocalProfileBase):
     """Schema for updating local profile."""
 
-    default_resume_id: Optional[str] = None
+    default_resume_id: str | None = None
 
 
 class LocalProfileResponse(BaseModel):
@@ -1024,11 +1025,11 @@ class LocalProfileResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
-    name: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    preferences: Optional[dict] = None
-    default_resume_id: Optional[str] = None
+    name: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    preferences: dict | None = None
+    default_resume_id: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -1041,21 +1042,21 @@ class ExtensionBase(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=255)
     display_name: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
-    version: Optional[str] = None
+    description: str | None = None
+    version: str | None = None
 
 
 class ExtensionCreate(ExtensionBase):
     """Schema for creating an extension."""
 
-    config: Optional[dict] = None
+    config: dict | None = None
 
 
 class ExtensionUpdate(BaseModel):
     """Schema for updating an extension."""
 
-    enabled: Optional[bool] = None
-    config: Optional[dict] = None
+    enabled: bool | None = None
+    config: dict | None = None
 
 
 class ExtensionResponse(BaseModel):
@@ -1066,11 +1067,11 @@ class ExtensionResponse(BaseModel):
     id: str
     name: str
     display_name: str
-    description: Optional[str] = None
-    version: Optional[str] = None
+    description: str | None = None
+    version: str | None = None
     enabled: bool
-    config: Optional[dict] = None
-    last_sync: Optional[datetime] = None
+    config: dict | None = None
+    last_sync: datetime | None = None
     created_at: datetime
     updated_at: datetime
 

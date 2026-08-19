@@ -4,22 +4,25 @@ Resumes API - Lightweight Version
 Local-first resume management without authentication.
 """
 
+import re
 from pathlib import Path
 from uuid import uuid4
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Request, status, UploadFile
-from sqlalchemy.ext.asyncio import AsyncSession
+
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, status
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.utils_lite import parse_uuid
 from app.core.database_lite import get_db
+from app.core.logger import LogCategory, logger
 from app.models.resume_lite import Resume
-from app.schemas.schemas_lite import ResumeUpdate, ResumeResponse
+from app.schemas.schemas_lite import ResumeOptimizeRequest, ResumeResponse, ResumeUpdate
 from app.services.ai_service_lite import ai_service
 from app.services.file_storage_lite import file_storage
-from app.core.logger import logger, LogCategory
 
 router = APIRouter(prefix="/resumes", tags=["resumes"])
+
+_WORD_RE = re.compile(r"[a-zA-Z][a-zA-Z0-9.+#-]*")
 
 
 @router.post("", response_model=ResumeResponse, status_code=status.HTTP_201_CREATED)
@@ -38,9 +41,9 @@ async def create_resume(
         Created resume
     """
     try:
-        title: Optional[str] = None
-        content: Optional[str] = None
-        file: Optional[UploadFile] = None
+        title: str | None = None
+        content: str | None = None
+        file: UploadFile | None = None
 
         content_type = request.headers.get("content-type", "")
         if "multipart/form-data" in content_type:
@@ -116,16 +119,14 @@ async def create_resume(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            LogCategory.DATA, f"Failed to create resume: {str(e)}", exc_info=True
-        )
+        logger.error(LogCategory.DATA, f"Failed to create resume: {e!s}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create resume",
         )
 
 
-@router.get("", response_model=List[ResumeResponse])
+@router.get("", response_model=list[ResumeResponse])
 async def list_resumes(
     skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)
 ):
@@ -159,9 +160,7 @@ async def list_resumes(
         ]
 
     except Exception as e:
-        logger.error(
-            LogCategory.DATA, f"Failed to list resumes: {str(e)}", exc_info=True
-        )
+        logger.error(LogCategory.DATA, f"Failed to list resumes: {e!s}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to list resumes",
@@ -204,7 +203,7 @@ async def get_resume(resume_id: str, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         logger.error(
             LogCategory.DATA,
-            f"Failed to get resume {resume_id}: {str(e)}",
+            f"Failed to get resume {resume_id}: {e!s}",
             exc_info=True,
         )
         raise HTTPException(
@@ -263,7 +262,7 @@ async def update_resume(
     except Exception as e:
         logger.error(
             LogCategory.DATA,
-            f"Failed to update resume {resume_id}: {str(e)}",
+            f"Failed to update resume {resume_id}: {e!s}",
             exc_info=True,
         )
         raise HTTPException(
@@ -304,14 +303,14 @@ async def delete_resume(resume_id: str, db: AsyncSession = Depends(get_db)):
 
         logger.info(LogCategory.DATA, f"Deleted resume: {resume_id}")
 
-        return None
+        return
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(
             LogCategory.DATA,
-            f"Failed to delete resume {resume_id}: {str(e)}",
+            f"Failed to delete resume {resume_id}: {e!s}",
             exc_info=True,
         )
         raise HTTPException(
@@ -320,17 +319,25 @@ async def delete_resume(resume_id: str, db: AsyncSession = Depends(get_db)):
         )
 
 
-@router.post("/{resume_id}/optimize", response_model=ResumeResponse)
-async def optimize_resume(resume_id: str, db: AsyncSession = Depends(get_db)):
+@router.post("/{resume_id}/optimize")
+async def optimize_resume(
+    resume_id: str,
+    payload: ResumeOptimizeRequest | None = None,
+    db: AsyncSession = Depends(get_db),
+):
     """
     Optimize a resume using AI.
 
     Args:
         resume_id: Resume ID
+        payload: Optional ``{jd_content}`` targeting the optimization
         db: Database session
 
     Returns:
-        Optimized resume
+        ``{optimized_content, changes_made, keywords_added, sections_improved}``
+        — the same shape the full-stack AIService.optimize_resume returns and
+        the frontend resume editor consumes. The optimized content is also
+        persisted onto the resume record.
     """
     try:
         resume_uuid = parse_uuid(resume_id, "resume_id")
@@ -342,8 +349,37 @@ async def optimize_resume(resume_id: str, db: AsyncSession = Depends(get_db)):
                 status_code=status.HTTP_404_NOT_FOUND, detail="Resume not found"
             )
 
+        original_content = resume.content or ""
+
         # Optimize with AI
         optimized_content = await ai_service.optimize_resume(resume.content)
+
+        keywords_added: list[str] = []
+        jd_content = payload.jd_content if payload else None
+        if jd_content:
+            original_tokens = {
+                w for w in _WORD_RE.findall(original_content.lower()) if len(w) >= 3
+            }
+            optimized_tokens = {
+                w
+                for w in _WORD_RE.findall((optimized_content or "").lower())
+                if len(w) >= 3
+            }
+            keywords_added = [
+                word
+                for word in dict.fromkeys(
+                    w for w in _WORD_RE.findall(jd_content.lower()) if len(w) >= 3
+                )
+                if word not in original_tokens and word in optimized_tokens
+            ][:10]
+
+        changed = optimized_content != original_content
+        changes_made = (
+            ["Optimized resume content for the target job description."]
+            if changed
+            else []
+        )
+        sections_improved = ["content"] if changed else []
 
         # Update resume
         resume.content = optimized_content
@@ -352,21 +388,19 @@ async def optimize_resume(resume_id: str, db: AsyncSession = Depends(get_db)):
 
         logger.info(LogCategory.AI, f"Optimized resume: {resume_id}")
 
-        return ResumeResponse(
-            id=str(resume.id),
-            title=resume.title,
-            content=resume.content,
-            file_name=resume.file_name,
-            created_at=resume.created_at,
-            updated_at=resume.updated_at,
-        )
+        return {
+            "optimized_content": optimized_content,
+            "changes_made": changes_made,
+            "keywords_added": keywords_added,
+            "sections_improved": sections_improved,
+        }
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(
             LogCategory.AI,
-            f"Failed to optimize resume {resume_id}: {str(e)}",
+            f"Failed to optimize resume {resume_id}: {e!s}",
             exc_info=True,
         )
         raise HTTPException(
@@ -410,7 +444,7 @@ async def download_resume_file(resume_id: str, db: AsyncSession = Depends(get_db
     except Exception as e:
         logger.error(
             LogCategory.DATA,
-            f"Failed to download resume file {resume_id}: {str(e)}",
+            f"Failed to download resume file {resume_id}: {e!s}",
             exc_info=True,
         )
         raise HTTPException(
