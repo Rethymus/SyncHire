@@ -82,3 +82,20 @@
 - 生产实测：SW active、`synchire-static-v1` 缓存 11 条静态资源；`build:pages` 导出含 sw/manifest，href 正确注入 `/SyncHire` basePath。
 
 验证：tsc/eslint/237 单测/生产构建/build:pages/smoke 17/17 全绿。
+
+## 六、代理驱动批次实施记录（2026-08-19）
+
+按优先级并行驱动三个子代理 + 主线程 CI 接线，全部完成：
+
+| 项 | 结果 |
+|----|------|
+| P1 e2e 修复 | 4 个漂移 spec 全部修复：断言中英双语化、file-upload 的"链接导入"用例改为 mock 500 断言降级路径、helpers 提取 KNOWN_NOISE 过滤。**全套 34/34 通过（零 fixme）**，55 张 README 截图再生成。首次代理因账户配额中止未留改动，重发收紧范围后完成。 |
+| P2-2 CI | 新增 `static-export` job（build:pages + sw/manifest/CSP 注入断言）；e2e job 从 smoke-only 扩为全量；quality-gate 纳管全部五个检查 job。 |
+| P2-3 文档 | README/README_LITE 与现状对齐（根目录安装、Windows oxide 说明、路由/语言说明、新能力清单、CI 防线描述、Electron 构建步骤；删除不存在的 /examples 引用与错误相对路径）。 |
+| P2-4 类型化 | api-client 信封核心三组 API 全面类型化：12 个导出接口精确镜像后端 openapi（LiteResume/LiteJd/LiteApplication/ApplicationStatus 枚举等），仅 getInterviewPrep 留 any（后端无此端点）。消费方零修改零报错。 |
+
+**代理过程中的重要发现**：
+1. **store 持久化竞态（已修复）**：`persistState` 经"动态 import + 平台探测"异步链写入，硬刷新可能赶在落盘前 → 下一页以空状态 rehydrate 并覆盖写回，丢刚添加的数据（e2e 并行时实测复现）。修复：localStorage 同步镜像写入 + 平台桥异步写相同 payload（幂等）。
+2. **前后端端点不匹配清单**（后端 lite 未实现或形状不符，详见 api-client 提交说明）：前端调用的 12 个端点不存在（interview-prep/history/optimize/bulk 系列/jd/parse 单数等）、`getMatchScore` 用 GET 而后端仅 POST、`resumeAPI.create` 发 JSON 而后端 `/api/resumes` 是 multipart——后续批次应逐一对齐或裁剪。
+
+验证：tsc/eslint/237 单测/生产构建(44 页)/静态导出/**全量 e2e 34/34（1.3 分钟）**。

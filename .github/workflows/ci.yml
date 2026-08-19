@@ -84,8 +84,8 @@ jobs:
           done
           echo "lite backend failed to start"; cat /tmp/lite-api.log; exit 1
 
-      - name: Run smoke tests
-        run: npx playwright test e2e/smoke.spec.ts
+      - name: Run e2e tests (full suite)
+        run: npx playwright test
         working-directory: ./frontend
 
       - name: Upload test results
@@ -95,6 +95,36 @@ jobs:
           name: playwright-smoke-report
           path: frontend/playwright-report/
           retention-days: 7
+
+  static-export:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=optional --no-audit --no-fund
+
+      - name: Build GitHub Pages export
+        run: npm run build:pages
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+      - name: Verify export artifacts
+        run: |
+          test -f frontend/out/index.html || { echo "missing out/index.html"; exit 1; }
+          test -f frontend/out/dashboard/index.html || { echo "missing dashboard route"; exit 1; }
+          test -f frontend/out/sw.js || { echo "missing service worker"; exit 1; }
+          test -f frontend/out/manifest.webmanifest || { echo "missing manifest"; exit 1; }
+          grep -q 'rel="manifest"' frontend/out/index.html || { echo "manifest link not injected"; exit 1; }
+          grep -q 'Content-Security-Policy' frontend/out/index.html || { echo "CSP meta not injected"; exit 1; }
+          echo "static export verified"
 
   backend-tests:
     runs-on: ubuntu-latest
@@ -191,7 +221,7 @@ jobs:
             api/pip-audit-report.json
 
   quality-gate:
-    needs: [frontend-tests, backend-tests, security-scan]
+    needs: [frontend-tests, frontend-e2e-smoke, static-export, backend-tests, security-scan]
     runs-on: ubuntu-latest
     steps:
       - name: All checks passed
