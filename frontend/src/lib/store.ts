@@ -295,13 +295,23 @@ function persistState(state: AppState) {
     onboarding: state.onboarding,
   };
 
-  void setPlatformStorageItem(
-    STORAGE_KEY,
-    JSON.stringify({
-      version: STORAGE_VERSION,
-      state: persisted,
-    })
-  );
+  const payload = JSON.stringify({
+    version: STORAGE_VERSION,
+    state: persisted,
+  });
+
+  // Synchronous mirror first: setPlatformStorageItem awaits dynamic imports
+  // (platform probe) before touching storage, so a hard navigation/refresh
+  // could previously outrun the write and the next page would rehydrate the
+  // empty state — losing just-added data. The platform bridge then writes
+  // the identical payload for native shells (idempotent).
+  try {
+    window.localStorage.setItem(STORAGE_KEY, payload);
+  } catch {
+    // Storage full or unavailable; the async bridge below is the fallback.
+  }
+
+  void setPlatformStorageItem(STORAGE_KEY, payload);
 }
 
 function clearPersistedState() {
