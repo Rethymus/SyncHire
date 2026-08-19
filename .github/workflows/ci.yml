@@ -181,7 +181,7 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest tests/test_api.py::TestHealthEndpoints -v --tb=short
+          python -m pytest tests/test_api.py::TestHealthEndpoints tests/test_lite_local_first_domain.py tests/test_lite_contract_drift.py -v --tb=short
         env:
           DATABASE_URL: postgresql+asyncpg://synchire:synchire_test@localhost:5432/synchire_test
           REDIS_URL: redis://localhost:6379
