@@ -14,7 +14,7 @@ SyncHire Lite 是从云平台转型为**本地优先工具**的轻量级版本�
 ## 📋 系统要求
 
 - Python 3.11+
-- Node.js 22+ (前端)
+- Node.js 22+ 和 npm 10+（前端，npm workspaces）
 - 无需数据库安装（使用SQLite）
 - 无需Docker
 - 无需Redis
@@ -31,14 +31,16 @@ cd synchire
 ### 2. 安装依赖
 
 ```bash
-# 后端依赖
-cd api
-pip install -r requirements_lite.txt
-
-# 前端依赖
-cd ../frontend
+# 前端依赖：必须在仓库根目录执行（npm workspaces：frontend + mcp-servers）
 npm install
+
+# 后端依赖
+pip install -r api/requirements_lite.txt
 ```
+
+> **Windows 用户**：Tailwind oxide 原生二进制已通过根目录 `package.json` 的
+> `optionalDependencies` 自动安装，无需手工处理（曾经的全站 Build Error
+> 问题已修复）。
 
 ### 3. 配置环境
 
@@ -73,11 +75,11 @@ python ../scripts/setup_lite.py
 ### 5. 启动应用
 
 ```bash
-# 终端1：启动后端
+# 终端1：启动后端（http://localhost:8000）
 cd api
 python main_lite.py
 
-# 终端2：启动前端
+# 终端2：启动前端（http://localhost:3000）
 cd frontend
 npm run dev
 ```
@@ -85,6 +87,10 @@ npm run dev
 ### 6. 访问应用
 
 打开浏览器访问：http://localhost:3000
+
+路由不带 locale 前缀（如 `/dashboard`）。界面语言通过导航栏的
+EN/中文 按钮切换，选择持久化在 `localStorage`；旧的 `/zh/*`
+路由已移除。
 
 ## 📂 数据存储
 
@@ -104,10 +110,24 @@ npm run dev
 
 - 📄 **简历管理** - 创建、编辑、优化简历
 - 📋 **职位描述** - 解析、存储、搜索职位
-- 📊 **申请跟踪** - 管理求职申请状态
+- 📊 **申请跟踪** - 管理求职申请状态；申请列表页支持
+  就地创建对话框（点击时按需加载，无需跳转）
 - 🔍 **智能搜索** - 全文搜索、语义搜索
 - 🤖 **AI优化** - 简历AI优化、职位解析
 - 📈 **匹配分析** - 简历与职位匹配度评分
+
+### 界面与体验
+
+- 🌗 **暗色模式** - 跟随系统 + 手动切换（next-themes），
+  桌面导航栏与移动端顶栏均提供切换入口
+- 📱 **移动端适配** - 汉堡菜单 + 侧滑抽屉导航
+- 🛡️ **稳定性** - 路由级错误边界（保留全局导航、支持重试/返回）
+  与路由骨架屏加载态
+- 📲 **PWA 可安装** - 提供 manifest 与 service worker；
+  service worker 仅缓存不可变静态资源（内容寻址的 `/_next/static`），
+  且只在生产环境自动注册（开发服务器与 Electron/Tauri 壳跳过）
+- ⚡ **路由级代码切分** - 对话框与日历变体按需加载，
+  dashboard 首载 chunk 较改版前约 -33%
 
 ### 岗位信息流（从源头采集）
 
@@ -133,7 +153,8 @@ npm run dev
   支持文本/下拉/多选/单选/复选框（React 受控组件兼容），
   自定义控件标记需人工，**引擎绝不自动提交表单**；
   登录态持久化（`persist:synchire-jobs` 分区）。
-  开发时需先 `npm run build:fill-engine` 生成注入脚本
+  开发时需先在仓库根执行 `npm run build:fill-engine`
+  生成注入脚本
 
 ### 数据管理
 
@@ -195,7 +216,31 @@ pytest tests/
 # 前端测试
 cd frontend
 npm test
+
+# e2e smoke（需先启动 lite 后端 :8000 与前端 dev server）
+cd frontend
+npx playwright test e2e/smoke.spec.ts
 ```
+
+### CI 质量防线
+
+`.github/workflows/ci.yml` 在每次 push/PR 时运行：
+
+- **前端** - lint / type-check / 单元测试 / 生产构建
+- **e2e smoke** - 16 个路由逐页校验（HTTP < 400、全局导航保持挂载、
+  零意外 console 错误，已知开发模式噪音按文档过滤）+ 导航可达性；
+  CI 会自动安装依赖并拉起 lite 后端再跑测试
+- **后端** - pytest（带 Postgres/Redis 服务）+ black/ruff
+- **安全** - Bandit、pip-audit
+
+### 代码结构提示（贡献者）
+
+- settings 页已按标签域拆分为
+  `frontend/src/app/settings/_components/` 下的独立面板
+  （AI 供应商、能力开关、发现等）
+- 前端请求层收敛为单一模块 `frontend/src/lib/api-client.ts`，
+  含两种请求语义：信封式 `apiClient`（返回统一信封）与
+  直返式 `unifiedClient`（直接返回数据体）
 
 ### 构建生产版本
 
@@ -228,23 +273,25 @@ python main_lite.py
 
 - GitHub Issues: https://github.com/Rethymus/synchire/issues
 - 文档: `/docs` 文件夹
-- 示例: `/examples` 文件夹
 
 ## 🎉 开始使用
 
 ```bash
-# 1. 安装依赖
-pip install -r requirements_lite.txt
+# 1. 安装依赖（在仓库根目录）
+npm install
+pip install -r api/requirements_lite.txt
 
 # 2. 配置环境
+cd api
 cp .env.example .env.lite
 # 编辑 .env.lite 添加API密钥
 
 # 3. 运行设置
-python scripts/setup_lite.py
+python ../scripts/setup_lite.py
 
 # 4. 启动应用
-python main_lite.py
+python main_lite.py              # 后端 :8000
+# 另开终端：cd frontend && npm run dev   # 前端 :3000
 ```
 
 **准备好体验本地优先的求职助手了吗？** 🚀

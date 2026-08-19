@@ -183,7 +183,7 @@ SyncHire 只为一个目标而生：让每一次投递都更有策略、更可�
 | 模式 | 适合场景 | 运行内容 |
 | --- | --- | --- |
 | GitHub Pages BYOK 体验版 | 公开试用、本地求职工作流、带自己的模型密钥体验面试复盘 | 静态 Next.js、浏览器本地工作区、会话级 API Key、浏览器直连供应商；无 SyncHire 后端或代付额度 |
-| Lite 模式 | 本地隐私工作流、产品演示、轻量探索 | Next.js 前端、浏览器本地存储、本地 PDF 导出、无需 API |
+| Lite 模式 | 本地隐私工作流、产品演示、轻量探索 | Next.js 前端（暗色模式、移动端适配、可安装 PWA）、浏览器本地存储、本地 PDF 导出、无需 API |
 | 全栈模式 | AI 能力、团队部署、API 持久化 | Next.js、FastAPI、PostgreSQL + PGVector、Redis、Minio、MCP 服务 |
 
 ## GitHub Pages BYOK 体验版
@@ -239,6 +239,8 @@ Tauri 和 Capacitor 构建中，如果原生存储为空，SyncHire 会尝试从
 
 为投递页面生成可审核的填表计划，并交给 Kimi WebBridge 或类似本地浏览器 agent 执行。SyncHire 只填已知字段，排除提交控件，填写后停下等待用户审核，并且只有在用户明确同意后，才从用户修改中学习并更新角色卡。
 
+另有内置的 Electron 求职浏览器（`electron/job-browser`）：`<webview>` 浏览器 + 填表助手侧栏，登录态按分区持久化。引擎绝不自动提交表单；开发时需先在仓库根执行 `npm run build:fill-engine` 生成注入脚本。
+
 ### 面试准备
 
 基于真实岗位生成技术题、行为题、HR 问题和 STAR 方法准备内容。准备的不是泛泛而谈的面经，而是你即将面对的那场对话。
@@ -257,6 +259,7 @@ Tauri 和 Capacitor 构建中，如果原生存储为空，SyncHire 会尝试从
 SyncHire/
 ├── frontend/        Next.js 16 应用、Lite 模式体验、E2E 测试
 ├── api/             FastAPI 后端、认证、数据、AI 编排
+├── electron/        Electron 求职浏览器（<webview> + 填表助手侧栏）
 ├── mcp-servers/     用于解析、匹配和面试准备的模块化 AI 服务
 ├── db/              数据库 schema 和迁移
 ├── deploy/          部署资源（仅 Docker）
@@ -285,7 +288,7 @@ SyncHire/
 
 ### 方式一：启动 Lite 模式
 
-Lite 模式是最快体验产品的方式，不需要后端。
+Lite 模式是最快体验产品的方式，不需要后端。`npm install` 必须在仓库根目录执行（npm workspaces 管理 frontend 与 mcp-servers）。
 
 ```bash
 git clone https://github.com/Rethymus/SyncHire.git
@@ -298,6 +301,14 @@ npm run dev:frontend
 
 ```text
 http://localhost:3000
+```
+
+如需本地 API 供数（申请跟踪、岗位信息流等页面从后端读取数据），另开终端启动 lite 后端：
+
+```bash
+pip install -r api/requirements_lite.txt
+cd api
+python main_lite.py   # http://localhost:8000
 ```
 
 ### 方式二：启动完整全栈
@@ -374,6 +385,7 @@ pip-audit
 | 前端单元测试     | 320 个测试通过                                                  |
 | 前端集成测试     | 18 个测试通过                                                   |
 | Playwright E2E   | 13 个测试通过                                                   |
+| CI e2e smoke     | 16 个路由逐页校验 + 导航可达，零意外 console 错误，CI 自动拉起 lite 后端 |
 | 用户视角路由回扫 | 桌面和移动端各 13 个关键路由，HTTP 200，0 console error/warning |
 | 安全检查         | Bandit、pip-audit、pip check 通过                               |
 | 生产构建         | 通过                                                            |
