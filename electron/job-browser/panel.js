@@ -48,6 +48,19 @@
     detectBtn.addEventListener('click', () => detectFields());
     fillAllBtn.addEventListener('click', () => fillAll());
     document.getElementById('log-apply-btn').addEventListener('click', () => logApplication());
+    document.getElementById('test-form-btn').addEventListener('click', () => openTestForm());
+  }
+
+  /**
+   * Load the bundled static test form (file://) into the webview so the
+   * engine's detect/fill behavior can be verified without a live ATS
+   * page. Same flow as a normal navigation: dom-ready re-injects the
+   * engine, then 检测表单 works as usual.
+   */
+  function openTestForm() {
+    const url = window.synchireJobBrowser.getTestFormUrl();
+    urlInput.value = url;
+    webview.src = url;
   }
 
   /**
