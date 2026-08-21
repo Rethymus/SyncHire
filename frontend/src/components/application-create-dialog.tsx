@@ -34,17 +34,6 @@ import {
   AlertTriangle,
   XCircle,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  dialogContent,
-  dialogOverlay,
-  fadeInUp,
-  buttonPress,
-  successCheck,
-  errorShake,
-  staggerContainer,
-  staggerItem,
-} from "@/lib/animations";
 import { useOptimisticMutation } from "@/lib/optimistic-updates";
 import { useLiteCopy } from "@/lib/lite-i18n";
 
@@ -393,30 +382,15 @@ export function ApplicationCreateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <motion.div
-        variants={dialogOverlay}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-      >
+      <div className="animate-in fade-in duration-200">
         <DialogContent className="sm:max-w-[600px]">
-          <motion.div
-            variants={dialogContent}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
+          <div className="animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <motion.div
-                  variants={fadeInUp}
-                  initial="hidden"
-                  animate="visible"
-                  className="flex items-center gap-2"
-                >
+                <div className="flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
                   <Briefcase className="h-5 w-5" />
                   {dialogCopy.title}
-                </motion.div>
+                </div>
               </DialogTitle>
               <DialogDescription>
                 {step === "select"
@@ -425,64 +399,39 @@ export function ApplicationCreateDialog({
               </DialogDescription>
             </DialogHeader>
 
-            <AnimatePresence mode="wait">
               {errorContext && (
-                <motion.div
-                  key="error"
-                  variants={errorShake}
-                  initial="initial"
-                  animate="animate"
-                  className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-3"
-                >
+                <div key="error" className="animate-shake bg-red-50 border border-red-200 rounded-lg p-4 space-y-3">
                   <div className="flex items-start gap-3">
-                    <motion.div
-                      variants={successCheck}
-                      initial="hidden"
-                      animate="visible"
-                    >
+                    <div className="animate-in zoom-in-50 duration-300">
                       {errorContext.type === "network" && <Wifi className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />}
                       {errorContext.type === "validation" && <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />}
                       {errorContext.type === "api" && <XCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />}
                       {errorContext.type === "timeout" && <Loader2 className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />}
                       {errorContext.type === "unknown" && <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />}
-                    </motion.div>
+                    </div>
 
                     <div className="flex-1 min-w-0">
                       <h4 className="font-semibold text-red-900 text-sm">{errorContext.title}</h4>
                       <p className="text-sm text-red-800 mt-1">{errorContext.message}</p>
 
                       {errorContext.actionable.length > 0 && (
-                        <motion.div
-                          variants={staggerContainer}
-                          initial="hidden"
-                          animate="visible"
-                          className="mt-3"
-                        >
+                        <div className="mt-3 animate-in fade-in duration-300">
                           <p className="text-xs font-medium text-red-900 mb-2">
                             {dialogCopy.errorActionsTitle}
                           </p>
                           <ul className="text-xs text-red-700 space-y-1">
                             {errorContext.actionable.map((action, index) => (
-                              <motion.li
-                                key={index}
-                                variants={staggerItem}
-                                className="flex items-start gap-2"
-                              >
+                              <li key={index} className="flex items-start gap-2 animate-in fade-in slide-in-from-bottom-1 duration-300">
                                 <span className="text-red-500 mt-0.5">•</span>
                                 <span>{action}</span>
-                              </motion.li>
+                              </li>
                             ))}
                           </ul>
-                        </motion.div>
+                        </div>
                       )}
 
                       {errorContext.canRetry && retryCount < 3 && (
-                        <motion.div
-                          variants={fadeInUp}
-                          initial="hidden"
-                          animate="visible"
-                          className="mt-3 flex items-center gap-2"
-                        >
+                        <div className="mt-3 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
                           <Button
                             variant="outline"
                             size="sm"
@@ -490,12 +439,9 @@ export function ApplicationCreateDialog({
                             disabled={loading || retryCount >= 3}
                             className="text-xs"
                           >
-                            <motion.div
-                              whileHover={{ rotate: 180 }}
-                              transition={{ duration: 0.3 }}
-                            >
+                            <div className="inline-flex transition-transform duration-300 hover:rotate-180">
                               <RefreshCw className="h-3 w-3 mr-1" />
-                            </motion.div>
+                            </div>
                             {dialogCopy.retry} {retryCount > 0 && `(${retryCount}/3)`}
                           </Button>
                           {retryCount > 0 && (
@@ -503,26 +449,17 @@ export function ApplicationCreateDialog({
                               {dialogCopy.attempt.replace("{count}", String(retryCount))}
                             </span>
                           )}
-                        </motion.div>
+                        </div>
                       )}
                     </div>
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
 
-            <AnimatePresence mode="wait">
               {step === "select" ? (
-                <motion.div
-                  key="select"
-                  variants={staggerContainer}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  className="space-y-4 py-4"
-                >
+                <div key="select" className="space-y-4 py-4 animate-in fade-in duration-300">
                   {/* Resume Selection */}
-                  <motion.div variants={staggerItem} className="space-y-2">
+                  <div className="space-y-2 animate-in fade-in slide-in-from-bottom-1 duration-300">
                     <Label className="flex items-center gap-2">
                       <FileText className="h-4 w-4" />
                       {dialogCopy.selectResume}
@@ -540,22 +477,17 @@ export function ApplicationCreateDialog({
                       </SelectContent>
                     </Select>
                     {availableResumes.length === 0 && (
-                      <motion.p
-                        variants={fadeInUp}
-                        initial="hidden"
-                        animate="visible"
-                        className="text-xs text-muted-foreground"
-                      >
+                      <p className="text-xs text-muted-foreground animate-in fade-in slide-in-from-bottom-2 duration-300">
                         {dialogCopy.noResumePrefix}{" "}
                         <Link href="/upload" className="text-blue-600 hover:underline">
                           {dialogCopy.uploadResume}
                         </Link>
-                      </motion.p>
+                      </p>
                     )}
-                  </motion.div>
+                  </div>
 
                   {/* Job Description Selection */}
-                  <motion.div variants={staggerItem} className="space-y-2">
+                  <div className="space-y-2 animate-in fade-in slide-in-from-bottom-1 duration-300">
                     <Label className="flex items-center gap-2">
                       <Briefcase className="h-4 w-4" />
                       {dialogCopy.selectJobDescription}
@@ -573,27 +505,18 @@ export function ApplicationCreateDialog({
                       </SelectContent>
                     </Select>
                     {availableJDs.length === 0 && (
-                      <motion.p
-                        variants={fadeInUp}
-                        initial="hidden"
-                        animate="visible"
-                        className="text-xs text-muted-foreground"
-                      >
+                      <p className="text-xs text-muted-foreground animate-in fade-in slide-in-from-bottom-2 duration-300">
                         {dialogCopy.noJdPrefix}{" "}
                         <Link href="/jd-input" className="text-blue-600 hover:underline">
                           {dialogCopy.addJobDescription}
                         </Link>
-                      </motion.p>
+                      </p>
                     )}
-                  </motion.div>
+                  </div>
 
                   {/* Notes */}
-                  <motion.div variants={staggerItem} className="space-y-2">
+                  <div className="space-y-2 animate-in fade-in slide-in-from-bottom-1 duration-300">
                     <Label htmlFor="notes">{dialogCopy.notes}</Label>
-                    <motion.div
-                      whileFocus={{ scale: 1.01 }}
-                      transition={{ duration: 0.2 }}
-                    >
                       <Textarea
                         id="notes"
                         placeholder={dialogCopy.notesPlaceholder}
@@ -601,25 +524,12 @@ export function ApplicationCreateDialog({
                         onChange={(e) => setNotes(e.target.value)}
                         rows={3}
                       />
-                    </motion.div>
-                  </motion.div>
-                </motion.div>
+                  </div>
+                </div>
               ) : (
-                <motion.div
-                  key="confirm"
-                  variants={fadeInUp}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  className="space-y-4 py-4"
-                >
-                  <motion.div
-                    variants={staggerContainer}
-                    initial="hidden"
-                    animate="visible"
-                    className="bg-muted/40 rounded-lg p-4 space-y-3"
-                  >
-                    <motion.div variants={staggerItem}>
+                <div key="confirm" className="space-y-4 py-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <div className="bg-muted/40 rounded-lg p-4 space-y-3 animate-in fade-in duration-300">
+                    <div className="animate-in fade-in slide-in-from-bottom-1 duration-300">
                       <h4 className="text-sm font-medium text-muted-foreground mb-1">
                         {dialogCopy.resumeUsed}
                       </h4>
@@ -627,9 +537,9 @@ export function ApplicationCreateDialog({
                         <FileText className="h-4 w-4 text-muted-foreground" />
                         <span>{selectedResume?.name}</span>
                       </div>
-                    </motion.div>
+                    </div>
 
-                    <motion.div variants={staggerItem}>
+                    <div className="animate-in fade-in slide-in-from-bottom-1 duration-300">
                       <h4 className="text-sm font-medium text-muted-foreground mb-1">
                         {dialogCopy.targetRole}
                       </h4>
@@ -639,43 +549,30 @@ export function ApplicationCreateDialog({
                         <span className="text-muted-foreground">{dialogCopy.at}</span>
                         <span>{selectedJD?.company}</span>
                       </div>
-                    </motion.div>
+                    </div>
 
                     {notes && (
-                      <motion.div variants={staggerItem}>
+                      <div className="animate-in fade-in slide-in-from-bottom-1 duration-300">
                         <h4 className="text-sm font-medium text-muted-foreground mb-1">
                           {dialogCopy.notes}
                         </h4>
                         <p className="text-sm text-muted-foreground">{notes}</p>
-                      </motion.div>
+                      </div>
                     )}
-                  </motion.div>
+                  </div>
 
-                  <motion.div
-                    variants={fadeInUp}
-                    initial="hidden"
-                    animate="visible"
-                    className="bg-blue-50 border border-blue-200 rounded-lg p-3"
-                  >
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <p className="text-sm text-blue-800">
                       {dialogCopy.createHint}
                     </p>
-                  </motion.div>
-                </motion.div>
+                  </div>
+                </div>
               )}
-            </AnimatePresence>
 
             <DialogFooter>
-              <AnimatePresence mode="wait">
                 {step === "select" ? (
-                  <motion.div
-                    key="select-footer"
-                    variants={staggerContainer}
-                    initial="hidden"
-                    animate="visible"
-                    className="flex gap-2"
-                  >
-                    <motion.div variants={staggerItem}>
+                  <div key="select-footer" className="flex gap-2 animate-in fade-in duration-300">
+                    <div className="animate-in fade-in slide-in-from-bottom-1 duration-300">
                       <Button
                         variant="outline"
                         onClick={() => {
@@ -685,28 +582,18 @@ export function ApplicationCreateDialog({
                       >
                         {dialogCopy.cancel}
                       </Button>
-                    </motion.div>
-                    <motion.div variants={staggerItem}>
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ duration: 0.1 }}
-                      >
+                    </div>
+                    <div className="animate-in fade-in slide-in-from-bottom-1 duration-300">
+                      <div className="inline-flex transition-transform duration-100 active:scale-[0.98]">
                         <Button onClick={handleContinue} disabled={!canProceed}>
                           {dialogCopy.continue}
                         </Button>
-                      </motion.div>
-                    </motion.div>
-                  </motion.div>
+                      </div>
+                    </div>
+                  </div>
                 ) : (
-                  <motion.div
-                    key="confirm-footer"
-                    variants={staggerContainer}
-                    initial="hidden"
-                    animate="visible"
-                    className="flex gap-2"
-                  >
-                    <motion.div variants={staggerItem}>
+                  <div key="confirm-footer" className="flex gap-2 animate-in fade-in duration-300">
+                    <div className="animate-in fade-in slide-in-from-bottom-1 duration-300">
                       <Button
                         variant="outline"
                         onClick={() => setStep("select")}
@@ -714,47 +601,34 @@ export function ApplicationCreateDialog({
                       >
                         {dialogCopy.back}
                       </Button>
-                    </motion.div>
-                    <motion.div variants={staggerItem}>
-                      <motion.div
-                        whileHover={{ scale: loading ? 1 : 1.02 }}
-                        whileTap={{ scale: loading ? 1 : 0.98 }}
-                        transition={{ duration: 0.1 }}
-                      >
+                    </div>
+                    <div className="animate-in fade-in slide-in-from-bottom-1 duration-300">
+                      <div className="inline-flex transition-transform duration-100 active:scale-[0.98]">
                         <Button onClick={handleCreate} disabled={loading}>
                           {loading ? (
                             <>
-                              <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 1, ease: "linear", repeat: Infinity }}
-                              >
+                              <div className="inline-flex animate-spin">
                                 <Loader2 className="h-4 w-4 mr-2" />
-                              </motion.div>
+                              </div>
                               {dialogCopy.creating}
                             </>
                           ) : (
                             <>
-                              <motion.div
-                                variants={successCheck}
-                                initial="hidden"
-                                animate="visible"
-                                className="flex items-center"
-                              >
+                              <div className="flex items-center animate-in zoom-in-50 duration-300">
                                 <CheckCircle2 className="h-4 w-4 mr-2" />
                                 {t.applications.createApplication}
-                              </motion.div>
+                              </div>
                             </>
                           )}
                         </Button>
-                      </motion.div>
-                    </motion.div>
-                  </motion.div>
+                      </div>
+                    </div>
+                  </div>
                 )}
-              </AnimatePresence>
             </DialogFooter>
-          </motion.div>
+          </div>
         </DialogContent>
-      </motion.div>
+      </div>
     </Dialog>
   );
 }
