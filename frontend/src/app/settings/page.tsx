@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Database, KeyRound, PlugZap, RefreshCw, Search, Settings2, ShieldCheck, Sparkles, Image as ImageIcon } from "lucide-react";
-import { NotificationSettings } from "@/components/settings/notification-settings";
-import { ImageProviderPanel } from "@/components/settings/image-provider-panel";
-import { NotificationHistory } from "@/components/notification-history";
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,9 +19,43 @@ import { useLiteCopy } from "@/lib/lite-i18n";
 import { isGithubPagesDeployment } from "@/lib/deployment-mode";
 import { COPY, type TabType } from "./_components/copy";
 import { MessageBanner, MetricStrip } from "./_components/shared";
-import { AIProviderPanel } from "./_components/ai-provider-panel";
-import { CapabilityPanel } from "./_components/capability-panel";
-import { DiscoveryPanel } from "./_components/discovery-panel";
+
+// Panels are heavy (bilingual copy + forms); load them per tab on demand.
+// copy.ts and shared.tsx stay static — the page shell needs MetricStrip/MessageBanner.
+function PanelSkeleton() {
+  return (
+    <div className="space-y-4" role="status" aria-label="Loading">
+      <Skeleton className="h-10 w-64" />
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-32 w-full" />
+    </div>
+  );
+}
+
+const AIProviderPanel = dynamic(
+  () => import("./_components/ai-provider-panel").then((m) => m.AIProviderPanel),
+  { ssr: false, loading: () => <PanelSkeleton /> }
+);
+const CapabilityPanel = dynamic(
+  () => import("./_components/capability-panel").then((m) => m.CapabilityPanel),
+  { ssr: false, loading: () => <PanelSkeleton /> }
+);
+const DiscoveryPanel = dynamic(
+  () => import("./_components/discovery-panel").then((m) => m.DiscoveryPanel),
+  { ssr: false, loading: () => <PanelSkeleton /> }
+);
+const ImageProviderPanel = dynamic(
+  () => import("@/components/settings/image-provider-panel").then((m) => m.ImageProviderPanel),
+  { ssr: false, loading: () => <PanelSkeleton /> }
+);
+const NotificationSettings = dynamic(
+  () => import("@/components/settings/notification-settings").then((m) => m.NotificationSettings),
+  { ssr: false, loading: () => <PanelSkeleton /> }
+);
+const NotificationHistory = dynamic(
+  () => import("@/components/notification-history").then((m) => m.NotificationHistory),
+  { ssr: false, loading: () => <PanelSkeleton /> }
+);
 
 export default function SettingsPage() {
   const { locale } = useLiteCopy();
