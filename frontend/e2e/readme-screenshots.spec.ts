@@ -1,5 +1,9 @@
 import { test, expect, type Page } from '@playwright/test'
 
+const UPDATE_SNAPSHOTS = !!process.env.UPDATE_SNAPSHOTS
+
+test.skip(!UPDATE_SNAPSHOTS, '截图再生为按需任务：UPDATE_SNAPSHOTS=1 npx playwright test e2e/readme-screenshots.spec.ts')
+
 const now = new Date('2026-06-07T12:00:00.000Z').toISOString()
 const generatedApplicationId = 'app-readme-new-grad'
 
