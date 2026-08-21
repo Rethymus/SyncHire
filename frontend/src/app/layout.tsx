@@ -36,7 +36,7 @@ export default function RootLayout({
               <ToastProvider>
                 <Navigation />
               <PagesModeNotice />
-                <div className="min-h-screen bg-muted/40">
+                <div className="min-h-screen bg-muted/40 pb-16 md:pb-0">
                   {children}
                 </div>
               <ServiceWorkerRegister />

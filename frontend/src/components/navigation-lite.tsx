@@ -27,6 +27,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { cn } from "@/lib/utils";
 import {
   FileText,
@@ -216,7 +217,7 @@ export function Navigation() {
     "inline-flex h-11 w-11 md:h-9 md:w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500";
 
   return (
-    <nav className="bg-background border-b border-border sticky top-0 z-50">
+    <nav aria-label="primary" className="bg-background border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo and brand */}
@@ -326,6 +327,9 @@ export function Navigation() {
           </div>
         </div>
       </div>
+
+      {/* Mobile bottom navigation (thumb-reach shortcuts; sheet state shared) */}
+      <MobileBottomNav onOpenMenu={() => setMobileOpen(true)} />
     </nav>
   );
 }
