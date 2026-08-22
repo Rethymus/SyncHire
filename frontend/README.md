@@ -71,6 +71,23 @@ npm run test:e2e:guarded
 
 先运行 `scripts/e2e-preflight.mjs` 检查 e2e 端口（默认 3000/8000，可用 `E2E_PREFLIGHT_PORTS` 或参数覆盖）：端口空闲或已有健康 server 则继续跑 Playwright；若端口被"只监听不响应"的孤儿 dev server 占用（被杀掉的 Playwright 任务常见残留），会打印 netstat 定位的 PID 和 `taskkill /PID <pid> /F` 清理指引并以非零码退出，避免套件假挂起。手动单跑：`node scripts/e2e-preflight.mjs [port]`。
 
+### 全栈模式 E2E（真实 FastAPI + Postgres + Redis）
+
+浏览器级验证认证流（注册 → 登录 → `getCurrentUser`），跑在真实全栈后端上，与其余 e2e（lite 模式、mock 数据）互补：
+
+```bash
+# 需要本地 Docker（无 Docker 时用例自动 skip，CI 的 fullstack-e2e job 会跑）
+node scripts/e2e-fullstack-up.mjs     # 隔离的 postgres(:55432)/redis(:56379) + API 于 :8010
+npm run test:e2e:fullstack            # 前端 dev server 于 :3100（NEXT_PUBLIC_ENABLE_AUTH=true）
+node scripts/e2e-fullstack-down.mjs   # 清理容器与进程
+```
+
+要点：
+
+- 使用独立配置 `playwright.fullstack.config.ts`（只跑 `e2e/auth-fullstack.spec.ts`），dev server 固定 :3100、后端固定 :8010，不占用共享的 :3000/:8000。
+- 环境变量：`FULLSTACK_API_URL`（默认 `http://localhost:8010`）指向真实后端；`SKIP_FULLSTACK=1` 强制跳过；后端健康探测失败或前端处于 lite 模式（/login 被重定向）时用例自动 skip 而非 fail，因此该 spec 在 lite 套件里安全共存。
+- 后端需在 `CORS_ORIGINS` 中允许 `http://localhost:3100`（up 脚本与 CI 均已设置）；启动时 `init_db()` 自动建表，无需 alembic。
+
 ## 项目结构
 
 ```
