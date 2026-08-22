@@ -637,6 +637,155 @@ export function apiErrorMessage(
 // Feature flag for auth mode (can be overridden by env var)
 const ENABLE_AUTH = process.env.NEXT_PUBLIC_ENABLE_AUTH === 'true';
 
+// ---------------------------------------------------------------------------
+// Direct-return core result types
+//
+// Mirrored from the lite backend OpenAPI schema for the UnifiedAPIClient
+// groups below. Entity payloads reuse LiteResume/LiteJd/LiteApplication from
+// the envelope-core section — the direct-return core returns the same bare
+// JSON, just without the APIResponse envelope.
+// ---------------------------------------------------------------------------
+
+/** One hit of the lite search response (openapi: SearchResponse.results). */
+export interface LiteSearchHit {
+  type: string;
+  id: string;
+  title: string;
+  content?: string;
+  created_at?: string;
+}
+
+/**
+ * POST /api/search and /api/search/semantic response (openapi:
+ * SearchResponse). The lite backend only fills {total, results, query, type};
+ * the optional grouped buckets document the full-stack backend shape that
+ * use-search reads defensively (always undefined against the lite backend).
+ */
+export interface UnifiedSearchResults {
+  total: number;
+  results: LiteSearchHit[];
+  query: string;
+  type: string;
+  resumes?: Array<{
+    id: string;
+    title: string;
+    content?: string;
+    score?: number;
+    highlight?: string;
+  }>;
+  jds?: Array<{
+    id: string;
+    title: string;
+    company?: string;
+    description?: string;
+    score?: number;
+    highlight?: string;
+  }>;
+  applications?: Array<{
+    id: string;
+    position?: string;
+    score?: number;
+    highlight?: string;
+  }>;
+}
+
+/** POST /api/search/match response (openapi: MatchResponse). */
+export interface SearchMatchResult {
+  resume_id: string;
+  jd_id: string;
+  match_score: number;
+  insights: string[];
+}
+
+/** GET /api/search/suggestions response. */
+export interface SearchSuggestions {
+  suggestions: Array<{ type: 'resume' | 'jd' | 'company'; text: string }>;
+}
+
+/** GET /api/search/statistics response. */
+export interface SearchStatistics {
+  resumes: number;
+  job_descriptions: number;
+  applications: number;
+  total: number;
+}
+
+/**
+ * POST /api/jds/import response — a background job handle, not the imported
+ * JD itself (the lite backend fetches and parses the URL asynchronously).
+ * The optional title/company/description fields are only ever set by the
+ * full-stack backend; the jd-input page reads them defensively.
+ */
+export interface JdImportResult {
+  job_id: string;
+  status: string;
+  message: string;
+  title?: string;
+  company?: string;
+  description?: string;
+}
+
+/** POST /api/applications/batch-update response. */
+export interface ApplicationBatchUpdateResult {
+  updated: number;
+  failed: number;
+  errors: string[];
+}
+
+/** GET /api/portability/export/json response (full data snapshot). */
+export interface PortableExportData {
+  version: string;
+  export_date: string;
+  profile: Array<{
+    id: string;
+    name: string | null;
+    email: string | null;
+    phone: string | null;
+    preferences: Record<string, unknown> | null;
+    default_resume_id: string | null;
+  }>;
+  resumes: LiteResume[];
+  job_descriptions: LiteJd[];
+  applications: LiteApplication[];
+}
+
+/** POST /api/portability/import and POST /api/portability/backups/{id}/restore response. */
+export interface PortabilityImportResult {
+  success: boolean;
+  imported: number;
+  skipped: number;
+  failed: number;
+  errors: string[];
+}
+
+/** One backup file entry (GET /api/portability/backups). */
+export interface PortabilityBackupEntry {
+  filename: string;
+  size: number;
+  created_at: string;
+}
+
+/** POST /api/portability/backup response. */
+export interface PortabilityBackupCreated extends PortabilityBackupEntry {
+  /** Absolute path of the backup file on the backend host. */
+  path: string;
+}
+
+/** GET /api/portability/backups response. */
+export interface PortabilityBackupList {
+  backups: PortabilityBackupEntry[];
+  total: number;
+}
+
+/** GET /api/portability/status response. */
+export interface PortabilityStatus {
+  resumes_count: number;
+  jds_count: number;
+  applications_count: number;
+  database_size: number;
+  last_backup: string | null;
+}
+
 /**
  * Unified API Client - Supports both authenticated and lite modes.
  * Returns parsed JSON directly and throws on errors.
@@ -761,20 +910,20 @@ class UnifiedAPIClient {
 
   // Resumes API
   resume = {
-    list: () => this.request<any[]>('/api/resumes'),
-    get: (id: string) => this.request<any>(`/api/resumes/${id}`),
-    create: (data: any) => this.request<any>('/api/resumes', {
+    list: () => this.request<LiteResume[]>('/api/resumes'),
+    get: (id: string) => this.request<LiteResume>(`/api/resumes/${id}`),
+    create: (data: any) => this.request<LiteResume>('/api/resumes', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-    update: (id: string, data: any) => this.request<any>(`/api/resumes/${id}`, {
+    update: (id: string, data: any) => this.request<LiteResume>(`/api/resumes/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
     delete: (id: string) => this.request<void>(`/api/resumes/${id}`, {
       method: 'DELETE',
     }),
-    optimize: (id: string) => this.request<any>(`/api/resumes/${id}/optimize`, {
+    optimize: (id: string) => this.request<ResumeOptimizationResult>(`/api/resumes/${id}/optimize`, {
       method: 'POST',
     }),
     upload: async (id: string, file: File) => {
@@ -783,7 +932,9 @@ class UnifiedAPIClient {
 
       const authHeaders = await this.getAuthHeaders();
 
-      return this.request<any>(`/api/resumes`, {
+      // Multipart POST /api/resumes returns ResumeResponse (201) like the
+      // JSON create variant — LiteResume covers both.
+      return this.request<LiteResume>(`/api/resumes`, {
         method: 'POST',
         headers: {
           ...authHeaders,
@@ -796,24 +947,24 @@ class UnifiedAPIClient {
 
   // Job Descriptions API
   jd = {
-    list: () => this.request<any[]>('/api/jds'),
-    get: (id: string) => this.request<any>(`/api/jds/${id}`),
-    create: (data: any) => this.request<any>('/api/jds', {
+    list: () => this.request<LiteJd[]>('/api/jds'),
+    get: (id: string) => this.request<LiteJd>(`/api/jds/${id}`),
+    create: (data: any) => this.request<LiteJd>('/api/jds', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-    update: (id: string, data: any) => this.request<any>(`/api/jds/${id}`, {
+    update: (id: string, data: any) => this.request<LiteJd>(`/api/jds/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
     delete: (id: string) => this.request<void>(`/api/jds/${id}`, {
       method: 'DELETE',
     }),
-    parse: (content: string, url?: string) => this.request<any>('/api/jds/parse', {
+    parse: (content: string, url?: string) => this.request<LiteJd>('/api/jds/parse', {
       method: 'POST',
       body: JSON.stringify({ content, url }),
     }),
-    import: (url: string) => this.request<any>('/api/jds/import', {
+    import: (url: string) => this.request<JdImportResult>('/api/jds/import', {
       method: 'POST',
       body: JSON.stringify({ url }),
     }),
@@ -821,25 +972,28 @@ class UnifiedAPIClient {
 
   // Applications API
   application = {
-    list: (statusFilter?: string) => this.request<any[]>(
+    list: (statusFilter?: string) => this.request<LiteApplication[]>(
       `/api/applications${statusFilter ? `?status_filter=${statusFilter}` : ''}`
     ),
-    get: (id: string) => this.request<any>(`/api/applications/${id}`),
-    create: (data: any) => this.request<any>('/api/applications', {
+    get: (id: string) => this.request<LiteApplication>(`/api/applications/${id}`),
+    create: (data: any) => this.request<LiteApplication>('/api/applications', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-    update: (id: string, data: any) => this.request<any>(`/api/applications/${id}`, {
+    update: (id: string, data: any) => this.request<LiteApplication>(`/api/applications/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
     delete: (id: string) => this.request<void>(`/api/applications/${id}`, {
       method: 'DELETE',
     }),
-    calculateMatch: (id: string) => this.request<any>(`/api/applications/${id}/match`, {
+    // POST variant of GET /applications/{id}/match — persists and returns the
+    // updated ApplicationResponse (openapi), not the {match_score, match_details}
+    // shape the envelope core's getMatchScore returns.
+    calculateMatch: (id: string) => this.request<LiteApplication>(`/api/applications/${id}/match`, {
       method: 'POST',
     }),
-    batchUpdate: (ids: string[], status?: string) => this.request<any>('/api/applications/batch-update', {
+    batchUpdate: (ids: string[], status?: string) => this.request<ApplicationBatchUpdateResult>('/api/applications/batch-update', {
       method: 'POST',
       body: JSON.stringify({
         application_ids: ids,
@@ -851,17 +1005,17 @@ class UnifiedAPIClient {
   // Search API
   search = {
     search: (query: string, type: string = 'all', limit: number = 20, offset: number = 0) =>
-      this.request<any>('/api/search', {
+      this.request<UnifiedSearchResults>('/api/search', {
         method: 'POST',
         body: JSON.stringify({ query, type, limit, offset }),
       }),
     semantic: (query: string, type: string = 'all', limit: number = 20) =>
-      this.request<any>('/api/search/semantic', {
+      this.request<UnifiedSearchResults>('/api/search/semantic', {
         method: 'POST',
         body: JSON.stringify({ query, type, limit }),
       }),
     match: (resumeId: string, jdId: string) =>
-      this.request<any>('/api/search/match', {
+      this.request<SearchMatchResult>('/api/search/match', {
         method: 'POST',
         body: JSON.stringify({
           resume_id: resumeId,
@@ -869,8 +1023,8 @@ class UnifiedAPIClient {
         }),
       }),
     suggestions: (query: string, limit: number = 5) =>
-      this.request<any>(`/api/search/suggestions?query=${encodeURIComponent(query)}&limit=${limit}`),
-    statistics: () => this.request<any>('/api/search/statistics'),
+      this.request<SearchSuggestions>(`/api/search/suggestions?query=${encodeURIComponent(query)}&limit=${limit}`),
+    statistics: () => this.request<SearchStatistics>('/api/search/statistics'),
   };
 
   // Generic HTTP methods for advanced use cases (like search history)
@@ -902,36 +1056,39 @@ class UnifiedAPIClient {
 
   // Data Portability API
   portability = {
-    exportJSON: () => this.request<any>('/api/portability/export/json'),
-    exportCSV: () => this.request<any>('/api/portability/export/csv'),
+    exportJSON: () => this.request<PortableExportData>('/api/portability/export/json'),
+    // GET /api/portability/export/csv streams a ZIP archive (media type
+    // application/zip), not JSON — the JSON-parsing request core cannot
+    // represent the payload, so the result type stays unknown.
+    exportCSV: () => this.request<unknown>('/api/portability/export/csv'),
     import: (file: File, overwrite: boolean = false) => {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('overwrite', String(overwrite));
 
-      return this.request<any>('/api/portability/import', {
+      return this.request<PortabilityImportResult>('/api/portability/import', {
         method: 'POST',
         headers: {},
         body: formData as any,
       });
     },
-    createBackup: () => this.request<any>('/api/portability/backup', {
+    createBackup: () => this.request<PortabilityBackupCreated>('/api/portability/backup', {
       method: 'POST',
     }),
-    listBackups: () => this.request<any>('/api/portability/backups'),
-    restoreBackup: (backupId: string) => this.request<any>(
+    listBackups: () => this.request<PortabilityBackupList>('/api/portability/backups'),
+    restoreBackup: (backupId: string) => this.request<PortabilityImportResult>(
       `/api/portability/backups/${encodeURIComponent(backupId)}/restore`,
       {
         method: 'POST',
       }
     ),
-    deleteBackup: (backupId: string) => this.request<any>(
+    deleteBackup: (backupId: string) => this.request<{ success: boolean; message: string }>(
       `/api/portability/backups/${encodeURIComponent(backupId)}`,
       {
         method: 'DELETE',
       }
     ),
-    getStatus: () => this.request<any>('/api/portability/status'),
+    getStatus: () => this.request<PortabilityStatus>('/api/portability/status'),
   };
 
   // Profile API (only works in authenticated mode)
