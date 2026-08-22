@@ -229,7 +229,7 @@ npx playwright test e2e/smoke.spec.ts
 - **前端** - lint / type-check / 单元测试 / 生产构建
 - **e2e smoke** - 16 个路由逐页校验（HTTP < 400、全局导航保持挂载、
   零意外 console 错误，已知开发模式噪音按文档过滤）+ 导航可达性，
-  默认门禁 35 用例通过（另 2 个截图用例按需跳过）；
+  默认门禁 38 用例通过（另 4 个用例按需跳过：2 截图 + 2 全栈）；
   CI 会自动安装依赖并拉起 lite 后端再跑测试
 - **后端** - pytest 421 个用例（26 个测试文件，SQLite+mock 全离线）+ black/ruff
 - **安全** - Bandit、pip-audit

@@ -383,8 +383,8 @@ pip-audit
 | ---------------- | --------------------------------------------------------------- |
 | 后端测试         | 421 个用例（CI 门禁，SQLite+mock 全离线），warning 视为 error    |
 | 前端单元测试     | 263 个测试通过                                                  |
-| Playwright E2E   | 35 个测试通过（2 个 README 截图用例按需跳过）                  |
-| CI E2E           | 全量 37 用例（35 过 + 2 截图用例跳过，含 16 路由 smoke），导航可达、零意外 console 错误，CI 自动拉起 lite 后端 |
+| Playwright E2E   | 38 个测试通过（4 个用例按需跳过：2 截图 + 2 全栈）              |
+| CI E2E           | 42 用例（38 过 + 4 按需跳过，含 16 路由 smoke 与 React 受控表单），导航可达、零意外 console 错误，CI 自动拉起 lite 后端 |
 | 用户视角路由回扫 | 16 路由 smoke 逐页回扫 + 35 用例默认门禁 E2E（chromium）      |
 | 安全检查         | Bandit、pip-audit、pip check 通过                               |
 | 生产构建         | 通过                                                            |
