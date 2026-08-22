@@ -191,9 +191,9 @@ class TestAPIErrorScenarios:
         data = response.json()
         assert "error" in data
 
-    def test_malformed_json(self, client: TestClient):
+    async def test_malformed_json(self, client: TestClient):
         """Test request with malformed JSON"""
-        response = client.post(
+        response = await client.post(
             "/api/auth/login",
             content="invalid json",
             headers={"Content-Type": "application/json"},

@@ -23,6 +23,7 @@ import warnings
 
 import pytest
 from faker import Faker
+from fastapi import Request  # noqa: F401 - resolved lazily for string annotations
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -171,7 +172,7 @@ async def client(db_session: AsyncSession, test_user: User):
     """Create test HTTP client"""
     import sys
     import os
-    from fastapi import HTTPException, Request, status
+    from fastapi import HTTPException, status
     from unittest.mock import Mock
 
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

@@ -181,7 +181,34 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest tests/test_api.py::TestHealthEndpoints tests/test_lite_local_first_domain.py tests/test_lite_contract_drift.py -v --tb=short
+          python -m pytest \
+            tests/test_api.py \
+            tests/test_analytics_service.py \
+            tests/test_api_router_compatibility.py \
+            tests/test_application_service.py \
+            tests/test_application_status_tracking.py \
+            tests/test_basic_infrastructure.py \
+            tests/test_bulk_operations.py \
+            tests/test_config.py \
+            tests/test_critical_paths.py \
+            tests/test_error_handling.py \
+            tests/test_file_parser.py \
+            tests/test_gdpr.py \
+            tests/test_hiring_signal_service.py \
+            tests/test_jd_service.py \
+            tests/test_job_source_service.py \
+            tests/test_lite_contract_drift.py \
+            tests/test_lite_local_first_domain.py \
+            tests/test_mcp_client.py \
+            tests/test_mcp_integration.py \
+            tests/test_pdf_generator.py \
+            tests/test_rate_limiting.py \
+            tests/test_resume_service.py \
+            tests/test_search_service.py \
+            tests/test_signal_feed_service.py \
+            tests/test_two_factor.py \
+            tests/test_websocket.py \
+            -v --tb=short
         env:
           DATABASE_URL: postgresql+asyncpg://synchire:synchire_test@localhost:5432/synchire_test
           REDIS_URL: redis://localhost:6379
