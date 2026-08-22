@@ -62,24 +62,23 @@ import {
 import { formatLiteDate } from "@/lib/lite-i18n";
 import { cn } from "@/lib/utils";
 import { isGithubPagesDeployment } from "@/lib/deployment-mode";
-import { EMPTY_REPOSITORY_FORM, type SettingsCopy } from "./copy";
-import { updateProvider, getProviderName, getProviderDescription, getModelLabel, getMaskedApiKey, FloatingToast, SectionHeader } from "./shared";
+import { getPanelCopy } from "./copy-panels";
+import { updateProvider, getProviderName, getProviderDescription, getModelLabel, getMaskedApiKey, FloatingToast, SectionHeader } from "./panel-shared";
 
 export function AIProviderPanel({
   settings,
   setSettings,
-  copy,
   locale,
   onSave,
   onReset,
 }: {
   settings: AIRuntimeSettings;
   setSettings: (settings: AIRuntimeSettings) => void;
-  copy: SettingsCopy;
   locale: "en-US" | "zh-CN";
   onSave: () => void;
   onReset: () => void;
 }) {
+  const copy = getPanelCopy(locale);
   const pagesMode = isGithubPagesDeployment();
   const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
   const [testingProviderId, setTestingProviderId] = useState<AIProviderId | null>(null);

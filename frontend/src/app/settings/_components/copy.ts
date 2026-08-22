@@ -1,56 +1,13 @@
-import {
-  CheckCircle2,
-  Database,
-  Eye,
-  EyeOff,
-  KeyRound,
-  Link as LinkIcon,
-  Loader2,
-  PackageCheck,
-  PlugZap,
-  RefreshCw,
-  RotateCcw,
-  Search,
-  Settings2,
-  ShieldCheck,
-  SlidersHorizontal,
-  Sparkles,
-  Trash2,
-  Image as ImageIcon,
-  type LucideIcon,
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  addRuntimeRepository,
-  AIProviderId,
-  AIRuntimeSettings,
-  applyRecommendedRuntimeDefaults,
-  createDefaultAIRuntimeSettings,
-  loadAIRuntimeSettings,
-  maskApiKey,
-  refreshRuntimeCatalog,
-  removeRuntimeRepository,
-  RuntimeCapability,
-  RuntimeCapabilityKind,
-  RuntimeCatalogKind,
-  saveAIRuntimeSettings,
-  searchRuntimeCatalog,
-  setRuntimeCapabilityEnabled,
-  setRuntimeCapabilityInstalled,
-} from "@/lib/ai-runtime-settings";
-import {
-  AI_PROVIDER_PRESETS,
-  findPresetByBaseUrl,
-  getPresetsForProvider,
-  testAIProviderConnection,
-  type AIProviderPresetId,
-} from "@/lib/ai-provider-connection";
+// Settings page shell copy (bilingual).
+//
+// This module is imported statically by page.tsx and shared.tsx, so it must
+// stay SMALL: only what the shell renders before any tab panel loads
+// (title, privacy pill, tab labels, MetricStrip/status strings, and the
+// shared action labels shown in the header / toast banner).
+//
+// Panel-domain copy (ai / capability / discover + zh provider/capability
+// catalogs) lives in copy-panels.ts and is imported only by the lazily
+// loaded panels. Do not import copy-panels.ts from the page shell.
 
 export const COPY = {
   "en-US": {
@@ -67,102 +24,6 @@ export const COPY = {
       notifications: "Notifications",
       history: "History",
     },
-    ai: {
-      title: "Provider and model routing",
-      subtitle:
-        "Add API keys locally, choose one model manually, or let SyncHire pick the best configured model per task.",
-      providerMode: "Provider routing",
-      auto: "Auto select",
-      manual: "Manual",
-      activeProvider: "Manual provider",
-      baseUrl: "Base URL",
-      providerPreset: "Provider preset",
-      customEndpoint: "Custom endpoint",
-      apiKey: "API key",
-      apiKeyLink: "Get API key",
-      apiKeyPlaceholder: "Paste your API key. It stays in this browser.",
-      modelMode: "Model mode",
-      model: "Model",
-      testConnection: "Test connection",
-      testingConnection: "Testing...",
-      connectionOk: "Connection OK",
-      connectionFailed: "Connection failed",
-      connectionUntested: "Not tested",
-      connectionDetail: "Testing only fetches the model list and does not send resume or job content.",
-      customModel: "Custom model ID",
-      customModelPlaceholder: "provider-specific-model-id",
-      enabled: "Enabled",
-      disabled: "Disabled",
-      priority: "Priority",
-      masked: "Saved key",
-      save: "Save AI settings",
-      saved: "AI runtime settings saved locally.",
-      reset: "Reset runtime defaults",
-      resetDone: "Recommended defaults restored.",
-      localNotice:
-        "SyncHire stores keys in localStorage for local-first use. Browser storage is convenient, not a password vault; avoid shared machines.",
-      noKey: "No key configured",
-      configured: "Configured",
-    },
-    capability: {
-      recommended: "Recommended",
-      installed: "Installed",
-      available: "Available",
-      enabled: "Enabled",
-      disabled: "Disabled",
-      risk: "Risk",
-      command: "Command",
-      permission: "Permission",
-      source: "Source",
-      category: "Category",
-      enable: "Enable",
-      disable: "Disable",
-      install: "Add",
-      remove: "Remove",
-      restore: "Use recommended defaults",
-      skillsTitle: "Skill switchboard",
-      skillsSubtitle:
-        "Turn SyncHire skills on or off like cc switch: role-card distillation, resume tailoring, review-only browser fill, and privacy guardrails.",
-      mcpTitle: "MCP switchboard",
-      mcpSubtitle:
-        "Choose local MCP helpers and browser bridges. Commands remain suggestions until the user installs and reviews them.",
-      low: "Low",
-      medium: "Medium",
-      high: "High",
-      empty: "No capabilities match the current filter.",
-    },
-    discover: {
-      title: "Discovery and repository management",
-      subtitle:
-        "Search local metadata from SyncHire, skill.sh, mcp.sh, and custom catalogs. Refreshing does not execute remote scripts.",
-      search: "Search skills and MCPs",
-      kind: "Catalog type",
-      all: "All",
-      skills: "Skills",
-      mcps: "MCPs",
-      refresh: "Refresh metadata",
-      refreshed: "Catalog metadata refreshed locally.",
-      allowRemote: "Allow remote metadata refresh",
-      autoRefresh: "Auto refresh catalogs",
-      repositories: "Repositories",
-      addRepository: "Add repository",
-      repoName: "Repository name",
-      repoUrl: "Repository URL",
-      repoDescription: "Description",
-      repoKind: "Kind",
-      repoScript: "Script hint",
-      trusted: "Trusted",
-      untrusted: "Untrusted",
-      lastRefresh: "Last refresh",
-      protectedRepo: "Built-in repository",
-      add: "Add source",
-      added: "Repository added.",
-      removed: "Repository removed.",
-      remoteWarning:
-        "Remote refresh is metadata-only. SyncHire will not run skill.sh, mcp.sh, install commands, or browser agents automatically.",
-      noResults: "No results yet. Try a broader search or refresh metadata.",
-      whenOpeningSettings: "When opening settings",
-    },
     status: {
       updated: "Updated",
       lastRefresh: "Last catalog refresh",
@@ -173,6 +34,12 @@ export const COPY = {
       configuredProviders: "Configured providers",
       autoProvider: "Auto provider routing",
       manualProvider: "Manual provider routing",
+    },
+    actions: {
+      refresh: "Refresh metadata",
+      refreshed: "Catalog metadata refreshed locally.",
+      saved: "AI runtime settings saved locally.",
+      resetDone: "Recommended defaults restored.",
     },
   },
   "zh-CN": {
@@ -189,102 +56,6 @@ export const COPY = {
       notifications: "通知",
       history: "历史",
     },
-    ai: {
-      title: "供应商与模型路由",
-      subtitle:
-        "在本地填写 API key，可手动指定模型，也可以让 SyncHire 按任务自动选择已配置模型。",
-      providerMode: "供应商路由",
-      auto: "自动选择",
-      manual: "手动指定",
-      activeProvider: "手动供应商",
-      baseUrl: "Base URL",
-      providerPreset: "供应商预设",
-      customEndpoint: "自定义接口",
-      apiKey: "API key",
-      apiKeyLink: "获取 API key",
-      apiKeyPlaceholder: "粘贴 API key，仅保存在当前浏览器。",
-      modelMode: "模型模式",
-      model: "模型",
-      testConnection: "测试连接",
-      testingConnection: "测试中...",
-      connectionOk: "连接可用",
-      connectionFailed: "连接失败",
-      connectionUntested: "未测试",
-      connectionDetail: "测试只拉取模型列表，不发送简历或职位内容，不消耗生成类 token。",
-      customModel: "自定义模型 ID",
-      customModelPlaceholder: "provider-specific-model-id",
-      enabled: "已启用",
-      disabled: "已停用",
-      priority: "优先级",
-      masked: "已保存密钥",
-      save: "保存 AI 设置",
-      saved: "AI 运行时设置已保存在本地。",
-      reset: "恢复推荐默认值",
-      resetDone: "已恢复推荐默认值。",
-      localNotice:
-        "SyncHire 为了本地优先会把密钥写入 localStorage。它很便捷，但不是密码保险箱；请不要在共享机器上保存。",
-      noKey: "未配置密钥",
-      configured: "已配置",
-    },
-    capability: {
-      recommended: "推荐",
-      installed: "已添加",
-      available: "可添加",
-      enabled: "已启用",
-      disabled: "已停用",
-      risk: "风险",
-      command: "命令",
-      permission: "权限",
-      source: "来源",
-      category: "分类",
-      enable: "启用",
-      disable: "停用",
-      install: "添加",
-      remove: "移除",
-      restore: "使用推荐默认配置",
-      skillsTitle: "技能开关面板",
-      skillsSubtitle:
-        "像 cc switch 一样启停能力：角色卡提炼、JD 简历生成、审核式浏览器填写、本地隐私护栏等。",
-      mcpTitle: "MCP 开关面板",
-      mcpSubtitle:
-        "选择本地 MCP 与浏览器桥接能力。命令仅作为配置提示，必须由用户审核后安装。",
-      low: "低",
-      medium: "中",
-      high: "高",
-      empty: "当前筛选下没有匹配能力。",
-    },
-    discover: {
-      title: "发现与仓库管理",
-      subtitle:
-        "搜索 SyncHire、skill.sh、mcp.sh 与自定义目录的本地元数据；刷新不会执行远程脚本。",
-      search: "搜索技能和 MCP",
-      kind: "目录类型",
-      all: "全部",
-      skills: "Skills",
-      mcps: "MCPs",
-      refresh: "刷新元数据",
-      refreshed: "目录元数据已在本地刷新。",
-      allowRemote: "允许远程元数据刷新",
-      autoRefresh: "自动刷新目录",
-      repositories: "仓库",
-      addRepository: "添加仓库",
-      repoName: "仓库名称",
-      repoUrl: "仓库 URL",
-      repoDescription: "描述",
-      repoKind: "类型",
-      repoScript: "脚本提示",
-      trusted: "可信",
-      untrusted: "未信任",
-      lastRefresh: "上次刷新",
-      protectedRepo: "内置仓库",
-      add: "添加来源",
-      added: "仓库已添加。",
-      removed: "仓库已移除。",
-      remoteWarning:
-        "远程刷新仅更新元数据。SyncHire 不会自动执行 skill.sh、mcp.sh、安装命令或浏览器 agent。",
-      noResults: "暂无结果。可以放宽搜索词或刷新元数据。",
-      whenOpeningSettings: "打开设置页时自动刷新",
-    },
     status: {
       updated: "更新时间",
       lastRefresh: "上次目录刷新",
@@ -296,213 +67,14 @@ export const COPY = {
       autoProvider: "自动供应商路由",
       manualProvider: "手动供应商路由",
     },
+    actions: {
+      refresh: "刷新元数据",
+      refreshed: "目录元数据已在本地刷新。",
+      saved: "AI 运行时设置已保存在本地。",
+      resetDone: "已恢复推荐默认值。",
+    },
   },
 } as const;
-
-export const EMPTY_REPOSITORY_FORM = {
-  name: "",
-  url: "",
-  description: "",
-  kind: "mixed" as RuntimeCatalogKind,
-  scriptHint: "catalog.json" as "skill.sh" | "mcp.sh" | "catalog.json" | "manual",
-};
-
-
-export const ZH_PROVIDER_COPY: Record<
-  AIProviderId,
-  {
-    name: string;
-    description: string;
-    models: Record<string, { label: string; description?: string }>;
-  }
-> = {
-  openai: {
-    name: "OpenAI 兼容接口",
-    description: "适合通用推理、简历撰写和结构化信息抽取。",
-    models: {
-      auto: { label: "自动选择" },
-      "gpt-5": { label: "GPT-5", description: "适合角色卡提炼和简历重写等深度推理任务。" },
-      "gpt-5-mini": { label: "GPT-5 mini", description: "适合日常草稿、分类和低延迟填表建议。" },
-      custom: { label: "自定义模型 ID" },
-    },
-  },
-  anthropic: {
-    name: "Anthropic 兼容接口",
-    description: "适合长文本推理和更谨慎的浏览器填表建议。",
-    models: {
-      auto: { label: "自动选择" },
-      "claude-sonnet": { label: "Claude Sonnet 系列", description: "兼顾推理质量与速度，适合多数求职流程。" },
-      "claude-haiku": { label: "Claude Haiku 系列", description: "适合低成本抽取、分类和摘要。" },
-      custom: { label: "自定义模型 ID" },
-    },
-  },
-  moonshot: {
-    name: "Kimi / Moonshot",
-    description: "适合长上下文中文与双语求职工作流。",
-    models: {
-      auto: { label: "自动选择" },
-      "kimi-k2": { label: "Kimi K2", description: "适合长职位描述、角色卡提炼和中英双语推理。" },
-      custom: { label: "自定义模型 ID" },
-    },
-  },
-  deepseek: {
-    name: "DeepSeek 兼容接口",
-    description: "适合本地优先工作流中的高性价比推理和文案起草。",
-    models: {
-      auto: { label: "自动选择" },
-      "deepseek-chat": { label: "DeepSeek Chat", description: "适合职位解析、简历要点和摘要生成。" },
-      "deepseek-reasoner": { label: "DeepSeek Reasoner", description: "适合匹配分析和面试规划等推理任务。" },
-      custom: { label: "自定义模型 ID" },
-    },
-  },
-  gemini: {
-    name: "Gemini 兼容接口",
-    description: "适合多模态友好的材料分析和快速草稿。",
-    models: {
-      auto: { label: "自动选择" },
-      "gemini-pro": { label: "Gemini Pro 系列", description: "适合简历审阅、公司研究和综合推理。" },
-      "gemini-flash": { label: "Gemini Flash 系列", description: "适合低延迟填表建议和摘要。" },
-      custom: { label: "自定义模型 ID" },
-    },
-  },
-  local: {
-    name: "本地模型服务",
-    description: "适合离线草稿和隐私优先的信息抽取。",
-    models: {
-      auto: { label: "自动选择" },
-      "ollama-default": { label: "Ollama 默认模型", description: "通过 Ollama 兼容端点提供的本地模型。" },
-      custom: { label: "自定义模型 ID" },
-    },
-  },
-};
-
-export const ZH_CAPABILITY_COPY: Record<
-  string,
-  {
-    name: string;
-    description: string;
-    category: string;
-    tags?: string[];
-    source?: string;
-    permissionNote?: string;
-  }
-> = {
-  "role-card-distiller": {
-    name: "角色卡提炼器",
-    description: "把用户资料提炼成紧凑的候选人角色卡，用于每一次职位匹配。",
-    category: "画像智能",
-    tags: ["角色卡", "隐私", "应届生"],
-    source: "SyncHire 内置",
-  },
-  "jd-resume-tailor": {
-    name: "JD 简历定制",
-    description: "在不虚构经历的前提下，生成面向具体岗位的简历草稿。",
-    category: "简历生成",
-    tags: ["简历", "JD", "ATS"],
-    source: "SyncHire 内置",
-  },
-  "browser-fill-review": {
-    name: "审核式浏览器填表",
-    description: "为申请表准备可审核字段值，同时阻止自动提交。",
-    category: "浏览器助手",
-    tags: ["浏览器", "表单", "人工审核"],
-    source: "SyncHire 内置",
-    permissionNote: "从用户修改中学习前，必须获得明确同意。",
-  },
-  "local-privacy-guard": {
-    name: "本地隐私护栏",
-    description: "确保个人数据留在本地，并在发送敏感字段给模型供应商前提醒用户。",
-    category: "安全",
-    tags: ["本地优先", "个人信息", "同意"],
-    source: "SyncHire 内置",
-  },
-  "application-ledger": {
-    name: "申请台账",
-    description: "在本地跟踪每个 JD、定制简历、状态变化和下一步动作。",
-    category: "求职管理",
-    tags: ["跟踪", "工作流", "申请"],
-    source: "SyncHire 内置",
-  },
-  "resume-pdf-export": {
-    name: "简历 PDF 导出",
-    description: "把岗位化简历草稿渲染成可由用户审核的 PDF 文件。",
-    category: "简历生成",
-    tags: ["PDF", "导出", "简历"],
-    source: "SyncHire 内置",
-  },
-  "interview-prep-coach": {
-    name: "面试准备教练",
-    description: "根据 JD 生成聚焦的面试问题、回答提纲和风险检查。",
-    category: "面试",
-    tags: ["面试", "问题", "练习"],
-    source: "SyncHire 目录",
-  },
-  "recruiter-message-writer": {
-    name: "招聘沟通文案",
-    description: "根据角色卡和目标公司上下文起草简洁的外联消息。",
-    category: "外联",
-    tags: ["消息", "人脉", "招聘方"],
-    source: "技能元数据目录",
-  },
-  "offer-comparison": {
-    name: "Offer 对比",
-    description: "对比多个 offer 的薪酬、成长、通勤和风险。",
-    category: "决策支持",
-    tags: ["offer", "薪酬", "决策"],
-    source: "技能元数据目录",
-  },
-  "synchire-resume-analyzer": {
-    name: "SyncHire 简历解析器",
-    description: "把简历解析成结构化的本地候选人证据。",
-    category: "本地 MCP",
-    tags: ["简历", "解析", "本地"],
-    source: "SyncHire 内置",
-  },
-  "synchire-jd-parser": {
-    name: "SyncHire JD 解析器",
-    description: "从粘贴的职位描述中提取标题、公司、要求和技能。",
-    category: "本地 MCP",
-    tags: ["JD", "解析", "本地"],
-    source: "SyncHire 内置",
-  },
-  "synchire-job-matcher": {
-    name: "SyncHire 岗位匹配器",
-    description: "将本地角色卡和简历证据与目标 JD 进行匹配评分。",
-    category: "本地 MCP",
-    tags: ["匹配", "评分", "本地"],
-    source: "SyncHire 内置",
-  },
-  "synchire-interview-prep": {
-    name: "SyncHire 面试准备",
-    description: "根据 JD 和申请历史构建面试准备材料。",
-    category: "本地 MCP",
-    tags: ["面试", "准备", "本地"],
-    source: "SyncHire 内置",
-  },
-  "review-only-webbridge": {
-    name: "审核式 WebBridge",
-    description: "连接浏览器桥接能力来填写表单，最终提交仍交给用户。",
-    category: "浏览器 MCP",
-    tags: ["浏览器", "表单", "不提交"],
-    source: "MCP 元数据目录",
-    permissionNote: "永不点击提交；从用户修改中学习需要用户同意。",
-  },
-  "local-file-vault": {
-    name: "本地文件保险库",
-    description: "只从用户批准的本地文件夹读写简历资产。",
-    category: "存储 MCP",
-    tags: ["文件", "本地", "保险库"],
-    source: "MCP 元数据目录",
-  },
-  "calendar-reminders": {
-    name: "日历提醒",
-    description: "创建本地面试提醒草稿，等待用户审核。",
-    category: "效率 MCP",
-    tags: ["日历", "面试", "提醒"],
-    source: "MCP 元数据目录",
-  },
-};
-
 
 export type TabType = "ai" | "skills" | "mcp" | "discover" | "image" | "notifications" | "history";
 

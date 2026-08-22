@@ -59,22 +59,21 @@ import {
   testAIProviderConnection,
   type AIProviderPresetId,
 } from "@/lib/ai-provider-connection";
-import { type SettingsCopy } from "./copy";
-import { getCapabilityDisplay, SectionHeader } from "./shared";
+import { getPanelCopy } from "./copy-panels";
+import { getCapabilityDisplay, SectionHeader } from "./panel-shared";
 
 export function CapabilityCard({
   item,
-  copy,
   locale,
   onToggle,
   onInstallToggle,
 }: {
   item: RuntimeCapability;
-  copy: SettingsCopy;
   locale: "en-US" | "zh-CN";
   onToggle: (id: string, enabled: boolean) => void;
   onInstallToggle: (id: string, installed: boolean) => void;
 }) {
+  const copy = getPanelCopy(locale);
   const riskCopy = {
     low: copy.capability.low,
     medium: copy.capability.medium,
@@ -164,7 +163,6 @@ export function CapabilityPanel({
   kind,
   settings,
   setSettings,
-  copy,
   locale,
   onSave,
   onDefaults,
@@ -172,11 +170,11 @@ export function CapabilityPanel({
   kind: RuntimeCapabilityKind;
   settings: AIRuntimeSettings;
   setSettings: (settings: AIRuntimeSettings) => void;
-  copy: SettingsCopy;
   locale: "en-US" | "zh-CN";
   onSave: () => void;
   onDefaults: () => void;
 }) {
+  const copy = getPanelCopy(locale);
   const items = kind === "skill" ? settings.skills : settings.mcps;
   const [query, setQuery] = useState("");
   const filtered = useMemo(() => {
@@ -234,7 +232,6 @@ export function CapabilityPanel({
           <CapabilityCard
             key={item.id}
             item={item}
-            copy={copy}
             locale={locale}
             onToggle={(id, enabled) =>
               setSettings(setRuntimeCapabilityEnabled(settings, kind, id, enabled))

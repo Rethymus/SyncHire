@@ -60,14 +60,14 @@ import {
   testAIProviderConnection,
   type AIProviderPresetId,
 } from "@/lib/ai-provider-connection";
-import { EMPTY_REPOSITORY_FORM, type SettingsCopy } from "./copy";
-import { formatOptionalDate, getCapabilityDisplay, SectionHeader } from "./shared";
+import { EMPTY_REPOSITORY_FORM, getPanelCopy } from "./copy-panels";
+import { formatOptionalDate } from "./shared";
+import { getCapabilityDisplay, SectionHeader } from "./panel-shared";
 import { CapabilityCard } from "./capability-panel";
 
 export function DiscoveryPanel({
   settings,
   setSettings,
-  copy,
   locale,
   onRefresh,
   onSave,
@@ -75,12 +75,12 @@ export function DiscoveryPanel({
 }: {
   settings: AIRuntimeSettings;
   setSettings: (settings: AIRuntimeSettings) => void;
-  copy: SettingsCopy;
   locale: "en-US" | "zh-CN";
   onRefresh: () => void;
   onSave: () => void;
   showMessage: (type: "success" | "error", text: string) => void;
 }) {
+  const copy = getPanelCopy(locale);
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<RuntimeCapabilityKind | "all">("all");
   const [repositoryForm, setRepositoryForm] = useState(EMPTY_REPOSITORY_FORM);
@@ -183,7 +183,7 @@ export function DiscoveryPanel({
         <div className="flex items-end">
           <Button type="button" className="w-full" onClick={onRefresh}>
             <RefreshCw className="size-4" />
-            {copy.discover.refresh}
+            {copy.actions.refresh}
           </Button>
         </div>
       </div>
@@ -220,7 +220,6 @@ export function DiscoveryPanel({
           <CapabilityCard
             key={`${item.kind}-${item.id}`}
             item={item}
-            copy={copy}
             locale={locale}
             onToggle={(id, enabled) =>
               setSettings(setRuntimeCapabilityEnabled(settings, item.kind, id, enabled))

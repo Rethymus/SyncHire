@@ -20,8 +20,10 @@ import { isGithubPagesDeployment } from "@/lib/deployment-mode";
 import { COPY, type TabType } from "./_components/copy";
 import { MessageBanner, MetricStrip } from "./_components/shared";
 
-// Panels are heavy (bilingual copy + forms); load them per tab on demand.
-// copy.ts and shared.tsx stay static — the page shell needs MetricStrip/MessageBanner.
+// Panels are heavy (bilingual panel copy + zh catalogs + forms); load them per
+// tab on demand. The shell keeps only the small copy.ts (title/tabs/status/
+// actions) and shared.tsx (MetricStrip/MessageBanner) — panel-domain copy in
+// copy-panels.ts is imported by the lazy panels themselves.
 function PanelSkeleton() {
   return (
     <div className="space-y-4" role="status" aria-label="Loading">
@@ -95,21 +97,21 @@ export default function SettingsPage() {
 
   const saveSettings = () => {
     saveAIRuntimeSettings(settings);
-    showMessage("success", copy.ai.saved);
+    showMessage("success", copy.actions.saved);
   };
 
   const restoreDefaults = () => {
     const nextSettings = applyRecommendedRuntimeDefaults(settings);
     setSettings(nextSettings);
     saveAIRuntimeSettings(nextSettings);
-    showMessage("success", copy.ai.resetDone);
+    showMessage("success", copy.actions.resetDone);
   };
 
   const refreshCatalogs = () => {
     const nextSettings = refreshRuntimeCatalog(settings);
     setSettings(nextSettings);
     saveAIRuntimeSettings(nextSettings);
-    showMessage("success", copy.discover.refreshed);
+    showMessage("success", copy.actions.refreshed);
   };
 
   if (!hasHydrated) {
@@ -140,12 +142,12 @@ export default function SettingsPage() {
           </div>
           <Button type="button" variant="outline" onClick={refreshCatalogs}>
             <RefreshCw className="size-4" />
-            {copy.discover.refresh}
+            {copy.actions.refresh}
           </Button>
         </div>
 
         <div className="mb-6">
-          <MetricStrip settings={settings} copy={copy} locale={locale} />
+          <MetricStrip settings={settings} locale={locale} />
         </div>
 
         <MessageBanner message={message} />
@@ -188,7 +190,6 @@ export default function SettingsPage() {
             <AIProviderPanel
               settings={settings}
               setSettings={setSettings}
-              copy={copy}
               locale={locale}
               onSave={saveSettings}
               onReset={restoreDefaults}
@@ -199,7 +200,6 @@ export default function SettingsPage() {
               kind="skill"
               settings={settings}
               setSettings={setSettings}
-              copy={copy}
               locale={locale}
               onSave={saveSettings}
               onDefaults={restoreDefaults}
@@ -210,7 +210,6 @@ export default function SettingsPage() {
               kind="mcp"
               settings={settings}
               setSettings={setSettings}
-              copy={copy}
               locale={locale}
               onSave={saveSettings}
               onDefaults={restoreDefaults}
@@ -220,7 +219,6 @@ export default function SettingsPage() {
             <DiscoveryPanel
               settings={settings}
               setSettings={setSettings}
-              copy={copy}
               locale={locale}
               onRefresh={refreshCatalogs}
               onSave={saveSettings}

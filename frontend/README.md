@@ -63,6 +63,14 @@ npm start
 npm run type-check
 ```
 
+### E2E 测试与端口守卫
+
+```bash
+npm run test:e2e:guarded
+```
+
+先运行 `scripts/e2e-preflight.mjs` 检查 e2e 端口（默认 3000/8000，可用 `E2E_PREFLIGHT_PORTS` 或参数覆盖）：端口空闲或已有健康 server 则继续跑 Playwright；若端口被"只监听不响应"的孤儿 dev server 占用（被杀掉的 Playwright 任务常见残留），会打印 netstat 定位的 PID 和 `taskkill /PID <pid> /F` 清理指引并以非零码退出，避免套件假挂起。手动单跑：`node scripts/e2e-preflight.mjs [port]`。
+
 ## 项目结构
 
 ```
