@@ -36,7 +36,6 @@ SyncHire/
 └── api/
     ├── tests/
     │   ├── conftest.py             # Pytest fixtures
-    │   ├── test_api_helpers.py     # API test utilities
     │   ├── test_critical_paths.py  # Critical path tests
     │   └── test_*.py               # Other test files
     └── pyproject.toml              # Pytest configuration
@@ -77,13 +76,7 @@ SyncHire/
    - Authentication helpers
    - MCP server mocking
 
-2. **API Test Helpers** (`test_api_helpers.py`)
-   - Reusable test functions
-   - Assertion helpers
-   - Performance measurement
-   - Bulk operations
-
-3. **Critical Path Tests** (`test_critical_paths.py`)
+2. **Critical Path Tests** (`test_critical_paths.py`)
    - Authentication flow
    - File upload flow
    - Application management

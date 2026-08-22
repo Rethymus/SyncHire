@@ -100,15 +100,6 @@ describe('UserDashboard', () => {
 ```python
 # Fixtures are automatically available
 from tests.conftest import *
-
-# API test helpers
-from tests.test_api_helpers import APITestHelpers
-
-# Use api_helpers fixture
-async def test_something(client, db, api_helpers):
-    user = await api_helpers.create_test_user()
-    headers = await api_helpers.get_auth_headers(user)
-    # ...
 ```
 
 ### Common Test Patterns

@@ -228,10 +228,15 @@ npx playwright test e2e/smoke.spec.ts
 
 - **前端** - lint / type-check / 单元测试 / 生产构建
 - **e2e smoke** - 16 个路由逐页校验（HTTP < 400、全局导航保持挂载、
-  零意外 console 错误，已知开发模式噪音按文档过滤）+ 导航可达性；
+  零意外 console 错误，已知开发模式噪音按文档过滤）+ 导航可达性，
+  默认门禁 35 用例通过（另 2 个截图用例按需跳过）；
   CI 会自动安装依赖并拉起 lite 后端再跑测试
-- **后端** - pytest（带 Postgres/Redis 服务）+ black/ruff
+- **后端** - pytest 421 个用例（26 个测试文件，SQLite+mock 全离线）+ black/ruff
 - **安全** - Bandit、pip-audit
+
+本地跑 e2e 前若遇 :3000/:8000 被"监听但不响应"的残留 webServer 占用，
+可用端口守卫变体 `npm run test:e2e:guarded --workspace=frontend`：
+preflight 会检测僵尸进程并给出 PID 清理指引，非零退出码阻断测试。
 
 ### 代码结构提示（贡献者）
 

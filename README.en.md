@@ -239,7 +239,7 @@ The full AI workflow is designed to score fit, identify missing skills, surface 
 
 ### Browser Fill Assistant
 
-Generate a reviewed fill plan for application pages and hand the policy to Kimi WebBridge or another local browser agent. SyncHire fills known fields, excludes submit controls, stops for user review, and learns from user edits only after explicit approval.
+Generate a reviewed fill plan for application pages and hand the policy to Kimi WebBridge or another local browser agent. SyncHire fills known fields, excludes submit controls, stops for user review, and learns from user edits only after explicit approval. A built-in Electron job browser (`electron/job-browser`) pairs a `<webview>` browser with the fill-assistant sidebar and persists logins per partition; the engine never auto-submits forms. Run `npm run build:fill-engine` from the repo root first to generate the injection script, then smoke-check end to end with `npx electron electron/smoke-test.js` (test-form loading and engine detection: 15 fields, submit exclusion; exits by itself — 0 pass / 1 assertion failure / 2 watchdog timeout).
 
 ### Interview Preparation
 
@@ -352,8 +352,8 @@ npm run db:migrate
 npm run type-check --workspace=frontend
 npm run lint:nocache --workspace=frontend -- --max-warnings=0
 npm test --workspace=frontend
-npm run test:integration --workspace=frontend
 npm run test:e2e --workspace=frontend
+npm run test:e2e:guarded --workspace=frontend  # port-guarded e2e (detects zombie webServer on :3000/:8000 first)
 npm run build --workspace=frontend
 
 # Backend quality
@@ -372,11 +372,10 @@ The current QA baseline is intentionally strict because a job-search tool cannot
 
 | Gate                       | Current baseline                                                                   |
 | -------------------------- | ---------------------------------------------------------------------------------- |
-| Backend tests              | 344 passing with warnings treated as errors                                        |
-| Frontend unit tests        | 320 passing                                                                        |
-| Frontend integration tests | 18 passing                                                                         |
-| Playwright E2E             | 13 passing                                                                         |
-| Route dogfood sweep        | 13 key routes across desktop and mobile, HTTP 200, zero console errors or warnings |
+| Backend tests              | 421 test cases (CI gate, SQLite + mock, fully offline), warnings treated as errors |
+| Frontend unit tests        | 263 passing                                                                         |
+| Playwright E2E             | 35 passing (2 README screenshot cases skipped on demand)                           |
+| Route dogfood sweep        | 16 key routes across desktop and mobile, HTTP 200, zero console errors or warnings |
 | Security checks            | Bandit, pip-audit, pip check passing                                               |
 | Production build           | Passing                                                                            |
 

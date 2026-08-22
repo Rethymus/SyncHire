@@ -239,7 +239,7 @@ Tauri 和 Capacitor 构建中，如果原生存储为空，SyncHire 会尝试从
 
 为投递页面生成可审核的填表计划，并交给 Kimi WebBridge 或类似本地浏览器 agent 执行。SyncHire 只填已知字段，排除提交控件，填写后停下等待用户审核，并且只有在用户明确同意后，才从用户修改中学习并更新角色卡。
 
-另有内置的 Electron 求职浏览器（`electron/job-browser`）：`<webview>` 浏览器 + 填表助手侧栏，登录态按分区持久化。引擎绝不自动提交表单；开发时需先在仓库根执行 `npm run build:fill-engine` 生成注入脚本。
+另有内置的 Electron 求职浏览器（`electron/job-browser`）：`<webview>` 浏览器 + 填表助手侧栏，登录态按分区持久化。引擎绝不自动提交表单；开发时需先在仓库根执行 `npm run build:fill-engine` 生成注入脚本，再用 `npx electron electron/smoke-test.js` 做端到端冒烟（验证测试表单加载与引擎检测：15 字段、提交排除；自动退出，退出码 0 通过 / 1 断言失败 / 2 看门狗超时）。
 
 ### 面试准备
 
@@ -361,8 +361,8 @@ npm run db:migrate
 npm run type-check --workspace=frontend
 npm run lint:nocache --workspace=frontend -- --max-warnings=0
 npm test --workspace=frontend
-npm run test:integration --workspace=frontend
 npm run test:e2e --workspace=frontend
+npm run test:e2e:guarded --workspace=frontend  # e2e 前端口守卫（检测 :3000/:8000 僵尸 webServer）
 npm run build --workspace=frontend
 
 # 后端质量门
@@ -381,8 +381,8 @@ pip-audit
 
 | 检查项           | 当前基线                                                        |
 | ---------------- | --------------------------------------------------------------- |
-| 后端测试         | 由 CI pytest 门禁保证，warning 视为 error                       |
-| 前端单元测试     | 237 个测试通过                                                  |
+| 后端测试         | 421 个用例（CI 门禁，SQLite+mock 全离线），warning 视为 error    |
+| 前端单元测试     | 263 个测试通过                                                  |
 | Playwright E2E   | 35 个测试通过（2 个 README 截图用例按需跳过）                  |
 | CI E2E           | 全量 37 用例（35 过 + 2 截图用例跳过，含 16 路由 smoke），导航可达、零意外 console 错误，CI 自动拉起 lite 后端 |
 | 用户视角路由回扫 | 16 路由 smoke 逐页回扫 + 35 用例默认门禁 E2E（chromium）      |

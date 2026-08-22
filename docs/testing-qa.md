@@ -1,5 +1,5 @@
 # Testing & Quality Assurance Skills
-**SyncHire Project - Last Updated: 2026-05-26**
+**SyncHire Project - Last Updated: 2026-08-22**
 
 ---
 
@@ -188,19 +188,20 @@ npm run test:watch
 npm run test:coverage
 ```
 
-### Integration Testing
+### Backend Testing (Pytest)
 ```bash
-# Test API endpoints
-npm run test:integration
-
-# Test database operations
-npm run test:db
+# Run backend tests (421 cases across 26 test files, SQLite + mock, fully offline)
+cd api
+pytest -q -W error --tb=short
 ```
 
 ### E2E Testing (Playwright)
 ```bash
-# Run E2E tests
+# Run E2E tests (default gate: 35 passing + 2 README screenshot cases skipped on demand)
 npm run test:e2e
+
+# Port-guarded variant (e2e-preflight detects zombie webServer on :3000/:8000 and blocks with a non-zero exit)
+npm run test:e2e:guarded --workspace=frontend
 
 # Specific test
 npx playwright test dashboard.spec.ts
@@ -236,11 +237,8 @@ npm run test
 # 1. Full test suite
 npm run test
 
-# 2. Integration tests
-npm run test:integration
-
-# 3. E2E smoke tests
-npm run test:e2e --smoke
+# 2. E2E gate (port-guarded)
+npm run test:e2e:guarded --workspace=frontend
 ```
 
 ### Pre-Release
@@ -327,5 +325,5 @@ ls -la dogfood-output/
 
 ---
 
-**Last Updated**: 2026-05-26
-**Next Review**: 2026-06-26
+**Last Updated**: 2026-08-22
+**Next Review**: 2026-09-22
