@@ -15,6 +15,7 @@
     "stop:mcp": "./scripts/mcp-stop.sh",
     "build": "npm run build --workspaces",
     "build:fill-engine": "node scripts/build-fill-engine.mjs",
+    "build:fill-fixture": "node scripts/build-fill-fixture.mjs",
     "build:static": "node scripts/build-static.mjs",
     "build:pages": "node scripts/build-pages.mjs",
     "desktop:dev": "tauri dev",
