@@ -10,13 +10,13 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { jobSourceAPI, type JobSource } from "@/lib/api-client";
+import { JobSourceAddForm } from "@/components/job-source-add-form";
 import { useLiteCopy } from "@/lib/lite-i18n";
 import {
   CheckCircle2,
   CircleSlash,
   Library,
   Link2,
-  Plus,
   RefreshCw,
   Rss,
   Sparkles,
@@ -37,8 +37,6 @@ export default function JobSourcesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [urlInput, setUrlInput] = useState("");
-  const [nameInput, setNameInput] = useState("");
   const [adding, setAdding] = useState(false);
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [syncAllBusy, setSyncAllBusy] = useState(false);
@@ -109,18 +107,16 @@ export default function JobSourcesPage() {
     void load();
   }, [load]);
 
-  const addSource = async () => {
-    if (!urlInput.trim()) return;
+  const addSource = async ({ url, name }: { url: string; name: string }) => {
+    if (!url.trim()) return;
     setAdding(true);
     setError(null);
     setNotice(null);
     try {
       const created = await jobSourceAPI.create({
-        url: urlInput.trim(),
-        name: nameInput.trim() || undefined,
+        url: url.trim(),
+        name: name.trim() || undefined,
       });
-      setUrlInput("");
-      setNameInput("");
       setNotice(
         locale === "zh-CN"
           ? `已添加 ${created.name}（${ATS_LABELS[created.ats_type] ?? created.ats_type}）`
@@ -231,12 +227,6 @@ export default function JobSourcesPage() {
       locale === "zh-CN"
         ? "订阅企业官方招聘页（Greenhouse / Lever / Ashby / SmartRecruiters），岗位直接从源头同步"
         : "Subscribe to official company job boards (Greenhouse / Lever / Ashby / SmartRecruiters); jobs sync straight from the source",
-    urlPlaceholder:
-      locale === "zh-CN"
-        ? "招聘页链接，如 https://job-boards.greenhouse.io/stripe"
-        : "Recruiting page URL, e.g. https://job-boards.greenhouse.io/stripe",
-    namePlaceholder: locale === "zh-CN" ? "公司名（可选）" : "Company name (optional)",
-    add: locale === "zh-CN" ? "添加" : "Add",
     seed: locale === "zh-CN" ? "添加示例源" : "Add sample sources",
     syncAll: locale === "zh-CN" ? "全部同步" : "Sync all",
     catalogTitle:
@@ -296,33 +286,7 @@ export default function JobSourcesPage() {
       </div>
 
       <section className="rounded-lg border border-border bg-card p-4 mb-6">
-        <div className="flex flex-wrap gap-3">
-          <input
-            type="url"
-            value={urlInput}
-            onChange={(e) => setUrlInput(e.target.value)}
-            placeholder={t.urlPlaceholder}
-            className="flex-1 min-w-[260px] rounded-md border border-input px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            aria-label={t.urlPlaceholder}
-          />
-          <input
-            type="text"
-            value={nameInput}
-            onChange={(e) => setNameInput(e.target.value)}
-            placeholder={t.namePlaceholder}
-            className="w-44 rounded-md border border-input px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            aria-label={t.namePlaceholder}
-          />
-          <button
-            type="button"
-            onClick={() => void addSource()}
-            disabled={adding || !urlInput.trim()}
-            className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
-          >
-            <Plus className="h-4 w-4" aria-hidden />
-            {t.add}
-          </button>
-        </div>
+        <JobSourceAddForm busy={adding} onAdd={addSource} />
         <div className="flex flex-wrap gap-3 mt-3">
           <button
             type="button"

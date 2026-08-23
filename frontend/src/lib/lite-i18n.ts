@@ -412,6 +412,10 @@ export const LITE_COPY = {
       emptyHistory: "No status history yet",
       close: "Close",
     },
+    formValidation: {
+      required: "This field is required",
+      invalidUrl: "Enter a valid URL starting with http(s)://",
+    },
   },
   "zh-CN": {
     nav: {
@@ -737,6 +741,10 @@ export const LITE_COPY = {
       historyDescription: "查看此申请的所有状态变更记录。",
       emptyHistory: "暂无状态变更历史",
       close: "关闭",
+    },
+    formValidation: {
+      required: "此项为必填",
+      invalidUrl: "请输入以 http(s):// 开头的有效链接",
     },
   },
 } as const;
