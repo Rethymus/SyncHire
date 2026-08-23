@@ -100,10 +100,20 @@ test.describe('Full-stack auth flow (real backend)', () => {
     await page.locator('#password').fill(TEST_PASSWORD)
     await page.locator('#confirmPassword').fill(TEST_PASSWORD)
     await page.locator('#terms').check()
+    const authResponses: string[] = []
+    page.on('response', async (res) => {
+      if (res.url().includes('/api/auth/')) {
+        let body = ''
+        try { body = (await res.text()).slice(0, 300) } catch { /* unreadable */ }
+        authResponses.push(`${res.request().method()} ${res.url()} -> ${res.status()} ${body}`)
+      }
+    })
+
     await page.getByRole('button', { name: '创建账户' }).click()
 
     // Successful registration routes to the login page.
-    await expect(page).toHaveURL(/\/(login|dashboard)$/)
+    const authLog = authResponses.join(' | ') || '(none captured)'
+    await expect(page, `auth responses: ${authLog}`).toHaveURL(/\/(login|dashboard)$/)
     // Auto-login success lands on /dashboard; only the /login branch shows this heading.
     if (page.url().endsWith('/login')) {
       await expect(page.getByRole('heading', { name: '欢迎回来' })).toBeVisible()
@@ -141,7 +151,7 @@ test.describe('Full-stack auth flow (real backend)', () => {
     await page.goto('/login')
     await page.locator('#email').fill(email)
     await page.locator('#password').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: '登录' }).click()
+    await page.getByRole('button', { name: '登录', exact: true }).click()
 
     // Successful login redirects to the dashboard.
     await expect(page).toHaveURL(/\/dashboard/)
