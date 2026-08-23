@@ -103,8 +103,11 @@ test.describe('Full-stack auth flow (real backend)', () => {
     await page.getByRole('button', { name: '创建账户' }).click()
 
     // Successful registration routes to the login page.
-    await expect(page).toHaveURL(/\/(login|dashboard)$/
-    await expect(page.getByRole('heading', { name: '欢迎回来' })).toBeVisible()
+    await expect(page).toHaveURL(/\/(login|dashboard)$/)
+    // Auto-login success lands on /dashboard; only the /login branch shows this heading.
+    if (page.url().endsWith('/login')) {
+      await expect(page.getByRole('heading', { name: '欢迎回来' })).toBeVisible()
+    }
 
     // The user really persists in Postgres: a direct API login with the same
     // credentials must return tokens. (register/login are CSRF-exempt.)
