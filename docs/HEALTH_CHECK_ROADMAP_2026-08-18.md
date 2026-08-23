@@ -112,3 +112,22 @@
 验证：tsc/eslint/237 单测/**e2e 37/37**/生产构建/后端 black+ruff+10 lite 测试全绿。
 
 **新发现（后续项）**：① readme-screenshots 每次运行再生截图，且部分页面含实时时间戳导致必然 diff——建议改为按需手动生成或对时间敏感页面做时间冻结；② 全栈 pytest（test_api.py 链）本地缺 pgvector/botocore 依赖只能在 CI 验证，属预期。
+
+## 八、第三轮代理驱动批次收官（2026-08-23）
+
+| 项 | 结果 |
+|----|------|
+| P1-1 全栈 pytest 进 CI | ✅ 26 文件/421 用例纳入 backend-tests（全部服务无关：SQLite+mock）；修复 conftest 的 FastAPI Request 注解解析 bug 与一处 sync/async 冲突；删除孤儿 test_api_helpers.py（含 3 处文档残留引用）。 |
+| P2-2 直返核心类型化 | ✅ 五组全类型化，13 个新接口按后端源码核对；确认直返核心零缺失端点。 |
+| P2-3 React 受控组件覆盖 | ✅ build-fill-fixture（React 19 无 UMD→esbuild 打包仓库内 react）+ 受控铁证用例（原生 setter 不派发→preview 不动）；代理中途静默死亡，主线程修复两处引号语法错后 3/3 通过；引擎零缺陷。 |
+| P2-4/5 Electron 冒烟+死配置 | ✅ SYNCHIRE_SMOKE 升级为端到端真实路径验证（6s/退出码 0）；vitest 集成死配置与全库引用清零。 |
+| P3-7/9 settings 分片+端口守卫 | ✅ 文案 509→81 行壳层（顺带清除拖入首载的死 import）；e2e-preflight 三路径决策（free/healthy/zombie）+ test:e2e:guarded。 |
+| P3-8 全栈 e2e 脚手架 | ✅ auth-fullstack spec（CI 真跑/本地三层守卫干净 skip）+ 专用 playwright.fullstack.config + Docker 本地方案脚本 + advisory CI job。 |
+| 新组件单测 | ✅ mobile-bottom-nav/theme-toggle/error/sw-register 26 用例；前端 237→263。 |
+| 文档同步 | ✅ README×3/testing-qa：421 后端、263 前端、38 e2e + 4 按需跳过、guarded/smoke 命令。 |
+
+**CI 实测反馈循环**（远程首跑暴露、当日修复）：① 本地 black 25.1.0 vs CI 钉住 26.5.1 的风格漂移——重格式化 5 文件并对齐本地工具链版本；② 全栈后端模块级依赖 playwright（pdf_generator→resumes 路由→main.py）却只声明在 dev 依赖——补入 requirements.txt。
+
+**测试面最终版**：后端 421（CI 门禁）+ 前端单测 263 + e2e 42（38 过 + 4 按需：2 截图/2 全栈）+ Electron 冒烟（本地，进 CI 进行中）+ 静态导出断言 job。
+
+**方法论沉淀**：本地与 CI 工具链版本必须钉一致（black 25/26、ruff 0.9.2 三次踩坑）；被杀 playwright 任务会孤儿化 webServer（守卫已固化）；timeout 管道会掩盖退出码；共享文件的原子提交用"暂摘-提交-复原"拆分。
