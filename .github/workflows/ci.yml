@@ -300,6 +300,51 @@ jobs:
           path: frontend/playwright-report/
           retention-days: 7
 
+  # Advisory (not in quality-gate needs, same policy as fullstack-e2e):
+  # GUI-in-CI is a new surface (xvfb / Chromium sandbox on hosted runners)
+  # and may need runner-specific tuning; promote into the gate once stable.
+  electron-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=optional --no-audit --no-fund
+
+      - name: Build fill engine
+        run: npm run build:fill-engine
+
+      - name: Install xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      # main.js smoke mode only prints to stdout/stderr (no log files),
+      # so tee captures everything; the full log also shows in this step.
+      - name: Run Electron smoke test
+        run: |
+          set -o pipefail
+          xvfb-run -a --server-args="-screen 0 1280x800x24" \
+            npx electron electron/smoke-test.js 2>&1 | tee /tmp/electron-smoke.log
+        env:
+          # Ubuntu 24.04 runners restrict unprivileged user namespaces,
+          # which can break Chromium's sandbox at startup.
+          ELECTRON_DISABLE_SANDBOX: '1'
+
+      - name: Upload smoke log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-smoke-log
+          path: /tmp/electron-smoke.log
+          retention-days: 7
+
   security-scan:
     runs-on: ubuntu-latest
     steps:
