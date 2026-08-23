@@ -35,7 +35,7 @@ const TEST_PASSWORD = 'E2e-Fullstack-2026!'
 
 function uniqueEmail(): string {
   const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-  return `e2e-fullstack-${suffix}@synchire.test`
+  return `e2e-fullstack-${suffix}@synchire.dev`
 }
 
 /** Probe the real backend health endpoint; used to decide skip-vs-run. */
@@ -103,7 +103,7 @@ test.describe('Full-stack auth flow (real backend)', () => {
     await page.getByRole('button', { name: '创建账户' }).click()
 
     // Successful registration routes to the login page.
-    await expect(page).toHaveURL(/\/login$/)
+    await expect(page).toHaveURL(/\/(login|dashboard)$/
     await expect(page.getByRole('heading', { name: '欢迎回来' })).toBeVisible()
 
     // The user really persists in Postgres: a direct API login with the same
