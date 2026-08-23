@@ -102,7 +102,7 @@ test.describe('Full-stack auth flow (real backend)', () => {
     await page.locator('#terms').check()
     const authResponses: string[] = []
     page.on('response', async (res) => {
-      if (res.url().includes('/api/auth/')) {
+      if (res.url().includes('/auth/')) {
         let body = ''
         try { body = (await res.text()).slice(0, 300) } catch { /* unreadable */ }
         authResponses.push(`${res.request().method()} ${res.url()} -> ${res.status()} ${body}`)

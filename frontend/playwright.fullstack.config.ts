@@ -22,7 +22,9 @@ import { defineConfig, devices } from '@playwright/test'
 
 const port = process.env.FULLSTACK_FRONTEND_PORT ?? '3100'
 const baseURL = `http://localhost:${port}`
-const apiUrl = process.env.FULLSTACK_API_URL ?? 'http://localhost:8010'
+// The envelope apiClient builds URLs as `${baseURL}/auth/...` (its default
+// baseURL is '/api'), so the env must carry the /api suffix.
+const apiUrl = (process.env.FULLSTACK_API_URL ?? 'http://localhost:8010').replace(/\/$/, '') + '/api'
 
 export default defineConfig({
   testDir: './e2e',
