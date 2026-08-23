@@ -179,6 +179,22 @@ jobs:
           black --check .
           ruff check .
 
+      - name: Prepare Postgres (pgvector extension)
+        run: |
+          python - <<'PYEOF'
+          import asyncio, asyncpg
+          async def main():
+              conn = await asyncpg.connect(
+                  "postgresql://synchire:synchire_test@localhost:5432/synchire_test"
+              )
+              await conn.execute("CREATE EXTENSION IF NOT EXISTS vector")
+              await conn.close()
+          asyncio.run(main())
+          PYEOF
+
+      - name: Install Playwright chromium (pdf_generator test)
+        run: python -m playwright install --with-deps chromium
+
       - name: Run tests
         run: |
           python -m pytest \
@@ -270,6 +286,19 @@ jobs:
       - name: Install Playwright chromium
         run: npx playwright install --with-deps chromium
         working-directory: ./frontend
+
+      - name: Prepare Postgres (pgvector extension)
+        run: |
+          python - <<'PYEOF'
+          import asyncio, asyncpg
+          async def main():
+              conn = await asyncpg.connect(
+                  "postgresql://synchire:synchire_test@localhost:5432/synchire_test"
+              )
+              await conn.execute("CREATE EXTENSION IF NOT EXISTS vector")
+              await conn.close()
+          asyncio.run(main())
+          PYEOF
 
       - name: Start full-stack backend (port 8010)
         run: |
