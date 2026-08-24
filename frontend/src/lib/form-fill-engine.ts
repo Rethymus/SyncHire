@@ -83,12 +83,52 @@ function isCustomCombobox(el: HTMLInputElement): boolean {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Realm-aware element type checks                                    */
+/*                                                                    */
+/* Same-origin iframes still get their own JavaScript realm: an       */
+/* <input> inside an iframe document fails `instanceof` against this  */
+/* module's HTMLInputElement. Every class check therefore resolves    */
+/* the constructor from the element's own window (its                 */
+/* ownerDocument.defaultView). Plain DOM calls (property reads,       */
+/* native prototype setters, dispatchEvent) work cross-realm as-is.   */
+/* ------------------------------------------------------------------ */
+
+function windowOf(el: Element): (Window & typeof globalThis) | null {
+  return el.ownerDocument ? el.ownerDocument.defaultView : null;
+}
+
+function isHTMLElement(el: Element): el is HTMLElement {
+  const win = windowOf(el);
+  return win !== null && el instanceof win.HTMLElement;
+}
+
+function isHTMLInputElement(el: Element): el is HTMLInputElement {
+  const win = windowOf(el);
+  return win !== null && el instanceof win.HTMLInputElement;
+}
+
+function isHTMLTextAreaElement(el: Element): el is HTMLTextAreaElement {
+  const win = windowOf(el);
+  return win !== null && el instanceof win.HTMLTextAreaElement;
+}
+
+function isHTMLSelectElement(el: Element): el is HTMLSelectElement {
+  const win = windowOf(el);
+  return win !== null && el instanceof win.HTMLSelectElement;
+}
+
+function isHTMLIFrameElement(el: Element): el is HTMLIFrameElement {
+  const win = windowOf(el);
+  return win !== null && el instanceof win.HTMLIFrameElement;
+}
+
 function controlTypeOf(el: Element): ControlType {
-  if (el instanceof HTMLTextAreaElement) return "textarea";
-  if (el instanceof HTMLSelectElement) {
+  if (isHTMLTextAreaElement(el)) return "textarea";
+  if (isHTMLSelectElement(el)) {
     return el.multiple ? "select-multiple" : "select";
   }
-  if (el instanceof HTMLInputElement) {
+  if (isHTMLInputElement(el)) {
     if (isCustomCombobox(el)) return "custom";
     if (el.type === "checkbox") return "checkbox";
     if (el.type === "radio") return "radio";
@@ -115,7 +155,7 @@ function labelFor(el: HTMLElement, root: ParentNode): string {
   const aria = el.getAttribute("aria-label");
   if (aria) return aria.slice(0, 120);
 
-  if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+  if (isHTMLInputElement(el) || isHTMLTextAreaElement(el)) {
     if (el.labels && el.labels.length > 0) {
       return (el.labels[0].textContent ?? "").trim().slice(0, 120);
     }
@@ -135,13 +175,28 @@ function labelFor(el: HTMLElement, root: ParentNode): string {
 /**
  * Detect fillable fields in a document or subtree, mapping each to a
  * profile key via browser-fill-assistant's bilingual FIELD_MAP.
+ *
+ * Same-origin iframes under `root` (srcdoc/about:blank inherit the
+ * parent origin; ATS portals frequently embed their forms this way)
+ * are traversed depth-first after the parent's own fields, so frame
+ * fields are appended with continuing indexes and existing callers
+ * keep their field indexes stable. Cross-origin frames cannot be
+ * inspected (contentDocument is null or throws) and are skipped
+ * silently: whether they contain a form is unknowable from here, and
+ * guessing would produce noise.
  */
 export function detectFormFields(root: ParentNode): DetectedFormField[] {
   const fields: DetectedFormField[] = [];
+  collectFields(root, fields);
+  return fields;
+}
+
+/** Scan `root` for fillable controls, then recurse into its frames. */
+function collectFields(root: ParentNode, fields: DetectedFormField[]): void {
   const elements = Array.from(root.querySelectorAll(FILLABLE_SELECTOR));
 
   elements.forEach((el) => {
-    if (!(el instanceof HTMLElement)) return;
+    if (!isHTMLElement(el)) return;
 
     const inputEl = el as HTMLInputElement;
     if (inputEl.type === "hidden" || inputEl.disabled || inputEl.readOnly) return;
@@ -150,6 +205,9 @@ export function detectFormFields(root: ParentNode): DetectedFormField[] {
     }
 
     const controlType = controlTypeOf(el);
+    // Labels (label[for], aria-labelledby) resolve inside the document
+    // the element lives in, i.e. the iframe's own document for framed
+    // fields — labels never cross frame boundaries.
     const label = labelFor(el, root);
     const name = el.getAttribute("name") ?? el.id ?? "";
     const matchTarget: BrowserFormField = {
@@ -173,24 +231,52 @@ export function detectFormFields(root: ParentNode): DetectedFormField[] {
       element: el,
     };
 
-    if (el instanceof HTMLSelectElement) {
+    if (isHTMLSelectElement(el)) {
       field.options = Array.from(el.options).map((option) => option.value);
     }
 
     fields.push(field);
   });
 
-  return fields;
+  collectIframeFields(root, fields);
+}
+
+/**
+ * Recurse into every iframe under `root` whose document is accessible
+ * (same-origin/srcdoc). Frame fields are appended after the parent's,
+ * in document order; nested frames follow the same rule via
+ * collectFields' recursion.
+ */
+function collectIframeFields(root: ParentNode, fields: DetectedFormField[]): void {
+  const frames = Array.from(root.querySelectorAll("iframe"));
+
+  for (const frame of frames) {
+    // Cross-origin access either returns null (per spec) or throws on
+    // exotic engines — both mean "not ours to read", never an error.
+    let doc: Document | null = null;
+    try {
+      if (isHTMLIFrameElement(frame)) doc = frame.contentDocument;
+    } catch {
+      continue;
+    }
+    if (!doc || !doc.documentElement) continue; // not loaded / cross-origin
+
+    try {
+      collectFields(doc, fields);
+    } catch {
+      // One broken frame must never break detection for the whole page.
+    }
+  }
 }
 
 function currentValueOf(el: Element): string | null {
-  if (el instanceof HTMLInputElement) {
+  if (isHTMLInputElement(el)) {
     return el.type === "checkbox" || el.type === "radio"
       ? (el.checked ? "checked" : "")
       : el.value;
   }
-  if (el instanceof HTMLTextAreaElement) return el.value;
-  if (el instanceof HTMLSelectElement) return el.value;
+  if (isHTMLTextAreaElement(el)) return el.value;
+  if (isHTMLSelectElement(el)) return el.value;
   return null;
 }
 
@@ -265,7 +351,10 @@ export function fillField(
 
   const el = field.element;
 
-  if (el instanceof HTMLSelectElement) {
+  // The native prototype setters below were captured from this realm's
+  // prototypes, but they operate through internal slots, so they apply
+  // to iframe-document elements (own realm) exactly as to local ones.
+  if (isHTMLSelectElement(el)) {
     const option = matchSelectOption(el, value);
     if (!option) {
       outcome.status = "needs-review";
@@ -285,7 +374,7 @@ export function fillField(
     return outcome;
   }
 
-  if (el instanceof HTMLTextAreaElement) {
+  if (isHTMLTextAreaElement(el)) {
     if (textAreaValueSetter) textAreaValueSetter(el, value);
     else el.value = value;
     dispatch(el, "input");
@@ -294,7 +383,7 @@ export function fillField(
     return outcome;
   }
 
-  if (el instanceof HTMLInputElement) {
+  if (isHTMLInputElement(el)) {
     switch (el.type) {
       case "checkbox": {
         // Native .click() runs real activation behavior (toggles +

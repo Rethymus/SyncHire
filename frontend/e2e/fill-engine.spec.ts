@@ -32,8 +32,21 @@ const buildScript = path.join(repoRoot, 'scripts', 'build-fill-engine.mjs')
 const enginePath = path.join(repoRoot, 'electron', 'job-browser', 'fill-engine.iife.js')
 const formPath = path.join(repoRoot, 'electron', 'job-browser', 'test-form.html')
 
-/** 测试表单中的可填控件：中文区 10 个（含 3 个单选）+ 英文区 4 个 */
-const EXPECTED_FIELD_COUNT = 14
+/**
+ * 测试表单中的可填控件：
+ *  - 中文区 10 个（含 3 个单选）+ 英文区 4 个 + srcdoc iframe 内 3 个 = 17 个
+ *  - 跨源（沙箱唯一源）iframe 内的字段不可读、必须被静默跳过，不计数
+ *  - input[type=submit] × 3（主文档/iframe 内/沙箱 iframe 内）均被排除
+ */
+const EXPECTED_FIELD_COUNT = 17
+
+/** 主文档（非 iframe）字段的 name 顺序：index 0-13，iframe 字段追加在其后 */
+const MAIN_DOC_FIELD_NAMES = [
+  'name', 'email', 'phone',
+  'gender', 'gender', 'gender',
+  'education', 'salary', 'self_introduction', 'agree_terms',
+  'full_name', 'email_address', 'phone_number', 'linkedin',
+]
 
 test.beforeAll(() => {
   if (!existsSync(buildScript)) {
@@ -242,8 +255,10 @@ test('填充：planFromProfile → applyFillPlan 端到端写入 DOM 并派发�
   }, profile)
 
   // 档案映射字段：中文 6 个（姓名/邮箱/手机号/学历/期望薪资/自我介绍）
-  // + 英文 4 个（Full Name/Email/Phone/LinkedIn）；性别与条款不在此列
-  expect(result.planIndexes).toHaveLength(10)
+  // + 英文 4 个（Full Name/Email/Phone/LinkedIn）
+  // + iframe 内「姓氏」（last_name 命中 fullName 映射，证明档案填充穿透 iframe）
+  // 性别与条款不在此列
+  expect(result.planIndexes).toHaveLength(11)
   expect(
     result.statuses.every((s: string) => s === 'filled'),
     '批量填充结果全部为 filled',
@@ -262,6 +277,9 @@ test('填充：planFromProfile → applyFillPlan 端到端写入 DOM 并派发�
   await expect(page.locator('#en-email')).toHaveValue(profile.email)
   await expect(page.locator('#en-phone')).toHaveValue(profile.phone)
   await expect(page.locator('#en-linkedin')).toHaveValue(profile.linkedinUrl)
+  // iframe 内字段同样落盘：plan 管线（element 活引用跨文档）直达 iframe DOM
+  await expect(page.frameLocator('#embedded-frame').locator('#if-last-name'))
+    .toHaveValue(profile.fullName)
 
   // 单选按 value 命中组内目标，其余保持未选
   await expect(page.locator('input[name="gender"][value="female"]')).toBeChecked()
@@ -280,4 +298,150 @@ test('填充：planFromProfile → applyFillPlan 端到端写入 DOM 并派发�
   ]) {
     expect(events, `应派发事件 ${expected}`).toContain(expected)
   }
+})
+
+test('iframe 穿透：srcdoc 同源 iframe 字段被检出，跨源 iframe 静默跳过，index 连续', async ({ page }) => {
+  await openFormWithEngine(page)
+
+  const fields = await page.evaluate(() => {
+    const engine = (window as any).SynchireFillEngine
+    return {
+      // 前置事实：沙箱 iframe 确实跨源（contentDocument 为 null），
+      // 证明它不是伪跨源——引擎对它只能也只会静默跳过
+      crossOriginFrameUnreadable:
+        (document.getElementById('cross-origin-frame') as HTMLIFrameElement).contentDocument === null,
+      fields: engine.detectFormFields(document).map((f: any) => ({
+        index: f.index,
+        controlType: f.controlType,
+        label: f.label,
+        name: f.name,
+        profileKey: f.profileKey,
+        options: f.options ?? null,
+        needsManualAction: f.needsManualAction,
+        // 跨 realm 下 instanceof 不可靠，用 tagName + getAttribute 取 type
+        inputType: f.element && f.element.tagName === 'INPUT' ? f.element.getAttribute('type') : null,
+        // element 活引用必须指向 iframe 自己的文档（跨文档引用）
+        elementInIframeDoc:
+          f.element !== null &&
+          f.element.ownerDocument !== document &&
+          f.element.ownerDocument ===
+            (document.getElementById('embedded-frame') as HTMLIFrameElement).contentDocument,
+      })),
+    }
+  })
+
+  expect(fields.crossOriginFrameUnreadable, '沙箱 iframe 对父文档确实不可读（真跨源）').toBe(true)
+
+  const all = fields.fields
+  expect(all.length).toBe(EXPECTED_FIELD_COUNT)
+  // index 与数组位置一致（追加语义：无空洞、不重排）
+  expect(all.every((f: any, i: number) => f.index === i)).toBe(true)
+
+  // —— 主文档字段 index 不受 iframe 影响：前 14 个仍是原有顺序 ——
+  expect(all.slice(0, 14).map((f: any) => f.name)).toEqual(MAIN_DOC_FIELD_NAMES)
+
+  // —— srcdoc iframe 字段追加在主文档之后（index 14-16）——
+  const iframeFields = all.slice(14)
+  expect(iframeFields.map((f: any) => f.name)).toEqual(['last_name', 'id_type', 'id_number'])
+  expect(iframeFields.every((f: any) => f.elementInIframeDoc), 'element 活引用指向 iframe 文档').toBe(true)
+  expect(iframeFields.every((f: any) => !f.needsManualAction)).toBe(true)
+
+  // 类型 / label（在 iframe 文档内经 label[for] 解析）/ options
+  expect(iframeFields[0]).toMatchObject({
+    controlType: 'text',
+    inputType: 'text',
+    label: '姓氏',
+    // last_name 命中 FIELD_MAP 的 "name" 标签 → fullName（模糊匹配的既有语义）
+    profileKey: 'fullName',
+  })
+  expect(iframeFields[1]).toMatchObject({
+    controlType: 'select',
+    label: '证件类型',
+    profileKey: null,
+  })
+  expect(iframeFields[1].options).toEqual(['', 'id_card', 'passport'])
+  expect(iframeFields[2]).toMatchObject({
+    controlType: 'text',
+    label: '证件号码',
+    profileKey: null,
+  })
+
+  // —— iframe 内提交按钮被忽略（“绝不自动提交”同样穿透到 iframe）——
+  expect(
+    all.some((f: any) => f.name === 'iframe_submit' || f.inputType === 'submit'),
+    'iframe 内 input[type=submit] 必须被检测忽略',
+  ).toBe(false)
+
+  // —— 跨源 iframe 静默跳过：其字段不可见，检测不崩溃（上面已完整返回）——
+  expect(
+    all.some((f: any) => f.name === 'sandboxed_field' || f.name === 'sandboxed_submit'),
+    '跨源（沙箱唯一源）iframe 字段不得出现',
+  ).toBe(false)
+})
+
+test('iframe 填充：fillField 端到端写入 iframe 内 DOM 并在其文档内派发事件', async ({ page }) => {
+  await openFormWithEngine(page)
+
+  const result = await page.evaluate(() => {
+    const engine = (window as any).SynchireFillEngine
+    const detected = engine.detectFormFields(document)
+    const idType = detected.find((f: any) => f.name === 'id_type')
+    const idNumber = detected.find((f: any) => f.name === 'id_number')
+    const lastName = detected.find((f: any) => f.name === 'last_name')
+
+    // 在 iframe 自己的文档里挂监听：引擎派发的 input/change 必须落在这个文档
+    const iframeDoc = (document.getElementById('embedded-frame') as HTMLIFrameElement).contentDocument!
+    const events: string[] = []
+    for (const type of ['input', 'change']) {
+      iframeDoc.addEventListener(type, (e: any) => {
+        events.push(`${type}@${e.target?.name || e.target?.id || ''}`)
+      }, true)
+    }
+
+    const selectOutcome = engine.fillField(document, idType.index, '护照') // 按可见文本匹配
+    const numberOutcome = engine.fillField(document, idNumber.index, '110101199001011234')
+    const nameOutcome = engine.fillField(document, lastName.index, '张')
+
+    return {
+      indexes: { idType: idType.index, idNumber: idNumber.index, lastName: lastName.index },
+      selectOutcome,
+      numberOutcome,
+      nameOutcome,
+      events,
+      // element 活引用跨文档直接可操作：从主文档上下文读取 iframe 内当前值
+      valuesThroughLiveRefs: {
+        idType: idType.element.value,
+        idNumber: idNumber.element.value,
+        lastName: lastName.element.value,
+      },
+    }
+  })
+
+  // iframe 字段 index（14/15/16）与上一用例一致
+  expect(result.indexes).toEqual({ idType: 15, idNumber: 16, lastName: 14 })
+  expect(result.selectOutcome.status).toBe('filled')
+  expect(result.numberOutcome.status).toBe('filled')
+  expect(result.nameOutcome.status).toBe('filled')
+
+  // 事件在 iframe 文档内派发（主文档监听看不到，跨文档不冒泡）
+  expect(result.events).toContain('input@id_number')
+  expect(result.events).toContain('change@id_number')
+  expect(result.events).toContain('change@id_type')
+
+  // element 活引用跨文档读写成立
+  expect(result.valuesThroughLiveRefs).toEqual({
+    idType: 'passport', // 「护照」按文本匹配到 value="passport"
+    idNumber: '110101199001011234',
+    lastName: '张',
+  })
+
+  // 独立视角复核：Playwright frameLocator 直查 iframe 内 DOM 真实落盘
+  const frame = page.frameLocator('#embedded-frame')
+  await expect(frame.locator('#if-id-type')).toHaveValue('passport')
+  await expect(frame.locator('#if-id-number')).toHaveValue('110101199001011234')
+  await expect(frame.locator('#if-last-name')).toHaveValue('张')
+
+  // iframe 填充不外溢：主文档同语义字段保持未填
+  await expect(page.locator('#zh-name')).toHaveValue('')
+  await expect(page.locator('#zh-education')).toHaveValue('')
 })

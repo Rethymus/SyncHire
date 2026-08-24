@@ -113,6 +113,62 @@
       </div>
     </fieldset>
 
+    <!-- ATS 网申常见形态：表单嵌在 iframe 里。srcdoc 在 file:// 下继承父源，
+         引擎必须穿透检测并填充。内嵌 3 个可填字段（姓氏/证件类型 select/证件号码）
+         + 一个提交按钮（同样必须被“绝不提交”约束忽略）。label 在 iframe 文档内
+         通过 label[for] 关联，用于验证 label 解析不跨框架边界。 -->
+    <fieldset>
+      <legend>iframe 内嵌表单（same-origin srcdoc 穿透）</legend>
+
+      <iframe
+        id="embedded-frame"
+        title="同源内嵌表单（srcdoc 继承父源）"
+        style="width: 100%; height: 240px; border: 1px solid #e5e7eb; border-radius: 6px;"
+        srcdoc="<!doctype html>
+<html lang='zh-CN'>
+<head><meta charset='utf-8' />
+<style>
+  body { font-family: system-ui, sans-serif; margin: 10px; font-size: 13px; color: #111827; }
+  .field-row { display: flex; flex-direction: column; margin-bottom: 10px; }
+  .field-row > label { font-size: 13px; margin-bottom: 4px; }
+  input[type='text'], select { padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 5px; font-size: 13px; width: 200px; }
+  input[type='submit'] { padding: 8px 18px; border: 1px solid #4f46e5; border-radius: 6px; background: #4f46e5; color: #fff; font-size: 14px; cursor: pointer; }
+</style>
+</head>
+<body>
+  <form id='iframe-inner-form' action='#' onsubmit='return false'>
+    <div class='field-row'>
+      <label for='if-last-name'>姓氏</label>
+      <input type='text' id='if-last-name' name='last_name' />
+    </div>
+    <div class='field-row'>
+      <label for='if-id-type'>证件类型</label>
+      <select id='if-id-type' name='id_type'>
+        <option value=''>请选择</option>
+        <option value='id_card'>身份证</option>
+        <option value='passport'>护照</option>
+      </select>
+    </div>
+    <div class='field-row'>
+      <label for='if-id-number'>证件号码</label>
+      <input type='text' id='if-id-number' name='id_number' />
+    </div>
+    <input type='submit' id='if-submit' name='iframe_submit' value='iframe 内提交（必须被忽略）' />
+  </form>
+</body>
+</html>"></iframe>
+
+      <!-- 跨源对照：沙箱 iframe（无 allow-same-origin）拥有唯一源，即使内容来自
+           srcdoc 也对父文档跨源，contentDocument 为 null。其中的字段必须被引擎
+           静默跳过，且不得让整个检测崩溃。 -->
+      <iframe
+        id="cross-origin-frame"
+        title="跨源（沙箱唯一源）内嵌表单，应被静默跳过"
+        sandbox=""
+        style="width: 100%; height: 0; border: 0;"
+        srcdoc="<form><input type='text' name='sandboxed_field' /><input type='submit' name='sandboxed_submit' /></form>"></iframe>
+    </fieldset>
+
     <!-- 引擎检测必须忽略的提交控件：input[type=submit] 在 FILLABLE_SELECTOR
          命中范围内，是“绝不提交”约束的真正边界用例 -->
     <input type="submit" id="submit-btn" name="submit" value="提交申请 Submit Application" />
