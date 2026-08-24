@@ -142,3 +142,7 @@
 | **最终态** | **8/8 job success**：421 后端 + 270 前端单测 + e2e 全量（含 React 受控与全栈认证流）+ Electron 冒烟 + 静态导出 + 安全扫描 + quality-gate。fullstack-e2e 与 electron-smoke 为 advisory，**连续 ≥3 次绿后加入 quality-gate needs**（当前 1/2 次）。 |
 
 排障方法论新增：探针式定位（把关键网络响应捕获进断言消息，`(none captured)` 一击锁定 fetch 层失败）；"抢修未跑本地 lint 就推送"造成三 job 误伤一次——已留档为反面教材。
+
+## 十、advisory 转正（2026-08-23 晚）
+
+fullstack-e2e 与 electron-smoke 各累计 **4 次连续绿**（run 32626274494…32741995039），超过 ≥3 门槛，正式纳入 quality-gate needs。流水线自此七 job 全门禁 + 总门禁。剩余开发项仅 match-analysis-client 运行时映射（代理 V 发现的既有误标）与 Shadow DOM 穿透（暂缓）。

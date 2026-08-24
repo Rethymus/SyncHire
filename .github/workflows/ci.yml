@@ -408,7 +408,8 @@ jobs:
             api/pip-audit-report.json
 
   quality-gate:
-    needs: [frontend-tests, frontend-e2e-smoke, static-export, backend-tests, security-scan]
+    needs:
+      [frontend-tests, frontend-e2e-smoke, static-export, backend-tests, fullstack-e2e, electron-smoke, security-scan]
     runs-on: ubuntu-latest
     steps:
       - name: All checks passed
