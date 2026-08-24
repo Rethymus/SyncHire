@@ -7,9 +7,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppStore, type JobApplication, type JobDescription, type Resume } from "@/lib/store";
-import { apiClient } from "@/lib/api-client";
+import { apiClient, type MatchScoreResult } from "@/lib/api-client";
 import { applicationMatchHref } from "@/lib/application-links";
 import { getMatchLevel } from "@/lib/match-ranking";
+import {
+  buildCategoryScore,
+  toMatchDisplayModel,
+  type MatchAnalysisDisplayModel,
+} from "@/lib/match-display-model";
 import { cn } from "@/lib/utils";
 import { MatchScoreBreakdown } from "@/components/match-score-breakdown";
 import { SkillGapAnalysis } from "@/components/skill-gap-analysis";
@@ -23,58 +28,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-interface MatchDetails {
-  overallScore: number;
-  overallPercentage: number;
-  matchLevel: "excellent" | "good" | "fair" | "poor";
-  hardSkillsScore: {
-    category: string;
-    score: number;
-    maxScore: number;
-    percentage: number;
-    details: string[];
-  };
-  softSkillsScore: {
-    category: string;
-    score: number;
-    maxScore: number;
-    percentage: number;
-    details: string[];
-  };
-  experienceScore: {
-    category: string;
-    score: number;
-    maxScore: number;
-    percentage: number;
-    details: string[];
-  };
-  educationScore: {
-    category: string;
-    score: number;
-    maxScore: number;
-    percentage: number;
-    details: string[];
-  };
-  skillMatches: Array<{
-    skill: string;
-    hasSkill: boolean;
-    required: boolean;
-    matchQuality: "exact" | "partial" | "missing";
-  }>;
-  missingSkills: string[];
-  missingRequiredSkills: string[];
-  additionalSkills: string[];
-  strengths: string[];
-  weaknesses: string[];
-  recommendations: string[];
-  radarChartData: Array<{
-    category: string;
-    score: number;
-    maxScore: number;
-  }>;
-  calculatedAt: string;
-  confidence: number;
-}
+/**
+ * Display model for this page lives in @/lib/match-display-model
+ * (`MatchAnalysisDisplayModel`). Local (offline) analysis builds it from the
+ * store below; server-backed analysis maps the `MatchScoreResult` API payload
+ * onto it via `toMatchDisplayModel` in the same module.
+ */
 
 function normalizeSkill(skill: string) {
   return skill.trim().toLowerCase();
@@ -84,28 +43,11 @@ function unique(values: string[]) {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
 }
 
-function categoryScore(
-  category: string,
-  maxScore: number,
-  percentage: number,
-  detail: string
-): MatchDetails["hardSkillsScore"] {
-  const boundedPercentage = Math.max(0, Math.min(100, percentage));
-
-  return {
-    category,
-    maxScore,
-    percentage: boundedPercentage,
-    score: Math.round((boundedPercentage / 100) * maxScore * 10) / 10,
-    details: [detail],
-  };
-}
-
 function buildLocalMatchDetails(
   application: JobApplication,
   jd?: JobDescription,
   resume?: Resume
-): MatchDetails {
+): MatchAnalysisDisplayModel {
   const requiredSkills = jd?.requirements ?? [];
   const jdSkills = unique([...requiredSkills, ...(jd?.skills ?? [])]);
   const resumeText = `${resume?.content ?? ""} ${(resume?.skills ?? []).join(" ")} ${(resume?.experience ?? []).join(" ")}`.toLowerCase();
@@ -165,15 +107,15 @@ function buildLocalMatchDetails(
     overallScore: overallPercentage,
     overallPercentage,
     matchLevel: getMatchLevel(overallPercentage),
-    hardSkillsScore: categoryScore(
+    hardSkillsScore: buildCategoryScore(
       "硬技能",
       40,
       skillsPercentage,
       jdSkills.length > 0 ? "基于本地 JD 技能和简历内容匹配" : "暂无 JD 技能数据，使用总分兜底"
     ),
-    softSkillsScore: categoryScore("软技能", 20, overallPercentage, "Lite 模式使用总分估算软技能匹配"),
-    experienceScore: categoryScore("项目经历", 25, overallPercentage, "Lite 模式使用简历经历与总分估算经验匹配"),
-    educationScore: categoryScore("教育背景", 15, overallPercentage, "Lite 模式使用总分估算教育背景匹配"),
+    softSkillsScore: buildCategoryScore("软技能", 20, overallPercentage, "Lite 模式使用总分估算软技能匹配"),
+    experienceScore: buildCategoryScore("项目经历", 25, overallPercentage, "Lite 模式使用简历经历与总分估算经验匹配"),
+    educationScore: buildCategoryScore("教育背景", 15, overallPercentage, "Lite 模式使用总分估算教育背景匹配"),
     skillMatches,
     missingSkills,
     missingRequiredSkills,
@@ -246,10 +188,20 @@ export default function MatchAnalysisClient() {
         return buildLocalMatchDetails(application, jobDescription, resume);
       }
 
-      const response = await apiClient.get<MatchDetails>(
+      // Server-backed application: the endpoint returns the snake_case
+      // MatchScoreResult payload, which is mapped onto the display model
+      // (see toMatchDisplayModel) instead of being used as the view model.
+      const response = await apiClient.get<MatchScoreResult>(
         `/applications/${applicationId}/match`
       );
-      return response.data;
+      if (!response.data) {
+        const apiError =
+          typeof response.error === "string"
+            ? response.error
+            : response.error?.message;
+        throw new Error(apiError || "Failed to load match analysis");
+      }
+      return toMatchDisplayModel(response.data);
     },
     enabled: hasHydrated && !!applicationId,
     retry: application ? 0 : 1,
