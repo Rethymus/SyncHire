@@ -15,16 +15,16 @@ import {
   GraduationCap,
   Award,
 } from "lucide-react";
+import type { MatchDetails, MatchScoreResult } from "@/lib/api-client";
 
 interface MatchAnalysisDisplayProps {
-  matchData: {
-    match_score: number;
-    match_details?: {
-      skills_match: number;
-      experience_match: number;
-      education_match: number;
-      missing_skills: string[];
-      recommendations: string[];
+  /**
+   * GET /applications/{id}/match payload. The core shape is the shared
+   * MatchScoreResult contract; the optional gap arrays are extra detail the
+   * full-stack backend can append on top of the shared MatchDetails.
+   */
+  matchData: Omit<MatchScoreResult, "match_details"> & {
+    match_details?: MatchDetails & {
       skill_gaps?: Array<{
         skill: string;
         required: boolean;
@@ -153,7 +153,7 @@ export function MatchAnalysisDisplay({ matchData }: MatchAnalysisDisplayProps) {
             <h3 className="font-semibold text-foreground">详细技能分析</h3>
           </div>
           <div className="space-y-3">
-            {skillGaps.map((gap: any, index: number) => (
+            {skillGaps.map((gap, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-muted/40 rounded-lg">
                 <div className="flex items-center gap-3">
                   {gap.required ? (
@@ -194,7 +194,7 @@ export function MatchAnalysisDisplay({ matchData }: MatchAnalysisDisplayProps) {
             <h3 className="font-semibold text-foreground">经验差距分析</h3>
           </div>
           <div className="space-y-3">
-            {experienceGaps.map((gap: any, index: number) => (
+            {experienceGaps.map((gap, index) => (
               <div key={index} className="p-4 bg-muted/40 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium text-foreground">{gap.area}</span>

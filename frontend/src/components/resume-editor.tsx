@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { memo } from "react";
 import { TIMING, RESUME } from "@/lib/constants";
-import { resumeAPI } from "@/lib/api-client";
+import { resumeAPI, type ResumeOptimizationResult } from "@/lib/api-client";
 import { useRouter } from "next/navigation";
 import { TemplateGallery } from "@/components/template-gallery";
 import { SavedTemplatesManager } from "@/components/saved-templates-manager";
@@ -168,13 +168,6 @@ function renderMarkdown(markdown: string): string {
   }
 }
 
-interface OptimizationResult {
-  optimized_content: string;
-  changes_made: string[];
-  keywords_added: string[];
-  sections_improved: string[];
-}
-
 type SaveStatus = "saving" | "saved" | "error" | "idle" | "unsaved";
 
 function ResumeEditorComponent() {
@@ -194,7 +187,7 @@ function ResumeEditorComponent() {
   const [saving, setSaving] = useState(false);
   const [aiOptimizing, setAiOptimizing] = useState(false);
   const [showOptimization, setShowOptimization] = useState(false);
-  const [optimizationResult, setOptimizationResult] = useState<OptimizationResult | null>(null);
+  const [optimizationResult, setOptimizationResult] = useState<ResumeOptimizationResult | null>(null);
   const [optimizationError, setOptimizationError] = useState<string | null>(null);
   const [appliedOptimization, setAppliedOptimization] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);

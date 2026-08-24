@@ -19,6 +19,7 @@ import { logger, LogCategory } from "@/lib/logger";
 import { useLiteCopy } from "@/lib/lite-i18n";
 import { useAppStore, type JobApplication, type JobDescription, type Resume } from "@/lib/store";
 import { isGithubPagesDeployment } from "@/lib/deployment-mode";
+import type { PortabilityImportResult, PortabilityStatus } from "@/lib/api-client";
 import {
   clearNonSecretWorkspace,
   clearPagesSessionCredentials,
@@ -78,14 +79,6 @@ function writeLocalBackups(backups: Backup[]) {
   }
 }
 
-interface DataStatus {
-  resumes_count: number;
-  jds_count: number;
-  applications_count: number;
-  database_size: number;
-  last_backup: string | null;
-}
-
 interface ExportProgress {
   stage: string;
   progress: number;
@@ -109,14 +102,6 @@ interface ImportPreview {
     field: string;
     message: string;
   }>;
-}
-
-interface ImportResult {
-  success: boolean;
-  imported: number;
-  failed: number;
-  skipped: number;
-  errors: string[];
 }
 
 // Export templates
@@ -298,7 +283,7 @@ function DataManagementPage() {
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
   const [importProgress, setImportProgress] = useState<number>(0);
-  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [importResult, setImportResult] = useState<PortabilityImportResult | null>(null);
   const [importMode, setImportMode] = useState<"merge" | "replace">("merge");
   const [showImportPreview, setShowImportPreview] = useState(false);
   const [resolveConflicts, setResolveConflicts] = useState<"skip" | "overwrite" | "rename">("skip");
@@ -315,7 +300,7 @@ function DataManagementPage() {
     workspace: exportNonSecretWorkspace(),
   }), [applications, jobDescriptions, resumes]);
 
-  const buildLocalStatus = useCallback((localBackups = readLocalBackups()): DataStatus => {
+  const buildLocalStatus = useCallback((localBackups = readLocalBackups()): PortabilityStatus => {
     const snapshot = JSON.stringify(buildExportData());
 
     return {
@@ -675,7 +660,7 @@ function DataManagementPage() {
 
       const imported =
         importedResumes.length + importedJDs.length + importedApplications.length;
-      const result: ImportResult = {
+      const result: PortabilityImportResult = {
         success: true,
         imported,
         failed: 0,

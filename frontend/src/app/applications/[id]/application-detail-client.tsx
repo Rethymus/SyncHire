@@ -18,7 +18,14 @@ import {
 } from "@/components/ui/select";
 import { Breadcrumb } from "@/components/breadcrumb";
 import { logger, LogCategory } from "@/lib/logger";
-import { applicationAPI, resumeAPI, jdAPI } from "@/lib/api-client";
+import {
+  applicationAPI,
+  resumeAPI,
+  jdAPI,
+  type ApplicationOptimizationResult,
+  type ApplicationStatusHistory,
+  type MatchScoreResult,
+} from "@/lib/api-client";
 import { generateTailoredResumeMarkdown } from "@/lib/tailored-resume";
 import { useLiteCopy } from "@/lib/lite-i18n";
 import { ApplicationNotes } from "@/components/application-notes";
@@ -80,9 +87,9 @@ export default function ApplicationDetailClient() {
   const [application, setApplication] = useState<any>(null);
   const [resume, setResume] = useState<any>(null);
   const [jd, setJD] = useState<any>(null);
-  const [matchScore, setMatchScore] = useState<any>(null);
+  const [matchScore, setMatchScore] = useState<MatchScoreResult | null>(null);
   const [loadingMatch, setLoadingMatch] = useState(false);
-  const [optimizedResume, setOptimizedResume] = useState<any>(null);
+  const [optimizedResume, setOptimizedResume] = useState<ApplicationOptimizationResult | null>(null);
   const [loadingOptimization, setLoadingOptimization] = useState(false);
   const [notes, setNotes] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
@@ -489,7 +496,7 @@ export default function ApplicationDetailClient() {
               currentStatus={application.status}
               onStatusClick={(status) => updateStatus(status)}
               showHistory={true}
-              history={application.status_history?.map((h: any) => ({
+              history={application.status_history?.map((h: ApplicationStatusHistory) => ({
                 status: h.new_status,
                 timestamp: new Date(h.changed_at),
               })) || []}
@@ -727,7 +734,7 @@ export default function ApplicationDetailClient() {
                   <div className="mt-8">
                     <h3 className="font-semibold text-foreground mb-4">状态历史</h3>
                     <div className="space-y-3">
-                      {application.status_history.map((history: any) => (
+                      {application.status_history.map((history: ApplicationStatusHistory) => (
                         <div
                           key={history.id}
                           className="flex items-start gap-3 p-3 bg-muted/40 rounded-lg"
@@ -736,7 +743,7 @@ export default function ApplicationDetailClient() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 text-sm">
                               <span className="font-medium text-foreground">
-                                {statusConfig[history.old_status]?.label || "开始"} → {statusConfig[history.new_status]?.label}
+                                {statusConfig[history.old_status ?? ""]?.label || "开始"} → {statusConfig[history.new_status]?.label}
                               </span>
                               <span className="text-muted-foreground">
                                 {new Date(history.changed_at).toLocaleString()}

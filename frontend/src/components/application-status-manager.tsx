@@ -20,18 +20,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Loader2, Save, History } from "lucide-react";
-import { apiErrorMessage, applicationAPI } from "@/lib/api-client";
+import { apiErrorMessage, applicationAPI, type ApplicationStatusHistory } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 import { formatLiteDate, interpolate, useLiteCopy } from "@/lib/lite-i18n";
-
-interface StatusHistoryEntry {
-  id: string;
-  old_status: string | null;
-  new_status: string;
-  notes: string | null;
-  changed_at: string;
-}
 
 interface ApplicationStatusManagerProps {
   applicationId: string;
@@ -62,7 +54,7 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
   const [notes, setNotes] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [history, setHistory] = useState<StatusHistoryEntry[]>([]);
+  const [history, setHistory] = useState<ApplicationStatusHistory[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const handleStatusChange = useCallback(
@@ -111,7 +103,7 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
         throw new Error(apiErrorMessage(response.error));
       }
 
-      setHistory((response.data || []) as StatusHistoryEntry[]);
+      setHistory(response.data || []);
     } catch (error) {
       logger.error(
         LogCategory.API,

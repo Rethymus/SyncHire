@@ -135,7 +135,7 @@ export function useSearch() {
 
       if (data.resumes) {
         transformedResults.push(
-          ...data.resumes.map((r: any) => ({
+          ...data.resumes.map((r) => ({
             id: r.id,
             type: "resume" as const,
             title: r.title,
@@ -148,7 +148,7 @@ export function useSearch() {
 
       if (data.jds) {
         transformedResults.push(
-          ...data.jds.map((j: any) => ({
+          ...data.jds.map((j) => ({
             id: j.id,
             type: "jd" as const,
             title: j.title,
@@ -162,7 +162,7 @@ export function useSearch() {
 
       if (data.applications) {
         transformedResults.push(
-          ...data.applications.map((a: any) => ({
+          ...data.applications.map((a) => ({
             id: a.id,
             type: "application" as const,
             title: a.position || "Application",
