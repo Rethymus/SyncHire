@@ -131,3 +131,14 @@
 **测试面最终版**：后端 421（CI 门禁）+ 前端单测 263 + e2e 42（38 过 + 4 按需：2 截图/2 全栈）+ Electron 冒烟（本地，进 CI 进行中）+ 静态导出断言 job。
 
 **方法论沉淀**：本地与 CI 工具链版本必须钉一致（black 25/26、ruff 0.9.2 三次踩坑）；被杀 playwright 任务会孤儿化 webServer（守卫已固化）；timeout 管道会掩盖退出码；共享文件的原子提交用"暂摘-提交-复原"拆分。
+
+## 九、CI 全绿闭环与第四轮批次（2026-08-23）
+
+| 项 | 结果 |
+|----|------|
+| Electron 冒烟进 CI | 第 8 个 job（advisory）：跨平台审查零代码改动（loadFile/pathToFileURL 天然正确）；xvfb + ELECTRON_DISABLE_SANDBOX + 10min 兜底；**首跑即绿**。 |
+| P3-6 表单约定 | job-sources 添加表单迁移 RHF+zod 三段式参照实现（双语校验消息入 lite-i18n、7 单测、docs/frontend-forms.md 五步迁移清单）；前端 263→270。 |
+| CI 红灯五轮排障 | 远程首跑暴露并闭环：black 25→26 版本漂移、playwright/aiofiles 依赖未声明、pgvector 扩展未建 + pdf 测试缺浏览器二进制、fullstack spec 三缺陷（保留域邮箱/成功断言/strict violation）与根因 **API env 缺 /api 后缀**（信封客户端路径约定）。 |
+| **最终态** | **8/8 job success**：421 后端 + 270 前端单测 + e2e 全量（含 React 受控与全栈认证流）+ Electron 冒烟 + 静态导出 + 安全扫描 + quality-gate。fullstack-e2e 与 electron-smoke 为 advisory，**连续 ≥3 次绿后加入 quality-gate needs**（当前 1/2 次）。 |
+
+排障方法论新增：探针式定位（把关键网络响应捕获进断言消息，`(none captured)` 一击锁定 fetch 层失败）；"抢修未跑本地 lint 就推送"造成三 job 误伤一次——已留档为反面教材。
