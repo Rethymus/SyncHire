@@ -30,16 +30,29 @@ class MCPClient:
 
     async def parse_resume(
         self,
-        file_path: str,
+        file_path: str = "",
         file_content: bytes | None = None,
     ) -> Dict[str, Any]:
-        """Parse resume using MCP Resume Analyzer."""
-        arguments = {
-            "file_path": file_path,
-        }
+        """Parse resume using MCP Resume Analyzer.
+
+        The analyzer is stateless: it never reads the filesystem, so the
+        file bytes travel in the request (base64) and only the original
+        file name (for extension dispatch) is sent alongside.
+        """
+        import base64
+        import os
+
+        arguments: Dict[str, Any] = {}
 
         if file_content:
-            arguments["file_content"] = file_content
+            arguments["file_name"] = os.path.basename(file_path or "resume.pdf")
+            arguments["file_content_base64"] = base64.b64encode(file_content).decode()
+        elif file_path:
+            # Last resort: treat the path argument as plain text content is
+            # not possible — refuse instead of leaking a server path.
+            raise MCPError(
+                "parse_resume requires file_content; path-only parsing was removed"
+            )
 
         return await self._call_tool(
             server_name="resume-analyzer",

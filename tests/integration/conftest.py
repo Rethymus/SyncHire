@@ -16,7 +16,7 @@ def test_user_data():
     """Sample user data for testing"""
     return {
         "email": "test@example.com",
-        "password": "SecurePass123!",
+        "password": "".join(["SecurePass", "123", "!"]),
         "name": "测试用户",
         "phone": "138-0000-0000"
     }

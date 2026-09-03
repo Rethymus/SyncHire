@@ -7,6 +7,9 @@ Tests all 5 core AI features with actual API calls.
 """
 
 import asyncio
+import os
+import pathlib
+import tempfile
 import time
 import json
 from typing import Dict, Any, List
@@ -32,9 +35,15 @@ class BigModelAITester:
     """Test BigModel AI API integration"""
 
     def __init__(self):
-        self.api_key = "8ff2347c9e104ab5a627dc665b89dca4.EBrJxMRhCkfmQJ2J"
+        # Credentials come from the environment only — never hardcode a key.
+        self.api_key = os.getenv("BIGMODEL_API_KEY", "")
         self.base_url = "https://open.bigmodel.cn/api/paas/v4/"
         self.model = "glm-4"
+        if not self.api_key:
+            raise SystemExit(
+                "BIGMODEL_API_KEY is not set. Export it before running this "
+                "integration script."
+            )
         self.client = AsyncOpenAI(
             api_key=self.api_key,
             base_url=self.base_url
@@ -754,9 +763,13 @@ Return a JSON object with:
         for i, rec in enumerate(report['recommendations'], 1):
             print(f"  {i}. {rec}")
 
-        # Save report to file
-        report_file = f"/tmp/bigmodel_ai_test_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        with open(report_file, 'w') as f:
+        # Save report to a temp-dir anchored path (no user-controlled parts)
+        report_file = pathlib.Path(tempfile.gettempdir()) / (
+            "bigmodel_ai_test_report_"
+            + datetime.now().strftime("%Y%m%d_%H%M%S")
+            + ".json"
+        )
+        with report_file.open('w') as f:
             json.dump(report, f, indent=2)
         print(f"\n📄 Detailed report saved to: {report_file}")
 

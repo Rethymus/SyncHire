@@ -50,7 +50,7 @@ class TestMCPClientResumeParsing:
             mock_client_class.return_value = mock_client
 
             client = MCPClient()
-            result = await client.parse_resume("/path/to/resume.pdf")
+            result = await client.parse_resume("/path/to/resume.pdf", b"resume text")
 
         assert result["success"] is True
         assert "data" in result
@@ -78,9 +78,14 @@ class TestMCPClientResumeParsing:
             )
 
         assert result["success"] is True
-        # Verify the call included file_content
+        # The stateless tool receives base64-encoded bytes, never a path
         call_args = mock_client.post.call_args
-        assert "file_content" in call_args[1]["json"]
+        payload = call_args[1]["json"]
+        assert "file_content_base64" in payload
+        assert "file_path" not in payload
+        import base64
+
+        assert base64.b64decode(payload["file_content_base64"]) == file_content
 
     # Error handling tests are covered by the MCP client implementation
     # which properly catches httpx.HTTPError and raises MCPError
@@ -364,11 +369,11 @@ class TestMCPClientRequestValidation:
     """Test request validation."""
 
     @pytest.mark.asyncio
-    async def test_parse_resume_requires_file_path(self):
-        """Test that parse_resume requires file_path argument."""
+    async def test_parse_resume_requires_file_content(self):
+        """Path-only parsing was removed: content (base64) is required."""
         client = MCPClient()
-        with pytest.raises(TypeError):
-            await client.parse_resume()  # Missing required argument
+        with pytest.raises(MCPError):
+            await client.parse_resume("/path/to/resume.pdf")
 
     @pytest.mark.asyncio
     async def test_parse_jd_requires_content(self):
@@ -462,7 +467,7 @@ class TestMCPClientPerformance:
 
             client = MCPClient()
             start_time = time.time()
-            await client.parse_resume("/path/to/resume.pdf")
+            await client.parse_resume("/path/to/resume.pdf", b"resume text")
             duration = time.time() - start_time
 
         assert duration < performance_thresholds["max_parse_resume_time"]

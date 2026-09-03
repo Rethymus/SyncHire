@@ -693,10 +693,13 @@ class PromptTestSuite:
             ]
         }
 
-        with open(filename, "w", encoding="utf-8") as f:
+        import pathlib
+
+        out_path = pathlib.Path(filename).resolve()
+        with out_path.open("w", encoding="utf-8") as f:
             json.dump(results_data, f, indent=2, ensure_ascii=False)
 
-        print(f"\n💾 Results saved to {filename}")
+        print(f"\n💾 Results saved to {out_path}")
 
 
 def main():

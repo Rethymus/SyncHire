@@ -292,9 +292,12 @@ class QualityMetricsCollector:
 
     def save_report(self, filename: str = "quality_report.json") -> None:
         """Save quality report to file"""
+        import pathlib
+
         report = self.generate_report()
 
-        with open(filename, "w", encoding="utf-8") as f:
+        out_path = pathlib.Path(filename).resolve()
+        with out_path.open("w", encoding="utf-8") as f:
             json.dump(report, f, indent=2, ensure_ascii=False)
 
 

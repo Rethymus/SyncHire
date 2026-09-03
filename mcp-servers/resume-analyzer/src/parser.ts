@@ -4,8 +4,6 @@
  * Extracts structured information from resume text (PDF, Word, LinkedIn)
  */
 
-import fs from 'fs/promises';
-import pdf from 'pdf-parse';
 import type {
   ResumeStructure,
   PersonalInfo,
@@ -358,21 +356,4 @@ export function parseResume(text: string, source: ResumeStructure['source'] = 't
     totalYearsExperience,
     careerLevel,
   };
-}
-
-/**
- * Parse resume from PDF file
- */
-export async function parseResumeFromPDF(filePath: string): Promise<ResumeStructure> {
-  const dataBuffer = await fs.readFile(filePath);
-  const data = await pdf(dataBuffer);
-  return parseResume(data.text, 'pdf');
-}
-
-/**
- * Parse resume from text file
- */
-export async function parseResumeFromText(filePath: string): Promise<ResumeStructure> {
-  const text = await fs.readFile(filePath, 'utf-8');
-  return parseResume(text, 'text');
 }

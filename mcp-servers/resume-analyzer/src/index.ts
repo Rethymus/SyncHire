@@ -13,7 +13,8 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { parseResumeFromPDF, parseResumeFromText, parseResume } from './parser.js';
+import { parseResume } from './parser.js';
+import pdf from 'pdf-parse';
 import type { ResumeStructure } from './types.js';
 
 // Create MCP server instance
@@ -38,9 +39,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         description: `Parse a resume/CV into structured data.
 
 Supports:
-- PDF files (provide file path)
-- Text files (provide file path)
-- Raw text (provide text content)
+- Raw text (provide resume_text)
+- PDF files (provide file_name + file_content_base64 — the tool is
+  stateless and never reads the filesystem, so no file paths)
 
 Extracts:
 - Personal information (name, email, phone, LinkedIn, GitHub)
@@ -54,13 +55,18 @@ Returns structured JSON with all candidate information.`,
         inputSchema: {
           type: 'object',
           properties: {
-            file_path: {
-              type: 'string',
-              description: 'Path to the resume file (PDF or TXT)',
-            },
             resume_text: {
               type: 'string',
-              description: 'Raw resume text (alternative to file_path)',
+              description: 'Raw resume text (preferred)',
+            },
+            file_name: {
+              type: 'string',
+              description:
+                'Original file name (extension only is used to pick the parser)',
+            },
+            file_content_base64: {
+              type: 'string',
+              description: 'Base64-encoded resume file bytes',
             },
           },
         },
@@ -74,34 +80,35 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
   if (name === 'parse_resume') {
-    const { file_path, resume_text } = args as { file_path?: string; resume_text?: string };
-
-    if (!file_path && !resume_text) {
-      throw new Error('Either file_path or resume_text must be provided');
-    }
+    const { resume_text, file_name, file_content_base64 } = args as {
+      resume_text?: string;
+      file_name?: string;
+      file_content_base64?: string;
+    };
 
     let result: ResumeStructure;
 
-    if (file_path) {
-      if (typeof file_path !== 'string') {
-        throw new Error('file_path must be a string');
-      }
-
-      const lowerPath = file_path.toLowerCase();
-      if (lowerPath.endsWith('.pdf')) {
-        result = await parseResumeFromPDF(file_path);
-      } else if (lowerPath.endsWith('.txt') || lowerPath.endsWith('.md')) {
-        result = await parseResumeFromText(file_path);
-      } else {
-        throw new Error('Unsupported file format. Only PDF and TXT files are supported.');
-      }
-    } else if (resume_text) {
-      if (typeof resume_text !== 'string') {
-        throw new Error('resume_text must be a string');
-      }
+    if (typeof resume_text === 'string' && resume_text.length > 0) {
       result = parseResume(resume_text);
+    } else if (
+      typeof file_content_base64 === 'string' &&
+      file_content_base64.length > 0
+    ) {
+      // Stateless PDF path: the bytes come in the request, so the server
+      // never opens anything from the filesystem.
+      const lowerName = (file_name ?? '').toLowerCase();
+      if (!lowerName.endsWith('.pdf')) {
+        throw new Error(
+          'file_name must end with .pdf when file_content_base64 is provided',
+        );
+      }
+      const dataBuffer = Buffer.from(file_content_base64, 'base64');
+      const data = await pdf(dataBuffer);
+      result = parseResume(data.text, 'pdf');
     } else {
-      throw new Error('Invalid arguments');
+      throw new Error(
+        'Either resume_text or file_name + file_content_base64 must be provided',
+      );
     }
 
     return {
