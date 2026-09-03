@@ -298,8 +298,7 @@ class FileSecurityValidator:
             file_hash = hashlib.sha256(content).hexdigest()
 
             # Save file
-            with open(file_path, "wb") as f:
-                f.write(content)
+            Path(file_path).write_bytes(content)
 
             # Set secure permissions
             os.chmod(file_path, 0o600)  # Read/write for owner only
@@ -453,13 +452,15 @@ class SecureFileStorage:
             if not os.path.exists(file_path):
                 return False
 
-            # Overwrite file with random data
+            # Overwrite file with random data; fsync so the overwrite reaches
+            # disk before the file is unlinked below
             file_size = os.path.getsize(file_path)
-            with open(file_path, "wb") as f:
-                # Overwrite with random data
-                f.write(os.urandom(file_size))
-                f.flush()
-                os.fsync(f.fileno())
+            Path(file_path).write_bytes(os.urandom(file_size))
+            fd = os.open(file_path, os.O_WRONLY)
+            try:
+                os.fsync(fd)
+            finally:
+                os.close(fd)
 
             # Delete file
             os.remove(file_path)

@@ -9,6 +9,7 @@ import uuid
 import shutil
 import logging
 import os
+import re
 import tempfile
 from pathlib import Path
 from typing import Optional
@@ -42,6 +43,20 @@ CHUNK_DIR = TEMP_UPLOAD_ROOT / "chunks"
 UPLOAD_DIR = TEMP_UPLOAD_ROOT / "uploads"
 MAX_CHUNK_SIZE = 10 * 1024 * 1024  # 10MB max chunk size
 MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB max file size
+
+# fileId becomes a path segment under CHUNK_DIR, so restrict it to characters
+# that cannot form path separators or ".." traversal sequences
+_FILE_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+
+
+def _require_safe_file_id(file_id: str) -> None:
+    """Reject file IDs that could escape the chunk directory."""
+    if not _FILE_ID_PATTERN.match(file_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file ID",
+        )
+
 
 # Ensure directories exist
 CHUNK_DIR.mkdir(parents=True, exist_ok=True)
@@ -113,6 +128,8 @@ async def upload_chunk(
                 detail=f"File size exceeds maximum allowed size of {MAX_FILE_SIZE} bytes",
             )
 
+        _require_safe_file_id(fileId)
+
         # Create user-specific chunk directory
         user_chunk_dir = CHUNK_DIR / str(current_user.id) / fileId
         user_chunk_dir.mkdir(parents=True, exist_ok=True)
@@ -129,8 +146,7 @@ async def upload_chunk(
             )
 
         # Write chunk to disk
-        with open(chunk_path, "wb") as f:
-            f.write(chunk_content)
+        chunk_path.write_bytes(chunk_content)
 
         logger.info(
             f"Received chunk {chunkIndex + 1}/{totalChunks} "
@@ -178,6 +194,20 @@ async def complete_upload(
                 detail="totalChunks must be greater than 0",
             )
 
+        _require_safe_file_id(fileId)
+
+        # Strip any path components from the client-supplied name so the
+        # recombined file cannot land outside UPLOAD_DIR. Imported lazily:
+        # app.utils.file_security pulls in python-magic, which needs libmagic.
+        from app.utils.file_security import FileSecurityValidator
+
+        safe_file_name = FileSecurityValidator.sanitize_filename(fileName)
+        if not safe_file_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid file name",
+            )
+
         # Locate chunk directory
         user_chunk_dir = CHUNK_DIR / str(current_user.id) / fileId
         if not user_chunk_dir.exists():
@@ -200,16 +230,16 @@ async def complete_upload(
             )
 
         # Recombine chunks into final file
-        final_file_path = UPLOAD_DIR / f"{current_user.id}_{fileName}"
+        final_file_path = UPLOAD_DIR / f"{current_user.id}_{safe_file_name}"
 
-        with open(final_file_path, "wb") as output_file:
+        with final_file_path.open("wb") as output_file:
             for i in range(totalChunks):
                 chunk_path = user_chunk_dir / f"chunk_{i}"
                 with open(chunk_path, "rb") as chunk_file:
                     shutil.copyfileobj(chunk_file, output_file)
 
         logger.info(
-            f"Recombined {totalChunks} chunks into {fileName} "
+            f"Recombined {totalChunks} chunks into {safe_file_name} "
             f"(user: {current_user.id}, size: {final_file_path.stat().st_size} bytes)"
         )
 
@@ -217,12 +247,12 @@ async def complete_upload(
         if uploadType == "jd":
             # Process as Job Description
             result = await _process_jd_upload(
-                db, current_user.id, final_file_path, fileName, title
+                db, current_user.id, final_file_path, safe_file_name, title
             )
         else:
             # Process as Resume (default)
             result = await _process_resume_upload(
-                db, current_user.id, final_file_path, fileName, title
+                db, current_user.id, final_file_path, safe_file_name, title
             )
 
         # Clean up chunks
@@ -330,6 +360,8 @@ async def cleanup_chunks(
     Removes all temporary chunk files for the given file ID.
     """
     try:
+        _require_safe_file_id(fileId)
+
         user_chunk_dir = CHUNK_DIR / str(current_user.id) / fileId
 
         if not user_chunk_dir.exists():

@@ -36,17 +36,30 @@ interface APIError {
 // Core 1: envelope-style client (never throws)
 // ---------------------------------------------------------------------------
 
+/**
+ * Envelope-core paths are unprefixed (`/resumes`, `/applications/`,
+ * `/auth/...`), so the base URL must always carry the `/api` prefix.
+ * NEXT_PUBLIC_API_URL documents the bare API root (the unified core adds
+ * `/api` to the same value), so normalize here instead of requiring every
+ * deployment env to remember the suffix.
+ */
+function resolveEnvelopeBaseURL(explicit?: string): string {
+  const raw = (explicit ?? process.env.NEXT_PUBLIC_API_URL ?? '/api').replace(/\/+$/, '');
+  if (!raw) return '/api';
+  return raw.endsWith('/api') ? raw : `${raw}/api`;
+}
+
 class APIClient {
   private baseURL: string;
   private timeout: number;
   private retryCount: number;
 
   constructor(
-    baseURL: string = process.env.NEXT_PUBLIC_API_URL || '/api',
+    baseURL?: string,
     timeout: number = 30000,
     retryCount: number = 3
   ) {
-    this.baseURL = baseURL;
+    this.baseURL = resolveEnvelopeBaseURL(baseURL);
     this.timeout = timeout;
     this.retryCount = retryCount;
   }

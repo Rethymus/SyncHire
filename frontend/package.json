@@ -66,7 +66,6 @@
   "devDependencies": {
     "@eslint/compat": "^2.1.0",
     "@eslint/eslintrc": "^3.3.5",
-    "@faker-js/faker": "^9.0.3",
     "@playwright/test": "^1.48.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.0",
@@ -87,7 +86,6 @@
     "eslint-config-next": "16.2.7",
     "happy-dom": "^20.10.2",
     "jsdom": "^29.1.1",
-    "msw": "2.12.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.8"

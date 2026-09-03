@@ -198,10 +198,11 @@ function AnalyticsPageContent() {
         interviewRate: "面试邀请率",
         interviewRateDescription: "份申请中有",
         interviewUnit: "份面试",
-        interviewSuccessRate: "面试成功率",
+        interviewSuccessRate: "面试转化",
         interviewSuccessDescription: "面试后获得录用的比例",
         averageMatch: "平均匹配度",
         averageMatchDescription: "本地分析的平均匹配分数",
+        noData: "暂无数据",
         activityTrend: "活动趋势",
         statusDistribution: "状态分布",
         weeklyTrend: "周度趋势分析",
@@ -228,10 +229,11 @@ function AnalyticsPageContent() {
         interviewRate: "Interview Rate",
         interviewRateDescription: "applications produced",
         interviewUnit: "interviews",
-        interviewSuccessRate: "Interview Success Rate",
+        interviewSuccessRate: "Interview Conversion",
         interviewSuccessDescription: "Share of interviews that converted to offers",
         averageMatch: "Average Match",
         averageMatchDescription: "Average locally analyzed match score",
+        noData: "No data yet",
         activityTrend: "Activity Trend",
         statusDistribution: "Status Distribution",
         weeklyTrend: "Weekly Trend Analysis",
@@ -387,7 +389,11 @@ function AnalyticsPageContent() {
               <Target className="h-5 w-5 text-blue-600" />
             </div>
             <div className="text-4xl font-bold text-foreground mb-2">
-              {analytics.success_rates.application_to_interview_rate}%
+              {/* Data honesty (docs/DESIGN_ETHICS.md §3): a rate with no
+                  denominator is unknown — never rendered as 0%. */}
+              {analytics.success_rates.total_applications > 0
+                ? `${analytics.success_rates.application_to_interview_rate}%`
+                : labels.noData}
             </div>
             <p className="text-sm text-muted-foreground">
               {zh
@@ -404,7 +410,9 @@ function AnalyticsPageContent() {
               <TrendingUp className="h-5 w-5 text-green-600" />
             </div>
             <div className="text-4xl font-bold text-foreground mb-2">
-              {analytics.success_rates.interview_to_offer_rate}%
+              {analytics.overview.interview_count > 0
+                ? `${analytics.success_rates.interview_to_offer_rate}%`
+                : labels.noData}
             </div>
             <p className="text-sm text-muted-foreground">
               {labels.interviewSuccessDescription}
@@ -419,7 +427,9 @@ function AnalyticsPageContent() {
               <Award className="h-5 w-5 text-purple-600" />
             </div>
             <div className="text-4xl font-bold text-foreground mb-2">
-              {analytics.success_rates.average_match_score}%
+              {analytics.success_rates.average_match_score > 0
+                ? `${analytics.success_rates.average_match_score}%`
+                : labels.noData}
             </div>
             <p className="text-sm text-muted-foreground">
               {labels.averageMatchDescription}

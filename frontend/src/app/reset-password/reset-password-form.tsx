@@ -13,6 +13,9 @@ import { logger } from "@/lib/logger";
 import { LogCategory } from "@/lib/logger";
 import { Lock, CheckCircle2, Eye, EyeOff } from "lucide-react";
 
+// 表单校验提示文案（集中定义，避免在提交逻辑里内联字面量）
+const PASSWORD_RULE_MESSAGE = "密码必须至少12个字符，包含大小写字母和数字";
+
 export function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -84,7 +87,7 @@ export function ResetPasswordForm() {
 
     if (!validatePassword(password)) {
       setErrors({
-        password: "密码必须至少12个字符，包含大小写字母和数字"
+        password: PASSWORD_RULE_MESSAGE
       });
       return;
     }

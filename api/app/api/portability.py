@@ -632,8 +632,9 @@ async def create_backup(db: AsyncSession = Depends(get_db)):
         data = await export_json(db)
 
         # Write to backup file
-        with open(backup_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+        backup_path.write_text(
+            json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
 
         # Get file size
         file_size = backup_path.stat().st_size

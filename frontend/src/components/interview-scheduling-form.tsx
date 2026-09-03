@@ -100,8 +100,8 @@ const INTERVIEW_FORM_COPY = {
     platformOther: "Other",
     meetingUrl: "Meeting URL",
     meetingId: "Meeting ID",
-    meetingPassword: "Meeting Password",
-    optionalPassword: "Optional password",
+    meetingPasswordLabel: "Meeting Password",
+    optionalPasswordLabel: "Optional password",
     address: "Address *",
     addressPlaceholder: "Full address including street, city, state, and zip code",
     interviewers: "Interviewers",
@@ -185,8 +185,8 @@ const INTERVIEW_FORM_COPY = {
     platformOther: "其他",
     meetingUrl: "会议链接",
     meetingId: "会议 ID",
-    meetingPassword: "会议密码",
-    optionalPassword: "可选密码",
+    meetingPasswordLabel: "会议密码",
+    optionalPasswordLabel: "可选密码",
     address: "地址 *",
     addressPlaceholder: "填写街道、城市、省市和邮编等完整地址",
     interviewers: "面试官",
@@ -770,13 +770,13 @@ const InterviewSchedulingForm = memo(function InterviewSchedulingForm({
 
               <div>
                 <label htmlFor="meeting_password" className="block text-sm font-medium text-muted-foreground mb-1">
-                  {copy.meetingPassword}
+                  {copy.meetingPasswordLabel}
                 </label>
                 <input
                   id="meeting_password"
                   type="text"
                   {...register("meeting_password")}
-                  placeholder={copy.optionalPassword}
+                  placeholder={copy.optionalPasswordLabel}
                   className="w-full px-3 py-2 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>

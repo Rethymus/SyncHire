@@ -557,8 +557,7 @@ class PDFGenerator:
         if output_path:
             output_path = Path(output_path)
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(output_path, "wb") as f:
-                f.write(pdf_bytes)
+            output_path.write_bytes(pdf_bytes)
 
         return pdf_bytes
 

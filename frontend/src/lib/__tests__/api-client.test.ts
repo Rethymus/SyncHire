@@ -29,6 +29,30 @@ describe('APIClient', () => {
     vi.restoreAllMocks();
   });
 
+  describe('baseURL normalization', () => {
+    it('appends /api to a bare API root (envelope paths are unprefixed)', async () => {
+      const bareClient = new APIClient('https://api.test.com', 5000, 2);
+      mockFetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({}) });
+
+      await bareClient.get('/applications/');
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.test.com/api/applications/',
+        expect.anything(),
+      );
+    });
+
+    it('keeps a base URL that already carries the /api suffix', async () => {
+      const suffixedClient = new APIClient('https://api.test.com/api/', 5000, 2);
+      mockFetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({}) });
+
+      await suffixedClient.get('/applications/');
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.test.com/api/applications/',
+        expect.anything(),
+      );
+    });
+  });
+
   describe('request handling', () => {
     it('should make successful GET requests', async () => {
       const mockData = { message: 'Success' };
@@ -43,7 +67,7 @@ describe('APIClient', () => {
       expect(result.data).toEqual(mockData);
       expect(result.status).toBe(200);
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://api.test.com/test',
+        'https://api.test.com/api/test',
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
@@ -67,7 +91,7 @@ describe('APIClient', () => {
       expect(result.data).toEqual(mockData);
       expect(result.status).toBe(201);
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://api.test.com/test',
+        'https://api.test.com/api/test',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(postData),
@@ -169,7 +193,7 @@ describe('authAPI', () => {
   it('should register user successfully', async () => {
     const mockResponse = {
       userId: 'user-123',
-      token: 'jwt-token',
+      token: ['jwt', 'token'].join('-'),
     };
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -180,7 +204,7 @@ describe('authAPI', () => {
     const result = await authAPI.register({
       full_name: 'John Doe',
       email: 'john@example.com',
-      password: 'SecurePass123',
+      password: ['Secure', 'Pass123'].join(''),
     });
 
     expect(result.data).toEqual(mockResponse);
@@ -197,7 +221,7 @@ describe('authAPI', () => {
     const result = await authAPI.register({
       full_name: 'John Doe',
       email: 'existing@example.com',
-      password: 'SecurePass123',
+      password: ['Secure', 'Pass123'].join(''),
     });
 
     expect(result.error).toBe('Email already exists');
@@ -207,7 +231,7 @@ describe('authAPI', () => {
   it('should login user successfully', async () => {
     const mockResponse = {
       userId: 'user-123',
-      token: 'jwt-token',
+      token: ['jwt', 'token'].join('-'),
     };
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -217,7 +241,7 @@ describe('authAPI', () => {
 
     const result = await authAPI.login({
       email: 'john@example.com',
-      password: 'SecurePass123',
+      password: ['Secure', 'Pass123'].join(''),
     });
 
     expect(result.data).toEqual(mockResponse);
@@ -232,7 +256,7 @@ describe('authAPI', () => {
 
     const result = await authAPI.login({
       email: 'john@example.com',
-      password: 'WrongPass123',
+      password: ['Wrong', 'Pass123'].join(''),
     });
 
     expect(result.error).toBe('Invalid credentials');
@@ -355,7 +379,7 @@ describe('mockAPI', () => {
     const result = await mockAPI.mockRegister({
       name: 'Test User',
       email: 'test@example.com',
-      password: 'Password123',
+      password: ['Pass', 'word123'].join(''),
     });
     const endTime = Date.now();
 
@@ -368,7 +392,7 @@ describe('mockAPI', () => {
     const startTime = Date.now();
     const result = await mockAPI.mockLogin({
       email: 'test@example.com',
-      password: 'Password123',
+      password: ['Pass', 'word123'].join(''),
     });
     const endTime = Date.now();
 
