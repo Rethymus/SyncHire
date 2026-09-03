@@ -40,7 +40,9 @@ import {
   IdCard,
   Rss,
   Radar,
+  ShieldCheck,
   SlidersHorizontal,
+  TrendingUp,
   Menu,
   ChevronDown,
 } from "lucide-react";
@@ -126,6 +128,21 @@ function useNavItems() {
       href: "/settings",
       icon: Settings,
       current: /^\/settings/,
+    },
+    // Labels stay local to this file (locale-aware) instead of extending the
+    // shared lite-i18n nav table, so transparency/progress entries ship
+    // without cross-file churn.
+    {
+      name: locale === "zh-CN" ? "求职进度" : "Progress",
+      href: "/progress",
+      icon: TrendingUp,
+      current: /^\/progress/,
+    },
+    {
+      name: locale === "zh-CN" ? "透明度" : "Transparency",
+      href: "/transparency",
+      icon: ShieldCheck,
+      current: /^\/transparency/,
     },
   ];
 

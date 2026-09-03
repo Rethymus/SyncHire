@@ -243,6 +243,7 @@ async def test_resume_optimize_returns_optimization_result_shape(
         "changes_made",
         "keywords_added",
         "sections_improved",
+        "ai_assisted",
     }
     assert payload["optimized_content"] == "Optimized resume with kubernetes"
     assert "kubernetes" in payload["keywords_added"]
@@ -254,3 +255,20 @@ async def test_resume_optimize_returns_optimization_result_shape(
         "/api/resumes/00000000-0000-0000-0000-000000000000/optimize", json={}
     )
     assert missing.status_code == 404
+
+
+async def test_resume_optimize_marks_result_as_ai_assisted(
+    lite_client: AsyncClient,
+) -> None:
+    resume = (
+        await lite_client.post(
+            "/api/resumes", json={"title": "Resume", "content": "original"}
+        )
+    ).json()
+
+    optimize_response = await lite_client.post(
+        f"/api/resumes/{resume['id']}/optimize",
+        json={"jd_content": "kubernetes docker python"},
+    )
+    assert optimize_response.status_code == 200
+    assert optimize_response.json()["ai_assisted"] is True

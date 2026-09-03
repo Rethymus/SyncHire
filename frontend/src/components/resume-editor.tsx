@@ -12,6 +12,7 @@ import { resumeAPI, type ResumeOptimizationResult } from "@/lib/api-client";
 import { useRouter } from "next/navigation";
 import { TemplateGallery } from "@/components/template-gallery";
 import { SavedTemplatesManager } from "@/components/saved-templates-manager";
+import { AiAssistedBadge } from "@/components/ai-assisted-badge";
 import { ResumeEditorSkeleton } from "@/components/skeleton";
 import { logger, LogCategory } from "@/lib/logger";
 import { useLiteCopy } from "@/lib/lite-i18n";
@@ -751,7 +752,10 @@ function ResumeEditorComponent() {
             <div className="p-6 border-b border-border">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold text-foreground">{copy.optimizationTitle}</h3>
+                  <h3 className="flex items-center gap-2 text-xl font-semibold text-foreground">
+                    {copy.optimizationTitle}
+                    <AiAssistedBadge />
+                  </h3>
                   <p className="text-sm text-muted-foreground mt-1">
                     {copy.optimizationSubtitle}
                   </p>
@@ -829,7 +833,10 @@ function ResumeEditorComponent() {
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-foreground mb-3">{copy.optimized}</h4>
+                  <h4 className="mb-3 flex items-center gap-2 font-medium text-foreground">
+                    {copy.optimized}
+                    <AiAssistedBadge />
+                  </h4>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 h-96 overflow-auto">
                     <div
                       className="prose prose-sm max-w-none"

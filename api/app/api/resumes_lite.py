@@ -334,10 +334,11 @@ async def optimize_resume(
         db: Database session
 
     Returns:
-        ``{optimized_content, changes_made, keywords_added, sections_improved}``
-        — the same shape the full-stack AIService.optimize_resume returns and
-        the frontend resume editor consumes. The optimized content is also
-        persisted onto the resume record.
+        ``{optimized_content, changes_made, keywords_added, sections_improved,
+        ai_assisted}`` — the same shape the full-stack AIService.optimize_resume
+        returns and the frontend resume editor consumes. ``ai_assisted`` flags
+        the output as AI-generated so the UI can label it for human review.
+        The optimized content is also persisted onto the resume record.
     """
     try:
         resume_uuid = parse_uuid(resume_id, "resume_id")
@@ -393,6 +394,7 @@ async def optimize_resume(
             "changes_made": changes_made,
             "keywords_added": keywords_added,
             "sections_improved": sections_improved,
+            "ai_assisted": True,
         }
 
     except HTTPException:

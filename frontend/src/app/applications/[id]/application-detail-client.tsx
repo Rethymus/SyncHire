@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Breadcrumb } from "@/components/breadcrumb";
+import { AiAssistedBadge } from "@/components/ai-assisted-badge";
 import { logger, LogCategory } from "@/lib/logger";
 import {
   applicationAPI,
@@ -53,15 +54,44 @@ import {
   Sparkles,
 } from "lucide-react";
 
+/**
+ * Status badge config for BOTH status vocabularies this page can receive:
+ * the lite-store 7-value union (draft/applied/…, camelCase consumers) and
+ * the backend's real 12-value `ApplicationStatus` enum (API-fed
+ * applications). Labels for the enum values follow the neutral wording in
+ * `progress/status-meta.ts`. Lookups must go through `statusConfigFor` —
+ * an unknown value falls back instead of crashing the page render.
+ */
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+  // Lite-store legacy values
   draft: { label: "草稿", color: "bg-muted text-gray-800", icon: FileText },
   applied: { label: "已申请", color: "bg-blue-100 text-blue-800", icon: Clock },
   interview: { label: "面试中", color: "bg-purple-100 text-purple-800", icon: MessageSquare },
-  offer: { label: "已录用", color: "bg-green-100 text-green-800", icon: CheckCircle2 },
+  offer: { label: "Offer", color: "bg-green-100 text-green-800", icon: CheckCircle2 },
   rejected: { label: "已拒绝", color: "bg-red-100 text-red-800", icon: XCircle },
   optimized: { label: "已优化", color: "bg-green-100 text-green-800", icon: TrendingUp },
   pending: { label: "处理中", color: "bg-yellow-100 text-yellow-800", icon: Clock },
+  // Real ApplicationStatus enum (openapi)
+  saved: { label: "已收藏", color: "bg-muted text-gray-800", icon: FileText },
+  targeted: { label: "已定位", color: "bg-sky-100 text-sky-800", icon: Target },
+  materials_ready: { label: "材料就绪", color: "bg-indigo-100 text-indigo-800", icon: FileText },
+  submitted: { label: "已递交", color: "bg-blue-100 text-blue-800", icon: Clock },
+  screening: { label: "筛选中", color: "bg-cyan-100 text-cyan-800", icon: Clock },
+  technical: { label: "技术面", color: "bg-purple-100 text-purple-800", icon: MessageSquare },
+  hired: { label: "已入职", color: "bg-green-100 text-green-800", icon: CheckCircle2 },
+  withdrawn: { label: "已撤回", color: "bg-muted text-gray-800", icon: XCircle },
 };
+
+function statusConfigFor(status: string | null | undefined) {
+  const entry = status ? statusConfig[status] : undefined;
+  return (
+    entry ?? {
+      label: status || "未知",
+      color: "bg-muted text-gray-800",
+      icon: FileText,
+    }
+  );
+}
 
 export default function ApplicationDetailClient() {
   const { locale } = useLiteCopy();
@@ -374,7 +404,7 @@ export default function ApplicationDetailClient() {
     }
   }, [applicationId, application, isLocalApplication, notes]);
 
-  const config = application ? statusConfig[application.status] : statusConfig.pending;
+  const config = statusConfigFor(application?.status);
   const StatusIcon = config?.icon || Clock;
 
   if (loading) {
@@ -665,6 +695,9 @@ export default function ApplicationDetailClient() {
                     <div className="flex items-center gap-2 mb-2">
                       <CheckCircle2 className="h-5 w-5 text-green-600" />
                       <h3 className="font-semibold text-green-900">优化完成</h3>
+                      {/* Only the backend path is AI-generated; local tailored
+                          resumes are produced by a deterministic local generator. */}
+                      {!isLocalApplication && <AiAssistedBadge />}
                     </div>
                   <p className="text-sm text-green-800">
                       已根据本地角色卡和职位描述生成岗位化简历。请在编辑器中审核内容，再导出 PDF 人工提交。
@@ -743,7 +776,7 @@ export default function ApplicationDetailClient() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 text-sm">
                               <span className="font-medium text-foreground">
-                                {statusConfig[history.old_status ?? ""]?.label || "开始"} → {statusConfig[history.new_status]?.label}
+                                {history.old_status ? statusConfigFor(history.old_status).label : "开始"} → {statusConfigFor(history.new_status).label}
                               </span>
                               <span className="text-muted-foreground">
                                 {new Date(history.changed_at).toLocaleString()}

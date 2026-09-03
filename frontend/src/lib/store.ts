@@ -65,6 +65,24 @@ export type OnboardingStep =
   | "tutorial"
   | "complete";
 
+/**
+ * Rejection-recovery micro-flow (RejectionRecoveryCard). One of the three
+ * autonomy-supportive next-step choices the card offers.
+ */
+export type RecoveryActionChoice = "tune_resume" | "switch_channel" | "rest";
+
+/** Per-application record of the rejection-recovery card being handled. */
+export interface RejectionRecoveryEntry {
+  applicationId: string;
+  /** True once the user explicitly collapsed the card. */
+  dismissed: boolean;
+  /** ISO string (not a Date) so persistence needs no date hydration. */
+  dismissedAt?: string | null;
+  chosenAction?: RecoveryActionChoice | null;
+  /** ISO string; present once the user picked a next step. */
+  chosenAt?: string | null;
+}
+
 interface ToastAction {
   showSuccess: (title: string, description?: string) => void;
   showError: (title: string, description?: string) => void;
@@ -125,6 +143,11 @@ interface AppState {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
 
+  // Rejection-recovery state (dismissible guided card on the progress page)
+  rejectionRecovery: Record<string, RejectionRecoveryEntry>;
+  dismissRejectionRecovery: (applicationId: string) => void;
+  chooseRecoveryAction: (applicationId: string, action: RecoveryActionChoice) => void;
+
   // Onboarding state
   hasHydrated: boolean;
   hydrateFromStorage: () => Promise<void>;
@@ -152,6 +175,7 @@ type PersistedAppState = Pick<
   | "selectedTemplate"
   | "templateCustomization"
   | "onboarding"
+  | "rejectionRecovery"
 >;
 
 function parseDate(value: unknown, fallback = new Date()): Date {
@@ -208,6 +232,38 @@ function hydrateBrowserFillSession(session: BrowserFillSession): BrowserFillSess
   };
 }
 
+function hydrateRejectionRecovery(
+  value: unknown
+): Record<string, RejectionRecoveryEntry> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  const entries: Record<string, RejectionRecoveryEntry> = {};
+  for (const [applicationId, raw] of Object.entries(
+    value as Record<string, unknown>
+  )) {
+    if (!raw || typeof raw !== "object") continue;
+    const candidate = raw as Partial<RejectionRecoveryEntry>;
+    if (typeof candidate.dismissed !== "boolean") continue;
+    entries[applicationId] = {
+      applicationId,
+      dismissed: candidate.dismissed,
+      dismissedAt:
+        typeof candidate.dismissedAt === "string" ? candidate.dismissedAt : null,
+      chosenAction:
+        candidate.chosenAction === "tune_resume" ||
+        candidate.chosenAction === "switch_channel" ||
+        candidate.chosenAction === "rest"
+          ? candidate.chosenAction
+          : null,
+      chosenAt:
+        typeof candidate.chosenAt === "string" ? candidate.chosenAt : null,
+    };
+  }
+  return entries;
+}
+
 function hydratePersistedState(state: Partial<PersistedAppState>): Partial<PersistedAppState> {
   const resumes = Array.isArray(state.resumes)
     ? state.resumes.map(hydrateResume)
@@ -240,6 +296,7 @@ function hydratePersistedState(state: Partial<PersistedAppState>): Partial<Persi
     currentJD,
     candidateProfile,
     browserFillSessions,
+    rejectionRecovery: hydrateRejectionRecovery(state.rejectionRecovery),
     onboarding: state.onboarding
       ? {
           ...state.onboarding,
@@ -293,6 +350,7 @@ function persistState(state: AppState) {
     selectedTemplate: state.selectedTemplate,
     templateCustomization: state.templateCustomization,
     onboarding: state.onboarding,
+    rejectionRecovery: state.rejectionRecovery,
   };
 
   const payload = JSON.stringify({
@@ -334,6 +392,7 @@ export const useAppStore = create<AppState>()((set) => ({
   browserFillSessions: [],
   sidebarOpen: true,
   hasHydrated: false,
+  rejectionRecovery: {},
   onboarding: {
     isOnboarded: false,
     currentStep: 0,
@@ -359,6 +418,7 @@ export const useAppStore = create<AppState>()((set) => ({
         applications: [],
         jobDescriptions: [],
         currentJD: null,
+        rejectionRecovery: {},
       };
       clearPersistedState();
       return nextState;
@@ -586,6 +646,41 @@ export const useAppStore = create<AppState>()((set) => ({
   // UI actions
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
+  // Rejection-recovery actions (additive slice; keyed by application id)
+  dismissRejectionRecovery: (applicationId) =>
+    set((state) => {
+      const existing = state.rejectionRecovery[applicationId];
+      const rejectionRecovery: Record<string, RejectionRecoveryEntry> = {
+        ...state.rejectionRecovery,
+        [applicationId]: {
+          applicationId,
+          dismissed: true,
+          dismissedAt: new Date().toISOString(),
+          chosenAction: existing?.chosenAction ?? null,
+          chosenAt: existing?.chosenAt ?? null,
+        },
+      };
+      persistState({ ...state, rejectionRecovery });
+      return { rejectionRecovery };
+    }),
+
+  chooseRecoveryAction: (applicationId, action) =>
+    set((state) => {
+      const existing = state.rejectionRecovery[applicationId];
+      const rejectionRecovery: Record<string, RejectionRecoveryEntry> = {
+        ...state.rejectionRecovery,
+        [applicationId]: {
+          applicationId,
+          dismissed: existing?.dismissed ?? false,
+          dismissedAt: existing?.dismissedAt ?? null,
+          chosenAction: action,
+          chosenAt: new Date().toISOString(),
+        },
+      };
+      persistState({ ...state, rejectionRecovery });
+      return { rejectionRecovery };
+    }),
+
   // Onboarding actions
   hydrateFromStorage: async () => {
     const persistedState = await loadPersistedState();
@@ -607,6 +702,8 @@ export const useAppStore = create<AppState>()((set) => ({
         selectedTemplate: persistedState.selectedTemplate ?? state.selectedTemplate,
         templateCustomization:
           persistedState.templateCustomization ?? state.templateCustomization,
+        rejectionRecovery:
+          persistedState.rejectionRecovery ?? state.rejectionRecovery,
         onboarding: persistedState.onboarding ?? state.onboarding,
         hasHydrated: true,
       };
