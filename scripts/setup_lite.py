@@ -52,11 +52,12 @@ def check_environment():
             print(f"  ✓ Created {env_file} from .env.example")
         else:
             print(f"  ⚠️  No .env.example found. Creating minimal .env.lite...")
-            with open(".env.lite", "w") as f:
-                f.write("# SyncHire Lite Configuration\n")
-                f.write("DEBUG=false\n")
-                f.write("OPENAI_API_KEY=\n")
-                f.write("ANTHROPIC_API_KEY=\n")
+            env_file.write_text(
+                "# SyncHire Lite Configuration\n"
+                "DEBUG=false\n"
+                "OPENAI_API_KEY=\n"
+                "ANTHROPIC_API_KEY=\n"
+            )
             print(f"  ✓ Created minimal {env_file}")
 
     # Check AI API keys

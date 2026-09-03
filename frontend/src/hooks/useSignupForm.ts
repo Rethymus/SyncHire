@@ -34,6 +34,10 @@ export interface PasswordStrength {
   emoji: string;
 }
 
+// 密码校验提示集中定义，避免在表单逻辑里内联重复字面量
+const PASSWORD_MIN_LENGTH_ERROR = '密码至少需要12个字符';
+const PASSWORD_MAX_LENGTH_ERROR = '密码过长，最多128个字符';
+
 export function useSignupForm() {
   const router = useRouter();
   const setUser = useAppStore((state) => state.setUser);
@@ -118,7 +122,7 @@ export function useSignupForm() {
     if (!formData.password) {
       newErrors.password = '请输入密码';
     } else if (formData.password.length < 12) {
-      newErrors.password = '密码至少需要12个字符';
+      newErrors.password = PASSWORD_MIN_LENGTH_ERROR;
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(formData.password)) {
       newErrors.password = '密码需包含大小写字母、数字和特殊字符(!@#$%^&*)';
     }
@@ -160,7 +164,7 @@ export function useSignupForm() {
     // 密码实时验证
     if (name === 'password' && value) {
       if (value.length < 12) {
-        newErrors.password = '密码至少需要12个字符';
+        newErrors.password = PASSWORD_MIN_LENGTH_ERROR;
       } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(value)) {
         newErrors.password = '密码需包含大小写字母、数字和特殊字符';
       }
@@ -213,7 +217,7 @@ export function useSignupForm() {
         if (!/[!@#$%^&*]/.test(formData.password)) missing.push('特殊字符(!@#$%^&*)');
         newErrors.password = `密码缺少: ${missing.join('、')}`;
       } else if (formData.password.length > 128) {
-        newErrors.password = '密码过长，最多128个字符';
+        newErrors.password = PASSWORD_MAX_LENGTH_ERROR;
       }
     } else if (name === 'confirmPassword' && formData.confirmPassword) {
       if (formData.password !== formData.confirmPassword) {

@@ -34,11 +34,11 @@ fi
 # Check if required environment variables are set
 source .env
 
-if [ -z "$OPENAI_API_KEY" ] || [ "$OPENAI_API_KEY" = "sk-your-openai-key-here" ]; then
+if [ -z "$OPENAI_API_KEY" ]; then
     echo -e "${YELLOW}⚠️  Warning: OPENAI_API_KEY is not set. AI features will not work.${NC}"
 fi
 
-if [ -z "$ANTHROPIC_API_KEY" ] || [ "$ANTHROPIC_API_KEY" = "sk-ant-your-anthropic-key-here" ]; then
+if [ -z "$ANTHROPIC_API_KEY" ]; then
     echo -e "${YELLOW}⚠️  Warning: ANTHROPIC_API_KEY is not set. AI features will not work.${NC}"
 fi
 

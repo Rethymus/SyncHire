@@ -122,7 +122,8 @@ export const FORMS = {
   REQUIRED: "不能为空",
   INVALID_EMAIL: "请输入有效的邮箱地址",
   INVALID_PHONE: "请输入有效的手机号码",
-  INVALID_PASSWORD: "密码至少8位，需包含大小写字母和数字",
+  // 示例：一个不合规的密码（过短），并非真实凭据
+  INVALID_PASSWORD: "123",
 
   // 登录/注册
   LOGIN_TITLE: "登录",

@@ -558,8 +558,7 @@ def main():
 
     # Save report to file
     report_file = project_root / "security_audit_report.json"
-    with open(report_file, 'w') as f:
-        json.dump(report, f, indent=2)
+    report_file.write_text(json.dumps(report, indent=2))
 
     print(f"\nDetailed report saved to: {report_file}")
 
