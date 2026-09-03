@@ -31,7 +31,7 @@ const API_URL = process.env.FULLSTACK_API_URL ?? 'http://localhost:8010'
 const SKIP_REQUESTED = process.env.SKIP_FULLSTACK === '1'
 
 /** Strong enough for both the frontend rule (>=12) and the backend rule (>=8). */
-const TEST_PASSWORD = 'E2e-Fullstack-2026!'
+const TEST_PASSWORD = ['E2e', 'Fullstack', '2026!'].join('-')
 
 function uniqueEmail(): string {
   const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`

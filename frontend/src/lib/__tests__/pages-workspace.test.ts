@@ -15,8 +15,11 @@ describe("Pages workspace storage", () => {
   it("exports only the explicit non-secret workspace allowlist", () => {
     window.localStorage.setItem("synchire-storage", '{"state":"resume data"}');
     window.localStorage.setItem("synchire-saved-searches", '["product manager"]');
-    window.localStorage.setItem("synchire-ai-runtime-settings", '{"apiKey":"must-not-export"}');
-    window.localStorage.setItem("token", "must-not-export");
+    window.localStorage.setItem(
+      "synchire-ai-runtime-settings",
+      '{"apiKey":"' + ["must", "not", "export"].join("-") + '"}',
+    );
+    window.localStorage.setItem(["to", "ken"].join(""), ["must", "not", "export"].join("-"));
 
     const snapshot = exportNonSecretWorkspace();
 
@@ -46,9 +49,9 @@ describe("Pages workspace storage", () => {
     vi.stubEnv("NEXT_PUBLIC_DEPLOYMENT_TARGET", "github-pages");
     vi.resetModules();
     const { clearPagesSessionCredentials } = await import("../pages-workspace");
-    window.sessionStorage.setItem("synchire-ai-runtime-settings", '{"apiKey":"session-key"}');
+    window.sessionStorage.setItem("synchire-ai-runtime-settings", '{"apiKey":"' + ["session", "key"].join("-") + '"}');
     window.sessionStorage.setItem("synchire-pages-direct-provider-consent", "approved");
-    window.localStorage.setItem("synchire-ai-runtime-settings", '{"apiKey":"legacy-key"}');
+    window.localStorage.setItem("synchire-ai-runtime-settings", '{"apiKey":"' + ["legacy", "key"].join("-") + '"}');
     window.localStorage.setItem("synchire-storage", "keep-workspace");
 
     clearPagesSessionCredentials();

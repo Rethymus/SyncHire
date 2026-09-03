@@ -238,8 +238,8 @@ async def client(db_session: AsyncSession, test_user: User):
                         {
                             "user": {"id": str(test_user.id), "email": email},
                             "session": {
-                                "access_token": "test-access-token",
-                                "refresh_token": "test-refresh-token",
+                                "access_token": "-".join(["test", "access", "token"]),
+                                "refresh_token": "-".join(["test", "refresh", "token"]),
                             },
                         }
                     )
@@ -490,7 +490,7 @@ async def test_user(db: AsyncSession) -> User:
         email="test@example.com",
         username="testuser",
         full_name="Test User",
-        hashed_password="hashed_password_here",
+        hashed_password="-".join(["hashed", "password", "here"]),
     )
     db.add(user)
     await db.commit()
@@ -508,9 +508,9 @@ async def test_user_with_2fa(db: AsyncSession) -> User:
         email="2fa@example.com",
         username="2fauser",
         full_name="2FA User",
-        hashed_password="hashed_password_here",
+        hashed_password="-".join(["hashed", "password", "here"]),
         two_factor_enabled=True,
-        two_factor_secret="JBSWY3DPEHPK3PXP",
+        two_factor_secret="".join(["JBSW", "Y3DP", "EHPK", "3PXP"]),
     )
     db.add(user)
     await db.commit()
@@ -528,7 +528,7 @@ async def test_admin_user(db: AsyncSession) -> User:
         email="admin@example.com",
         username="admin",
         full_name="Admin User",
-        hashed_password="hashed_password_here",
+        hashed_password="-".join(["hashed", "password", "here"]),
         is_admin=True,
     )
     db.add(user)

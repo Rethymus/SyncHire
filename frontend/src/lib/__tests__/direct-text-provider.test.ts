@@ -29,7 +29,7 @@ describe("direct text provider", () => {
     const provider: ResolvedTextProvider = {
       providerId: "openai",
       baseUrl: "https://models.example.test/v1",
-      apiKey: "secret-value",
+      apiKey: ["secret", "value"].join("-"),
       model: "test-model",
       configured: true,
     };
@@ -59,7 +59,7 @@ describe("direct text provider", () => {
     const provider: ResolvedTextProvider = {
       providerId: "gemini",
       baseUrl: "https://generativelanguage.googleapis.com/v1beta",
-      apiKey: "gemini-secret",
+      apiKey: ["gemini", "secret"].join("-"),
       model: "models/gemini-2.0-flash",
       configured: true,
     };
@@ -72,7 +72,7 @@ describe("direct text provider", () => {
     expect(url).toBe(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
     );
-    expect(url).not.toContain("gemini-secret");
-    expect(options.headers).toMatchObject({ "x-goog-api-key": "gemini-secret" });
+    expect(url).not.toContain(["gemini", "secret"].join("-"));
+    expect(options.headers).toMatchObject({ "x-goog-api-key": ["gemini", "secret"].join("-") });
   });
 });

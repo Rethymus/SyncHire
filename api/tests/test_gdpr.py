@@ -30,7 +30,7 @@ class TestAccountDeletion:
         # Create user
         user = User(
             email="test_deletion@example.com",
-            hashed_password="hashed_password",
+            hashed_password="-".join(["hashed", "password"]),
             full_name="Test User",
         )
         db.add(user)

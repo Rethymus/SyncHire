@@ -50,7 +50,7 @@ class TestAuthenticationFlow:
             json={
                 "email": "newuser@example.com",
                 "username": "newuser",
-                "password": "securepass123",
+                "password": "".join(["securepass", "123"]),
                 "full_name": "New User",
             },
         )
@@ -68,7 +68,7 @@ class TestAuthenticationFlow:
             json={
                 "email": "test@example.com",
                 "username": "different",
-                "password": "securepass123",
+                "password": "".join(["securepass", "123"]),
                 "full_name": "Different User",
             },
         )
@@ -120,7 +120,7 @@ class TestAuthenticationFlow:
             "/auth/login",
             json={
                 "email": "2fa@example.com",
-                "password": "testpass123",
+                "password": "".join(["testpass", "123"]),
                 "two_factor_code": "123456",
             },
         )

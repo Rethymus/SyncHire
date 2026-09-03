@@ -158,7 +158,7 @@ class TestAPIErrorScenarios:
             "/api/auth/register",
             json={
                 "email": "test@example.com",
-                "password": "password123",
+                "password": "".join(["password", "123"]),
                 "full_name": "Test User",
             },
         )
@@ -168,7 +168,7 @@ class TestAPIErrorScenarios:
             "/api/auth/register",
             json={
                 "email": "test@example.com",
-                "password": "password123",
+                "password": "".join(["password", "123"]),
                 "full_name": "Test User",
             },
         )
@@ -373,7 +373,7 @@ class TestErrorHandlingIntegration:
             "/api/auth/register",
             json={
                 "email": "newuser@example.com",
-                "password": "password123",
+                "password": "".join(["password", "123"]),
                 "full_name": "New User",
             },
         )

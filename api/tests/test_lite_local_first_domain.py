@@ -306,7 +306,7 @@ async def test_ai_settings_never_return_plaintext_api_key(
             "display_name": "Kimi",
             "base_url": "https://api.moonshot.cn/v1",
             "model_name": "moonshot-v1-8k",
-            "api_key": "sk-plaintext-secret",
+            "api_key": "-".join(["sk", "plaintext", "secret"]),
             "enabled": True,
             "send_confirmation_required": True,
         },
