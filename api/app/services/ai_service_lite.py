@@ -12,6 +12,7 @@ from anthropic import AsyncAnthropic
 
 from app.core.config_lite import get_lite_settings
 from app.core.logger import logger, LogCategory
+from app.services.pii_scrub import restore_text, scrub_text_mapped
 
 settings = get_lite_settings()
 
@@ -34,6 +35,12 @@ class AIService:
             self.anthropic_client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
             logger.info(LogCategory.AI, "Anthropic client initialized")
 
+    def _scrub_outbound(self, text: str) -> tuple[str, dict[str, str]]:
+        """Mask PII before text is handed to a cloud LLM provider."""
+        if not settings.PII_SCRUB_ENABLED or not text:
+            return text, {}
+        return scrub_text_mapped(text)
+
     async def optimize_resume(self, resume_content: str, model: str = "gpt-4") -> str:
         """
         Optimize resume content using AI.
@@ -49,12 +56,13 @@ class AIService:
             if not self.openai_client:
                 raise ValueError("OpenAI client not initialized. Check API key.")
 
+            outbound_content, pii_map = self._scrub_outbound(resume_content)
             prompt = f"""
             Please optimize the following resume for better ATS compatibility and impact.
             Keep the same structure but improve wording, formatting, and clarity.
 
             Resume:
-            {resume_content}
+            {outbound_content}
 
             Return only the optimized resume content.
             """
@@ -74,6 +82,7 @@ class AIService:
 
             optimized = response.choices[0].message.content or resume_content
 
+            optimized = restore_text(optimized, pii_map)
             logger.info(LogCategory.AI, f"Resume optimized using {model}")
             return optimized
 
@@ -136,10 +145,11 @@ class AIService:
             return await self._parse_jd_openai(jd_content)
 
         try:
+            outbound_content, _ = self._scrub_outbound(jd_content)
             prompt = f"""
             Parse the following job description and extract key information in JSON format:
 
-            {jd_content}
+            {outbound_content}
 
             Return a JSON object with:
             - company: Company name
@@ -184,10 +194,11 @@ class AIService:
             if not self.openai_client:
                 raise ValueError("No AI clients available")
 
+            outbound_content, _ = self._scrub_outbound(jd_content)
             prompt = f"""
             Parse the following job description and extract key information in JSON format:
 
-            {jd_content}
+            {outbound_content}
 
             Return a JSON object with:
             - company: Company name
@@ -320,14 +331,16 @@ class AIService:
             if not self.openai_client:
                 return self._calculate_local_match_score(resume_content, jd_content)
 
+            outbound_resume, _ = self._scrub_outbound(resume_content)
+            outbound_jd, _ = self._scrub_outbound(jd_content)
             prompt = f"""
             Calculate a match score (0-100) between this resume and job description.
 
             Resume:
-            {resume_content[:2000]}
+            {outbound_resume[:2000]}
 
             Job Description:
-            {jd_content[:2000]}
+            {outbound_jd[:2000]}
 
             Consider:
             - Skills match
@@ -455,10 +468,11 @@ class AIService:
                     "What are your strengths and weaknesses?",
                 ]
 
+            outbound_content, _ = self._scrub_outbound(jd_content)
             prompt = f"""
             Generate {num_questions} interview questions based on this job description:
 
-            {jd_content}
+            {outbound_content}
 
             Questions should be specific to the role and requirements.
             Return each question on a separate line.

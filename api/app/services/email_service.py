@@ -9,7 +9,7 @@ from email.mime.multipart import MIMEMultipart
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from pathlib import Path
-from jinja2 import Template
+from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 import json
 import inspect
 import aiosmtplib
@@ -19,66 +19,35 @@ from app.core.logger import logger, LogCategory
 
 settings = get_settings()
 
+TEMPLATES_DIR = Path(__file__).resolve().parents[1] / "templates" / "email"
+
+# Context values (names, messages) are user-influenced, so autoescape must
+# stay on to keep them out of raw HTML. All templates are rendered through
+# this shared environment; none are ever built from raw strings.
+env = Environment(loader=FileSystemLoader(TEMPLATES_DIR), autoescape=True)
+
 
 class EmailTemplate:
     """Base class for email templates."""
+
+    # Fallback template (in TEMPLATES_DIR) used when the template file for
+    # this email does not exist. Subclasses override this.
+    default_template_name = "default_base.html"
 
     def __init__(self, template_name: str):
         self.template_name = template_name
         self.template = self._load_template()
 
-    def _load_template(self) -> Template:
+    def _load_template(self):
         """Load template from file or use default."""
-        template_path = (
-            Path(__file__).resolve().parents[1]
-            / "templates"
-            / "email"
-            / f"{self.template_name}.html"
-        )
         try:
-            with template_path.open("r", encoding="utf-8") as f:
-                return Template(f.read())
-        except FileNotFoundError:
+            return env.get_template(f"{self.template_name}.html")
+        except TemplateNotFound:
             logger.warning(
                 LogCategory.API,
-                f"Template file not found: {template_path}, using default",
+                f"Template file not found: {TEMPLATES_DIR / (self.template_name + '.html')}, using default",
             )
-            return self.get_default_template()
-
-    def get_default_template(self) -> Template:
-        """Fallback template if file not found."""
-        return Template("""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>{{ subject }}</title>
-                <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
-                    .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; }
-                    .button { display: inline-block; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }
-                    .footer { text-align: center; margin-top: 20px; color: #777; font-size: 12px; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>{{ subject }}</h1>
-                    </div>
-                    <div class="content">
-                        {{ content }}
-                    </div>
-                    <div class="footer">
-                        <p>You received this email because you signed up for SyncHire.</p>
-                        <p><a href="{{ unsubscribe_url }}">Unsubscribe</a> | <a href="{{ settings_url }}">Manage Notifications</a></p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """)
+            return env.get_template(self.default_template_name)
 
     def render(self, context: Dict[str, Any]) -> str:
         """Render template with context."""
@@ -88,310 +57,37 @@ class EmailTemplate:
 class ApplicationStatusTemplate(EmailTemplate):
     """Template for application status change notifications."""
 
+    default_template_name = "default_application_status.html"
+
     def __init__(self):
         super().__init__("application_status")
-
-    def get_default_template(self) -> Template:
-        return Template("""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Application Status Update</title>
-                <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
-                    .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; }
-                    .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; margin: 10px 0; }
-                    .status-pending { background: #ffc107; color: #333; }
-                    .status-optimized { background: #17a2b8; color: white; }
-                    .status-applied { background: #28a745; color: white; }
-                    .status-interview { background: #007bff; color: white; }
-                    .status-offer { background: #28a745; color: white; }
-                    .status-rejected { background: #dc3545; color: white; }
-                    .button { display: inline-block; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }
-                    .footer { text-align: center; margin-top: 20px; color: #777; font-size: 12px; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>Application Status Update</h1>
-                    </div>
-                    <div class="content">
-                        <p>Hello {{ user_name }},</p>
-                        <p>Your application for <strong>{{ company_name }}</strong> has been updated!</p>
-
-                        <div style="text-align: center; margin: 20px 0;">
-                            <span class="status-badge status-{{ status }}">{{ status_text }}</span>
-                        </div>
-
-                        {% if message %}
-                        <p style="background: white; padding: 15px; border-left: 4px solid #667eea; margin: 15px 0;">
-                            {{ message }}
-                        </p>
-                        {% endif %}
-
-                        <p>
-                            <a href="{{ application_url }}" class="button">View Application</a>
-                        </p>
-
-                        {% if next_steps %}
-                        <h3>Next Steps:</h3>
-                        <ul>
-                            {% for step in next_steps %}
-                            <li>{{ step }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-                    </div>
-                    <div class="footer">
-                        <p>You received this email because you signed up for SyncHire.</p>
-                        <p><a href="{{ unsubscribe_url }}">Unsubscribe</a> | <a href="{{ settings_url }}">Manage Notifications</a></p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """)
 
 
 class InterviewReminderTemplate(EmailTemplate):
     """Template for interview reminder notifications."""
 
+    default_template_name = "default_interview_reminder.html"
+
     def __init__(self):
         super().__init__("interview_reminder")
-
-    def get_default_template(self) -> Template:
-        return Template("""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Interview Reminder</title>
-                <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
-                    .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; }
-                    .interview-details { background: white; padding: 15px; border-radius: 5px; margin: 15px 0; }
-                    .detail-row { display: flex; margin: 10px 0; }
-                    .detail-label { font-weight: bold; width: 120px; }
-                    .button { display: inline-block; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }
-                    .footer { text-align: center; margin-top: 20px; color: #777; font-size: 12px; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>Interview Reminder</h1>
-                    </div>
-                    <div class="content">
-                        <p>Hello {{ user_name }},</p>
-                        <p>This is a reminder that you have an upcoming interview!</p>
-
-                        <div class="interview-details">
-                            <div class="detail-row">
-                                <span class="detail-label">Company:</span>
-                                <span>{{ company_name }}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Position:</span>
-                                <span>{{ position }}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Date:</span>
-                                <span>{{ interview_date }}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Time:</span>
-                                <span>{{ interview_time }}</span>
-                            </div>
-                            {% if interview_location %}
-                            <div class="detail-row">
-                                <span class="detail-label">Location:</span>
-                                <span>{{ interview_location }}</span>
-                            </div>
-                            {% endif %}
-                            {% if interview_type %}
-                            <div class="detail-row">
-                                <span class="detail-label">Type:</span>
-                                <span>{{ interview_type }}</span>
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        {% if preparation_tips %}
-                        <h3>Preparation Tips:</h3>
-                        <ul>
-                            {% for tip in preparation_tips %}
-                            <li>{{ tip }}</li>
-                            {% endfor %}
-                        </ul>
-                        {% endif %}
-
-                        <p>
-                            <a href="{{ application_url }}" class="button">View Application Details</a>
-                        </p>
-                    </div>
-                    <div class="footer">
-                        <p>You received this email because you signed up for SyncHire.</p>
-                        <p><a href="{{ unsubscribe_url }}">Unsubscribe</a> | <a href="{{ settings_url }}">Manage Notifications</a></p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """)
 
 
 class PasswordResetTemplate(EmailTemplate):
     """Template for password reset emails."""
 
+    default_template_name = "default_password_reset.html"
+
     def __init__(self):
         super().__init__("password_reset")
-
-    def get_default_template(self) -> Template:
-        return Template("""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Reset Your Password</title>
-                <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
-                    .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; }
-                    .button { display: inline-block; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 15px 0; }
-                    .footer { text-align: center; margin-top: 20px; color: #777; font-size: 12px; }
-                    .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>Reset Your Password</h1>
-                    </div>
-                    <div class="content">
-                        <p>Hello {{ user_name }},</p>
-                        <p>We received a request to reset your password for your SyncHire account.</p>
-
-                        <p style="text-align: center;">
-                            <a href="{{ reset_url }}" class="button">Reset Password</a>
-                        </p>
-
-                        <p>Or copy and paste this link into your browser:</p>
-                        <p style="word-break: break-all; color: #667eea;">{{ reset_url }}</p>
-
-                        <div class="warning">
-                            <p><strong>Important:</strong></p>
-                            <ul>
-                                <li>This link will expire in {{ expiry_hours }} hour(s)</li>
-                                <li>If you didn't request this, please ignore this email</li>
-                                <li>Your password won't change until you access the link above</li>
-                            </ul>
-                        </div>
-
-                        <p>If you have any questions, feel free to contact our support team.</p>
-                    </div>
-                    <div class="footer">
-                        <p>You received this email because you signed up for SyncHire.</p>
-                        <p><a href="{{ unsubscribe_url }}">Unsubscribe</a> | <a href="{{ settings_url }}">Manage Notifications</a></p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """)
 
 
 class WeeklyDigestTemplate(EmailTemplate):
     """Template for weekly digest notifications."""
 
+    default_template_name = "default_weekly_digest.html"
+
     def __init__(self):
         super().__init__("weekly_digest")
-
-    def get_default_template(self) -> Template:
-        return Template("""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Your Weekly Job Search Digest</title>
-                <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
-                    .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; }
-                    .stats { display: flex; justify-content: space-around; margin: 20px 0; }
-                    .stat-box { text-align: center; padding: 15px; background: white; border-radius: 5px; flex: 1; margin: 0 5px; }
-                    .stat-number { font-size: 24px; font-weight: bold; color: #667eea; }
-                    .stat-label { font-size: 12px; color: #777; }
-                    .job-item { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #667eea; }
-                    .button { display: inline-block; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }
-                    .footer { text-align: center; margin-top: 20px; color: #777; font-size: 12px; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>Your Weekly Job Search Digest</h1>
-                        <p>{{ week_start }} - {{ week_end }}</p>
-                    </div>
-                    <div class="content">
-                        <p>Hello {{ user_name }},</p>
-                        <p>Here's a summary of your job search activity this week:</p>
-
-                        <div class="stats">
-                            <div class="stat-box">
-                                <div class="stat-number">{{ applications_submitted }}</div>
-                                <div class="stat-label">Applications</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-number">{{ interviews_scheduled }}</div>
-                                <div class="stat-label">Interviews</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-number">{{ profile_views }}</div>
-                                <div class="stat-label">Profile Views</div>
-                            </div>
-                        </div>
-
-                        {% if new_matches %}
-                        <h3>New Job Matches</h3>
-                        {% for job in new_matches %}
-                        <div class="job-item">
-                            <strong>{{ job.company }}</strong> - {{ job.position }}
-                            <br><small>{{ job.match_score }}% match</small>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-
-                        {% if upcoming_interviews %}
-                        <h3>Upcoming Interviews</h3>
-                        {% for interview in upcoming_interviews %}
-                        <div class="job-item">
-                            <strong>{{ interview.company }}</strong> - {{ interview.position }}
-                            <br><small>{{ interview.date }} at {{ interview.time }}</small>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-
-                        <p>
-                            <a href="{{ dashboard_url }}" class="button">View Dashboard</a>
-                        </p>
-                    </div>
-                    <div class="footer">
-                        <p>You received this email because you signed up for SyncHire.</p>
-                        <p><a href="{{ unsubscribe_url }}">Unsubscribe</a> | <a href="{{ settings_url }}">Manage Notifications</a></p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """)
 
 
 class EmailService:

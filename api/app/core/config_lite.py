@@ -49,6 +49,14 @@ class LiteSettings(BaseSettings):
     AI_TIMEOUT: int = 30  # seconds
     AI_MAX_RETRIES: int = 3
 
+    # Outbound LLM payloads are scrubbed of PII before leaving the machine
+    PII_SCRUB_ENABLED: bool = os.getenv("PII_SCRUB_ENABLED", "1").lower() not in {
+        "0",
+        "false",
+        "no",
+        "off",
+    }
+
     # MCP Servers (Local - preserved)
     MCP_JD_PARSER_URL: str = os.getenv("MCP_JD_PARSER_URL", "http://localhost:3001")
     MCP_RESUME_ANALYZER_URL: str = os.getenv(
