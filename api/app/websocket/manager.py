@@ -5,6 +5,7 @@ Manages WebSocket connections, broadcasting, and message routing for real-time f
 """
 
 import asyncio
+import uuid
 from typing import Dict, Set, Optional, List
 from datetime import datetime, timedelta
 from fastapi import WebSocket
@@ -77,7 +78,9 @@ class ConnectionManager:
         """
         await websocket.accept()
 
-        connection_id = f"{user_id}_{datetime.utcnow().timestamp()}"
+        # uuid4: wall-clock timestamps collide within OS timer resolution, and a
+        # duplicate id would silently overwrite the first connection's entry.
+        connection_id = f"{user_id}_{uuid.uuid4().hex}"
 
         async with self._lock:
             self._connections[user_id][connection_id] = websocket
