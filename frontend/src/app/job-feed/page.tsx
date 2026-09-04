@@ -74,11 +74,24 @@ export default function JobFeedPage() {
       });
       setJobs(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load job feed");
+      // Raw fetch errors ("Failed to fetch") read like a bug report — map
+      // them to a friendly, bilingual message with the likely cause.
+      const isNetwork = err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(
+        err instanceof Error ? err.message : String(err)
+      );
+      setError(
+        isNetwork
+          ? locale === "zh-CN"
+            ? "暂时连不上岗位数据源。请确认数据源服务是否在运行，稍后再试一次。"
+            : "Can't reach the job sources right now. Check that the source service is running, then retry."
+          : locale === "zh-CN"
+            ? err instanceof Error ? err.message : "岗位信息流暂时加载失败"
+            : err instanceof Error ? err.message : "Failed to load job feed"
+      );
     } finally {
       setLoading(false);
     }
-  }, [keyword, remote, sourceFilter, sort]);
+  }, [keyword, remote, sourceFilter, sort, locale]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => void load());
@@ -101,7 +114,11 @@ export default function JobFeedPage() {
       );
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Scoring failed");
+      setError(
+        locale === "zh-CN"
+          ? err instanceof Error ? err.message : "打分失败，请稍后再试"
+          : err instanceof Error ? err.message : "Scoring failed"
+      );
     } finally {
       setScoring(false);
     }

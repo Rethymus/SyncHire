@@ -6,6 +6,26 @@
 > 问题**：集成断裂、渲染崩溃、数据源矛盾、文案原则不一致。
 > 截图与脚本：`tmp/walkthrough/`、`tmp/seed_visual.py`（开发辅助，不入库的可选保留）。
 
+## 第二轮（同日晚：暗色模式 + 状态词表收敛）
+
+第二轮走查把主题切换到暗色模式（第一轮从未验证过暗色），并用规范词表数据
+驱动 11 条路由 + 申请详情（含智能工作流 tab）。修复：
+
+| # | 问题 | 根因 | 修复 |
+|---|------|------|------|
+| W1 | **三套状态词表并存**（api-client 12 值 / store 7 值 / workflow-engine 7 值重复） | 历史演化；旧词表的 `pending`/`optimized` 传给后端 PATCH 本就是非法值 | `lib/status-vocabulary.ts` 成为唯一定义：store 直接存规范枚举，hydrate 归一化遗留持久化数据（旧数据无需手工迁移），workflow-engine/tracker/通知/聚合全部收敛 |
+| W2 | 详情页状态流程条对 API 状态从不高亮；暗色下已完成步骤是刺眼的浅绿卡 | tracker 的 statusConfig 以旧 7 值词表为键 + 硬编码 light 色板 | statusConfig 补全 12 值规范流水线；状态卡改为语义 token（bg-muted/primary）+ 状态徽章补 dark 变体 |
+| W3 | 详情页标题 "Unknown Position/Company"（store 申请自带字段被丢弃） | localApplication 映射漏掉 position/companyName | 补齐映射，JD 查找仅作补充 |
+| W4 | `/data` 生产环境 React #418 水合文本不匹配 | status memo 在渲染期同步读 localStorage（数据库大小），SSR 与客户端首帧值不同 | 挂载后（rAF）再计算，首帧渲染稳定的零值占位 |
+| W5 | 申请页智能建议/推荐机会卡片在暗色下是亮黄/亮薄荷底 | 硬编码 light 色板无 dark 变体 | 补 dark: 变体对 |
+| W6 | 岗位信息流无后端时直接显示原始英文 "Failed to fetch" | 原始 fetch 错误直接透出 | 识别网络类错误并转译为友好双语文案（含可能原因） |
+| W7 | 仪表盘「面试」计数与分析页口径不一（1 vs 2） | 各页各自统计 | 统一为"曾进入面试轮"口径（interview/technical/offer/hired） |
+| W8 | 简历上传走同源相对路径 `/api/resumes`，后端异主机时上传断 | 未走 envelope baseURL | envelope 客户端新增 `postForm`（multipart 不覆盖 JSON Content-Type），上传走规范化 baseURL |
+| W9 | **测量诚实化**：store 申请此前无投递时间戳，进度页"标记投递"只能用 updatedAt 近似 | store 数据模型缺字段 | store 在状态首次进入"已投出"时落 `appliedAt`；hydrate 回填历史记录；进度适配器优先 appliedAt——近似逻辑收敛到 store 一处 |
+
+第一轮记录的「三套词表」「流程条不高亮」两项随本轮关闭；「透明度页双语」
+与「列表接口对脏枚举的韧性」仍留待后续轮次。
+
 ## 发现并当轮修复的问题
 
 | # | 问题 | 视觉表现 | 根因 | 修复 |

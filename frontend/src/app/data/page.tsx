@@ -312,7 +312,31 @@ function DataManagementPage() {
     };
   }, [applications.length, buildExportData, jobDescriptions.length, resumes.length]);
 
-  const status = useMemo(() => buildLocalStatus(backups), [backups, buildLocalStatus]);
+  // buildLocalStatus reads localStorage (via exportNonSecretWorkspace), so
+  // computing it during render makes the server prerender differ from the
+  // client's first paint (React #418 text mismatch). Render a stable zeroed
+  // placeholder until after mount — one frame, then the real numbers.
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    // Deferred a frame, matching the repo-wide fetch-on-mount pattern: the
+    // effect must not setState synchronously.
+    const frame = window.requestAnimationFrame(() => setIsMounted(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  const status = useMemo(
+    () =>
+      isMounted
+        ? buildLocalStatus(backups)
+        : {
+            resumes_count: 0,
+            jds_count: 0,
+            applications_count: 0,
+            database_size: 0,
+            last_backup: null,
+          },
+    [isMounted, backups, buildLocalStatus]
+  );
 
   const loadBackups = useCallback(() => {
     setBackups(readLocalBackups());

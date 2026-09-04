@@ -207,6 +207,51 @@ class APIClient {
       headers: addCSRFHeaders(headers),
     });
   }
+
+  /**
+   * Multipart upload through the envelope base URL. `request()` always sets
+   * `Content-Type: application/json`, which would clobber the FormData
+   * boundary — so this sibling sends the body bare and lets the browser set
+   * the multipart content type.
+   */
+  async postForm<T>(endpoint: string, formData: FormData): Promise<APIResponse<T>> {
+    const url = `${this.baseURL}${endpoint}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+    try {
+      const headers: Record<string, string> = {};
+      const token = getAccessToken();
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        body: formData,
+        headers: addCSRFHeaders(headers),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const error: APIError = await response.json().catch(() => ({
+          message: `HTTP error! status: ${response.status}`,
+        }));
+        return { error: error.message, status: response.status, success: false };
+      }
+
+      const data = await response.json();
+      return { data, status: response.status, success: true };
+    } catch (error) {
+      clearTimeout(timeoutId);
+      const message =
+        error instanceof Error
+          ? error.name === 'AbortError'
+            ? '请求超时，请稍后重试'
+            : error.message
+          : '未知错误';
+      return { error: message, status: 500, success: false };
+    }
+  }
 }
 
 // Export singleton instance
@@ -421,10 +466,10 @@ export const resumeAPI = {
     formData.append('file', file);
     formData.append('title', title || file.name.replace(/\.[^/.]+$/, ''));
 
-    return fetch('/api/resumes', {
-      method: 'POST',
-      body: formData,
-    });
+    // Through the envelope base URL (respects NEXT_PUBLIC_API_URL) instead
+    // of a same-origin relative path that only worked when the API shared
+    // the frontend origin.
+    return apiClient.postForm<LiteResume>('/resumes', formData);
   },
 
   /**

@@ -89,7 +89,7 @@ export default function ApplicationsPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card className="p-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-blue-100 rounded-lg">
+              <div className="p-2 bg-blue-100 rounded-lg dark:bg-blue-950/60">
                 <BarChart3 className="h-5 w-5 text-blue-600" />
               </div>
               <span className="text-sm text-muted-foreground">{applicationsCopy.totalApplications}</span>
@@ -102,7 +102,7 @@ export default function ApplicationsPage() {
 
           <Card className="p-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-green-100 rounded-lg">
+              <div className="p-2 bg-green-100 rounded-lg dark:bg-green-950/60">
                 <TrendingUp className="h-5 w-5 text-green-600" />
               </div>
               <span className="text-sm text-muted-foreground">{applicationsCopy.averageMatch}</span>
@@ -115,7 +115,7 @@ export default function ApplicationsPage() {
 
           <Card className="p-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-yellow-100 rounded-lg">
+              <div className="p-2 bg-yellow-100 rounded-lg dark:bg-yellow-950/60">
                 <Award className="h-5 w-5 text-yellow-600" />
               </div>
               <span className="text-sm text-muted-foreground">{applicationsCopy.excellentMatches}</span>
@@ -128,7 +128,7 @@ export default function ApplicationsPage() {
 
           <Card className="p-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-purple-100 rounded-lg">
+              <div className="p-2 bg-purple-100 rounded-lg dark:bg-purple-950/60">
                 <Target className="h-5 w-5 text-purple-600" />
               </div>
               <span className="text-sm text-muted-foreground">{applicationsCopy.median}</span>
@@ -143,10 +143,10 @@ export default function ApplicationsPage() {
 
         {/* High Priority Workflow Suggestions */}
         {showSuggestions && activeSuggestions.length > 0 && (
-          <Card className="p-6 mb-8 border-2 border-yellow-200 bg-yellow-50">
+          <Card className="p-6 mb-8 border-2 border-yellow-200 bg-yellow-50 dark:border-yellow-800/60 dark:bg-yellow-950/40">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-yellow-100 rounded-lg">
+                <div className="p-2 bg-yellow-100 rounded-lg dark:bg-yellow-950/60">
                   <Sparkles className="h-5 w-5 text-yellow-600" />
                 </div>
                 <div>
@@ -226,7 +226,7 @@ export default function ApplicationsPage() {
 
         {/* Recommended Applications */}
         {recommended.length > 0 && (
-          <Card className="p-6 mb-8 border-2 border-green-200 bg-green-50">
+          <Card className="p-6 mb-8 border-2 border-green-200 bg-green-50 dark:border-green-800/60 dark:bg-green-950/40">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-xl font-bold text-foreground mb-1">
