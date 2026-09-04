@@ -661,21 +661,21 @@ function InterviewsContent() {
 
   if (statsLoading || calendarLoading || interviewsLoading) {
     return (
-      <div className="min-h-screen bg-muted/40">
+      <main className="min-h-screen bg-muted/40">
         <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
           <div className="text-center">
             <Clock className="h-12 w-12 text-purple-600 mx-auto mb-4 animate-spin" />
             <p className="text-lg font-medium text-foreground">{copy.loading}</p>
           </div>
         </div>
-      </div>
+      </main>
     );
   }
 
   const visibleInterviews = interviewsData?.interviews ?? [];
 
   return (
-    <div className="min-h-screen bg-muted/40">
+    <main className="min-h-screen bg-muted/40">
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -900,7 +900,7 @@ function InterviewsContent() {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }
 

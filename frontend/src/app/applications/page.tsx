@@ -63,7 +63,7 @@ export default function ApplicationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-muted/40 py-8">
+    <main className="min-h-screen bg-muted/40 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Breadcrumb */}
         <div className="mb-4">
@@ -306,6 +306,6 @@ export default function ApplicationsPage() {
           onOpenChange={setCreateDialogOpen}
         />
       </div>
-    </div>
+    </main>
   );
 }

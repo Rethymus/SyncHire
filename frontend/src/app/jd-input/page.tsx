@@ -133,7 +133,7 @@ export default function JDInputPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-muted/40">
+    <main className="min-h-screen bg-muted/40">
 
       <div className="max-w-4xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
         <div className="mb-8">
@@ -385,6 +385,6 @@ export default function JDInputPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
