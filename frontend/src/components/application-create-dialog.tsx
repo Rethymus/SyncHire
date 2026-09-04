@@ -568,7 +568,10 @@ export function ApplicationCreateDialog({
                     )}
                   </div>
 
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  {/* Pure hint text: must never intercept clicks meant for
+                      the footer buttons (it overlapped 创建申请 on the
+                      confirm step and made the button unclickable). */}
+                  <div className="pointer-events-none bg-blue-50 border border-blue-200 rounded-lg p-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <p className="text-sm text-blue-800">
                       {dialogCopy.createHint}
                     </p>
@@ -610,7 +613,10 @@ export function ApplicationCreateDialog({
                       </Button>
                     </div>
                     <div className="animate-in fade-in slide-in-from-bottom-1 duration-300">
-                      <div className="inline-flex transition-transform duration-100 active:scale-[0.98]">
+                      {/* relative z-10: the footer buttons sit above any
+                          in-content hint overflow, so the create click always
+                          lands on the button. */}
+                      <div className="relative z-10 inline-flex transition-transform duration-100 active:scale-[0.98]">
                         <Button onClick={handleCreate} disabled={loading}>
                           {loading ? (
                             <>
