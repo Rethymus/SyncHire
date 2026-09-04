@@ -8,6 +8,11 @@ import {
   createDefaultCandidateRoleCard,
 } from "./browser-fill-assistant";
 import {
+  canonicalizeStatus,
+  statusImpliesSent,
+  type ApplicationStatus,
+} from "./status-vocabulary";
+import {
   getPlatformStorageItem,
   migrateWebStorageItemToNative,
   removePlatformStorageItem,
@@ -28,12 +33,24 @@ export interface JobApplication {
   id: string;
   companyName: string;
   position: string;
-  status: "draft" | "applied" | "interview" | "offer" | "rejected" | "optimized" | "pending";
+  /**
+   * The canonical 12-value ApplicationStatus (openapi). Legacy persisted
+   * values (draft/optimized/pending) are normalized on hydration — see
+   * lib/status-vocabulary.ts.
+   */
+  status: ApplicationStatus;
   jobId: string;
   resumeId: string;
   matchScore?: number;
   createdAt: Date;
   updatedAt: Date;
+  /**
+   * When the application was first marked as sent out (status entered an
+   * applied-or-beyond value). Stamped by updateApplication so the progress
+   * page can date 标记投递 accurately instead of approximating from
+   * updatedAt (docs/DESIGN_ETHICS.md §4, measurement honesty).
+   */
+  appliedAt?: Date | null;
   tags?: string[];
 }
 
@@ -199,11 +216,21 @@ function hydrateResume(resume: Resume): Resume {
 }
 
 function hydrateApplication(application: JobApplication): JobApplication {
-  return {
+  const normalized: JobApplication = {
     ...application,
+    // Legacy persisted statuses (draft/optimized/pending) map forward here,
+    // so pre-canonical local data keeps working without a manual migration.
+    status: canonicalizeStatus(application.status),
     createdAt: parseDate(application.createdAt),
     updatedAt: parseDate(application.updatedAt),
+    appliedAt: application.appliedAt ? parseDate(application.appliedAt) : null,
   };
+  // Backfill: records sent out before appliedAt existed get the documented
+  // approximation (updatedAt) so the progress page stops re-deriving it.
+  if (normalized.appliedAt === null && statusImpliesSent(normalized.status)) {
+    normalized.appliedAt = normalized.updatedAt;
+  }
+  return normalized;
 }
 
 function hydrateJobDescription(jd: JobDescription): JobDescription {
@@ -537,9 +564,17 @@ export const useAppStore = create<AppState>()((set) => ({
 
   updateApplication: (id, updates) =>
     set((state) => {
-      const applications = state.applications.map((app) =>
-        app.id === id ? { ...app, ...updates } : app
-      );
+      const applications = state.applications.map((app) => {
+        if (app.id !== id) return app;
+        const next: JobApplication = { ...app, ...updates };
+        // Measurement honesty (docs/DESIGN_ETHICS.md §4): stamp the moment a
+        // status first proves the application was sent out, so 标记投递 is
+        // dated by the transition, not approximated from updatedAt forever.
+        if (updates.status && next.appliedAt == null && statusImpliesSent(next.status)) {
+          next.appliedAt = new Date();
+        }
+        return next;
+      });
       persistState({ ...state, applications });
       return { applications };
     }),
@@ -556,9 +591,14 @@ export const useAppStore = create<AppState>()((set) => ({
 
   batchUpdateApplications: (ids, updates) =>
     set((state) => {
-      const applications = state.applications.map((app) =>
-        ids.includes(app.id) ? { ...app, ...updates } : app
-      );
+      const applications = state.applications.map((app) => {
+        if (!ids.includes(app.id)) return app;
+        const next: JobApplication = { ...app, ...updates };
+        if (updates.status && next.appliedAt == null && statusImpliesSent(next.status)) {
+          next.appliedAt = new Date();
+        }
+        return next;
+      });
       persistState({ ...state, applications });
       return { applications };
     }),

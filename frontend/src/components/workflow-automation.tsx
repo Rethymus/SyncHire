@@ -51,13 +51,18 @@ import {
 } from 'lucide-react';
 
 const statusConfig: Record<ApplicationStatus, { label: string; color: string; icon: any }> = {
-  draft: { label: '草稿', color: 'bg-muted text-gray-800', icon: Clock },
-  applied: { label: '已申请', color: 'bg-blue-100 text-blue-800', icon: Clock },
+  saved: { label: '已收藏', color: 'bg-muted text-gray-800', icon: Clock },
+  targeted: { label: '已定位', color: 'bg-sky-100 text-sky-800', icon: Filter },
+  materials_ready: { label: '材料就绪', color: 'bg-indigo-100 text-indigo-800', icon: TrendingUp },
+  submitted: { label: '已递交', color: 'bg-blue-100 text-blue-800', icon: Mail },
+  applied: { label: '已投递', color: 'bg-blue-100 text-blue-800', icon: Clock },
+  screening: { label: '筛选中', color: 'bg-cyan-100 text-cyan-800', icon: Clock },
   interview: { label: '面试中', color: 'bg-purple-100 text-purple-800', icon: Bell },
-  offer: { label: '已录用', color: 'bg-green-100 text-green-800', icon: CheckCircle2 },
+  technical: { label: '技术面', color: 'bg-purple-100 text-purple-800', icon: Bell },
+  offer: { label: 'Offer', color: 'bg-green-100 text-green-800', icon: CheckCircle2 },
+  hired: { label: '已入职', color: 'bg-green-100 text-green-800', icon: CheckCircle2 },
   rejected: { label: '已拒绝', color: 'bg-red-100 text-red-800', icon: XCircle },
-  optimized: { label: '已优化', color: 'bg-green-100 text-green-800', icon: TrendingUp },
-  pending: { label: '处理中', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
+  withdrawn: { label: '已撤回', color: 'bg-muted text-gray-800', icon: XCircle },
 };
 
 interface WorkflowAutomationProps {

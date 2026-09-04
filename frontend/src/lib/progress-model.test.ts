@@ -307,30 +307,33 @@ describe("storeApplicationToProgress — lite-store adapter", () => {
       resumeId: "resume-1",
       createdAt: new Date(WEDNESDAY),
       updatedAt: new Date(WEDNESDAY),
+      appliedAt: null,
       ...overrides,
     };
   }
 
-  it("maps every legacy store status into the 12-value enum space", () => {
-    const pairs: Array<[string, string]> = [
-      ["draft", "saved"],
-      ["optimized", "materials_ready"],
-      ["pending", "submitted"],
-      ["applied", "applied"],
-      ["interview", "interview"],
-      ["offer", "offer"],
-      ["rejected", "rejected"],
-    ];
-    for (const [storeStatus, expected] of pairs) {
-      expect(storeApplicationToProgress(makeStoreApp({ status: storeStatus })).status).toBe(
-        expected
-      );
+  it("passes canonical statuses straight through (the store is canonical now)", () => {
+    for (const status of [
+      "saved",
+      "targeted",
+      "materials_ready",
+      "submitted",
+      "applied",
+      "screening",
+      "interview",
+      "technical",
+      "offer",
+      "hired",
+      "rejected",
+      "withdrawn",
+    ] as const) {
+      expect(storeApplicationToProgress(makeStoreApp({ status })).status).toBe(status);
     }
   });
 
-  it("falls back to 'saved' for unknown status values instead of dropping the record", () => {
+  it("normalizes unknown status values to 'saved' instead of dropping the record", () => {
     expect(
-      storeApplicationToProgress(makeStoreApp({ status: "mystery" })).status
+      storeApplicationToProgress(makeStoreApp({ status: "mystery" as never })).status
     ).toBe("saved");
   });
 
@@ -341,13 +344,41 @@ describe("storeApplicationToProgress — lite-store adapter", () => {
     expect(adapted.last_updated).toBe(WEDNESDAY);
   });
 
-  it("keeps applied/submitted timestamps null so the model fallback applies", () => {
-    const adapted = storeApplicationToProgress(makeStoreApp());
-    expect(adapted.applied_date).toBeNull();
-    expect(adapted.submitted_manually_at).toBeNull();
+  it("prefers the store's stamped appliedAt over the updatedAt approximation", () => {
+    const THURSDAY = "2026-08-27T09:00:00.000Z";
+    const adapted = storeApplicationToProgress(
+      makeStoreApp({ appliedAt: new Date(THURSDAY) })
+    );
+    expect(adapted.applied_date).toBe(THURSDAY);
   });
 
-  it("counts '标记投递' for a store application whose status proves it was sent", () => {
+  it("falls back to null applied_date when appliedAt was never stamped", () => {
+    const adapted = storeApplicationToProgress(makeStoreApp());
+    expect(adapted.applied_date).toBeNull();
+  });
+
+  it("counts '标记投递' from the stamped appliedAt, not updatedAt", () => {
+    // Created Monday of NOW's week, applied Wednesday of the same week, but
+    // last touched (updatedAt) two weeks earlier: the created AND applied
+    // actions must land in NOW's week, not updatedAt's.
+    const summary = buildProgressSummary(
+      [
+        storeApplicationToProgress(
+          makeStoreApp({
+            createdAt: new Date("2026-08-24T09:00:00"), // Monday, NOW's week
+            updatedAt: new Date("2026-08-10T09:00:00"), // two weeks earlier
+            appliedAt: new Date("2026-08-26T09:00:00"), // Wednesday, NOW's week
+          })
+        ),
+      ],
+      NOW
+    );
+    expect(summary.currentWeek.counts.created).toBe(1);
+    expect(summary.currentWeek.counts.applied).toBe(1);
+    expect(summary.weeks[3].counts.applied).toBe(0); // updatedAt's week untouched
+  });
+
+  it("counts '标记投递' via the updatedAt approximation when appliedAt is null", () => {
     // Status 'applied' + only updated_at → the documented approximation dates
     // the applied action from updated_at, inside the current week.
     const summary = buildProgressSummary(

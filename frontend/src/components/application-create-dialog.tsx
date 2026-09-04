@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useAppStore } from "@/lib/store";
+import { canonicalizeStatus } from "@/lib/status-vocabulary";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -238,12 +239,13 @@ export function ApplicationCreateDialog({
           id: `optimistic-${Date.now()}`,
           companyName: selectedJD?.company || "Unknown Company",
           position: selectedJD?.title || "Unknown Position",
-          status: "pending" as const,
+          status: "submitted" as const,
           jobId: variables.jdId,
           resumeId: variables.resumeId,
           matchScore: undefined,
           createdAt: new Date(),
           updatedAt: new Date(),
+          appliedAt: new Date(),
           _isLoading: true,
         };
 
@@ -266,12 +268,17 @@ export function ApplicationCreateDialog({
             id: data.data.id,
             companyName: data.data.jd?.company || "Unknown Company",
             position: data.data.jd?.title || "Unknown Position",
-            status: (data.data.status || "pending") as "draft" | "applied" | "interview" | "offer" | "rejected",
+            // The create dialog submits an application, so the canonical
+            // status is submitted; canonicalizeStatus also absorbs any
+            // legacy value a backend or cached payload might return.
+            status: canonicalizeStatus(data.data.status || "submitted"),
             jobId: variables.jdId,
             resumeId: variables.resumeId,
             matchScore: data.data.match_score,
             createdAt: new Date(data.data.created_at),
             updatedAt: new Date(data.data.updated_at),
+            // The dialog's create flow just handed the application over.
+            appliedAt: new Date(data.data.created_at),
           };
 
           addApplication(confirmedApplication);

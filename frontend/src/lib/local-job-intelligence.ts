@@ -1,5 +1,6 @@
 import type { CandidateRoleCard } from "./browser-fill-assistant";
 import type { JobApplication, JobDescription, Resume } from "./store";
+import { CANONICAL_STATUSES } from "./status-vocabulary";
 import { getMatchLevel } from "./match-ranking";
 import type { LiteLocale } from "./lite-i18n";
 
@@ -451,11 +452,12 @@ export function buildLocalAnalytics({
   locale?: LiteLocale;
 }): LocalAnalyticsResponse {
   const totalApplications = applications.length;
-  const interviewCount = applications.filter((item) => item.status === "interview").length;
-  const offerCount = applications.filter((item) => item.status === "offer").length;
+  const interviewCount = applications.filter((item) => ["interview", "technical"].includes(item.status)).length;
+  const offerCount = applications.filter((item) => ["offer", "hired"].includes(item.status)).length;
   const rejectionCount = applications.filter((item) => item.status === "rejected").length;
-  const pendingCount = applications.filter((item) => ["draft", "pending", "optimized", "applied"].includes(item.status)).length;
-  const activeApplications = applications.filter((item) => !["rejected", "offer"].includes(item.status)).length;
+  // Awaiting movement: handed over but nothing back yet
+  const pendingCount = applications.filter((item) => ["saved", "targeted", "materials_ready", "submitted", "applied"].includes(item.status)).length;
+  const activeApplications = applications.filter((item) => !["rejected", "offer", "hired", "withdrawn"].includes(item.status)).length;
   const scored = applications
     .map((item) => item.matchScore)
     .filter((score): score is number => typeof score === "number");
@@ -463,13 +465,7 @@ export function buildLocalAnalytics({
     ? Math.round(scored.reduce((sum, score) => sum + score, 0) / scored.length)
     : 0;
   const statuses = unique([
-    "draft",
-    "optimized",
-    "applied",
-    "interview",
-    "offer",
-    "rejected",
-    "pending",
+    ...CANONICAL_STATUSES,
     ...applications.map((item) => item.status),
   ]);
   const statusDistribution = statuses
@@ -510,7 +506,7 @@ export function buildLocalAnalytics({
     return {
       period,
       applications: weekApplications.length,
-      success_rate: percent(weekApplications.filter((item) => ["interview", "offer"].includes(item.status)).length, weekApplications.length),
+      success_rate: percent(weekApplications.filter((item) => ["interview", "technical", "offer", "hired"].includes(item.status)).length, weekApplications.length),
       avg_match_score: weekScores.length > 0
         ? Math.round(weekScores.reduce((sum, score) => sum + score, 0) / weekScores.length)
         : 0,

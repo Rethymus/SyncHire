@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useWorkflowAutomation } from '@/lib/use-workflow-automation';
 import { useAppStore } from '@/lib/store';
+import { STATUS_LABELS_ZH, type ApplicationStatus } from '@/lib/status-vocabulary';
 import {
   TrendingUp,
   TrendingDown,
@@ -61,47 +62,53 @@ export function WorkflowAnalyticsDashboard() {
       return acc;
     }, {} as Record<string, number>);
 
+    // Canonical funnel:收藏/定位 → 材料就绪 → 递交/投递 → 筛选 → 面试 → Offer。
+    // counts merge "sent" variants (submitted+applied) and "interviewed"
+    // variants (interview+technical) so the funnel reads as a pipeline.
+    const countOf = (...statuses: ApplicationStatus[]) =>
+      statuses.reduce((sum, s) => sum + (statusCounts[s] || 0), 0);
+
     const stages: FunnelStage[] = [
       {
-        status: 'draft',
-        label: '草稿',
-        count: statusCounts.draft || 0,
-        percentage: total > 0 ? ((statusCounts.draft || 0) / total) * 100 : 0,
+        status: 'saved',
+        label: '已收藏',
+        count: countOf('saved', 'targeted'),
+        percentage: total > 0 ? (countOf('saved', 'targeted') / total) * 100 : 0,
         color: 'bg-gray-500',
       },
       {
-        status: 'optimized',
-        label: '已优化',
-        count: statusCounts.optimized || 0,
-        percentage: total > 0 ? ((statusCounts.optimized || 0) / total) * 100 : 0,
+        status: 'materials_ready',
+        label: '材料就绪',
+        count: countOf('materials_ready'),
+        percentage: total > 0 ? (countOf('materials_ready') / total) * 100 : 0,
         color: 'bg-green-500',
       },
       {
         status: 'applied',
-        label: '已申请',
-        count: statusCounts.applied || 0,
-        percentage: total > 0 ? ((statusCounts.applied || 0) / total) * 100 : 0,
+        label: '已投递',
+        count: countOf('submitted', 'applied'),
+        percentage: total > 0 ? (countOf('submitted', 'applied') / total) * 100 : 0,
         color: 'bg-blue-500',
       },
       {
         status: 'interview',
         label: '面试中',
-        count: statusCounts.interview || 0,
-        percentage: total > 0 ? ((statusCounts.interview || 0) / total) * 100 : 0,
+        count: countOf('screening', 'interview', 'technical'),
+        percentage: total > 0 ? (countOf('screening', 'interview', 'technical') / total) * 100 : 0,
         color: 'bg-purple-500',
       },
       {
         status: 'offer',
-        label: '已录用',
-        count: statusCounts.offer || 0,
-        percentage: total > 0 ? ((statusCounts.offer || 0) / total) * 100 : 0,
+        label: 'Offer',
+        count: countOf('offer', 'hired'),
+        percentage: total > 0 ? (countOf('offer', 'hired') / total) * 100 : 0,
         color: 'bg-green-600',
       },
       {
         status: 'rejected',
         label: '已拒绝',
-        count: statusCounts.rejected || 0,
-        percentage: total > 0 ? ((statusCounts.rejected || 0) / total) * 100 : 0,
+        count: countOf('rejected', 'withdrawn'),
+        percentage: total > 0 ? (countOf('rejected', 'withdrawn') / total) * 100 : 0,
         color: 'bg-red-500',
       },
     ];
@@ -126,15 +133,7 @@ export function WorkflowAnalyticsDashboard() {
     return Object.entries(statistics.averageTimeInStatus)
       .filter(([_, time]) => time > 0)
       .map(([status, time]) => {
-        const statusLabels: Record<string, string> = {
-          draft: '草稿',
-          applied: '已申请',
-          interview: '面试中',
-          offer: '已录用',
-          rejected: '已拒绝',
-          optimized: '已优化',
-          pending: '处理中',
-        };
+        const statusLabels: Record<string, string> = STATUS_LABELS_ZH;
 
         let displayTime = time;
         let timeUnit: 'hours' | 'days' = 'hours';

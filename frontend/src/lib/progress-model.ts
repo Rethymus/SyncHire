@@ -23,6 +23,7 @@
 
 import type { ApplicationStatus } from "@/lib/api-client";
 import type { JobApplication as StoreApplication } from "@/lib/store";
+import { canonicalizeStatus } from "@/lib/status-vocabulary";
 
 /**
  * Structural input the progress model actually reads. `LiteApplication`
@@ -366,22 +367,6 @@ export function buildProgressSummary(
 // Lite-store adapter
 // ---------------------------------------------------------------------------
 
-/**
- * Store `JobApplication.status` (legacy 7-value union) → the real 12-value
- * `ApplicationStatus` space. `pending` maps to `submitted` (it means handed
- * over and waiting), `optimized` to `materials_ready` (a local prep stage) —
- * both keep the "controllable process" framing of the weekly chart intact.
- */
-const STORE_STATUS_MAP: ReadonlyMap<string, ApplicationStatus> = new Map([
-  ["draft", "saved"],
-  ["optimized", "materials_ready"],
-  ["pending", "submitted"],
-  ["applied", "applied"],
-  ["interview", "interview"],
-  ["offer", "offer"],
-  ["rejected", "rejected"],
-]);
-
 function toIsoOrNull(value: Date | string | null | undefined): string | null {
   if (!value) return null;
   const date = value instanceof Date ? value : new Date(value);
@@ -389,24 +374,29 @@ function toIsoOrNull(value: Date | string | null | undefined): string | null {
 }
 
 /**
- * Map a lite-store application into the progress input shape. The store has
- * no applied/submitted timestamps, so those stay `null` and the model's
- * documented fallback (status proves sent-out → `updated_at`) supplies the
- * approximation. Unknown status values fall back to `saved` rather than
- * being dropped: the distribution shows where records are, and a dropped
- * record would silently understate the totals.
+ * Map a lite-store application into the progress input shape.
+ *
+ * The store now carries the canonical status directly (legacy persisted
+ * values are normalized at hydration — lib/status-vocabulary.ts), so the
+ * old status remapping is gone. `appliedAt` is stamped by the store the
+ * moment a status first proves the application was sent out; it maps to
+ * `applied_date`, replacing the former updatedAt approximation. Records
+ * hydrated before `appliedAt` existed were backfilled at hydration, so the
+ * approximation lives in exactly one place (the store) rather than here.
  */
 export function storeApplicationToProgress(
   application: StoreApplication
 ): ProgressApplication {
-  const status = STORE_STATUS_MAP.get(application?.status) ?? "saved";
   const updatedAt = toIsoOrNull(application?.updatedAt);
   return {
     id: application?.id ?? "",
-    status,
+    // Canonicalize defensively: hydration normalizes persisted data, but
+    // the adapter is the progress boundary and in-memory callers (tests,
+    // optimistic creates) may bypass it.
+    status: canonicalizeStatus(application?.status),
     created_at: toIsoOrNull(application?.createdAt),
     updated_at: updatedAt,
-    applied_date: null,
+    applied_date: toIsoOrNull(application?.appliedAt),
     submitted_manually_at: null,
     last_updated: updatedAt,
   };

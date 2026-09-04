@@ -24,6 +24,10 @@ import { apiErrorMessage, applicationAPI, type ApplicationStatusHistory } from "
 import { logger, LogCategory } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 import { formatLiteDate, interpolate, useLiteCopy } from "@/lib/lite-i18n";
+import {
+  progressStatusLabels,
+  type ApplicationStatus,
+} from "@/lib/status-vocabulary";
 
 interface ApplicationStatusManagerProps {
   applicationId: string;
@@ -32,13 +36,21 @@ interface ApplicationStatusManagerProps {
   className?: string;
 }
 
+// Full canonical pipeline, in openapi order — the picker can express every
+// status the backend accepts (the legacy picker dropped 6 of the 12).
 const STATUS_OPTIONS = [
-  { value: "pending", color: "text-muted-foreground" },
-  { value: "optimized", color: "text-blue-600" },
+  { value: "saved", color: "text-muted-foreground" },
+  { value: "targeted", color: "text-sky-600" },
+  { value: "materials_ready", color: "text-indigo-600" },
+  { value: "submitted", color: "text-blue-600" },
   { value: "applied", color: "text-green-600" },
+  { value: "screening", color: "text-cyan-600" },
   { value: "interview", color: "text-purple-600" },
+  { value: "technical", color: "text-purple-600" },
   { value: "offer", color: "text-emerald-600" },
+  { value: "hired", color: "text-emerald-600" },
   { value: "rejected", color: "text-red-600" },
+  { value: "withdrawn", color: "text-muted-foreground" },
 ] as const;
 
 export const ApplicationStatusManager = memo(function ApplicationStatusManager({
@@ -120,7 +132,9 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
     loadHistory();
   }, [loadHistory]);
 
-  const currentLabel = copy[currentStatus as keyof typeof copy] || currentStatus;
+  const statusLabels = progressStatusLabels(locale);
+  const currentLabel =
+    statusLabels[currentStatus as ApplicationStatus] || currentStatus;
 
   return (
     <>
@@ -138,7 +152,7 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
           <SelectContent>
             {STATUS_OPTIONS.map((option) => (
               <SelectItem key={option.value} value={option.value}>
-                {copy[option.value]}
+                {statusLabels[option.value as ApplicationStatus] || option.value}
               </SelectItem>
             ))}
           </SelectContent>
@@ -162,8 +176,8 @@ export const ApplicationStatusManager = memo(function ApplicationStatusManager({
             <DialogTitle>{copy.updateTitle}</DialogTitle>
             <DialogDescription>
               {interpolate(copy.updateDescription, {
-                from: copy[currentStatus as keyof typeof copy] || currentStatus,
-                to: copy[selectedStatus as keyof typeof copy] || selectedStatus,
+                from: statusLabels[currentStatus as ApplicationStatus] || currentStatus,
+                to: statusLabels[selectedStatus as ApplicationStatus] || selectedStatus,
               })}
             </DialogDescription>
           </DialogHeader>

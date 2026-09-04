@@ -21,6 +21,10 @@ const ApplicationCreateDialog = dynamic(
 import { useAppStore } from "@/lib/store";
 import { formatLiteDate, useLiteCopy } from "@/lib/lite-i18n";
 import {
+  progressStatusLabels,
+  type ApplicationStatus,
+} from "@/lib/status-vocabulary";
+import {
   FileText,
   Briefcase,
   BarChart3,
@@ -62,7 +66,11 @@ function DashboardPage() {
     },
     {
       name: dashboard.stats.interviews,
-      value: applications.filter((a) => a.status === "interview").length,
+      // Same "ever interviewed"口径 as the analytics page: the current
+      // stage plus the stages that can only follow one.
+      value: applications.filter((a) =>
+        ["interview", "technical", "offer", "hired"].includes(a.status)
+      ).length,
       icon: CheckCircle2,
       color: "bg-emerald-500",
       href: "/applications?status=interview",
@@ -76,15 +84,22 @@ function DashboardPage() {
       .slice(0, 5);
   }, [applications]);
 
+  // Canonical-vocabulary colors: technical/interview share the active
+  // purple-blue family, hired joins offer, withdrawn stays neutral.
   const getStatusColor = (status: string) => {
     switch (status) {
       case "interview":
+      case "technical":
         return "bg-green-100 text-green-800";
+      case "submitted":
       case "applied":
+      case "screening":
         return "bg-blue-100 text-blue-800";
       case "rejected":
+      case "withdrawn":
         return "bg-red-100 text-red-800";
       case "offer":
+      case "hired":
         return "bg-emerald-100 text-emerald-800";
       default:
         return "bg-muted text-gray-800";
@@ -92,24 +107,11 @@ function DashboardPage() {
   };
 
   const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "interview":
-        return t.applicationStatus.interview;
-      case "applied":
-        return t.applicationStatus.applied;
-      case "rejected":
-        return t.applicationStatus.rejected;
-      case "offer":
-        return t.applicationStatus.offer;
-      case "draft":
-        return t.applicationStatus.draft;
-      case "pending":
-        return t.applicationStatus.pending;
-      case "optimized":
-        return t.applicationStatus.optimized;
-      default:
-        return status;
-    }
+    // The store carries the canonical enum; use the shared neutral labels
+    // so every status (including targeted/materials_ready/screening/…)
+    // renders bilingually instead of falling through to the raw value.
+    const labels = progressStatusLabels(locale);
+    return labels[status as ApplicationStatus] ?? status;
   };
 
   return (

@@ -43,6 +43,7 @@ import {
 import { JobApplication } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { interpolate, useLiteCopy } from "@/lib/lite-i18n";
+import { progressStatusLabels } from "@/lib/status-vocabulary";
 
 interface BatchOperationsToolbarProps {
   selectedIds: Set<string>;
@@ -73,7 +74,9 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
 }: BatchOperationsToolbarProps) {
   const { t } = useLiteCopy();
   const copy = t.batchApplications;
-  const statusLabels = t.applicationStatus;
+  // Shared neutral vocabulary — covers all 12 canonical statuses.
+  const { locale } = useLiteCopy();
+  const statusLabels = progressStatusLabels(locale);
   const { updateApplication, deleteApplication } = useAppStore();
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
@@ -264,16 +267,18 @@ export const BatchOperationsToolbar = memo(function BatchOperationsToolbar({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                {(["draft", "applied", "interview", "offer", "rejected"] as const).map((status) => (
+                {(["saved", "applied", "screening", "interview", "offer", "rejected", "withdrawn"] as const).map((status) => (
                   <DropdownMenuItem key={status} onClick={() => setSelectedStatus(status)}>
                     <span
                       className={cn(
                         "w-2 h-2 rounded-full mr-2",
-                        status === "draft" && "bg-gray-400",
+                        status === "saved" && "bg-gray-400",
                         status === "applied" && "bg-blue-400",
+                        status === "screening" && "bg-cyan-400",
                         status === "interview" && "bg-purple-400",
                         status === "offer" && "bg-green-400",
-                        status === "rejected" && "bg-red-400"
+                        status === "rejected" && "bg-red-400",
+                        status === "withdrawn" && "bg-gray-300"
                       )}
                     />
                     {interpolate(copy.setStatus, {

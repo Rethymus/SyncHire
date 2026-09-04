@@ -42,61 +42,104 @@ const statusConfig: Record<ApplicationStatus, {
   order: number;
   category: 'active' | 'success' | 'error' | 'neutral';
 }> = {
-  draft: {
-    label: '草稿',
-    description: '准备申请材料',
+  // Canonical openapi pipeline: saved → targeted → materials_ready →
+  // submitted → applied → screening → interview → technical → offer →
+  // hired, with rejected/withdrawn as the two closed-out terminals.
+  saved: {
+    label: '已收藏',
+    description: '记录感兴趣的职位',
     icon: FileText,
     color: 'bg-muted text-gray-800 border-input',
     order: 1,
     category: 'neutral',
   },
+  targeted: {
+    label: '已定位',
+    description: '决定投递这个职位',
+    icon: Briefcase,
+    color: 'bg-sky-100 text-sky-800 border-sky-300 dark:bg-sky-950 dark:text-sky-200 dark:border-sky-800',
+    order: 2,
+    category: 'active',
+  },
+  materials_ready: {
+    label: '材料就绪',
+    description: '简历与材料已针对岗位准备',
+    icon: FileText,
+    color: 'bg-indigo-100 text-indigo-800 border-indigo-300 dark:bg-indigo-950 dark:text-indigo-200 dark:border-indigo-800',
+    order: 3,
+    category: 'active',
+  },
+  submitted: {
+    label: '已递交',
+    description: '申请已经递交',
+    icon: Clock,
+    color: 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950 dark:text-blue-200 dark:border-blue-800',
+    order: 4,
+    category: 'active',
+  },
   applied: {
-    label: '已申请',
+    label: '已投递',
     description: '申请已提交',
     icon: Briefcase,
-    color: 'bg-blue-100 text-blue-800 border-blue-300',
-    order: 2,
+    color: 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950 dark:text-blue-200 dark:border-blue-800',
+    order: 5,
+    category: 'active',
+  },
+  screening: {
+    label: '筛选中',
+    description: '等待对方筛选反馈',
+    icon: Clock,
+    color: 'bg-cyan-100 text-cyan-800 border-cyan-300 dark:bg-cyan-950 dark:text-cyan-200 dark:border-cyan-800',
+    order: 6,
     category: 'active',
   },
   interview: {
     label: '面试中',
     description: '面试安排中',
     icon: MessageSquare,
-    color: 'bg-purple-100 text-purple-800 border-purple-300',
-    order: 3,
+    color: 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-950 dark:text-purple-200 dark:border-purple-800',
+    order: 7,
+    category: 'active',
+  },
+  technical: {
+    label: '技术面',
+    description: '技术面试环节',
+    icon: MessageSquare,
+    color: 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-950 dark:text-purple-200 dark:border-purple-800',
+    order: 8,
     category: 'active',
   },
   offer: {
-    label: '已录用',
+    label: 'Offer',
     description: '收到录用通知',
     icon: CheckCircle2,
-    color: 'bg-green-100 text-green-800 border-green-300',
-    order: 4,
+    color: 'bg-green-100 text-green-800 border-green-300 dark:bg-green-950 dark:text-green-200 dark:border-green-800',
+    order: 9,
+    category: 'success',
+  },
+  hired: {
+    label: '已入职',
+    description: '已完成入职',
+    icon: CheckCircle2,
+    color: 'bg-green-100 text-green-800 border-green-300 dark:bg-green-950 dark:text-green-200 dark:border-green-800',
+    order: 10,
     category: 'success',
   },
   rejected: {
     label: '已拒绝',
     description: '申请未通过',
     icon: XCircle,
-    color: 'bg-red-100 text-red-800 border-red-300',
-    order: 5,
+    color: 'bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-200 dark:border-red-800',
+    order: 11,
     category: 'error',
   },
-  optimized: {
-    label: '已优化',
-    description: '简历已优化',
-    icon: TrendingUp,
-    color: 'bg-green-100 text-green-800 border-green-300',
-    order: 6,
-    category: 'success',
-  },
-  pending: {
-    label: '处理中',
-    description: '等待回复',
-    icon: Clock,
-    color: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    order: 7,
-    category: 'active',
+  withdrawn: {
+    label: '已撤回',
+    description: '自己选择结束这条申请',
+    icon: XCircle,
+    color: 'bg-muted text-gray-800 border-input',
+    order: 12,
+    category: 'neutral',
   },
 };
 
@@ -162,7 +205,7 @@ export function StatusWorkflowTracker({
       {/* Main Workflow */}
       <div className="relative">
         {/* Progress Line */}
-        <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gray-200" />
+        <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-border" />
 
         <div className="space-y-4">
           {orderedStatuses.map(({ status, config }) => {
@@ -175,9 +218,9 @@ export function StatusWorkflowTracker({
                   <TooltipTrigger asChild>
                     <div
                       className={`flex items-start gap-4 p-3 rounded-lg transition-all ${
-                        state === 'current' ? 'bg-blue-50 border-2 border-blue-200' :
-                        state === 'completed' ? 'bg-green-50' :
-                        state === 'error' ? 'bg-red-50' :
+                        state === 'current' ? 'bg-primary/10 border-2 border-primary/30' :
+                        state === 'completed' ? 'bg-muted/60' :
+                        state === 'error' ? 'bg-destructive/10' :
                         'bg-muted/40 hover:bg-muted cursor-pointer'
                       }`}
                       onClick={() => isClickable && onStatusClick(status)}
@@ -189,9 +232,9 @@ export function StatusWorkflowTracker({
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className={`font-medium ${
-                            state === 'current' ? 'text-blue-900' :
-                            state === 'completed' ? 'text-green-900' :
-                            state === 'error' ? 'text-red-900' :
+                            state === 'current' ? 'text-primary' :
+                            state === 'completed' ? 'text-foreground' :
+                            state === 'error' ? 'text-destructive' :
                             'text-foreground'
                           }`}>
                             {config.label}
@@ -203,9 +246,9 @@ export function StatusWorkflowTracker({
                           )}
                         </div>
                         <p className={`text-sm ${
-                          state === 'current' ? 'text-blue-700' :
-                          state === 'completed' ? 'text-green-700' :
-                          state === 'error' ? 'text-red-700' :
+                          state === 'current' ? 'text-primary/80' :
+                          state === 'completed' ? 'text-muted-foreground' :
+                          state === 'error' ? 'text-destructive/80' :
                           'text-muted-foreground'
                         }`}>
                           {config.description}

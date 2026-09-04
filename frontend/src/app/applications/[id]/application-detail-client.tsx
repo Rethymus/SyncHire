@@ -152,6 +152,10 @@ export default function ApplicationDetailClient() {
             resume_id: storedApplication.resumeId,
             jd_id: storedApplication.jobId,
             status: storedApplication.status,
+            // Store applications carry their own identity fields — keep them
+            // so the header renders even when the linked JD is absent.
+            position: storedApplication.position,
+            companyName: storedApplication.companyName,
             match_score: storedApplication.matchScore,
             created_at: storedApplication.createdAt,
             updated_at: storedApplication.updatedAt,
@@ -303,9 +307,9 @@ export default function ApplicationDetailClient() {
           sections_improved: ["summary", "skills", "projects"],
         });
         setApplication((current: any) => current
-          ? { ...current, status: "optimized", updated_at: new Date() }
+          ? { ...current, status: "materials_ready", updated_at: new Date() }
           : current);
-        updateApplication(applicationId, { status: "optimized", updatedAt: new Date() });
+        updateApplication(applicationId, { status: "materials_ready", updatedAt: new Date() });
         return;
       }
 
@@ -314,7 +318,7 @@ export default function ApplicationDetailClient() {
         setOptimizedResume(response.data);
         // Update application status
         if (application) {
-          setApplication({ ...application, status: "optimized" });
+          setApplication({ ...application, status: "materials_ready" });
         }
       } else {
         setError(typeof response.error === 'string' ? response.error : "优化简历时发生错误");
@@ -465,7 +469,9 @@ export default function ApplicationDetailClient() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-3xl font-bold text-foreground">
-                  {jd?.title || "Unknown Position"}
+                  {/* Local applications carry position/company themselves;
+                      the JD lookup is only a supplement. */}
+                  {jd?.title || application?.position || "Unknown Position"}
                 </h1>
                 <Badge className={config.color}>
                   <StatusIcon className="h-3 w-3 mr-1" />
@@ -475,7 +481,7 @@ export default function ApplicationDetailClient() {
               <div className="flex items-center gap-4 text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Building2 className="h-4 w-4" />
-                  <span>{jd?.company || "Unknown Company"}</span>
+                  <span>{jd?.company || application?.companyName || "Unknown Company"}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />

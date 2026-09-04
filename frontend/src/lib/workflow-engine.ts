@@ -4,8 +4,15 @@
  */
 
 import { JobApplication } from './store';
+import {
+  CANONICAL_STATUSES,
+  type ApplicationStatus,
+} from './status-vocabulary';
 
-export type ApplicationStatus = 'draft' | 'applied' | 'interview' | 'offer' | 'rejected' | 'optimized' | 'pending';
+// Single source of truth: the openapi 12-value enum. (This module used to
+// declare its own 7-value union — the source of the "three vocabularies"
+// drift documented in docs/VISUAL_AUDIT_2026-09-04.md.)
+export type { ApplicationStatus };
 
 export interface StatusTransition {
   from: ApplicationStatus;
@@ -122,7 +129,7 @@ export class WorkflowEngine {
         const hasGoodMatchScore = (app.matchScore || 0) > 70;
         const userHasHighAverage = ctx.userBehavior?.averageMatchScore && ctx.userBehavior.averageMatchScore > 60;
 
-        return app.status === 'draft' &&
+        return app.status === 'saved' &&
                hasGoodMatchScore &&
                hoursSinceCreation > 1 &&
                (!userHasHighAverage || hoursSinceCreation > 24); // For users with high averages, wait 24 hours
@@ -142,7 +149,7 @@ export class WorkflowEngine {
 
         return {
           from: app.status,
-          to: 'applied',
+          to: 'submitted',
           reason,
           confidence,
           autoExecute: false,
@@ -162,7 +169,7 @@ export class WorkflowEngine {
         const hasLowScore = matchScore < 50 && matchScore > 0;
         const recentlyCreated = (ctx.currentTime.getTime() - new Date(app.createdAt).getTime()) / (1000 * 60 * 60) < 48;
 
-        return app.status === 'draft' && hasLowScore && recentlyCreated;
+        return app.status === 'saved' && hasLowScore && recentlyCreated;
       },
       action: (app) => {
         const matchScore = app.matchScore || 0;
@@ -176,7 +183,7 @@ export class WorkflowEngine {
 
         return {
           from: app.status,
-          to: 'optimized',
+          to: 'materials_ready',
           reason,
           confidence,
           autoExecute: false,
@@ -212,7 +219,7 @@ export class WorkflowEngine {
 
         return {
           from: app.status,
-          to: 'interview',
+          to: 'screening',
           reason,
           confidence: Math.min(confidence, 0.9),
           autoExecute: false,
@@ -232,7 +239,7 @@ export class WorkflowEngine {
         const weeksSinceApplied = Math.floor(daysSinceApplied / 7);
         const hasGoodMatch = (app.matchScore || 0) > 60;
 
-        return app.status === 'applied' &&
+        return (app.status === 'applied' || app.status === 'submitted') &&
                weeksSinceApplied >= 2 &&
                weeksSinceApplied < 6 &&
                hasGoodMatch;
@@ -250,7 +257,7 @@ export class WorkflowEngine {
 
         return {
           from: app.status,
-          to: 'pending',
+          to: 'screening',
           reason,
           confidence,
           autoExecute: false,
@@ -336,7 +343,7 @@ export class WorkflowEngine {
         const isMediumMatch = matchScore >= 50 && matchScore <= 70;
         const recentlyCreated = (ctx.currentTime.getTime() - new Date(app.createdAt).getTime()) / (1000 * 60 * 60) < 72;
 
-        return app.status === 'draft' && isMediumMatch && recentlyCreated;
+        return app.status === 'saved' && isMediumMatch && recentlyCreated;
       },
       action: (app) => {
         const matchScore = app.matchScore || 0;
@@ -350,7 +357,7 @@ export class WorkflowEngine {
 
         return {
           from: app.status,
-          to: 'optimized',
+          to: 'materials_ready',
           reason,
           confidence,
           autoExecute: false,
@@ -399,23 +406,23 @@ export class WorkflowEngine {
       condition: (app, ctx) => {
         const daysSinceUpdate = (ctx.currentTime.getTime() - new Date(app.updatedAt).getTime()) / (1000 * 60 * 60 * 24);
         const isStale = daysSinceUpdate > 30;
-        const notFinalStatus = !['offer', 'rejected'].includes(app.status);
+        const isClosedOut = ['offer', 'hired', 'rejected', 'withdrawn'].includes(app.status);
 
-        return isStale && notFinalStatus;
+        return isStale && !isClosedOut;
       },
       action: (app) => {
         const daysSinceUpdate = Math.floor((Date.now() - new Date(app.updatedAt).getTime()) / (1000 * 60 * 60 * 24));
         let confidence = 0.6;
-        let reason = `Application not updated for ${daysSinceUpdate} days. Consider following up or closing.`;
+        let reason = `Application not updated for ${daysSinceUpdate} days. Follow up on your own, or close it out here (executing marks it withdrawn).`;
 
         if (daysSinceUpdate > 60) {
           confidence = 0.75;
-          reason = `Very old application (${daysSinceUpdate} days). Recommended to follow up or mark as closed.`;
+          reason = `Very old application (${daysSinceUpdate} days). You can follow up on your own, or close it out here (executing marks it withdrawn).`;
         }
 
         return {
           from: app.status,
-          to: 'pending',
+          to: 'withdrawn',
           reason,
           confidence,
           autoExecute: false,
@@ -589,31 +596,18 @@ export class WorkflowEngine {
    * Initialize statistics
    */
   private initializeStatistics(): WorkflowStatistics {
+    const zeroedByStatus = Object.fromEntries(
+      CANONICAL_STATUSES.map((status) => [status, 0]),
+    ) as Record<ApplicationStatus, number>;
     return {
       totalTransitions: 0,
       automatedTransitions: 0,
       manualTransitions: 0,
       averageTransitionTime: 0,
-      statusDistribution: {
-        draft: 0,
-        applied: 0,
-        interview: 0,
-        offer: 0,
-        rejected: 0,
-        optimized: 0,
-        pending: 0,
-      },
+      statusDistribution: { ...zeroedByStatus },
       mostCommonTransitions: [],
       conversionRates: {},
-      averageTimeInStatus: {
-        draft: 0,
-        applied: 0,
-        interview: 0,
-        offer: 0,
-        rejected: 0,
-        optimized: 0,
-        pending: 0,
-      },
+      averageTimeInStatus: { ...zeroedByStatus },
       dropoffPoints: [],
       successMetrics: {
         interviewRate: 0,
@@ -710,7 +704,10 @@ export class WorkflowEngine {
       dropoffRate: number;
     }> = [];
 
-    const statuses: ApplicationStatus[] = ['draft', 'applied', 'interview', 'pending', 'optimized'];
+    // Pre-terminal stages where a rejection can land.
+    const statuses: ApplicationStatus[] = CANONICAL_STATUSES.filter(
+      (status) => !['offer', 'hired', 'rejected', 'withdrawn'].includes(status),
+    );
 
     for (const status of statuses) {
       const statusCount = this.statistics.statusDistribution[status];
@@ -743,8 +740,13 @@ export class WorkflowEngine {
 
     // Calculate success metrics
     const totalApplications = applications.length;
-    const interviewCount = applications.filter(app => app.status === 'interview').length;
-    const offerCount = applications.filter(app => app.status === 'offer').length;
+    // "Ever interviewed" — the stage now or any stage that can only follow one.
+    const interviewCount = applications.filter(app =>
+      ['interview', 'technical', 'offer', 'hired'].includes(app.status)
+    ).length;
+    const offerCount = applications.filter(app =>
+      ['offer', 'hired'].includes(app.status)
+    ).length;
 
     this.statistics.successMetrics = {
       interviewRate: totalApplications > 0 ? (interviewCount / totalApplications) * 100 : 0,
@@ -776,8 +778,12 @@ export class WorkflowEngine {
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const recentApplications = applications.filter(app => new Date(app.createdAt) >= oneWeekAgo);
 
-    const recentInterviewCount = recentApplications.filter(app => app.status === 'interview').length;
-    const recentOfferCount = recentApplications.filter(app => app.status === 'offer').length;
+    const recentInterviewCount = recentApplications.filter(app =>
+      ['interview', 'technical', 'offer', 'hired'].includes(app.status)
+    ).length;
+    const recentOfferCount = recentApplications.filter(app =>
+      ['offer', 'hired'].includes(app.status)
+    ).length;
 
     // Calculate success rate
     const successRate = recentApplications.length > 0
@@ -795,15 +801,9 @@ export class WorkflowEngine {
    */
   private calculateAverageTimeInStatus(): void {
     const allHistory = this.getAllHistory();
-    const timeInStatus: Record<ApplicationStatus, number[]> = {
-      draft: [],
-      applied: [],
-      interview: [],
-      offer: [],
-      rejected: [],
-      optimized: [],
-      pending: [],
-    };
+    const timeInStatus = Object.fromEntries(
+      CANONICAL_STATUSES.map((status) => [status, [] as number[]]),
+    ) as Record<ApplicationStatus, number[]>;
 
     // Calculate time spent in each status for each application
     for (const [applicationId, history] of allHistory) {
@@ -965,11 +965,15 @@ export function getApplicationStatistics(applications: JobApplication[]): Workfl
 
   const totalApplications = applications.length;
   const activeApplications = applications.filter(app =>
-    ['draft', 'applied', 'interview', 'pending'].includes(app.status)
+    !['offer', 'hired', 'rejected', 'withdrawn'].includes(app.status)
   ).length;
 
-  const interviewCount = applications.filter(app => app.status === 'interview').length;
-  const offerCount = applications.filter(app => app.status === 'offer').length;
+  const interviewCount = applications.filter(app =>
+    ['interview', 'technical'].includes(app.status)
+  ).length;
+  const offerCount = applications.filter(app =>
+    ['offer', 'hired'].includes(app.status)
+  ).length;
 
   const interviewRate = totalApplications > 0 ? (interviewCount / totalApplications) * 100 : 0;
   const offerRate = totalApplications > 0 ? (offerCount / totalApplications) * 100 : 0;

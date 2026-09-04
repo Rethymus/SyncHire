@@ -5,6 +5,10 @@
 
 import { ApplicationStatus, StatusTransition } from './workflow-engine';
 import { applicationDetailHref } from './application-links';
+import { STATUS_LABELS_ZH } from './status-vocabulary';
+
+// Module-level: shared by every notification/email template.
+const statusLabels = STATUS_LABELS_ZH;
 
 export interface NotificationMessage {
   id: string;
@@ -126,15 +130,6 @@ export class WorkflowNotificationService {
     transition: StatusTransition,
     userEmail?: string
   ): NotificationMessage {
-    const statusLabels: Record<ApplicationStatus, string> = {
-      draft: '草稿',
-      applied: '已申请',
-      interview: '面试中',
-      offer: '已录用',
-      rejected: '已拒绝',
-      optimized: '已优化',
-      pending: '处理中',
-    };
 
     let type: NotificationMessage['type'] = 'info';
     let title = '状态变更通知';
@@ -161,7 +156,7 @@ export class WorkflowNotificationService {
         title = '申请已提交';
         message = `${applicationName} 的申请已成功提交。`;
         break;
-      case 'optimized':
+      case 'materials_ready':
         type = 'info';
         title = '简历优化完成';
         message = `${applicationName} 的简历优化已完成。`;
@@ -219,15 +214,6 @@ export class WorkflowNotificationService {
     applicationName: string,
     transition: StatusTransition
   ): NotificationMessage {
-    const statusLabels: Record<ApplicationStatus, string> = {
-      draft: '草稿',
-      applied: '已申请',
-      interview: '面试中',
-      offer: '已录用',
-      rejected: '已拒绝',
-      optimized: '已优化',
-      pending: '处理中',
-    };
 
     const notification = this.addNotification({
       type: 'info',
@@ -513,15 +499,6 @@ export class WorkflowNotificationService {
     applicationName: string,
     transition: StatusTransition
   ): Promise<void> {
-    const statusLabels: Record<ApplicationStatus, string> = {
-      draft: '草稿',
-      applied: '已申请',
-      interview: '面试中',
-      offer: '已录用',
-      rejected: '已拒绝',
-      optimized: '已优化',
-      pending: '处理中',
-    };
 
     const emailData: EmailNotificationData = {
       to: email,
