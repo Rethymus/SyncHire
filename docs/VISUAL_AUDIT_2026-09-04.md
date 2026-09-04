@@ -92,6 +92,26 @@ UI 驱动一条申请走完生命周期（新建 → 详情 → 状态流转）�
 验证：前端 319 + eslint、e2e 26/26（smoke+进度+打印文档+回归）；后端
 无改动维持 434。
 
+## 第七轮（同日：面试工作流 + 数据所有权回环）
+
+第七轮走查面试工作流与数据所有权核心承诺——导出/导入回环。请求监听
++ 代码核查确认了项目最大的单功能断裂：
+
+| # | 发现 | 根因 | 修复 |
+|---|------|------|------|
+| I1 | **面试功能"三不通"**：列表读 localStorage（synchire-interviews），而预约表单、快速预约弹窗、删除、日历拖拽全部 POST/PUT/DELETE /api/interviews——Lite 后端无此路由（404） | 全栈遗留路径未随 Lite 化迁移 | 新建 `lib/interviews-local.ts` 单一本地存储源；表单提交、删除、拖拽改期/时长调整全部读写本地（共享 schema 校验），端到端验证 预约→列表显示（待参加=1）→删除 全通 |
+| I2 | QuickSchedule 的申请来源打 `/applications?status=applied&page_size=10`——后端参数名实为 `status_filter`，`page_size` 不存在；且英文文案孤岛 | API 驱动未随 Lite 化迁移 | 改读 lite store（canonical interview/technical 状态），文案双语化接入 useLiteCopy |
+| I3 | QuickSchedule 点击面试卡跳 `/interviews/[id]`——路由不存在（404） | 详情路由从未创建 | 移除死链接（卡片改为纯展示） |
+| I4 | **导出不含面试**：/data 导出 payload 只有 resumes/jds/applications——透明度页承诺「随时导出全部数据」，面试数据被静默丢弃 | 导出构建器未覆盖独立 localStorage 域 | 导出嵌入 `state.interviews`（readLocalInterviews），导入经 saveLocalInterview 恢复并计入结果统计；**导出→清空→导入回环**程序化验证 interviews/resumes/applications 三类全恢复 |
+| I5 | 创建对话框「创建申请」按钮 E2E 点击超时 | 按钮内部 animate-in zoom-in-50 图标容器在动画后仍干扰 pointer 命中测试 | 图标容器改静态；提示框 pointer-events-none；footer 按钮 relative z-10 |
+
+另确认（非缺陷）：申请列表卡片点击进匹配分析而非详情，系 application-links
+设计使然；详情由 `/applications/detail?id=` 直达。
+
+验证：前端 319 + eslint、e2e 26/26；后端无改动维持 434。生产构建复跑
+通过；面试预约→列表→删除与导出→清空→导入两条回环均程序化验证。
+
+
 
 
 
