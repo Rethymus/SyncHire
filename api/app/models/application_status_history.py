@@ -1,9 +1,9 @@
 import uuid
-from datetime import datetime
 from sqlalchemy import Column, String, DateTime, Text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.core.database import Base
+from app.core.clock import utcnow
 
 
 class ApplicationStatusHistory(Base):
@@ -23,7 +23,7 @@ class ApplicationStatusHistory(Base):
     old_status = Column(String)
     new_status = Column(String, nullable=False)
     notes = Column(Text)
-    changed_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    changed_at = Column(DateTime, default=utcnow, nullable=False)
 
     # Relationships
     application = relationship("Application", back_populates="status_history")

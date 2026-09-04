@@ -4,7 +4,6 @@ Supports user-specific search tracking with privacy controls.
 """
 
 import uuid
-from datetime import datetime
 from sqlalchemy import (
     Column,
     String,
@@ -19,6 +18,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 import enum
+from app.core.clock import utcnow
 
 
 class SearchType(str, enum.Enum):
@@ -54,12 +54,12 @@ class SearchHistory(Base):
     result_count = Column(Integer, default=0)
 
     # Analytics
-    search_timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+    search_timestamp = Column(DateTime, default=utcnow, index=True)
 
     # Privacy controls
     is_sensitive = Column(Boolean, default=False)  # Mark sensitive searches
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
 
     # Relationships
     user = relationship("User", back_populates="search_history")
@@ -107,8 +107,8 @@ class SavedSearch(Base):
     tags = Column(JSONB, nullable=True)  # User-defined tags for organization
     is_favorite = Column(Boolean, default=False)  # Mark as favorite
 
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
     # Relationships
     user = relationship("User", back_populates="saved_searches")
@@ -145,7 +145,7 @@ class SearchAnalytics(Base):
     search_term = Column(String(255), nullable=False)
     search_type = Column(String, nullable=False)
     search_count = Column(Integer, default=1)  # Frequency of this search
-    last_searched_at = Column(DateTime, default=datetime.utcnow)
+    last_searched_at = Column(DateTime, default=utcnow)
 
     # Performance metrics
     avg_result_count = Column(Integer, nullable=True)  # Average results returned
@@ -153,8 +153,8 @@ class SearchAnalytics(Base):
         Integer, nullable=True
     )  # Average search duration in ms
 
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
     # Relationships
     user = relationship("User", back_populates="search_analytics")

@@ -5,12 +5,12 @@ This model tracks all data access and modifications for compliance requirements.
 """
 
 import uuid
-from datetime import datetime
 from sqlalchemy import Column, String, DateTime, Text, Boolean, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 import enum
+from app.core.clock import utcnow
 
 
 class AuditAction(str, enum.Enum):
@@ -88,7 +88,7 @@ class AuditLog(Base):
     )  # Additional context (renamed from metadata to avoid SQLAlchemy conflict)
 
     # Timestamp
-    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    timestamp = Column(DateTime, default=utcnow, nullable=False, index=True)
 
     # Relationships
     user = relationship("User", foreign_keys=[user_id])
@@ -115,14 +115,14 @@ class DataRetentionLog(Base):
     )  # "gdpr_request", "policy_expiry", "user_request"
 
     # Deletion tracking
-    deleted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    deleted_at = Column(DateTime, default=utcnow, nullable=False)
     deleted_by = Column(UUID(as_uuid=True), nullable=True)  # User or system ID
     backup_deleted = Column(Boolean, default=False)  # Whether backups were also deleted
 
     # Compliance
     gdpr_request_id = Column(String, nullable=True)  # Link to specific GDPR request
 
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
 
 
 class ConsentLog(Base):
@@ -142,7 +142,7 @@ class ConsentLog(Base):
     granted = Column(Boolean, nullable=False)
 
     # Timestamps
-    granted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    granted_at = Column(DateTime, default=utcnow, nullable=False)
     revoked_at = Column(DateTime, nullable=True)
 
     # Legal basis
@@ -157,4 +157,4 @@ class ConsentLog(Base):
     ip_address = Column(String, nullable=True)
     user_agent = Column(Text, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utcnow, nullable=False)

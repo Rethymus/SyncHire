@@ -15,7 +15,7 @@ import uuid
 import re
 import time
 from typing import List, Optional, Dict, Any
-from datetime import datetime, date, date as date_type
+from datetime import date, date as date_type
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import (
     select,
@@ -38,6 +38,8 @@ from app.models.search import (
     SearchHistory,
     SearchAnalytics,
 )
+
+from app.core.clock import utcnow
 
 
 class SearchFilters:
@@ -951,7 +953,7 @@ class AdvancedSearchService:
                     / analytics.search_count
                 )
                 analytics.avg_search_duration = search_duration_ms
-                analytics.last_searched_at = datetime.utcnow()
+                analytics.last_searched_at = utcnow()
             else:
                 # Create new analytics entry
                 analytics = SearchAnalytics(

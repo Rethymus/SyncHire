@@ -13,7 +13,6 @@ Implements comprehensive data protection measures:
 import hashlib
 import secrets
 import json
-from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -23,6 +22,7 @@ from app.models.user import User
 from app.core.redis import redis_client
 from app.core.config import get_settings
 from app.core.errors import ValidationError, DatabaseError
+from app.core.clock import utcnow
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -287,7 +287,7 @@ class DataRetentionManager:
             # This would be implemented based on actual data models
             # Example for activity logs:
             # retention_days = await cls.get_retention_period('user_activity_logs')
-            # cutoff_date = datetime.utcnow() - timedelta(days=retention_days)
+            # cutoff_date = utcnow() - timedelta(days=retention_days)
             # deleted_count = await db.execute(
             #     delete(ActivityLog).where(ActivityLog.created_at < cutoff_date)
             # )
@@ -328,7 +328,7 @@ class ConsentManager:
                 "user_id": user_id,
                 "consent_type": consent_type,
                 "granted": granted,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": utcnow().isoformat(),
                 "metadata": metadata or {},
                 "ip_address": metadata.get("ip_address") if metadata else None,
             }
@@ -416,7 +416,7 @@ class DataExporter:
 
             # Build export data structure
             export_data = {
-                "export_date": datetime.utcnow().isoformat(),
+                "export_date": utcnow().isoformat(),
                 "user_id": user_id,
                 "account": {
                     "email": user.email,
@@ -491,7 +491,7 @@ class DataEraser:
             user.full_name = "Deleted User"
             user.hashed_password = f"deleted:{user_id}"
             user.is_active = False
-            user.deleted_at = datetime.utcnow()
+            user.deleted_at = utcnow()
 
             erased_types.append("account_anonymized")
 
@@ -554,7 +554,7 @@ class DataBreachNotifier:
                 "affected_users": affected_users,
                 "severity": severity,
                 "description": description,
-                "discovered_at": datetime.utcnow().isoformat(),
+                "discovered_at": utcnow().isoformat(),
                 "status": "investigating",
             }
 

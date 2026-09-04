@@ -6,7 +6,6 @@ Integrates with existing notification system to provide instant delivery.
 """
 
 from typing import Dict, Any, List, Optional
-from datetime import datetime
 import uuid
 
 from app.websocket.manager import manager
@@ -20,6 +19,7 @@ from app.websocket.types import (
     ActivityData,
 )
 from app.core.logger import logger, LogCategory
+from app.core.clock import utcnow
 
 
 class WebSocketNotificationService:
@@ -119,7 +119,7 @@ class WebSocketNotificationService:
             position=position,
             status=status,
             status_text=status_text,
-            updated_at=datetime.utcnow().isoformat(),
+            updated_at=utcnow().isoformat(),
         )
 
         ws_message = WebSocketMessage(
@@ -285,7 +285,7 @@ class WebSocketNotificationService:
             type=activity_type,
             description=description,
             metadata=metadata,
-            created_at=datetime.utcnow().isoformat(),
+            created_at=utcnow().isoformat(),
         )
 
         ws_message = WebSocketMessage(
@@ -335,7 +335,7 @@ class WebSocketNotificationService:
             data={
                 "title": title,
                 "message": message,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": utcnow().isoformat(),
             },
         )
 

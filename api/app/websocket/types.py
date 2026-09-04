@@ -7,8 +7,8 @@ Defines message types, schemas, and data structures for WebSocket communication.
 from enum import Enum
 from typing import Dict, Any, Optional, List
 from pydantic import BaseModel, ConfigDict, Field
-from datetime import datetime
 import uuid
+from app.core.clock import utcnow
 
 
 class MessageType(str, Enum):
@@ -63,7 +63,7 @@ class WebSocketMessage(BaseModel):
 
     type: MessageType
     data: Dict[str, Any]
-    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = Field(default_factory=lambda: utcnow().isoformat())
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
 
 
@@ -148,7 +148,7 @@ class HeartbeatMessage(BaseModel):
     """Heartbeat message for connection health"""
 
     connection_id: str
-    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = Field(default_factory=lambda: utcnow().isoformat())
     status: str = "alive"
 
 

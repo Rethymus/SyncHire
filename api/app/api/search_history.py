@@ -5,7 +5,7 @@ Provides comprehensive search tracking, management, and analytics.
 
 import uuid
 from typing import Optional, Dict
-from datetime import datetime, timedelta
+from datetime import timedelta
 from fastapi import APIRouter, Depends, Query, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, desc
@@ -29,6 +29,7 @@ from app.schemas.search import (
     SearchImport,
 )
 from app.middleware.rate_limit import rate_limit, RateLimitType
+from app.core.clock import utcnow
 
 router = APIRouter(prefix="/search/history", tags=["search-history"])
 
@@ -58,7 +59,7 @@ async def create_search_history(
             filters=search_data.filters,
             result_count=search_data.result_count,
             is_sensitive=search_data.is_sensitive,
-            search_timestamp=datetime.utcnow(),
+            search_timestamp=utcnow(),
         )
 
         db.add(new_history)
@@ -405,7 +406,7 @@ async def update_saved_search(
     for field, value in update_dict.items():
         setattr(saved, field, value)
 
-    saved.updated_at = datetime.utcnow()
+    saved.updated_at = utcnow()
 
     await db.commit()
     await db.refresh(saved)
@@ -472,7 +473,7 @@ async def run_saved_search(
 
     # Update usage tracking
     saved.usage_count += 1
-    saved.last_used_at = datetime.utcnow()
+    saved.last_used_at = utcnow()
 
     # Create search history entry
     history_data = SearchHistoryCreate(
@@ -490,7 +491,7 @@ async def run_saved_search(
         filters=history_data.filters,
         result_count=history_data.result_count,
         is_sensitive=history_data.is_sensitive,
-        search_timestamp=datetime.utcnow(),
+        search_timestamp=utcnow(),
     )
 
     db.add(history_entry)
@@ -519,7 +520,7 @@ async def get_search_analytics(
     current_user: User = Depends(get_current_user),
 ):
     """Get comprehensive search analytics and insights."""
-    cutoff_date = datetime.utcnow() - timedelta(days=days)
+    cutoff_date = utcnow() - timedelta(days=days)
 
     # Total searches in period
     total_stmt = select(func.count()).where(
@@ -789,7 +790,7 @@ async def export_saved_searches(
         for item in items
     ]
 
-    return SearchExport(searches=searches, exported_at=datetime.utcnow())
+    return SearchExport(searches=searches, exported_at=utcnow())
 
 
 @router.post("/saved/import", response_model=Dict[str, int])
@@ -888,7 +889,7 @@ async def _update_search_analytics(
         if analytics:
             # Update existing analytics
             analytics.search_count += 1
-            analytics.last_searched_at = datetime.utcnow()
+            analytics.last_searched_at = utcnow()
 
             # Update average result count
             if search_data.result_count > 0:
@@ -902,7 +903,7 @@ async def _update_search_analytics(
                 )
                 analytics.avg_result_count = new_avg
 
-            analytics.updated_at = datetime.utcnow()
+            analytics.updated_at = utcnow()
         else:
             # Create new analytics entry
             new_analytics = SearchAnalytics(
@@ -910,7 +911,7 @@ async def _update_search_analytics(
                 search_term=search_data.query,
                 search_type=search_data.search_type,
                 search_count=1,
-                last_searched_at=datetime.utcnow(),
+                last_searched_at=utcnow(),
                 avg_result_count=(
                     search_data.result_count if search_data.result_count > 0 else None
                 ),

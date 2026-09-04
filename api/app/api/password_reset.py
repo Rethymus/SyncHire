@@ -6,7 +6,7 @@ Uses database persistence for token storage.
 """
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -19,6 +19,7 @@ from app.services.email_service import email_service
 from app.middleware.rate_limit import rate_limit, RateLimitType
 from app.core.logger import logger, LogCategory
 from app.core.deps import get_current_user
+from app.core.clock import utcnow
 
 router = APIRouter(prefix="/password-reset", tags=["password-reset"])
 
@@ -57,9 +58,7 @@ async def request_password_reset(
         if user:
             # Generate secure reset token
             reset_token = str(uuid.uuid4())
-            expiry_time = datetime.utcnow() + timedelta(
-                hours=1
-            )  # Token expires in 1 hour
+            expiry_time = utcnow() + timedelta(hours=1)  # Token expires in 1 hour
 
             # Store token in database
             password_reset_token = PasswordResetToken(
@@ -149,7 +148,7 @@ async def validate_reset_token(
             )
 
         # Check token expiry
-        if datetime.utcnow() > reset_token_obj.expires_at:
+        if utcnow() > reset_token_obj.expires_at:
             raise ValidationError(message="Reset token has expired", field="token")
 
         # Get user email
@@ -226,7 +225,7 @@ async def reset_password(
             )
 
         # Check token expiry
-        if datetime.utcnow() > reset_token_obj.expires_at:
+        if utcnow() > reset_token_obj.expires_at:
             raise ValidationError(message="Reset token has expired", field="token")
 
         # Get user
@@ -243,7 +242,7 @@ async def reset_password(
 
         # Update password
         user.hashed_password = get_password_hash(new_password)
-        user.updated_at = datetime.utcnow()
+        user.updated_at = utcnow()
 
         # Mark token as used
         reset_token_obj.used = True
@@ -325,7 +324,7 @@ async def change_password(
         from app.core.security import get_password_hash
 
         current_user.hashed_password = get_password_hash(new_password)
-        current_user.updated_at = datetime.utcnow()
+        current_user.updated_at = utcnow()
 
         await db.commit()
 

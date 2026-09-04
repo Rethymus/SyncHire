@@ -8,7 +8,6 @@ and connection lifecycle handling.
 import asyncio
 import uuid
 from typing import Optional, Dict, Any, Set, List
-from datetime import datetime
 from fastapi import WebSocket
 import jwt
 from jwt import PyJWTError
@@ -23,6 +22,8 @@ from app.websocket.types import (
     WebSocketMessage,
     MessageType,
 )
+
+from app.core.clock import utcnow
 
 settings = get_settings()
 
@@ -150,7 +151,7 @@ class WebSocketServer:
             {
                 "connection_id": connection_id,
                 "user_id": str(user.id),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": utcnow().isoformat(),
             },
         )
 
@@ -200,7 +201,7 @@ class WebSocketServer:
             elif message_type == "ping":
                 await websocket.send_text(
                     '{"type": "pong", "data": {"timestamp": "'
-                    + datetime.utcnow().isoformat()
+                    + utcnow().isoformat()
                     + '"}}'
                 )
 
@@ -276,7 +277,7 @@ class WebSocketServer:
                     "user_id": str(user.id),
                     "close_code": close_code,
                     "close_reason": close_reason,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": utcnow().isoformat(),
                 },
             )
 

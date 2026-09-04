@@ -83,7 +83,9 @@ class TestMCPClientEndToEndWorkflows:
             client = MCPClient()
 
             # Step 1: Parse resume
-            resume_result = await client.parse_resume("/path/to/resume.pdf", b"resume text")
+            resume_result = await client.parse_resume(
+                "/path/to/resume.pdf", b"resume text"
+            )
             assert resume_result["success"] is True
             assert "data" in resume_result
 
@@ -152,7 +154,9 @@ class TestMCPClientEndToEndWorkflows:
         with patch("httpx.AsyncClient", return_value=mock_httpx_client):
             client = MCPClient()
 
-            resume_result = await client.parse_resume("/path/to/resume.pdf", b"resume text")
+            resume_result = await client.parse_resume(
+                "/path/to/resume.pdf", b"resume text"
+            )
             jd_result = await client.parse_jd("Job description")
             match_result = await client.match_resume_to_jd(
                 resume_result["data"],
@@ -362,13 +366,17 @@ class TestMCPClientRealWorldScenarios:
             jd_result = await client.parse_jd("Senior Developer position")
 
             # Try with multiple resumes
-            resume_1_result = await client.parse_resume("/path/to/resume1.pdf", b"resume one")
+            resume_1_result = await client.parse_resume(
+                "/path/to/resume1.pdf", b"resume one"
+            )
             match_1_result = await client.match_resume_to_jd(
                 resume_1_result["data"],
                 jd_result["data"],
             )
 
-            resume_2_result = await client.parse_resume("/path/to/resume2.pdf", b"resume two")
+            resume_2_result = await client.parse_resume(
+                "/path/to/resume2.pdf", b"resume two"
+            )
             match_2_result = await client.match_resume_to_jd(
                 resume_2_result["data"],
                 jd_result["data"],
@@ -399,7 +407,9 @@ class TestMCPClientRealWorldScenarios:
             client = MCPClient()
 
             # Initial resume
-            resume_result = await client.parse_resume("/path/to/resume.pdf", b"resume text")
+            resume_result = await client.parse_resume(
+                "/path/to/resume.pdf", b"resume text"
+            )
             jd_result = await client.parse_jd("Target job description")
 
             # First optimization
@@ -436,7 +446,9 @@ class TestMCPClientAPIIntegration:
                 # This would test the actual API endpoint
                 # For now, we test the MCP client directly
                 mcp_client = MCPClient()
-                result = await mcp_client.parse_resume("/test/resume.pdf", b"resume text")
+                result = await mcp_client.parse_resume(
+                    "/test/resume.pdf", b"resume text"
+                )
 
         assert result["success"] is True
 
@@ -480,7 +492,9 @@ class TestMCPClientDataConsistency:
             client = MCPClient()
 
             # Parse resume
-            resume_result = await client.parse_resume("/path/to/resume.pdf", b"resume text")
+            resume_result = await client.parse_resume(
+                "/path/to/resume.pdf", b"resume text"
+            )
             original_data = resume_result["data"]
 
             # Use in matching
@@ -570,7 +584,9 @@ class TestMCPClientPerformanceIntegration:
             start_time = time.time()
 
             # Execute full workflow
-            resume_result = await client.parse_resume("/path/to/resume.pdf", b"resume text")
+            resume_result = await client.parse_resume(
+                "/path/to/resume.pdf", b"resume text"
+            )
             jd_result = await client.parse_jd("Job description")
             match_result = await client.match_resume_to_jd(
                 resume_result["data"],

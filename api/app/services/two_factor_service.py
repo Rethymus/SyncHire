@@ -12,12 +12,12 @@ import base64
 import secrets
 import string
 import inspect
-from datetime import datetime
 from typing import Tuple, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.core.errors import ValidationError, DatabaseError
 import logging
+from app.core.clock import utcnow
 
 logger = logging.getLogger(__name__)
 
@@ -196,7 +196,7 @@ class TwoFactorService:
             # Update user
             user.two_factor_enabled = True
             user.backup_codes = backup_codes
-            user.two_factor_enabled_at = datetime.utcnow()
+            user.two_factor_enabled_at = utcnow()
 
             # Save to database
             try:

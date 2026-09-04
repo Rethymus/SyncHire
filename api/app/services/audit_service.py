@@ -23,6 +23,7 @@ from app.models.audit_log import (
     ConsentLog,
 )
 from app.core.logger import logger, LogCategory
+from app.core.clock import utcnow
 
 
 class AuditService:
@@ -76,7 +77,7 @@ class AuditService:
                 request_id=request_id,
                 description=description,
                 request_metadata=metadata,
-                timestamp=datetime.utcnow(),
+                timestamp=utcnow(),
             )
 
             db.add(audit_log)
@@ -314,7 +315,7 @@ class AuditService:
             content=output.getvalue(),
             media_type="text/csv",
             headers={
-                "Content-Disposition": f"attachment; filename=audit_log_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+                "Content-Disposition": f"attachment; filename=audit_log_{utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
             },
         )
 
@@ -345,7 +346,7 @@ class AuditService:
             content=json_data,
             media_type="application/json",
             headers={
-                "Content-Disposition": f"attachment; filename=audit_log_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+                "Content-Disposition": f"attachment; filename=audit_log_{utcnow().strftime('%Y%m%d_%H%M%S')}.json"
             },
         )
 
@@ -383,7 +384,7 @@ class AuditService:
                 resource_id=resource_id,
                 retention_period_days=retention_period_days,
                 deletion_reason=deletion_reason,
-                deleted_at=datetime.utcnow(),
+                deleted_at=utcnow(),
                 deleted_by=deleted_by,
                 backup_deleted=False,  # Assume backups not deleted by default
                 gdpr_request_id=gdpr_request_id,
@@ -436,8 +437,8 @@ class AuditService:
                 user_id=user_id,
                 consent_type=consent_type,
                 granted=granted,
-                granted_at=datetime.utcnow(),
-                revoked_at=None if granted else datetime.utcnow(),
+                granted_at=utcnow(),
+                revoked_at=None if granted else utcnow(),
                 legal_basis=legal_basis,
                 privacy_policy_version=privacy_policy_version,
                 ip_address=ip_address,

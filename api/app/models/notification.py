@@ -5,7 +5,6 @@ Stores in-app notifications for users
 """
 
 import uuid
-from datetime import datetime
 from sqlalchemy import (
     Column,
     String,
@@ -19,6 +18,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 import enum
+from app.core.clock import utcnow
 
 
 class NotificationType(str, enum.Enum):
@@ -51,7 +51,7 @@ class Notification(Base):
     action_url = Column(String(500), nullable=True)
     meta = Column(JSONB, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, default=utcnow, index=True)
     read_at = Column(DateTime, nullable=True)
 
     # Relationship to user

@@ -2,7 +2,7 @@ import uuid
 import json
 import asyncio
 from typing import Optional, Dict, Any, List
-from datetime import datetime, timedelta
+from datetime import timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from app.models.task import Task, TaskType, TaskStatus
@@ -10,6 +10,7 @@ from app.services.ai_service import AIService
 from app.services.mcp_client import mcp_client, MCPError
 from app.core.redis import redis_client
 from app.core.logger import logger
+from app.core.clock import utcnow
 
 
 class TaskService:
@@ -244,7 +245,7 @@ class TaskService:
         try:
             # Update task status to processing
             task.status = TaskStatus.PROCESSING.value
-            task.started_at = datetime.utcnow()
+            task.started_at = utcnow()
             await db.commit()
 
             logger.info(f"Processing task {task.id} of type {task.task_type}")
@@ -267,7 +268,7 @@ class TaskService:
             # Update task with results
             task.status = TaskStatus.COMPLETED.value
             task.result_data = result_data
-            task.completed_at = datetime.utcnow()
+            task.completed_at = utcnow()
             await db.commit()
 
             logger.info(f"Task {task.id} completed successfully")
@@ -279,7 +280,7 @@ class TaskService:
             task.status = TaskStatus.FAILED.value
             task.error_message = str(e)
             task.error_details = {"error_type": type(e).__name__}
-            task.completed_at = datetime.utcnow()
+            task.completed_at = utcnow()
             await db.commit()
 
     @staticmethod
@@ -462,7 +463,7 @@ class TaskService:
             Number of tasks cleaned up
         """
         try:
-            cutoff_date = datetime.utcnow() - timedelta(days=days)
+            cutoff_date = utcnow() - timedelta(days=days)
 
             # Delete old completed/failed tasks
             from sqlalchemy import delete as sql_delete

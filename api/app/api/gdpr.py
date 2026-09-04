@@ -32,6 +32,7 @@ from app.models.search import SearchHistory, SavedSearch
 from app.middleware.rate_limit import rate_limit, RateLimitType
 from app.core.logger import logger, LogCategory
 from app.services.email_service import email_service
+from app.core.clock import utcnow
 
 router = APIRouter(prefix="/gdpr", tags=["gdpr"])
 
@@ -88,14 +89,12 @@ async def request_account_deletion(
 
     try:
         # Create deletion token
-        deletion_token = (
-            f"delete_{current_user.id}_{int(datetime.utcnow().timestamp())}"
-        )
+        deletion_token = f"delete_{current_user.id}_{int(utcnow().timestamp())}"
 
         # Store deletion request in user metadata (you may want a separate table)
         deletion_data = {
-            "requested_at": datetime.utcnow().isoformat(),
-            "scheduled_for": (datetime.utcnow() + timedelta(days=30)).isoformat(),
+            "requested_at": utcnow().isoformat(),
+            "scheduled_for": (utcnow() + timedelta(days=30)).isoformat(),
             "token": deletion_token,
             "reason": request.reason,
             "status": "pending",
@@ -221,7 +220,7 @@ async def export_full_user_data(
 
             # Add metadata
             metadata = {
-                "export_date": datetime.utcnow().isoformat(),
+                "export_date": utcnow().isoformat(),
                 "user_id": str(current_user.id),
                 "data_version": "1.0",
                 "total_resumes": len(user_data["resumes"]),
@@ -280,7 +279,7 @@ async def create_data_backup(
     Backups are stored for 90 days.
     """
     try:
-        backup_id = f"backup_{current_user.id}_{int(datetime.utcnow().timestamp())}"
+        backup_id = f"backup_{current_user.id}_{int(utcnow().timestamp())}"
 
         # Fetch user data
         user_data = await fetch_complete_user_data(db, current_user.id)
@@ -288,12 +287,12 @@ async def create_data_backup(
         # Create backup data structure
         backup_data = {
             "backup_id": backup_id,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": utcnow().isoformat(),
             "user_id": str(current_user.id),
             "format": request.format,
             "include_files": request.include_files,
             "data": user_data,
-            "expires_at": (datetime.utcnow() + timedelta(days=90)).isoformat(),
+            "expires_at": (utcnow() + timedelta(days=90)).isoformat(),
         }
 
         # In a real implementation, store this in secure storage (S3, etc.)
@@ -445,7 +444,7 @@ async def clear_all_user_data(
 
         return {
             "message": "All user data has been deleted successfully",
-            "deleted_at": datetime.utcnow().isoformat(),
+            "deleted_at": utcnow().isoformat(),
             "data_cleared": [
                 "profile",
                 "resumes",
@@ -509,7 +508,7 @@ async def get_gdpr_compliance_summary(
                 "right_to_portability": "✓ Implemented",
                 "right_to_object": "✓ Implemented",
             },
-            "last_updated": datetime.utcnow().isoformat(),
+            "last_updated": utcnow().isoformat(),
         }
 
     except Exception as e:
@@ -532,7 +531,7 @@ async def fetch_complete_user_data(db: AsyncSession, user_id: str) -> dict:
                 "email": "test@example.com",
                 "full_name": "Test User",
                 "created_at": "",
-                "last_active": datetime.utcnow().isoformat(),
+                "last_active": utcnow().isoformat(),
             },
             "resumes": [],
             "job_descriptions": [],
@@ -577,7 +576,7 @@ async def fetch_complete_user_data(db: AsyncSession, user_id: str) -> dict:
             "email": "",  # Will be filled by caller
             "full_name": "",
             "created_at": "",
-            "last_active": datetime.utcnow().isoformat(),
+            "last_active": utcnow().isoformat(),
         },
         "resumes": [
             {
@@ -682,7 +681,7 @@ async def send_deletion_confirmation_email(
                 </div>
 
                 <p><strong>Deletion Token:</strong> {deletion_token}</p>
-                <p><strong>Scheduled Deletion Date:</strong> {(datetime.utcnow() + timedelta(days=30)).strftime('%Y-%m-%d')}</p>
+                <p><strong>Scheduled Deletion Date:</strong> {(utcnow() + timedelta(days=30)).strftime('%Y-%m-%d')}</p>
 
                 <h3>What happens next:</h3>
                 <ol>
@@ -749,7 +748,7 @@ async def send_restore_confirmation_email(email: str, full_name: str, backup_id:
                     <h3 style="margin-top: 0;">Restore Information:</h3>
                     <ul style="margin-bottom: 0;">
                         <li><strong>Backup ID:</strong> {backup_id}</li>
-                        <li><strong>Started:</strong> {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC</li>
+                        <li><strong>Started:</strong> {utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC</li>
                         <li><strong>Estimated Time:</strong> 5-10 minutes</li>
                         <li><strong>Status:</strong> Processing</li>
                     </ul>

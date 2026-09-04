@@ -7,7 +7,7 @@ Implements secure storage, version management, and recovery mechanisms.
 
 import json
 import hashlib
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import List, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -21,6 +21,7 @@ from app.models.application import Application
 from app.models.search_history import SearchHistory
 from app.models.saved_search import SavedSearch
 from app.core.logger import logger, LogCategory
+from app.core.clock import utcnow
 
 
 class BackupService:
@@ -52,8 +53,8 @@ class BackupService:
             Backup metadata and information
         """
         try:
-            backup_id = f"backup_{user_id}_{int(datetime.utcnow().timestamp())}"
-            timestamp = datetime.utcnow()
+            backup_id = f"backup_{user_id}_{int(utcnow().timestamp())}"
+            timestamp = utcnow()
 
             # Fetch all user data
             user_data = await self._fetch_user_data(db, user_id)
@@ -138,7 +139,7 @@ class BackupService:
             restore_result = {
                 "backup_id": backup_id,
                 "user_id": str(user_id),
-                "restored_at": datetime.utcnow().isoformat(),
+                "restored_at": utcnow().isoformat(),
                 "status": "completed",
                 "items_restored": {
                     "resumes": 0,
@@ -394,7 +395,7 @@ class BackupScheduler:
 
     def _calculate_next_backup_time(self, frequency: str) -> str:
         """Calculate the next backup time based on frequency."""
-        now = datetime.utcnow()
+        now = utcnow()
 
         if frequency == "daily":
             next_time = now + timedelta(days=1)

@@ -24,6 +24,7 @@ from app.models.jd_lite import JobDescription
 from app.models.application_lite import Application, ApplicationStatus
 from app.models.local_profile import LocalProfile
 from app.core.logger import logger, LogCategory
+from app.core.clock import utcnow
 
 settings = get_lite_settings()
 
@@ -78,7 +79,7 @@ async def export_json(db: AsyncSession = Depends(get_db)):
         # Build export data
         export_data = {
             "version": "1.0.0",
-            "export_date": datetime.utcnow().isoformat(),
+            "export_date": utcnow().isoformat(),
             "profile": [
                 {
                     "id": str(p.id),
@@ -232,7 +233,7 @@ async def export_csv(
                     )
 
                 zip_file.writestr(
-                    f"resumes_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv",
+                    f"resumes_{utcnow().strftime('%Y%m%d_%H%M%S')}.csv",
                     resume_csv.getvalue(),
                 )
 
@@ -280,7 +281,7 @@ async def export_csv(
                     )
 
                 zip_file.writestr(
-                    f"job_descriptions_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv",
+                    f"job_descriptions_{utcnow().strftime('%Y%m%d_%H%M%S')}.csv",
                     jd_csv.getvalue(),
                 )
 
@@ -344,7 +345,7 @@ async def export_csv(
                     )
 
                 zip_file.writestr(
-                    f"applications_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv",
+                    f"applications_{utcnow().strftime('%Y%m%d_%H%M%S')}.csv",
                     app_csv.getvalue(),
                 )
 
@@ -358,7 +359,7 @@ async def export_csv(
             content=zip_data,
             media_type="application/zip",
             headers={
-                "Content-Disposition": f"attachment; filename=synchire_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.zip"
+                "Content-Disposition": f"attachment; filename=synchire_export_{utcnow().strftime('%Y%m%d_%H%M%S')}.zip"
             },
         )
 
@@ -624,7 +625,7 @@ async def create_backup(db: AsyncSession = Depends(get_db)):
     """
     try:
         # Create backup filename
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = utcnow().strftime("%Y%m%d_%H%M%S")
         backup_filename = f"synchire_backup_{timestamp}.json"
         backup_path = settings.BACKUPS_DIR / backup_filename
 
@@ -647,7 +648,7 @@ async def create_backup(db: AsyncSession = Depends(get_db)):
             "filename": backup_filename,
             "path": str(backup_path),
             "size": file_size,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": utcnow().isoformat(),
         }
 
     except Exception as e:

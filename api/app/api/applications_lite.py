@@ -5,7 +5,6 @@ Local-first application tracking without authentication.
 """
 
 import re
-from datetime import datetime
 from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, status
@@ -30,6 +29,7 @@ from app.schemas.schemas_lite import (
     ApplicationUpdate,
 )
 from app.services.ai_service_lite import ai_service
+from app.core.clock import utcnow
 
 router = APIRouter(prefix="/applications", tags=["applications"])
 
@@ -192,7 +192,7 @@ def _build_interview_prep_payload(
                 "completed": False,
             },
         ],
-        "generatedAt": datetime.utcnow().isoformat(),
+        "generatedAt": utcnow().isoformat(),
         "targetRole": jd.title,
         "targetCompany": jd.company,
     }
@@ -513,7 +513,7 @@ async def update_application(
                     )
                 db_application.status = next_status
                 # Update last_updated when status changes
-                db_application.last_updated = datetime.utcnow()
+                db_application.last_updated = utcnow()
             except ValueError:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -663,7 +663,7 @@ async def update_application_status(
             await _ensure_materials_ready_allowed(db, application)
 
         application.status = next_status
-        application.last_updated = datetime.utcnow()
+        application.last_updated = utcnow()
         if status_update.notes:
             application.notes = status_update.notes
 
@@ -674,7 +674,7 @@ async def update_application_status(
                 "old_status": old_status.value if old_status else None,
                 "new_status": next_status.value,
                 "notes": status_update.notes,
-                "changed_at": datetime.utcnow().isoformat(),
+                "changed_at": utcnow().isoformat(),
             },
         )
 
@@ -964,7 +964,7 @@ async def batch_update_applications(
                     if next_status == ApplicationStatus.MATERIALS_READY:
                         await _ensure_materials_ready_allowed(db, application)
                     application.status = next_status
-                    application.last_updated = datetime.utcnow()
+                    application.last_updated = utcnow()
                     updated += 1
 
             except Exception as e:

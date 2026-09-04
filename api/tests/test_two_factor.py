@@ -5,13 +5,13 @@ Comprehensive tests for TOTP generation, verification, and backup codes.
 """
 
 import pytest
-from datetime import datetime
 from unittest.mock import Mock
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.two_factor_service import TwoFactorService
 from app.models.user import User
 from app.core.errors import ValidationError
+from app.core.clock import utcnow
 
 
 class TestTwoFactorService:
@@ -263,7 +263,7 @@ class TestTwoFactorService:
         user.two_factor_enabled = True
         user.two_factor_secret = "JBSWY3DPEHPK3PXP"
         user.backup_codes = ["ABCD-1234", "EFGH-5678"]
-        user.two_factor_enabled_at = datetime.utcnow()
+        user.two_factor_enabled_at = utcnow()
 
         # Generate a valid TOTP code
         import pyotp

@@ -12,7 +12,6 @@ Implements secure authentication with:
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
-from datetime import datetime
 import logging
 import secrets
 
@@ -32,6 +31,7 @@ from app.core.errors import (
 )
 from app.core.email_service import email_service
 from app.core.config import get_settings
+from app.core.clock import utcnow
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -285,7 +285,7 @@ class AuthServiceEnhanced:
             await AccountLockout.reset_attempts(ip_address)
 
             # Update last login
-            user.last_login = datetime.utcnow()
+            user.last_login = utcnow()
             await db.commit()
 
             # Log successful login
@@ -327,8 +327,8 @@ class AuthServiceEnhanced:
                 "user_id": user_id,
                 "user_agent": user_agent,
                 "ip_address": ip_address,
-                "created_at": datetime.utcnow().isoformat(),
-                "last_activity": datetime.utcnow().isoformat(),
+                "created_at": utcnow().isoformat(),
+                "last_activity": utcnow().isoformat(),
             }
 
             session_id = await SessionManager.create_session(user_id, session_data)
@@ -371,7 +371,7 @@ class AuthServiceEnhanced:
                 return False
 
             # Update last activity
-            session_data["last_activity"] = datetime.utcnow().isoformat()
+            session_data["last_activity"] = utcnow().isoformat()
             return True
 
         except Exception as e:
@@ -494,7 +494,7 @@ class AuthServiceEnhanced:
 
             # Update password
             user.hashed_password = hashed_password
-            user.password_changed_at = datetime.utcnow()
+            user.password_changed_at = utcnow()
 
             await db.commit()
 

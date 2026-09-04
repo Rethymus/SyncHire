@@ -12,6 +12,7 @@ from app.models.resume import Resume
 from app.models.jd import JD
 from app.models.search import SearchHistory, SavedSearch
 from pydantic import BaseModel
+from app.core.clock import utcnow
 
 router = APIRouter()
 
@@ -246,7 +247,7 @@ async def get_application_timeline(
     page_size: Optional[int] = None,
 ) -> List[Dict[str, Any]]:
     """Return daily application counts for the requested lookback window."""
-    start_date = datetime.utcnow() - timedelta(days=days)
+    start_date = utcnow() - timedelta(days=days)
     result = await db.execute(
         select(Application)
         .where(
@@ -318,7 +319,7 @@ async def get_user_activity_summary(user_id: str, db: AsyncSession) -> Dict[str,
 
 async def get_weekly_activity(user_id: str, db: AsyncSession) -> List[Dict[str, Any]]:
     """Return a seven-day activity histogram across resumes, JDs, and applications."""
-    today = datetime.utcnow().date()
+    today = utcnow().date()
     counts = {
         (today - timedelta(days=offset)).isoformat(): 0 for offset in range(6, -1, -1)
     }
@@ -348,7 +349,7 @@ async def get_application_velocity(user_id: str, db: AsyncSession) -> Dict[str, 
             )
         )
     )
-    now = datetime.utcnow()
+    now = utcnow()
     response_times = [
         max((now - application.created_at).days, 0)
         for application in result.scalars().all()
@@ -466,7 +467,7 @@ async def get_stagnation_alerts(
     user_id: str, db: AsyncSession, threshold_days: int = 30
 ) -> List[Dict[str, Any]]:
     """Return active applications that have not changed recently."""
-    cutoff = datetime.utcnow() - timedelta(days=threshold_days)
+    cutoff = utcnow() - timedelta(days=threshold_days)
     result = await db.execute(
         select(Application).where(
             and_(
@@ -478,7 +479,7 @@ async def get_stagnation_alerts(
     )
 
     alerts = []
-    now = datetime.utcnow()
+    now = utcnow()
     for application in result.scalars().all():
         updated_at = application.updated_at or application.created_at
         alerts.append(
@@ -514,7 +515,7 @@ async def get_analytics(
             return AnalyticsResponse(**cached_data)
 
         # Calculate date range
-        end_date = datetime.utcnow()
+        end_date = utcnow()
         start_date = end_date - timedelta(days=days)
 
         # Fetch user's applications
@@ -711,7 +712,7 @@ async def get_analytics(
             recent_activity=activity_timeline[-30:],  # Last 30 days
             trends=trends,
             insights=insights,
-            generated_at=datetime.utcnow(),
+            generated_at=utcnow(),
         )
 
         # Cache for 5 minutes
@@ -882,7 +883,7 @@ async def get_dashboard_data(
             search_statistics=search_stats,
             resume_statistics=resume_stats,
             insights=insights,
-            generated_at=datetime.utcnow(),
+            generated_at=utcnow(),
         )
 
         # Cache for 5 minutes
@@ -944,7 +945,7 @@ async def _get_recent_activity(
 ) -> List[RecentActivityItem]:
     """Get recent activity across different types."""
     activities = []
-    cutoff_date = datetime.utcnow() - timedelta(days=7)
+    cutoff_date = utcnow() - timedelta(days=7)
 
     # Recent applications
     app_result = await db.execute(
@@ -1007,7 +1008,7 @@ async def _get_search_statistics(db: AsyncSession, user_id: str) -> SearchStatis
     )
 
     # Recent searches (last 7 days)
-    cutoff_date = datetime.utcnow() - timedelta(days=7)
+    cutoff_date = utcnow() - timedelta(days=7)
     recent_searches = await db.execute(
         select(func.count(SearchHistory.id)).where(
             and_(
@@ -1041,7 +1042,7 @@ async def _get_resume_statistics(db: AsyncSession, user_id: str) -> ResumeStatis
     )
 
     # Recently updated (last 7 days)
-    cutoff_date = datetime.utcnow() - timedelta(days=7)
+    cutoff_date = utcnow() - timedelta(days=7)
     recently_updated = await db.execute(
         select(func.count(Resume.id)).where(
             and_(Resume.user_id == user_id, Resume.updated_at >= cutoff_date)
@@ -1084,7 +1085,7 @@ async def get_activity_timeline(
 ):
     """Get activity timeline for the specified period."""
     try:
-        end_date = datetime.utcnow()
+        end_date = utcnow()
         start_date = end_date - timedelta(days=days)
 
         # Single SQL query with aggregation - MUCH more efficient

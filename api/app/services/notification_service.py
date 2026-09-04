@@ -16,6 +16,7 @@ from app.models.jd import JD
 from app.models.notification import Notification, NotificationType
 from app.services.email_service import email_service
 from app.core.logger import logger, LogCategory
+from app.core.clock import utcnow
 
 
 class NotificationService:
@@ -427,7 +428,7 @@ class NotificationService:
                     and_(
                         Application.user_id == user_id,
                         Application.status == "interview",
-                        Application.updated_at >= datetime.utcnow(),
+                        Application.updated_at >= utcnow(),
                     )
                 )
                 .order_by(Application.updated_at)

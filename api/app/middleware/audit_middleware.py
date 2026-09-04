@@ -6,7 +6,6 @@ This middleware automatically logs all requests that access or modify user data.
 
 import uuid
 import json
-from datetime import datetime
 from typing import Callable, Optional
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -15,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.audit_service import AuditAction, ResourceType
 import logging
+from app.core.clock import utcnow
 
 logger = logging.getLogger(__name__)
 
@@ -96,9 +96,9 @@ class AuditMiddleware(BaseHTTPMiddleware):
             request_body = await self._get_request_body(request)
 
         # Process request
-        start_time = datetime.utcnow()
+        start_time = utcnow()
         response = await call_next(request)
-        duration = (datetime.utcnow() - start_time).total_seconds()
+        duration = (utcnow() - start_time).total_seconds()
 
         # Audit the request
         try:

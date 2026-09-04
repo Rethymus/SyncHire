@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 from sqlalchemy import (
     Column,
     String,
@@ -15,6 +14,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from pgvector.sqlalchemy import Vector
 from sqlalchemy.orm import relationship, synonym
 from app.core.database import Base
+from app.core.clock import utcnow
 
 
 class JD(Base):
@@ -59,7 +59,7 @@ class JD(Base):
     # Search analytics fields
     search_tsvector = Column(Vector)  # Will be tsvector in database
 
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
     user = relationship("User", back_populates="jds")

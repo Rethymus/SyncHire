@@ -12,11 +12,12 @@ These tests follow 2026 best practices:
 import pytest
 import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from app.models.application import Application
 from app.models.resume import Resume
 from app.models.jd import JD
+from app.core.clock import utcnow
 
 
 @pytest.mark.unit
@@ -177,7 +178,7 @@ class TestAnalyticsTimeline:
                 resume_id=resume_id,
                 jd_id=jd_id,
                 status="applied",
-                created_at=datetime.utcnow() - timedelta(days=days_ago),
+                created_at=utcnow() - timedelta(days=days_ago),
             )
             db_session.add(app)
 
@@ -277,7 +278,7 @@ class TestAnalyticsActivity:
             title="My Resume",
             content="Content",
             file_path="path.pdf",
-            created_at=datetime.utcnow() - timedelta(days=5),
+            created_at=utcnow() - timedelta(days=5),
         )
         jd = JD(
             id=uuid.uuid4(),
@@ -285,7 +286,7 @@ class TestAnalyticsActivity:
             title="Software Engineer",
             company="Tech Corp",
             content="Job description",
-            created_at=datetime.utcnow() - timedelta(days=3),
+            created_at=utcnow() - timedelta(days=3),
         )
 
         application = Application(
@@ -294,7 +295,7 @@ class TestAnalyticsActivity:
             resume_id=resume.id,
             jd_id=jd.id,
             status="applied",
-            created_at=datetime.utcnow() - timedelta(days=1),
+            created_at=utcnow() - timedelta(days=1),
         )
 
         db_session.add(resume)
@@ -324,7 +325,7 @@ class TestAnalyticsActivity:
                 title=f"Resume {day}",
                 content="Content",
                 file_path="path.pdf",
-                created_at=datetime.utcnow() - timedelta(days=day),
+                created_at=utcnow() - timedelta(days=day),
             )
             db_session.add(resume)
 
@@ -374,7 +375,7 @@ class TestAnalyticsPerformance:
             resume_id=resume_id,
             jd_id=jd_id,
             status="interview",
-            created_at=datetime.utcnow() - timedelta(days=1),
+            created_at=utcnow() - timedelta(days=1),
         )
 
         # Slow response (30 days)
@@ -384,7 +385,7 @@ class TestAnalyticsPerformance:
             resume_id=resume_id,
             jd_id=jd_id,
             status="rejected",
-            created_at=datetime.utcnow() - timedelta(days=30),
+            created_at=utcnow() - timedelta(days=30),
         )
 
         db_session.add(resume)
@@ -545,8 +546,8 @@ class TestAnalyticsInsights:
                 resume_id=resume_id,
                 jd_id=jd_id,
                 status="applied",
-                created_at=datetime.utcnow() - timedelta(days=45),
-                updated_at=datetime.utcnow() - timedelta(days=45),
+                created_at=utcnow() - timedelta(days=45),
+                updated_at=utcnow() - timedelta(days=45),
             )
             db_session.add(app)
 
@@ -616,7 +617,7 @@ class TestAnalyticsEdgeCases:
             resume_id=resume_id,
             jd_id=jd_id,
             status="applied",
-            created_at=datetime.utcnow() + timedelta(days=30),  # Future date
+            created_at=utcnow() + timedelta(days=30),  # Future date
         )
 
         db_session.add(resume)

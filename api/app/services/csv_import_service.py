@@ -11,6 +11,7 @@ import logging
 from app.models.application import Application
 from app.models.resume import Resume
 from app.models.jd import JD
+from app.core.clock import utcnow
 
 logger = logging.getLogger(__name__)
 
@@ -225,7 +226,7 @@ class CSVImportService:
                                         )
                                     )
 
-                                existing.updated_at = datetime.utcnow()
+                                existing.updated_at = utcnow()
                                 batch_results.append(
                                     {
                                         "row": row_num,
@@ -442,7 +443,7 @@ class CSVImportService:
                                 if "education_level" in row and row["education_level"]:
                                     existing.education_level = row["education_level"]
 
-                                existing.updated_at = datetime.utcnow()
+                                existing.updated_at = utcnow()
                                 batch_results.append(
                                     {
                                         "row": row_num,
@@ -670,7 +671,7 @@ class CSVImportService:
                                         )
                                     )
 
-                                existing.updated_at = datetime.utcnow()
+                                existing.updated_at = utcnow()
                                 batch_results.append(
                                     {
                                         "row": row_num,

@@ -1,10 +1,10 @@
 import uuid
-from datetime import datetime
 from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, JSON
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 import enum
+from app.core.clock import utcnow
 
 
 class NotificationFrequency(str, enum.Enum):
@@ -56,8 +56,8 @@ class User(Base):
     email_bounced = Column(Boolean, default=False)
     email_bounced_at = Column(DateTime, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
     applications = relationship(
         "Application", back_populates="user", order_by="Application.created_at.desc()"
@@ -122,7 +122,7 @@ class OAuthAccount(Base):
     access_token = Column(String, nullable=True)  # Encrypted access token
     refresh_token = Column(String, nullable=True)  # Encrypted refresh token
     account_info = Column(JSONB, nullable=True)  # Additional account info
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
     user = relationship("User", back_populates="oauth_accounts")

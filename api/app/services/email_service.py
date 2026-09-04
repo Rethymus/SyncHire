@@ -7,7 +7,6 @@ Handles sending emails using SMTP with template support and queue management.
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional, Dict, Any, List
-from datetime import datetime
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 import json
@@ -16,6 +15,7 @@ import aiosmtplib
 import redis.asyncio as redis
 from app.core.config import get_settings
 from app.core.logger import logger, LogCategory
+from app.core.clock import utcnow
 
 settings = get_settings()
 
@@ -234,7 +234,7 @@ class EmailService:
             "subject": subject,
             "html": html_content,
             "plain_text": plain_text or "",
-            "queued_at": datetime.utcnow().isoformat(),
+            "queued_at": utcnow().isoformat(),
         }
 
         await self.redis_client.lpush("email_queue", json.dumps(email_data))

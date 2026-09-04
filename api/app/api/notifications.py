@@ -4,7 +4,6 @@ Notification Management API Endpoints
 Provides endpoints for managing user notification preferences and email subscriptions.
 """
 
-from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, func
@@ -18,6 +17,7 @@ from app.models.notification import Notification, NotificationType
 from app.services.email_service import email_service
 from app.core.logger import logger, LogCategory
 from pydantic import BaseModel, ConfigDict
+from app.core.clock import utcnow
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
@@ -126,7 +126,7 @@ async def unsubscribe_from_emails(
     """Unsubscribe current user from all email notifications."""
     try:
         current_user.email_unsubscribed = True
-        current_user.email_unsubscribed_at = datetime.utcnow()
+        current_user.email_unsubscribed_at = utcnow()
 
         # Also disable email in preferences
         if current_user.notification_preferences is None:
@@ -203,7 +203,7 @@ async def unsubscribe_by_token(
             )
 
         user.email_unsubscribed = True
-        user.email_unsubscribed_at = datetime.utcnow()
+        user.email_unsubscribed_at = utcnow()
 
         if user.notification_preferences is None:
             user.notification_preferences = {}
@@ -278,7 +278,7 @@ async def test_notification(
         elif notification_type == "weekly_digest":
             from datetime import timedelta
 
-            week_end = datetime.utcnow()
+            week_end = utcnow()
             week_start = week_end - timedelta(days=7)
 
             success = await email_service.send_weekly_digest(
@@ -468,7 +468,7 @@ async def mark_notification_as_read(
         # Mark as read if not already read
         if not notification.read:
             notification.read = True
-            notification.read_at = datetime.utcnow()
+            notification.read_at = utcnow()
             await db.commit()
 
         return {"message": "Notification marked as read"}
@@ -501,7 +501,7 @@ async def mark_all_notifications_as_read(
         # Mark all as read
         for notification in notifications:
             notification.read = True
-            notification.read_at = datetime.utcnow()
+            notification.read_at = utcnow()
 
         await db.commit()
 

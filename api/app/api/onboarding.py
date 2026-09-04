@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from datetime import datetime
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
 from app.schemas.user import UserResponse, OnboardingUpdate
+from app.core.clock import utcnow
 
 router = APIRouter()
 
@@ -30,7 +30,7 @@ async def complete_onboarding(
     """
     if onboarding_data.is_onboarded and not current_user.is_onboarded:
         current_user.is_onboarded = True
-        current_user.onboarding_completed_at = datetime.utcnow()
+        current_user.onboarding_completed_at = utcnow()
 
     db.commit()
     db.refresh(current_user)
@@ -46,7 +46,7 @@ async def skip_onboarding(
     Skip onboarding flow
     """
     current_user.is_onboarded = True
-    current_user.onboarding_completed_at = datetime.utcnow()
+    current_user.onboarding_completed_at = utcnow()
 
     db.commit()
     db.refresh(current_user)

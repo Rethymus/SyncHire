@@ -15,7 +15,6 @@ import hashlib
 import secrets
 import time
 import json
-from datetime import datetime
 from typing import Optional, Dict, Any, Tuple
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
@@ -25,6 +24,7 @@ import base64
 from app.core.config import get_settings
 from app.core.redis import redis_client
 import logging
+from app.core.clock import utcnow
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -381,7 +381,7 @@ class SecurityAuditor:
             severity: Event severity (debug, info, warning, error, critical)
         """
         try:
-            timestamp = datetime.utcnow().isoformat()
+            timestamp = utcnow().isoformat()
             event = {
                 "timestamp": timestamp,
                 "event_type": event_type,

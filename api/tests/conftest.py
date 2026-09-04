@@ -37,9 +37,14 @@ warnings.filterwarnings(
 
 # Test database URL (use in-memory SQLite for faster tests). Set it before
 # importing app modules so the global application engine also uses SQLite.
+# NOTE: any `from app.* import …` must stay BELOW this line — importing the
+# app package runs app/__init__.py, which calls get_settings() and caches the
+# URL before this override lands (that ordering bit the clock import once).
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 TEST_JWT_SECRET = "synchire-test-jwt-secret-32-bytes"
 os.environ.setdefault("DATABASE_URL", TEST_DATABASE_URL)
+
+from app.core.clock import utcnow  # noqa: E402
 
 # Cloud fixtures need the cloud model stack (asyncpg/pgvector). Guard the
 # imports so Lite-only environments can still collect and run Lite tests.
@@ -787,7 +792,7 @@ def auth_headers(test_user: User) -> dict:
     import jwt
 
     token = jwt.encode(
-        {"sub": str(test_user.id), "exp": datetime.utcnow() + timedelta(hours=1)},
+        {"sub": str(test_user.id), "exp": utcnow() + timedelta(hours=1)},
         TEST_JWT_SECRET,
         algorithm="HS256",
     )
@@ -801,7 +806,7 @@ def create_auth_headers():
 
     def _create_headers(user_id: str) -> dict:
         token = jwt.encode(
-            {"sub": str(user_id), "exp": datetime.utcnow() + timedelta(hours=1)},
+            {"sub": str(user_id), "exp": utcnow() + timedelta(hours=1)},
             TEST_JWT_SECRET,
             algorithm="HS256",
         )
@@ -1259,11 +1264,11 @@ def error_scenarios():
 def time_travel():
     """Context manager for time-based testing"""
     from freezegun import freeze_time
-    from datetime import datetime, timedelta
+    from datetime import timedelta
 
     class TimeTravel:
         def __init__(self):
-            self.current_time = datetime.utcnow()
+            self.current_time = utcnow()
 
         def forward(self, days=0, hours=0, minutes=0):
             self.current_time += timedelta(days=days, hours=hours, minutes=minutes)

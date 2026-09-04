@@ -21,6 +21,7 @@ from app.services.audit_service import (
 from app.core.deps import get_current_user
 from app.models.user import User
 from app.models.audit_log import AuditAction, ResourceType
+from app.core.clock import utcnow
 
 router = APIRouter(prefix="/api/compliance", tags=["compliance"])
 
@@ -61,9 +62,9 @@ async def get_audit_report(
     try:
         # Set default date range if not provided
         if not start_date:
-            start_date = datetime.utcnow() - timedelta(days=30)
+            start_date = utcnow() - timedelta(days=30)
         if not end_date:
-            end_date = datetime.utcnow()
+            end_date = utcnow()
 
         # Validate date range
         if start_date >= end_date:
@@ -342,9 +343,9 @@ async def get_audit_statistics_endpoint(
 
         # Set default date range if not provided
         if not start_date:
-            start_date = datetime.utcnow() - timedelta(days=30)
+            start_date = utcnow() - timedelta(days=30)
         if not end_date:
-            end_date = datetime.utcnow()
+            end_date = utcnow()
 
         # Get statistics
         stats = await get_audit_statistics(
@@ -385,7 +386,7 @@ async def get_compliance_report(
     """
     try:
         # Get date range for report (last 90 days)
-        end_date = datetime.utcnow()
+        end_date = utcnow()
         start_date = end_date - timedelta(days=90)
 
         # Get audit statistics
@@ -485,7 +486,7 @@ async def compliance_health_check():
     """
     return {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": utcnow().isoformat(),
         "module": "compliance",
         "features": {
             "audit_logging": "enabled",

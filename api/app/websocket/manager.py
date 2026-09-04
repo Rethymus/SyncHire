@@ -19,6 +19,8 @@ from app.websocket.types import (
     ConnectionInfo,
 )
 
+from app.core.clock import utcnow
+
 
 class ConnectionManager:
     """
@@ -87,12 +89,12 @@ class ConnectionManager:
             self._connection_info[connection_id] = ConnectionInfo(
                 user_id=user_id,
                 connection_id=connection_id,
-                connected_at=datetime.utcnow().isoformat(),
-                last_heartbeat=datetime.utcnow().isoformat(),
+                connected_at=utcnow().isoformat(),
+                last_heartbeat=utcnow().isoformat(),
                 user_agent=user_agent,
                 ip_address=ip_address,
             )
-            self._last_heartbeat[connection_id] = datetime.utcnow()
+            self._last_heartbeat[connection_id] = utcnow()
 
         # Send welcome message
         await self.send_personal_message(
@@ -102,7 +104,7 @@ class ConnectionManager:
                 data={
                     "connection_id": connection_id,
                     "message": "WebSocket connection established",
-                    "server_time": datetime.utcnow().isoformat(),
+                    "server_time": utcnow().isoformat(),
                 },
             ),
         )
@@ -275,9 +277,9 @@ class ConnectionManager:
         """
         if connection_id in self._connection_info:
             async with self._lock:
-                self._last_heartbeat[connection_id] = datetime.utcnow()
+                self._last_heartbeat[connection_id] = utcnow()
                 info = self._connection_info[connection_id]
-                info.last_heartbeat = datetime.utcnow().isoformat()
+                info.last_heartbeat = utcnow().isoformat()
 
             return True
         return False
@@ -451,7 +453,7 @@ class ConnectionManager:
             try:
                 await asyncio.sleep(30)  # Send heartbeat every 30 seconds
 
-                current_time = datetime.utcnow()
+                current_time = utcnow()
                 stale_connections = []
 
                 async with self._lock:
@@ -496,7 +498,7 @@ class ConnectionManager:
             try:
                 await asyncio.sleep(60)  # Check every minute
 
-                current_time = datetime.utcnow()
+                current_time = utcnow()
                 connections_to_close = []
 
                 async with self._lock:
