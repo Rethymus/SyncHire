@@ -15,6 +15,8 @@ import { test, expect, Page } from '@playwright/test'
 
 const ROUTES = [
   '/dashboard',
+  '/progress',
+  '/transparency',
   '/upload',
   '/jd-input',
   '/applications',
