@@ -39,7 +39,7 @@ function DetectionPanelBase({ content, onJump, onApplyFixes }: DetectionPanelPro
   );
 
   return (
-    <aside className="flex flex-col h-full bg-card border-l border-border w-80 min-w-80">
+    <aside className="flex flex-col h-full bg-card w-full lg:w-80 lg:min-w-80 max-lg:border-t max-lg:border-border lg:border-l lg:border-border">
       <header className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 text-amber-500" />

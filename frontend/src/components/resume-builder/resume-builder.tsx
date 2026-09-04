@@ -29,6 +29,7 @@ import {
   Palette,
   Puzzle,
   Smile,
+  FileText,
   ScanText,
   History,
   Save,
@@ -42,7 +43,33 @@ import {
 import { cn } from "@/lib/utils";
 import { isGithubPagesDeployment } from "@/lib/deployment-mode";
 
-export const DEFAULT_RESUME_MARKDOWN = `# 陈宇
+/**
+ * New-canvas scaffold: placeholder slots that are obviously waiting for the
+ * user's own content. A fictional-but-realistic resume (work history at a
+ * named employer, years of experience) must never ship as the default —
+ * the full example lives in SAMPLE_RESUME_MARKDOWN behind the 示例 button.
+ */
+export const DEFAULT_RESUME_MARKDOWN = `# 你的姓名
+求职意向 · 城市
+
+## 个人优势
+- 用一句话概括你最想让对方看到的优势
+
+## 工作经历 / 项目经历
+### 公司名称或项目名 · 角色
+起止时间
+- 一条能量化成果的经历描述
+
+## 技能清单
+- **方向**：技能 1、技能 2、技能 3
+
+## 教育背景
+### 学校 · 专业 · 学历
+起止时间
+`;
+
+/** A complete example resume, available behind the explicit 示例 action. */
+export const SAMPLE_RESUME_MARKDOWN = `# 陈宇
 前端工程师 · 上海
 
 ::: left
@@ -219,6 +246,20 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
     [],
   );
 
+  /**
+   * Load the example resume. Guard: if the user has already typed anything
+   * beyond the untouched scaffold, replacing it needs an explicit confirm —
+   * silently overwriting real content would be the one destructive action
+   * in an otherwise non-destructive toolbar.
+   */
+  const handleLoadSample = useCallback(() => {
+    const isUntouched =
+      content === DEFAULT_RESUME_MARKDOWN || content.trim() === "";
+    if (isUntouched || window.confirm("载入示例会替换当前内容，确定继续吗？")) {
+      setContent(SAMPLE_RESUME_MARKDOWN);
+    }
+  }, [content]);
+
   const onFitChange = useCallback((result: OnePageFitResult) => {
     setFit((prev) =>
       prev.scale === result.scale &&
@@ -243,7 +284,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
 
   const toolbarButton = useMemo(
     () => ({
-      base: "inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-sm border transition min-h-[36px]",
+      base: "inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-sm border transition min-h-[36px] whitespace-nowrap",
       idle: "border-border text-muted-foreground bg-card hover:bg-muted/40",
       active: "border-blue-300 bg-blue-50 text-blue-700",
     }),
@@ -253,7 +294,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
   return (
     <div className="flex flex-col h-screen bg-muted">
       {/* Toolbar */}
-      <header className="flex items-center gap-2 px-3 py-2 bg-card border-b border-border shadow-sm">
+      <header className="flex flex-wrap items-center gap-2 px-3 py-2 bg-card border-b border-border shadow-sm">
         <button
           onClick={() => router.back()}
           className="h-9 w-9 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
@@ -311,6 +352,13 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
           className={cn(toolbarButton.base, toolbarButton.idle)}
         >
           <Smile className="h-4 w-4" /> 图标
+        </button>
+        <button
+          onClick={handleLoadSample}
+          className={cn(toolbarButton.base, toolbarButton.idle)}
+          title="载入一份完整的示例简历（会替换当前内容）"
+        >
+          <FileText className="h-4 w-4" /> 示例
         </button>
         {!pagesMode ? (
           <>
@@ -389,9 +437,12 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
         </div>
       </header>
 
-      {/* Body: editor + preview + detection */}
-      <div className="flex-1 min-h-0 flex">
-        <section className="flex-1 min-w-0 border-r border-border">
+      {/* Body: editor + preview + detection. Side-by-side from lg up; on
+          small screens they stack and the column scrolls (the builder was
+          unusable at phone widths — a 320px detection panel squeezed the
+          editor to a sliver). */}
+      <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden">
+        <section className="flex-1 min-w-0 border-r border-border max-lg:border-b max-lg:h-[60vh] max-lg:shrink-0">
           {editMode === "source" ? (
             <SourceEditor
               ref={sourceRef}
@@ -411,7 +462,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
         </section>
 
         {previewOn && (
-          <section className="flex-1 min-w-0 overflow-hidden">
+          <section className="flex-1 min-w-0 overflow-hidden max-lg:h-[70vh] max-lg:shrink-0 max-lg:border-b max-lg:border-border">
             <ResumePreview
               content={content}
               themeId={themeId}
