@@ -64,23 +64,8 @@ export interface JobDescription {
   createdAt: Date;
 }
 
-export interface OnboardingState {
-  isOnboarded: boolean;
-  currentStep: number;
-  completedSteps: string[];
-  skipped: boolean;
-  startedAt?: Date;
-  completedAt?: Date;
-}
-
-export type OnboardingStep =
-  | "welcome"
-  | "profile"
-  | "resume-upload"
-  | "first-jd"
-  | "first-analysis"
-  | "tutorial"
-  | "complete";
+// The historical onboarding wizard was removed; its store slice went with
+// it. The dashboard's 开始使用 checklist is the first-run guidance now.
 
 /**
  * Rejection-recovery micro-flow (RejectionRecoveryCard). One of the three
@@ -165,16 +150,8 @@ interface AppState {
   dismissRejectionRecovery: (applicationId: string) => void;
   chooseRecoveryAction: (applicationId: string, action: RecoveryActionChoice) => void;
 
-  // Onboarding state
   hasHydrated: boolean;
   hydrateFromStorage: () => Promise<void>;
-  onboarding: OnboardingState;
-  setOnboardingStep: (step: number) => void;
-  completeOnboardingStep: (step: string) => void;
-  skipOnboarding: () => void;
-  resetOnboarding: () => void;
-  startOnboarding: () => void;
-  finishOnboarding: () => void;
 }
 
 const STORAGE_KEY = "synchire-storage";
@@ -191,7 +168,6 @@ type PersistedAppState = Pick<
   | "browserFillSessions"
   | "selectedTemplate"
   | "templateCustomization"
-  | "onboarding"
   | "rejectionRecovery"
 >;
 
@@ -324,17 +300,6 @@ function hydratePersistedState(state: Partial<PersistedAppState>): Partial<Persi
     candidateProfile,
     browserFillSessions,
     rejectionRecovery: hydrateRejectionRecovery(state.rejectionRecovery),
-    onboarding: state.onboarding
-      ? {
-          ...state.onboarding,
-          startedAt: state.onboarding.startedAt
-            ? parseDate(state.onboarding.startedAt)
-            : undefined,
-          completedAt: state.onboarding.completedAt
-            ? parseDate(state.onboarding.completedAt)
-            : undefined,
-        }
-      : undefined,
   };
 }
 
@@ -376,7 +341,6 @@ function persistState(state: AppState) {
     browserFillSessions: state.browserFillSessions,
     selectedTemplate: state.selectedTemplate,
     templateCustomization: state.templateCustomization,
-    onboarding: state.onboarding,
     rejectionRecovery: state.rejectionRecovery,
   };
 
@@ -420,12 +384,6 @@ export const useAppStore = create<AppState>()((set) => ({
   sidebarOpen: true,
   hasHydrated: false,
   rejectionRecovery: {},
-  onboarding: {
-    isOnboarded: false,
-    currentStep: 0,
-    completedSteps: [],
-    skipped: false,
-  },
 
   // Auth actions
   setUser: (user) =>
@@ -744,74 +702,11 @@ export const useAppStore = create<AppState>()((set) => ({
           persistedState.templateCustomization ?? state.templateCustomization,
         rejectionRecovery:
           persistedState.rejectionRecovery ?? state.rejectionRecovery,
-        onboarding: persistedState.onboarding ?? state.onboarding,
         hasHydrated: true,
       };
     });
   },
 
-  setOnboardingStep: (step) =>
-    set((state) => {
-      const onboarding = { ...state.onboarding, currentStep: step };
-      persistState({ ...state, onboarding });
-      return { onboarding };
-    }),
-
-  completeOnboardingStep: (step) =>
-    set((state) => {
-      const onboarding = {
-        ...state.onboarding,
-        completedSteps: [...state.onboarding.completedSteps, step],
-      };
-      persistState({ ...state, onboarding });
-      return { onboarding };
-    }),
-
-  skipOnboarding: () =>
-    set((state) => {
-      const onboarding = {
-        ...state.onboarding,
-        skipped: true,
-        isOnboarded: true,
-      };
-      persistState({ ...state, onboarding });
-      return { onboarding };
-    }),
-
-  resetOnboarding: () =>
-    set((state) => {
-      const onboarding = {
-        isOnboarded: false,
-        currentStep: 0,
-        completedSteps: [],
-        skipped: false,
-      };
-      persistState({ ...state, onboarding });
-      return { onboarding };
-    }),
-
-  startOnboarding: () =>
-    set((state) => {
-      const onboarding = {
-        ...state.onboarding,
-        startedAt: new Date(),
-        currentStep: 1,
-      };
-      persistState({ ...state, onboarding });
-      return { onboarding };
-    }),
-
-  finishOnboarding: () =>
-    set((state) => {
-      const onboarding = {
-        ...state.onboarding,
-        isOnboarded: true,
-        completedAt: new Date(),
-        currentStep: 7,
-      };
-      persistState({ ...state, onboarding });
-      return { onboarding };
-    }),
 }));
 
 // Separate UI-only store with persistence for non-sensitive data

@@ -165,29 +165,33 @@ function localizeField(field: BrowserFormField, zh: boolean) {
   return zh ? { ...field, label: ZH_BROWSER_FIELD_LABELS[field.id] ?? field.label } : field;
 }
 
+/**
+ * The role card starts EMPTY. Baking the demo persona (Chen Yu /
+ * chenyu@example.com) into the defaults meant every brand-new user's
+ * profile form came pre-filled with a fictional person — a data-honesty
+ * violation (a user could export or submit fields they never entered).
+ * Demo data belongs to the explicit 填入演示表单 action in the profile
+ * page, which stages values for review.
+ */
 export function createDefaultCandidateRoleCard(): CandidateRoleCard {
   return {
-    fullName: "Chen Yu",
-    email: "chenyu@example.com",
-    phone: "+86 138 0000 0000",
-    location: "Shanghai, China",
-    targetTitle: "Frontend Engineer",
-    education: "B.S. Computer Science",
-    school: "East China University of Science and Technology",
-    graduationYear: "2026",
-    portfolioUrl: "https://portfolio.example.com/chenyu",
-    linkedinUrl: "https://www.linkedin.com/in/chenyu",
-    githubUrl: "https://github.com/chenyu",
-    workAuthorization: "Authorized to work locally; open to remote roles",
-    availability: "Available within 2 weeks",
-    salaryExpectation: "Open to discuss based on role scope",
-    personalSummary:
-      "Fresh graduate frontend engineer focused on React, TypeScript, accessibility, and reliable user workflows.",
-    skills: ["React", "TypeScript", "Next.js", "Playwright", "Accessibility"],
-    projects: [
-      "Built a local-first job application tracker with resume, JD, and pipeline management.",
-      "Implemented automated UI regression tests with Playwright and Vitest.",
-    ],
+    fullName: "",
+    email: "",
+    phone: "",
+    location: "",
+    targetTitle: "",
+    education: "",
+    school: "",
+    graduationYear: "",
+    portfolioUrl: "",
+    linkedinUrl: "",
+    githubUrl: "",
+    workAuthorization: "",
+    availability: "",
+    salaryExpectation: "",
+    personalSummary: "",
+    skills: [],
+    projects: [],
     updatedAt: new Date(),
   };
 }

@@ -81,7 +81,7 @@ describe("browser fill assistant", () => {
   });
 
   it("applies approved learning without mutating arrays or unapproved fields", () => {
-    const profile = createDefaultCandidateRoleCard();
+    const profile = { ...createDefaultCandidateRoleCard(), email: "chenyu@example.com" };
     const nextProfile = applyApprovedProfileLearning(profile, [
       {
         source: "email",

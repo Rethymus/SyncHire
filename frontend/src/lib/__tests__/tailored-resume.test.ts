@@ -4,7 +4,14 @@ import { generateTailoredResumeMarkdown } from "../tailored-resume";
 
 describe("tailored resume generation", () => {
   it("builds a local role-specific resume from the role card and JD", () => {
-    const profile = createDefaultCandidateRoleCard();
+    // The default role card is empty (demo personas never ship as
+    // defaults) — the test supplies its own identity explicitly.
+    const profile = {
+      ...createDefaultCandidateRoleCard(),
+      fullName: "Chen Yu",
+      skills: ["React", "TypeScript", "Playwright"],
+      projects: ["Built a local-first job application tracker."],
+    };
     const resume = {
       id: "resume-1",
       name: "resume.txt",
