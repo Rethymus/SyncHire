@@ -8,6 +8,7 @@ import { ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import InterviewSchedulingForm from "@/components/interview-scheduling-form";
 import { apiClient } from "@/lib/api-client";
+import { saveLocalInterview } from "@/lib/interviews-local";
 import { logger, LogCategory } from "@/lib/logger";
 import { useLiteCopy } from "@/lib/lite-i18n";
 
@@ -93,38 +94,29 @@ function NewInterviewContent() {
       setIsSubmitting(true);
       setError(null);
 
-      // Prepare data for API
-      const submitData = {
+      // Lite mode persists interviews locally — the backend exposes no
+      // interviews route, and the list page reads the same local store.
+      const nowIso = new Date().toISOString();
+      const stored = saveLocalInterview({
         ...data,
-        application_id: applicationId || data.application_id,
         scheduled_date: new Date(data.scheduled_date).toISOString(),
-      };
+        application_id: applicationId || data.application_id,
+        status: data.status || "scheduled",
+        timezone: data.timezone || "Asia/Shanghai",
+        reminder_enabled: data.reminder_enabled ?? true,
+        reminder_timings: data.reminder_timings ?? [],
+        created_at: nowIso,
+        updated_at: nowIso,
+      });
 
-      const response = await apiClient.post('/interviews', submitData);
+      logger.info(LogCategory.UI, "Interview created locally", { interviewId: stored.id });
 
-      if (response.error) {
-        // Normalize error to string (handle both string and APIError types)
-        const errorMessage = typeof response.error === 'string'
-          ? response.error
-          : response.error.message;
-        setError(errorMessage);
-        logger.error(LogCategory.UI, 'Failed to create interview', new Error(errorMessage));
-        return;
-      }
-
-      logger.info(LogCategory.UI, 'Interview created successfully', { interviewId: (response.data as any)?.id });
-
-      // Redirect to interview details or list
-      const responseData = response.data as any;
-      if (responseData?.id) {
-        router.push(`/interviews/${responseData.id}`);
-      } else {
-        router.push('/interviews');
-      }
+      // Redirect to the list
+      router.push("/interviews");
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : copy.createError;
       setError(errorMsg);
-      logger.error(LogCategory.UI, 'Failed to create interview', err as Error);
+      logger.error(LogCategory.UI, "Failed to create interview", err as Error);
     } finally {
       setIsSubmitting(false);
     }

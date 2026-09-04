@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, memo } from "react";
+import { useState, useCallback, useMemo, memo } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -15,14 +15,16 @@ import {
   MapPin,
   Phone,
   Star,
-  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { InterviewScheduleModal } from "@/components/interview-schedule-modal";
-import { apiClient } from "@/lib/api-client";
-import { apiErrorMessage } from "@/lib/api-client";
-import { logger, LogCategory } from "@/lib/logger";
+import { useAppStore } from "@/lib/store";
+import {
+  readLocalInterviews,
+  type LocalInterview,
+} from "@/lib/interviews-local";
+import { useLiteCopy } from "@/lib/lite-i18n";
 
 interface Application {
   id: string;
@@ -115,10 +117,8 @@ const ApplicationCard = memo(function ApplicationCard({
 // Quick Interview Card
 const QuickInterviewCard = memo(function QuickInterviewCard({
   interview,
-  onClick,
 }: {
   interview: Interview;
-  onClick: (interview: Interview) => void;
 }) {
   const StatusIcon = statusIcons[interview.status as keyof typeof statusIcons];
   const LocationIcon = locationIcons[interview.location_type as keyof typeof locationIcons] || MapPin;
@@ -126,10 +126,7 @@ const QuickInterviewCard = memo(function QuickInterviewCard({
   const isToday = interviewDate.toDateString() === new Date().toDateString();
 
   return (
-    <div
-      className="bg-card rounded-lg border border-border p-4 hover:shadow-md transition-shadow cursor-pointer"
-      onClick={() => onClick(interview)}
-    >
+    <div className="bg-card rounded-lg border border-border p-4 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
@@ -176,7 +173,6 @@ const QuickInterviewCard = memo(function QuickInterviewCard({
           )}
         </div>
 
-        <ChevronRight className="h-5 w-5 text-muted-foreground/80 flex-shrink-0 ml-2" />
       </div>
     </div>
   );
@@ -188,25 +184,27 @@ export function InterviewQuickSchedule() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Fetch applications ready for interviews
-  const { data: applicationsData, isLoading: applicationsLoading } = useQuery({
-    queryKey: ['applications', 'interview-ready', refreshKey],
-    queryFn: async () => {
-      const response = await apiClient.get<{ applications: Application[] }>('/applications?status=applied&page_size=10');
-      if (response.error) throw new Error(apiErrorMessage(response.error));
-      return response.data;
-    },
-  });
+  // Applications ready for interviews: read the lite store directly —
+  // the canonical statuses that mean "in an interview stage".
+  const applications = useAppStore((state) => state.applications);
+  const hasHydrated = useAppStore((state) => state.hasHydrated);
+  const readyApplications = useMemo(
+    () =>
+      applications.filter((app) => ["interview", "technical"].includes(app.status)),
+    [applications],
+  );
 
-  // Fetch upcoming interviews
-  const { data: interviewsData, isLoading: interviewsLoading } = useQuery({
-    queryKey: ['interviews', 'upcoming', refreshKey],
-    queryFn: async () => {
-      const response = await apiClient.get<{ interviews: Interview[] }>('/interviews?status=scheduled&status=confirmed&page_size=5');
-      if (response.error) throw new Error(apiErrorMessage(response.error));
-      return response.data;
-    },
-  });
+  // Upcoming interviews: the local interviews store (same source the
+  // interviews page reads and the schedule form writes).
+  // refreshKey in deps is intentional: it bumps after each successful
+  // schedule, forcing a re-read of the local interviews store.
+  const upcoming = useMemo(
+    () =>
+      readLocalInterviews()
+        .filter((iv) => ["scheduled", "confirmed"].includes(iv.status))
+        .slice(0, 5),
+    [refreshKey], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   // Handle schedule interview
   const handleScheduleClick = useCallback((application: Application) => {
@@ -225,10 +223,7 @@ export function InterviewQuickSchedule() {
     setRefreshKey(prev => prev + 1);
   }, []);
 
-  // Handle interview click
-  const handleInterviewClick = useCallback((interview: Interview) => {
-    router.push(`/interviews/${interview.id}`);
-  }, [router]);
+
 
   return (
     <div className="space-y-6">
@@ -257,17 +252,23 @@ export function InterviewQuickSchedule() {
           </Button>
         </div>
 
-        {applicationsLoading ? (
+        {!hasHydrated ? (
           <div className="text-center py-8 text-muted-foreground">
             <Clock className="h-8 w-8 mx-auto mb-2 animate-spin" />
             <p>Loading applications...</p>
           </div>
-        ) : applicationsData?.applications && applicationsData.applications.length > 0 ? (
+        ) : readyApplications.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {applicationsData.applications.map((application) => (
+            {readyApplications.map((application) => (
               <ApplicationCard
                 key={application.id}
-                application={application}
+                application={{
+                  id: application.id,
+                  job_title: application.position,
+                  company_name: application.companyName,
+                  status: application.status,
+                  match_score: application.matchScore,
+                }}
                 onSchedule={handleScheduleClick}
               />
             ))}
@@ -304,18 +305,12 @@ export function InterviewQuickSchedule() {
           </Button>
         </div>
 
-        {interviewsLoading ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Clock className="h-8 w-8 mx-auto mb-2 animate-spin" />
-            <p>Loading interviews...</p>
-          </div>
-        ) : interviewsData?.interviews && interviewsData.interviews.length > 0 ? (
+        {upcoming.length > 0 ? (
           <div className="space-y-3">
-            {interviewsData.interviews.map((interview) => (
+            {upcoming.map((interview) => (
               <QuickInterviewCard
                 key={interview.id}
-                interview={interview}
-                onClick={handleInterviewClick}
+                interview={interview as unknown as Interview}
               />
             ))}
           </div>

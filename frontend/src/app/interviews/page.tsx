@@ -48,8 +48,7 @@ const InterviewDragDropCalendar = dynamic(
   { ssr: false }
 );
 import { InterviewQuickSchedule } from "@/components/interview-quick-schedule";
-import { apiClient } from "@/lib/api-client";
-import { apiErrorMessage } from "@/lib/api-client";
+import { deleteLocalInterview, readLocalInterviews as readLocalInterviewsShared, saveLocalInterview } from "@/lib/interviews-local";
 import { logger, LogCategory } from "@/lib/logger";
 import { toast } from "sonner";
 import { useLiteCopy, type LiteLocale } from "@/lib/lite-i18n";
@@ -252,30 +251,9 @@ const EMPTY_INTERVIEW_STATS: InterviewStats = {
 
 const LOCAL_INTERVIEWS_KEY = "synchire-interviews";
 
-function readLocalInterviews(): Interview[] {
-  if (typeof window === "undefined") {
-    return [];
-  }
-
-  try {
-    const stored = window.localStorage.getItem(LOCAL_INTERVIEWS_KEY);
-    const parsed = stored ? JSON.parse(stored) : [];
-
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is Interview =>
-          typeof item?.id === "string" &&
-          typeof item?.title === "string" &&
-          typeof item?.interview_type === "string" &&
-          typeof item?.status === "string" &&
-          typeof item?.scheduled_date === "string" &&
-          typeof item?.duration_minutes === "number" &&
-          typeof item?.location_type === "string"
-        )
-      : [];
-  } catch {
-    return [];
-  }
-}
+// Read/write come from the shared module so the list, the schedule form,
+// delete, and calendar drag all operate on one source of truth.
+const readLocalInterviews = readLocalInterviewsShared;
 
 function buildLocalInterviewStats(interviews: Interview[]): InterviewStats {
   const now = new Date();
@@ -584,48 +562,30 @@ function InterviewsContent() {
     router.push(`/interviews/${interview.id}/edit`);
   }, [router]);
 
-  // Handle delete interview
-  const handleDeleteInterview = useCallback(async (interview: Interview) => {
+  // Handle delete interview (local storage — same source the list reads)
+  const handleDeleteInterview = useCallback((interview: Interview) => {
     if (!confirm(copy.deleteConfirm)) {
       return;
     }
 
-    try {
-      const response = await apiClient.delete(`/interviews/${interview.id}`);
-      if (response.error) throw new Error(apiErrorMessage(response.error));
-
-      logger.info(LogCategory.UI, 'Interview deleted', { interviewId: interview.id });
-      toast.success(copy.deleteSuccess);
-      refetch();
-    } catch (error) {
-      logger.error(LogCategory.UI, 'Failed to delete interview', error as Error);
-      toast.error(copy.deleteFailure);
-      // Simple retry without cyclic dependency
-      if (confirm(copy.retryDeleteConfirm)) {
-        // Direct retry without useCallback dependency
-        try {
-          const retryResponse = await apiClient.delete(`/interviews/${interview.id}`);
-          if (retryResponse.error) throw new Error(apiErrorMessage(retryResponse.error));
-          logger.info(LogCategory.UI, 'Interview deleted on retry', { interviewId: interview.id });
-          toast.success(copy.deleteSuccess);
-          refetch();
-        } catch (retryError) {
-          logger.error(LogCategory.UI, 'Retry delete failed', retryError as Error);
-          toast.error(copy.deleteRetryFailure);
-        }
-      }
-    }
-  }, [copy.deleteConfirm, copy.deleteFailure, copy.deleteRetryFailure, copy.deleteSuccess, copy.retryDeleteConfirm, refetch]);
+    deleteLocalInterview(interview.id);
+    logger.info(LogCategory.UI, 'Interview deleted', { interviewId: interview.id });
+    toast.success(copy.deleteSuccess);
+    refetch();
+  }, [copy.deleteConfirm, copy.deleteSuccess, refetch]);
 
   // Handle event drop (reschedule interview)
   const handleEventDrop = useCallback(async (event: InterviewEvent, newStart: Date, newEnd: Date) => {
     try {
-      const response = await apiClient.put(`/interviews/${event.id}`, {
+      const interviews = readLocalInterviews();
+      const target = interviews.find((i) => i.id === event.id);
+      if (!target) throw new Error("Interview not found in local storage");
+
+      saveLocalInterview({
+        ...target,
         scheduled_date: newStart.toISOString(),
         duration_minutes: Math.round((newEnd.getTime() - newStart.getTime()) / 60000),
       });
-
-      if (response.error) throw new Error(apiErrorMessage(response.error));
 
       logger.info(LogCategory.UI, 'Interview rescheduled', { interviewId: event.id, newStart, newEnd });
       toast.success('Interview rescheduled successfully');
@@ -639,13 +599,16 @@ function InterviewsContent() {
   // Handle event resize
   const handleEventResize = useCallback(async (event: InterviewEvent, newStart: Date, newEnd: Date) => {
     try {
-      const response = await apiClient.put(`/interviews/${event.id}`, {
+      const interviews = readLocalInterviews();
+      const target = interviews.find((i) => i.id === event.id);
+      if (!target) throw new Error("Interview not found in local storage");
+
+      saveLocalInterview({
+        ...target,
         duration_minutes: Math.round((newEnd.getTime() - newStart.getTime()) / 60000),
       });
 
-      if (response.error) throw new Error(apiErrorMessage(response.error));
-
-      logger.info(LogCategory.UI, 'Interview duration updated', { interviewId: event.id, newDuration: Math.round((newEnd.getTime() - newStart.getTime()) / 60000) });
+      logger.info(LogCategory.UI, 'Interview duration updated', { interviewId: event.id });
       toast.success('Interview duration updated successfully');
       queryClient.invalidateQueries({ queryKey: ['interviews'] });
     } catch (error) {
