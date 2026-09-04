@@ -627,7 +627,10 @@ export function ApplicationCreateDialog({
                             </>
                           ) : (
                             <>
-                              <div className="flex items-center animate-in zoom-in-50 duration-300">
+                              {/* No zoom animation here: an animating child
+                                  breaks pointer-hit testing on the button
+                                  itself (E2E click timeouts). */}
+                              <div className="flex items-center">
                                 <CheckCircle2 className="h-4 w-4 mr-2" />
                                 {t.applications.createApplication}
                               </div>
