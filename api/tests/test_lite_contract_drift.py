@@ -13,6 +13,8 @@ missing (see the API contract drift audit):
 from collections.abc import AsyncIterator
 from unittest.mock import AsyncMock
 
+from sqlalchemy import text
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -272,3 +274,65 @@ async def test_resume_optimize_marks_result_as_ai_assisted(
     )
     assert optimize_response.status_code == 200
     assert optimize_response.json()["ai_assisted"] is True
+
+
+# ---------------------------------------------------------------------------
+# Startup self-heal: application status values the ORM cannot materialize
+# (a single corrupt row used to fail the whole applications listing)
+# ---------------------------------------------------------------------------
+
+_INSERT_APPLICATION = (
+    "INSERT INTO applications (id, resume_id, jd_id, status, platform) "
+    "VALUES (:id, :resume_id, :jd_id, :status, 'manual')"
+)
+_SELECT_STATUS_BY_ID = "SELECT status FROM applications WHERE id = :id"
+_SELECT_ALL_STATUSES = "SELECT id, status FROM applications"
+
+
+def _sync_connection_with_applications_table():
+    """A sync SQLite connection with only the applications table created."""
+    from sqlalchemy import create_engine
+
+    from app.core.database_lite import Base
+
+    engine = create_engine("sqlite://")
+    conn = engine.connect()
+    Base.metadata.create_all(conn, tables=[Base.metadata.tables["applications"]])
+    return conn
+
+
+def _insert_application(conn, app_id: str, status: str | None) -> None:
+    conn.execute(
+        text(_INSERT_APPLICATION),
+        {"id": app_id, "resume_id": "rr", "jd_id": "jj", "status": status},
+    )
+
+
+def test_normalize_application_statuses_repairs_case_drift() -> None:
+    """Lowercase enum values (legacy writes/imports) normalize to names."""
+    from app.core.database_lite import _normalize_application_statuses
+
+    conn = _sync_connection_with_applications_table()
+    _insert_application(conn, "r1", "saved")
+    _insert_application(conn, "r2", "INTERVIEW")
+
+    _normalize_application_statuses(conn)
+
+    statuses = dict(conn.execute(text(_SELECT_ALL_STATUSES)).fetchall())
+    assert statuses["r1"] == "SAVED"
+    assert statuses["r2"] == "INTERVIEW"  # already valid: untouched
+
+
+def test_normalize_application_statuses_folds_unknown_values_to_saved() -> None:
+    """Unknown values fold into SAVED instead of poisoning the listing."""
+    from app.core.database_lite import _normalize_application_statuses
+
+    conn = _sync_connection_with_applications_table()
+    _insert_application(conn, "u1", "mystery")
+    _insert_application(conn, "u2", "totally-bogus")
+
+    _normalize_application_statuses(conn)
+
+    statuses = dict(conn.execute(text(_SELECT_ALL_STATUSES)).fetchall())
+    assert statuses["u1"] == "SAVED"
+    assert statuses["u2"] == "SAVED"

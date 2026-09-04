@@ -5,11 +5,15 @@ This module provides SQLite-based database setup for local-first operation,
 replacing the PostgreSQL-based system with a simpler, zero-config solution.
 """
 
+import logging
+
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import MetaData, text
 from sqlalchemy.engine import Connection
 from app.core.config_lite import get_lite_settings
+
+logger = logging.getLogger(__name__)
 
 settings = get_lite_settings()
 
@@ -105,7 +109,58 @@ def _run_lite_schema_migrations(conn: Connection) -> None:
         for column_name, definition in columns.items():
             _add_column_if_missing(conn, table_name, column_name, definition)
 
+    _normalize_application_statuses(conn)
     _ensure_job_source_dedup_index(conn)
+
+
+def _normalize_application_statuses(conn: Connection) -> None:
+    """Self-heal application status values the ORM cannot materialize.
+
+    The ORM Enum stores member NAMES (SAVED, APPLIED, ...). Rows written by
+    older versions, imports, or external tools may carry lowercase VALUES
+    ('saved') or other unknown strings; a single such row fails the whole
+    GET /api/applications listing with a 500 (LookupError during row
+    materialization — local-first databases must survive their own history).
+    Case drift normalizes to the member name; unknown values fold into
+    SAVED, mirroring the frontend fallback of never dropping a record.
+    """
+    if not _sqlite_table_exists(conn, "applications"):
+        return
+
+    valid_names = {
+        "SAVED",
+        "TARGETED",
+        "MATERIALS_READY",
+        "SUBMITTED",
+        "APPLIED",
+        "SCREENING",
+        "INTERVIEW",
+        "TECHNICAL",
+        "OFFER",
+        "HIRED",
+        "REJECTED",
+        "WITHDRAWN",
+    }
+
+    rows = conn.execute(text("SELECT id, status FROM applications")).fetchall()
+    fixed = 0
+    for app_id, status in rows:
+        if status in valid_names:
+            continue
+        candidate = str(status).upper() if status is not None else ""
+        target = candidate if candidate in valid_names else "SAVED"
+        conn.execute(
+            text("UPDATE applications SET status = :status WHERE id = :id"),
+            {"status": target, "id": app_id},
+        )
+        fixed += 1
+
+    if fixed:
+        logger.warning(
+            "Normalized %d application status value(s) that the ORM could "
+            "not load (case drift or unknown values folded to SAVED)",
+            fixed,
+        )
 
 
 def _ensure_job_source_dedup_index(conn: Connection) -> None:
