@@ -59,6 +59,23 @@
 验证：前端 319 单测 + eslint + 46 页构建；e2e 25/25（smoke 含 /transparency、
 进度页 3 用例）；双语截图人工复核。
 
+## 第五轮（同日：最后一英寸——PDF 产出质量 + 时间语义治理）
+
+第五轮走查核心工作流的最终交付物：**导出的 PDF**（此前从未被视觉验证），
+方法为拦截 `window.open` 捕获导出点击产生的打印文档 HTML，加载后经
+Chromium 打印管线生成真实 PDF（157KB），再以 2x/3x 裁剪逐项审查。
+
+| # | 发现 | 结论 |
+|---|------|------|
+| P1 | 打印文档质量 | **通过**：精确单页 A4（793.7×1123px）、5 个 mask 图标正常渲染、CJK 字体正常、版式专业。初判的「邮箱被折行」经数值复核（client-rect 计数）与 3x 裁剪证伪——是走查者目测误读，也正因此把「联系链接不得折行」写进了 e2e 断言 |
+| P2 | 打印文档零测试覆盖 | 用户最终交付物此前无任何回归防线。新增 `resume-print-doc.spec.ts`：捕获导出文档 HTML，断言 A4 壳 210mm、单页容纳、icon: 标记渲染为图标而非文字残留、mailto 链接单 rect 不折 |
+| P3 | `datetime.utcnow()` 弃用（全库 ~2,425 警告/轮） | 新建 `app/core/clock.py::utcnow()`（naive-UTC 语义保持：`now(timezone.utc).replace(tzinfo=None)`——本项目全部存储与比较都是 naive UTC，直接换 aware 版会在比较处爆 TypeError），117 处 app 调用点与测试全量收敛；警告 **2425 → 4**（余量为 python-multipart/Starlette 第三方噪音） |
+| P4 | 落地 P3 时的架构发现 | `app/__init__.py` 在包导入时即调用 `get_settings()` 缓存配置——conftest 必须在任何 `app.*` 导入之前设置 DATABASE_URL，否则引擎按 postgres+asyncpg 创建导致收集失败（被 clock import 的插入位置踩中一次）。顺序规则已注释在踩点处 |
+
+验证：后端 434 全绿（ruff/black 全净）、前端 319 + eslint、e2e 46/46
+（含新打印文档 spec）；生产构建复跑通过。
+
+
 
 ## 发现并当轮修复的问题
 
