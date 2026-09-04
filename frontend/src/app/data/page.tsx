@@ -18,6 +18,7 @@ import { Progress } from "@/components/ui/progress";
 import { logger, LogCategory } from "@/lib/logger";
 import { useLiteCopy } from "@/lib/lite-i18n";
 import { useAppStore, type JobApplication, type JobDescription, type Resume } from "@/lib/store";
+import { readLocalInterviews, saveLocalInterview } from "@/lib/interviews-local";
 import { isGithubPagesDeployment } from "@/lib/deployment-mode";
 import type { PortabilityImportResult, PortabilityStatus } from "@/lib/api-client";
 import {
@@ -296,6 +297,9 @@ function DataManagementPage() {
       resumes,
       jobDescriptions,
       applications,
+      // Interviews live outside the app store (their own localStorage key)
+      // but belong to the same data-ownership promise as everything else.
+      interviews: readLocalInterviews(),
     },
     workspace: exportNonSecretWorkspace(),
   }), [applications, jobDescriptions, resumes]);
@@ -657,6 +661,11 @@ function DataManagementPage() {
 
       if (signal.aborted) throw new Error("Import cancelled");
 
+      const importedInterviews = Array.isArray(state.interviews) ? state.interviews : [];
+      for (const interview of importedInterviews) {
+        saveLocalInterview(interview);
+      }
+
       setImportProgress(65);
       const mergeById = <T extends { id: string }>(current: T[], incoming: T[]) => {
         if (importMode === "replace") {
@@ -683,7 +692,7 @@ function DataManagementPage() {
       setImportProgress(100);
 
       const imported =
-        importedResumes.length + importedJDs.length + importedApplications.length;
+        importedResumes.length + importedJDs.length + importedApplications.length + importedInterviews.length;
       const result: PortabilityImportResult = {
         success: true,
         imported,
