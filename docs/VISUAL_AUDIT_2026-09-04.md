@@ -23,8 +23,27 @@
 | W8 | 简历上传走同源相对路径 `/api/resumes`，后端异主机时上传断 | 未走 envelope baseURL | envelope 客户端新增 `postForm`（multipart 不覆盖 JSON Content-Type），上传走规范化 baseURL |
 | W9 | **测量诚实化**：store 申请此前无投递时间戳，进度页"标记投递"只能用 updatedAt 近似 | store 数据模型缺字段 | store 在状态首次进入"已投出"时落 `appliedAt`；hydrate 回填历史记录；进度适配器优先 appliedAt——近似逻辑收敛到 store 一处 |
 
-第一轮记录的「三套词表」「流程条不高亮」两项随本轮关闭；「透明度页双语」
-与「列表接口对脏枚举的韧性」仍留待后续轮次。
+第一轮记录的「三套词表」「流程条不高亮」两项随第二轮关闭；「透明度页双语」
+与「列表接口对脏枚举的韧性」随第三轮关闭（后者）。
+
+## 第三轮（同日：第一公里 + 回归防线 + 数据自愈）
+
+第三轮走查换了一个此前从未验证过的视角：**完全空存储的首次运行**
+（此前每轮都注入 onboarding/种子数据，等于从未看过真实新用户的第一屏）。
+
+| # | 问题 | 根因 | 修复 |
+|---|------|------|------|
+| F1 | **全新用户的角色卡预填了演示人设**（Chen Yu / chenyu@example.com / Northstar Labs） | `createDefaultCandidateRoleCard` 把 README 演示数据当作 store 默认值——用户可能导出/提交自己从未填写过的字段 | 默认值全部置空；演示数据只保留在显式的「填入演示表单」动作里（暂存待审） |
+| F2 | store 里残留整套死掉的 onboarding 状态（isOnboarded/currentStep/6 个 action），无任何 UI 消费，历代 e2e 种子都在虔诚地设置它 | onboarding 向导 UI 已删除，store 切片遗留 | 整片移除；首跑引导由仪表盘「开始使用」清单承担 |
+| F3 | 前两轮新建的 /progress、/transparency 无任何 e2e 防线（smoke 路由清单都没有它们） | 新功能只带了单测 | smoke 路由补齐两条；新增 progress-page.spec.ts：hero 指标、x/y 原始比率、恢复卡含「暂停休息」选项、**关闭卡片跨刷新持久化**、空态无羞辱文案（数据诚实规则进了 e2e 断言） |
+| F4 | 一条非枚举 status 的行让整个 GET /api/applications 500（第一轮实测踩中） | ORM 行物化时 LookupError 波及全列表 | Lite 启动迁移自愈：大小写漂移归一为枚举名，未知值折叠为 SAVED（与前端"不丢记录"兜底一致），每次修复都有日志；附 2 个直接测试 |
+
+## 遗留与边界（截至第三轮）
+
+- 透明度页仍为中文单语（合规文案需逐条复核后翻译，单独轮次）。
+- `mcp_mocks.py` 的 8 个低危「不安全随机数」：mock 数据生成器用 `random`
+  生成置信分/耗时，非安全敏感随机数——按现状保留并在此记录，不改坏语义。
+- 历史提交中的 BigModel API Key 需要人工轮换（工作树已清理，历史不可逆）。
 
 ## 发现并当轮修复的问题
 
