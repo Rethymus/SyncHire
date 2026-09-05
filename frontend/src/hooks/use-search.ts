@@ -8,6 +8,8 @@ import { useState, useCallback, useEffect } from "react";
 import { unifiedClient as apiClient } from "@/lib/api-client";
 import { logger, LogCategory } from "@/lib/logger";
 import { useAppStore } from "@/lib/store";
+import { progressStatusLabels } from "@/lib/status-vocabulary";
+import { useLiteCopy } from "@/lib/lite-i18n";
 
 export interface SearchResult {
   id: string;
@@ -31,7 +33,10 @@ function includesQuery(value: string | undefined, normalizedQuery: string) {
   return value?.toLowerCase().includes(normalizedQuery) ?? false;
 }
 
-function buildLocalSearchResults(options: SearchOptions): SearchResult[] {
+function buildLocalSearchResults(
+  options: SearchOptions,
+  statusLabels: Record<string, string>
+): SearchResult[] {
   const { resumes, jobDescriptions, applications } = useAppStore.getState();
   const normalizedQuery = options.query.trim().toLowerCase();
   const results: SearchResult[] = [];
@@ -89,7 +94,7 @@ function buildLocalSearchResults(options: SearchOptions): SearchResult[] {
           type: "application" as const,
           title: application.position,
           company: application.companyName,
-          content: `${application.status} application`,
+          content: statusLabels[application.status] ?? application.status,
           score: application.matchScore ? application.matchScore / 100 : 0.85,
         }))
     );
@@ -104,6 +109,8 @@ export function useSearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { locale } = useLiteCopy();
+  const statusLabels = progressStatusLabels(locale);
 
   const performSearch = useCallback(async (options: SearchOptions) => {
     if (options.query.length < 2) {
@@ -118,7 +125,7 @@ export function useSearch() {
       const state = useAppStore.getState();
 
       if (!state.isAuthenticated) {
-        const localResults = buildLocalSearchResults(options);
+        const localResults = buildLocalSearchResults(options, statusLabels);
         setResults(localResults);
         logger.info(
           LogCategory.API,
@@ -178,7 +185,7 @@ export function useSearch() {
       setResults(transformedResults);
       logger.info(LogCategory.API, `Search completed: ${transformedResults.length} results`);
     } catch (err) {
-      const localResults = buildLocalSearchResults(options);
+      const localResults = buildLocalSearchResults(options, statusLabels);
       setResults(localResults);
       setError(null);
       logger.info(
@@ -188,7 +195,7 @@ export function useSearch() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [statusLabels]);
 
   const clearResults = useCallback(() => {
     setResults([]);
