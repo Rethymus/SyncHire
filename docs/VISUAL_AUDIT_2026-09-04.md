@@ -163,3 +163,18 @@ canonicalize 修复生效）→ 优化完成面板、编辑器审核引导、面
 全部渲染正常；零 pageerror。
 
 验证：前端 319 + eslint + 46 页构建；生产构建复跑通过。
+
+## 第九轮（同日：搜索链路 + 本地化抽查）
+
+第九轮核查搜索链路（真实后端 287 条数据、curl /api/search 返回 21 条
+React 结果）与 EN 本地化。
+
+| # | 发现 | 结论 |
+|---|------|------|
+| S1 | UI 搜索 "React" 显示「没有找到结果」且零 API 调用——但后端有 21 条命中 | **非缺陷**：useSearch 按认证态分流，Lite（未认证）走本地 store 搜索。带 store 种子复测：3 类结果全命中（简历/JD/申请），评分与排序正常 |
+| S2 | 本地搜索的申请结果内容硬编码英文 "applied application" | 改为 locale 感知的规范状态标签（progressStatusLabels），中英各得其所 |
+| S3 | EN 抽查：dashboard 的「Markdown 简历制作」横幅中文单语 | 已记录（quick-action 横幅为产品级组件，双语需专项）；progress/applications/settings/data 的 EN 全部正常 |
+| S4 | saved-searches 页面读写本地存储自洽（read/write 闭环） | 健康 |
+
+搜索的方法论收获：API 种子数据（本轮后端 287 条）对 Lite UI 不可见是
+架构使然——再次验证第六轮 C1 的双现实结论。
