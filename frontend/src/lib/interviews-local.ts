@@ -33,6 +33,7 @@ export interface LocalInterview {
   next_steps?: string;
   reminder_enabled: boolean;
   reminder_timings: number[];
+  application_id?: string;
   created_at: string;
   updated_at: string;
   job_title?: string;
