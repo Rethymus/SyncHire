@@ -5,7 +5,6 @@ export function generateStaticParams() {
   return [{ id: "placeholder" }];
 }
 
-export const dynamicParams = true;
 
 export default function EditInterviewPage() {
   return (
