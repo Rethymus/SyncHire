@@ -669,8 +669,13 @@ export default function ApplicationDetailClient() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-xl font-semibold text-foreground">简历优化</h2>
+                  {/* Honest disclosure (docs/TRANSPARENCY_COMPLIANCE_NOTES.md):
+                      the local branch is a deterministic generator — no LLM.
+                      Only the backend path may claim AI assistance. */}
                   <p className="text-sm text-muted-foreground">
-                    AI 根据职位要求优化您的简历内容
+                    {isLocalApplication
+                      ? "根据本地角色卡和职位描述，在您的设备上生成岗位化简历（不使用 AI）"
+                      : "AI 根据职位要求优化您的简历内容"}
                   </p>
                 </div>
                 <Button
