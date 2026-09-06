@@ -45,6 +45,8 @@ class LiteSettings(BaseSettings):
 
     # AI APIs (Preserved - these require network)
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    OPENAI_BASE_URL: str = os.getenv("OPENAI_BASE_URL", "")
+    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4")
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
     AI_TIMEOUT: int = 30  # seconds
     AI_MAX_RETRIES: int = 3

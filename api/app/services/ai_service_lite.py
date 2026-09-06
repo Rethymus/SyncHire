@@ -20,16 +20,32 @@ settings = get_lite_settings()
 class AIService:
     """AI service wrapper for resume and JD processing."""
 
+    @property
+    def default_model(self) -> str:
+        """Model from settings; falls back to gpt-4 for OpenAI-only setups."""
+        return settings.OPENAI_MODEL or "gpt-4"
+
     def __init__(self):
         self.openai_client: Optional[AsyncOpenAI] = None
         self.anthropic_client: Optional[AsyncAnthropic] = None
         self._initialize_clients()
 
     def _initialize_clients(self):
-        """Initialize AI clients if API keys are available."""
+        """Initialize AI clients if API keys are available.
+
+        Supports any OpenAI-compatible endpoint via OPENAI_BASE_URL
+        (e.g. Zhipu GLM, DeepSeek, Ollama). When set, the model name
+        should also be overridden via OPENAI_MODEL."""
         if settings.OPENAI_API_KEY:
-            self.openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-            logger.info(LogCategory.AI, "OpenAI client initialized")
+            kwargs = {"api_key": settings.OPENAI_API_KEY}
+            if settings.OPENAI_BASE_URL:
+                kwargs["base_url"] = settings.OPENAI_BASE_URL
+            self.openai_client = AsyncOpenAI(**kwargs)
+            logger.info(
+                LogCategory.AI,
+                "OpenAI client initialized (base_url=%s)",
+                settings.OPENAI_BASE_URL or "https://api.openai.com/v1",
+            )
 
         if settings.ANTHROPIC_API_KEY:
             self.anthropic_client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
@@ -41,7 +57,7 @@ class AIService:
             return text, {}
         return scrub_text_mapped(text)
 
-    async def optimize_resume(self, resume_content: str, model: str = "gpt-4") -> str:
+    async def optimize_resume(self, resume_content: str, model: str = "") -> str:
         """
         Optimize resume content using AI.
 
@@ -127,9 +143,7 @@ class AIService:
         keywords = ", ".join(dict.fromkeys(detected))
         return f"{resume_content.rstrip()}\n\nATS Keywords\n{keywords}\n"
 
-    async def parse_jd(
-        self, jd_content: str, model: str = "claude-3-5-sonnet-20241022"
-    ) -> dict:
+    async def parse_jd(self, jd_content: str, model: str = "") -> dict:
         """
         Parse job description using AI.
 
@@ -216,7 +230,7 @@ class AIService:
             """
 
             response = await self.openai_client.chat.completions.create(
-                model="gpt-4",
+                model=self.default_model,
                 messages=[
                     {
                         "role": "system",
@@ -314,7 +328,7 @@ class AIService:
         }
 
     async def calculate_match_score(
-        self, resume_content: str, jd_content: str, model: str = "gpt-4"
+        self, resume_content: str, jd_content: str, model: str = ""
     ) -> float:
         """
         Calculate match score between resume and job description.
@@ -447,7 +461,7 @@ class AIService:
         return round(max(0, min(100, score)), 1)
 
     async def generate_interview_questions(
-        self, jd_content: str, num_questions: int = 5, model: str = "gpt-4"
+        self, jd_content: str, num_questions: int = 5, model: str = ""
     ) -> list[str]:
         """
         Generate interview questions based on job description.
