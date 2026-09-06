@@ -43,8 +43,7 @@ class AIService:
             self.openai_client = AsyncOpenAI(**kwargs)
             logger.info(
                 LogCategory.AI,
-                "OpenAI client initialized (base_url=%s)",
-                settings.OPENAI_BASE_URL or "https://api.openai.com/v1",
+                f"OpenAI client initialized (base_url={settings.OPENAI_BASE_URL or 'https://api.openai.com/v1'})",
             )
 
         if settings.ANTHROPIC_API_KEY:
@@ -72,6 +71,8 @@ class AIService:
             if not self.openai_client:
                 raise ValueError("OpenAI client not initialized. Check API key.")
 
+            if not model:
+                model = self.default_model
             outbound_content, pii_map = self._scrub_outbound(resume_content)
             prompt = f"""
             Please optimize the following resume for better ATS compatibility and impact.
@@ -345,6 +346,8 @@ class AIService:
             if not self.openai_client:
                 return self._calculate_local_match_score(resume_content, jd_content)
 
+            if not model:
+                model = self.default_model
             outbound_resume, _ = self._scrub_outbound(resume_content)
             outbound_jd, _ = self._scrub_outbound(jd_content)
             prompt = f"""
@@ -482,6 +485,8 @@ class AIService:
                     "What are your strengths and weaknesses?",
                 ]
 
+            if not model:
+                model = self.default_model
             outbound_content, _ = self._scrub_outbound(jd_content)
             prompt = f"""
             Generate {num_questions} interview questions based on this job description:
