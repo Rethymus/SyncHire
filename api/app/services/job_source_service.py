@@ -28,6 +28,7 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.clock import utcnow
 from app.core.config_lite import get_lite_settings
 from app.core.logger import LogCategory, logger
 from app.models.jd_lite import JobDescription
@@ -520,7 +521,7 @@ async def sync_job_source(db: AsyncSession, source: JobSource) -> SyncResult:
 
 def _record_sync(db: AsyncSession, source: JobSource, result: SyncResult) -> None:
     """Stage sync outcome on the source row; caller commits."""
-    source.last_synced_at = datetime.now(timezone.utc)
+    source.last_synced_at = utcnow()
     source.last_sync_status = result.status
     source.last_sync_message = result.message
     source.last_new_count = result.new_count

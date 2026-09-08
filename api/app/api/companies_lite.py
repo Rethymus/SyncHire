@@ -14,6 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.local_first_helpers import dump_json, load_json
+from app.core.clock import utcnow
 from app.core.database_lite import get_db
 from app.core.logger import LogCategory, logger
 from app.models.company_directory import CompanyDirectoryEntry
@@ -234,15 +235,13 @@ async def set_manual_signal(
     entry_id: str, payload: ManualSignalRequest, db: AsyncSession = Depends(get_db)
 ):
     """Pin a hiring signal on one company by hand."""
-    from datetime import datetime, timezone
-
     entry = await _get_entry_or_404(entry_id, db)
     entry.signal_batch = payload.batch
     entry.signal_title = payload.title
     entry.signal_url = payload.url
     # Optional backdated detection (e.g. importing curated lists);
     # defaults to now so manual pins sort to the top
-    entry.signal_detected_at = payload.detected_at or datetime.now(timezone.utc)
+    entry.signal_detected_at = payload.detected_at or utcnow()
     await db.commit()
     await db.refresh(entry)
     return _company_response(entry)

@@ -7,13 +7,13 @@ Provides endpoints for exporting user data in various formats.
 import csv
 import io
 import os
-from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from app.core.clock import utcnow
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.security import TEST_USER_ID
@@ -95,7 +95,7 @@ async def export_applications_csv(
 
         # Prepare response
         csv_content = output.getvalue()
-        filename = f"applications_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        filename = f"applications_export_{utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
 
         logger.info(
             LogCategory.API,
@@ -162,7 +162,7 @@ async def export_resumes_csv(
             )
 
         csv_content = output.getvalue()
-        filename = f"resumes_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        filename = f"resumes_export_{utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
 
         logger.info(
             LogCategory.API, f"User {current_user.id} exported {len(resumes)} resumes"
@@ -228,7 +228,7 @@ async def export_jds_csv(
             )
 
         csv_content = output.getvalue()
-        filename = f"jds_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        filename = f"jds_export_{utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
 
         logger.info(
             LogCategory.API,

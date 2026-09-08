@@ -18,3 +18,13 @@ from datetime import datetime, timezone
 def utcnow() -> datetime:
     """Current UTC time as a NAIVE datetime (drops tzinfo deliberately)."""
     return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+def now_utc() -> datetime:
+    """Current UTC time as an AWARE datetime (keeps tzinfo).
+
+    Single source of aware time for the naive-to-aware migration
+    (docs/DATETIME_MIGRATION_PLAN.md). Phase 2 table groups adopt this as
+    their writer; `utcnow()` stays naive until Phase 3 flips the rest.
+    """
+    return datetime.now(timezone.utc)

@@ -12,13 +12,14 @@ The most specific batch label wins ("2027届秋招" over plain "秋招").
 
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import timezone
 from typing import List, Optional, Tuple
 
 import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.clock import utcnow
 from app.core.logger import LogCategory, logger
 from app.models.company_directory import CompanyDirectoryEntry
 from app.api.local_first_helpers import dump_json, load_json
@@ -147,7 +148,7 @@ async def apply_signal(
     entries = (await db.execute(select(CompanyDirectoryEntry))).scalars().all()
     signals = detect_signals(title, entries, url=url)
     by_id = {str(e.id): e for e in entries}
-    now = datetime.now(timezone.utc)
+    now = utcnow()
     for signal in signals:
         entry = by_id[signal.company_id]
         entry.signal_batch = signal.batch

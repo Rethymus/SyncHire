@@ -12,7 +12,7 @@ import json
 import io
 import os
 import zipfile
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.responses import StreamingResponse
@@ -233,9 +233,7 @@ async def export_full_user_data(
 
         zip_buffer.seek(0)
 
-        filename = (
-            f"sync_hire_data_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
-        )
+        filename = f"sync_hire_data_export_{utcnow().strftime('%Y%m%d_%H%M%S')}.zip"
 
         logger.info(
             LogCategory.API,

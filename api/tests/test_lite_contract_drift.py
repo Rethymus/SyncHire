@@ -11,6 +11,7 @@ missing (see the API contract drift audit):
 """
 
 from collections.abc import AsyncIterator
+from datetime import datetime
 from unittest.mock import AsyncMock
 
 from sqlalchemy import text
@@ -274,6 +275,58 @@ async def test_resume_optimize_marks_result_as_ai_assisted(
     )
     assert optimize_response.status_code == 200
     assert optimize_response.json()["ai_assisted"] is True
+
+
+# ---------------------------------------------------------------------------
+# Datetime wire-contract baseline (docs/DATETIME_MIGRATION_PLAN.md Phase 0)
+#
+# NOTE(datetime-migration): these assertions pin the CURRENT API contract:
+# `created_at` is an offset-less ISO-8601 string (e.g. "2026-09-08T04:00:00")
+# because the backend stores and returns naive UTC. Later phases of the
+# datetime migration (Phase 2 table-group flips and the Phase 3 clock flip)
+# will deliberately add an explicit "+00:00" offset to responses — update
+# these assertions in the same commit as that flip, never incidentally.
+# ---------------------------------------------------------------------------
+
+
+def _assert_created_at_contract(item: dict, endpoint: str) -> None:
+    """Assert `created_at` exists, parses as a datetime, and records the
+    current offset-less baseline."""
+    assert "created_at" in item, f"{endpoint}: response item lacks created_at"
+    raw = item["created_at"]
+    assert isinstance(raw, str) and raw, f"{endpoint}: created_at is not a string"
+    parsed = datetime.fromisoformat(raw)  # ValueError => contract drift
+    # Baseline: naive UTC on the wire (no "Z", no "+00:00").
+    assert parsed.tzinfo is None, (
+        f"{endpoint}: created_at unexpectedly carries an offset ({raw!r}); "
+        "update the Phase 0 baseline deliberately when the migration flips it"
+    )
+
+
+async def test_applications_list_created_at_is_parseable_datetime(
+    lite_client: AsyncClient,
+) -> None:
+    await _create_application(lite_client)
+
+    response = await lite_client.get("/api/applications")
+    assert response.status_code == 200
+    items = response.json()
+    assert isinstance(items, list) and items, "expected at least one application"
+    for item in items:
+        _assert_created_at_contract(item, "GET /api/applications")
+
+
+async def test_jds_list_created_at_is_parseable_datetime(
+    lite_client: AsyncClient,
+) -> None:
+    await _create_application(lite_client)  # creates a JD as a side effect
+
+    response = await lite_client.get("/api/jds")
+    assert response.status_code == 200
+    items = response.json()
+    assert isinstance(items, list) and items, "expected at least one JD"
+    for item in items:
+        _assert_created_at_contract(item, "GET /api/jds")
 
 
 # ---------------------------------------------------------------------------

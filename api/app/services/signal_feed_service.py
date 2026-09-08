@@ -10,13 +10,14 @@ bodies are fetched or stored.
 
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import List, Optional
 
 import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.clock import utcnow
 from app.core.config_lite import get_lite_settings
 from app.core.logger import LogCategory, logger
 from app.models.signal_feed import SignalFeed
@@ -181,7 +182,7 @@ async def sync_all_signal_feeds(db: AsyncSession) -> List[tuple]:
 
 
 def _record(db: AsyncSession, feed: SignalFeed, result: FeedSyncResult) -> None:
-    feed.last_fetched_at = datetime.now(timezone.utc)
+    feed.last_fetched_at = utcnow()
     feed.last_status = result.status
     feed.last_new_signals = len(result.signals_applied)
     feed.last_message = result.message

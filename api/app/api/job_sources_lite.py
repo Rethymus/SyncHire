@@ -13,6 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.clock import utcnow
 from app.core.database_lite import get_db
 from app.core.logger import LogCategory, logger
 from app.models.jd_lite import JobDescription
@@ -351,8 +352,6 @@ async def log_application(
     not in the feed) and files a SUBMITTED application against the
     most recently updated resume.
     """
-    from datetime import datetime, timezone
-
     from app.models.application_lite import Application, ApplicationStatus
     from app.models.resume_lite import Resume
 
@@ -388,7 +387,7 @@ async def log_application(
         )
         db.add(jd)
 
-    now = datetime.now(timezone.utc)
+    now = utcnow()
     application = Application(
         id=uuid.uuid4(),
         resume_id=resume.id,
