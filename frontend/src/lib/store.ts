@@ -85,6 +85,33 @@ export interface RejectionRecoveryEntry {
   chosenAt?: string | null;
 }
 
+/**
+ * Per-entity sync bookkeeping (docs/STORE_API_SYNC_DESIGN.md §6 Phase 0).
+ * Keyed by entity id across resumes, jobDescriptions and applications — ids
+ * are client-UUIDs unique per type, and the ID is the join key on both
+ * sides (§5.4), so one flat record works. Timestamps are ISO strings (not
+ * Dates) so persistence needs no date hydration, same choice as
+ * RejectionRecoveryEntry.
+ */
+export interface SyncMetaEntry {
+  /** Where the row was born: a local UI write or a backend pull. */
+  origin: "local" | "remote";
+  /** Backend `updated_at` as of the last pull/push, for LWW comparison. */
+  remoteUpdatedAt?: string;
+  /** When the local row was last known to match the backend. */
+  lastSyncedAt?: string;
+}
+
+/**
+ * A locally deleted entity whose delete must be replayed to the backend
+ * before it can be forgotten (§6 Phase 1 replays these as DELETE calls).
+ */
+export interface SyncTombstone {
+  id: string;
+  entityType: "resume" | "jd" | "application";
+  deletedAt: string;
+}
+
 interface ToastAction {
   showSuccess: (title: string, description?: string) => void;
   showError: (title: string, description?: string) => void;
@@ -150,6 +177,12 @@ interface AppState {
   dismissRejectionRecovery: (applicationId: string) => void;
   chooseRecoveryAction: (applicationId: string, action: RecoveryActionChoice) => void;
 
+  // Sync bookkeeping (docs/STORE_API_SYNC_DESIGN.md §6 Phase 0): the store
+  // becomes sync-capable without syncing anything yet. No actions in Phase 0
+  // — the Phase 1 sync engine is the sole writer.
+  syncMeta: Record<string, SyncMetaEntry>;
+  tombstones: SyncTombstone[];
+
   hasHydrated: boolean;
   hydrateFromStorage: () => Promise<void>;
 }
@@ -169,6 +202,8 @@ type PersistedAppState = Pick<
   | "selectedTemplate"
   | "templateCustomization"
   | "rejectionRecovery"
+  | "syncMeta"
+  | "tombstones"
 >;
 
 function parseDate(value: unknown, fallback = new Date()): Date {
@@ -267,6 +302,73 @@ function hydrateRejectionRecovery(
   return entries;
 }
 
+function hydrateSyncMeta(
+  persisted: unknown,
+  entityIds: string[]
+): Record<string, SyncMetaEntry> {
+  const meta: Record<string, SyncMetaEntry> = {};
+
+  // Validate the persisted slice entry-by-entry (same defensive style as
+  // hydrateRejectionRecovery) so a corrupt row drops instead of crashing.
+  if (persisted && typeof persisted === "object" && !Array.isArray(persisted)) {
+    for (const [id, raw] of Object.entries(persisted as Record<string, unknown>)) {
+      if (!raw || typeof raw !== "object") continue;
+      const candidate = raw as Partial<SyncMetaEntry>;
+      if (candidate.origin !== "local" && candidate.origin !== "remote") continue;
+      meta[id] = {
+        origin: candidate.origin,
+        remoteUpdatedAt:
+          typeof candidate.remoteUpdatedAt === "string"
+            ? candidate.remoteUpdatedAt
+            : undefined,
+        lastSyncedAt:
+          typeof candidate.lastSyncedAt === "string"
+            ? candidate.lastSyncedAt
+            : undefined,
+      };
+    }
+  }
+
+  // Backfill: rows persisted before sync existed are local-born by
+  // definition, so old data migrates for free without a STORAGE_VERSION
+  // bump — same pattern as the rejectionRecovery hydration above and the
+  // legacy-status normalization in hydrateApplication.
+  for (const id of entityIds) {
+    if (!meta[id]) {
+      meta[id] = { origin: "local" };
+    }
+  }
+
+  return meta;
+}
+
+function hydrateTombstones(persisted: unknown): SyncTombstone[] {
+  if (!Array.isArray(persisted)) {
+    return [];
+  }
+
+  const tombstones: SyncTombstone[] = [];
+  for (const raw of persisted) {
+    if (!raw || typeof raw !== "object") continue;
+    const candidate = raw as Partial<SyncTombstone>;
+    if (
+      typeof candidate.id !== "string" ||
+      (candidate.entityType !== "resume" &&
+        candidate.entityType !== "jd" &&
+        candidate.entityType !== "application") ||
+      typeof candidate.deletedAt !== "string"
+    ) {
+      continue;
+    }
+    tombstones.push({
+      id: candidate.id,
+      entityType: candidate.entityType,
+      deletedAt: candidate.deletedAt,
+    });
+  }
+  return tombstones;
+}
+
 function hydratePersistedState(state: Partial<PersistedAppState>): Partial<PersistedAppState> {
   const resumes = Array.isArray(state.resumes)
     ? state.resumes.map(hydrateResume)
@@ -300,6 +402,15 @@ function hydratePersistedState(state: Partial<PersistedAppState>): Partial<Persi
     candidateProfile,
     browserFillSessions,
     rejectionRecovery: hydrateRejectionRecovery(state.rejectionRecovery),
+    syncMeta: hydrateSyncMeta(
+      state.syncMeta,
+      [
+        ...resumes.map((resume) => resume.id),
+        ...jobDescriptions.map((jd) => jd.id),
+        ...applications.map((application) => application.id),
+      ]
+    ),
+    tombstones: hydrateTombstones(state.tombstones),
   };
 }
 
@@ -342,6 +453,8 @@ function persistState(state: AppState) {
     selectedTemplate: state.selectedTemplate,
     templateCustomization: state.templateCustomization,
     rejectionRecovery: state.rejectionRecovery,
+    syncMeta: state.syncMeta,
+    tombstones: state.tombstones,
   };
 
   const payload = JSON.stringify({
@@ -384,6 +497,8 @@ export const useAppStore = create<AppState>()((set) => ({
   sidebarOpen: true,
   hasHydrated: false,
   rejectionRecovery: {},
+  syncMeta: {},
+  tombstones: [],
 
   // Auth actions
   setUser: (user) =>
@@ -404,6 +519,10 @@ export const useAppStore = create<AppState>()((set) => ({
         jobDescriptions: [],
         currentJD: null,
         rejectionRecovery: {},
+        // Sync bookkeeping follows the entities it describes: the persisted
+        // state is cleared below, so the in-memory slice resets too.
+        syncMeta: {},
+        tombstones: [],
       };
       clearPersistedState();
       return nextState;
@@ -431,12 +550,17 @@ export const useAppStore = create<AppState>()((set) => ({
 
   updateResume: (id, updates) =>
     set((state) => {
+      // Resumes carry no updatedAt — uploadedAt is their only timestamp, so
+      // updates bump it to keep entity-level LWW computable
+      // (docs/STORE_API_SYNC_DESIGN.md §5.1/§2.4). Stamped once so the array
+      // row and currentResume agree on the same instant.
+      const uploadedAt = new Date();
       const resumes = state.resumes.map((r) =>
-        r.id === id ? { ...r, ...updates } : r
+        r.id === id ? { ...r, ...updates, uploadedAt } : r
       );
       const currentResume =
         state.currentResume?.id === id
-          ? { ...state.currentResume, ...updates }
+          ? { ...state.currentResume, ...updates, uploadedAt }
           : state.currentResume;
       persistState({ ...state, resumes, currentResume });
       return { resumes, currentResume };
@@ -522,14 +646,19 @@ export const useAppStore = create<AppState>()((set) => ({
 
   updateApplication: (id, updates) =>
     set((state) => {
+      // Stamped once so every touched field shares the same mutation instant.
+      const updatedAt = new Date();
       const applications = state.applications.map((app) => {
         if (app.id !== id) return app;
-        const next: JobApplication = { ...app, ...updates };
+        // updatedAt must actually move on update or entity-level LWW cannot
+        // tell a local edit from a stale copy (docs/STORE_API_SYNC_DESIGN.md
+        // §5.1).
+        const next: JobApplication = { ...app, ...updates, updatedAt };
         // Measurement honesty (docs/DESIGN_ETHICS.md §4): stamp the moment a
         // status first proves the application was sent out, so 标记投递 is
         // dated by the transition, not approximated from updatedAt forever.
         if (updates.status && next.appliedAt == null && statusImpliesSent(next.status)) {
-          next.appliedAt = new Date();
+          next.appliedAt = updatedAt;
         }
         return next;
       });
@@ -549,11 +678,13 @@ export const useAppStore = create<AppState>()((set) => ({
 
   batchUpdateApplications: (ids, updates) =>
     set((state) => {
+      // Same LWW stamp as updateApplication (§5.1), shared across the batch.
+      const updatedAt = new Date();
       const applications = state.applications.map((app) => {
         if (!ids.includes(app.id)) return app;
-        const next: JobApplication = { ...app, ...updates };
+        const next: JobApplication = { ...app, ...updates, updatedAt };
         if (updates.status && next.appliedAt == null && statusImpliesSent(next.status)) {
-          next.appliedAt = new Date();
+          next.appliedAt = updatedAt;
         }
         return next;
       });
@@ -702,6 +833,8 @@ export const useAppStore = create<AppState>()((set) => ({
           persistedState.templateCustomization ?? state.templateCustomization,
         rejectionRecovery:
           persistedState.rejectionRecovery ?? state.rejectionRecovery,
+        syncMeta: persistedState.syncMeta ?? state.syncMeta,
+        tombstones: persistedState.tombstones ?? state.tombstones,
         hasHydrated: true,
       };
     });
