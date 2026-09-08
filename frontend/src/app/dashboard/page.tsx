@@ -38,6 +38,16 @@ function DashboardPage() {
   const { resumes, jobDescriptions, applications } = useAppStore();
   const { locale, t } = useLiteCopy();
   const dashboard = t.dashboard;
+  // The resume-builder promo banner predates the copy dictionary; keep the
+  // original zh-CN strings byte-identical and provide an en-US variant.
+  const zh = locale === "zh-CN";
+  const builderBanner = {
+    title: zh ? "Markdown 简历制作" : "Markdown Resume Builder",
+    subtitle: zh
+      ? "多主题 · 智能一页 · 智能检测 · 源码 / 所见即所得 · PDF / PNG / MD 导出"
+      : "Multi-theme · Smart one-page · Smart checks · Source / WYSIWYG · PDF / PNG / MD export",
+    cta: zh ? "开始制作 →" : "Start Building →",
+  };
   const loading = false;
   const [applicationDialogOpen, setApplicationDialogOpen] = useState(false);
 
@@ -193,14 +203,14 @@ function DashboardPage() {
                 <FileText className="h-5 w-5" />
               </div>
               <div>
-                <p className="font-semibold text-base">Markdown 简历制作</p>
+                <p className="font-semibold text-base">{builderBanner.title}</p>
                 <p className="text-sm text-blue-100">
-                  多主题 · 智能一页 · 智能检测 · 源码 / 所见即所得 · PDF / PNG / MD 导出
+                  {builderBanner.subtitle}
                 </p>
               </div>
             </div>
             <span className="text-sm font-medium opacity-90 group-hover:translate-x-1 transition-transform">
-              开始制作 →
+              {builderBanner.cta}
             </span>
           </Link>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

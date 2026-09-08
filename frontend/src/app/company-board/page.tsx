@@ -103,7 +103,20 @@ export default function CompanyBoardPage() {
       );
       await Promise.all([loadFeeds(), load()]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sync failed");
+      // Raw fetch errors ("Failed to fetch") read like a bug report — map
+      // them to a friendly, bilingual message with the likely cause.
+      const isNetwork = err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(
+        err instanceof Error ? err.message : String(err)
+      );
+      setError(
+        isNetwork
+          ? locale === "zh-CN"
+            ? "暂时连不上招聘雷达数据源。请确认数据源服务是否在运行，稍后再试一次。"
+            : "Can't reach the company radar right now. Check that the service is running, then retry."
+          : locale === "zh-CN"
+            ? err instanceof Error ? err.message : "同步失败，请稍后再试"
+            : err instanceof Error ? err.message : "Sync failed"
+      );
     } finally {
       setFeedBusy(false);
     }
@@ -120,11 +133,24 @@ export default function CompanyBoardPage() {
         })
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load companies");
+      // Raw fetch errors ("Failed to fetch") read like a bug report — map
+      // them to a friendly, bilingual message with the likely cause.
+      const isNetwork = err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(
+        err instanceof Error ? err.message : String(err)
+      );
+      setError(
+        isNetwork
+          ? locale === "zh-CN"
+            ? "暂时连不上招聘雷达数据源。请确认数据源服务是否在运行，稍后再试一次。"
+            : "Can't reach the company radar right now. Check that the service is running, then retry."
+          : locale === "zh-CN"
+            ? err instanceof Error ? err.message : "企业目录暂时加载失败"
+            : err instanceof Error ? err.message : "Failed to load companies"
+      );
     } finally {
       setLoading(false);
     }
-  }, [keyword, industry]);
+  }, [keyword, industry, locale]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => void load());

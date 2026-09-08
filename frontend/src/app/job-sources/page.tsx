@@ -97,11 +97,24 @@ export default function JobSourcesPage() {
     try {
       setSources(await jobSourceAPI.list());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load job sources");
+      // Raw fetch errors ("Failed to fetch") read like a bug report — map
+      // them to a friendly, bilingual message with the likely cause.
+      const isNetwork = err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(
+        err instanceof Error ? err.message : String(err)
+      );
+      setError(
+        isNetwork
+          ? locale === "zh-CN"
+            ? "暂时连不上岗位数据源。请确认数据源服务是否在运行，稍后再试一次。"
+            : "Can't reach the job sources right now. Check that the source service is running, then retry."
+          : locale === "zh-CN"
+            ? err instanceof Error ? err.message : "数据源列表暂时加载失败"
+            : err instanceof Error ? err.message : "Failed to load job sources"
+      );
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     void load();
@@ -164,7 +177,20 @@ export default function JobSourcesPage() {
       }
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sync failed");
+      // Raw fetch errors ("Failed to fetch") read like a bug report — map
+      // them to a friendly, bilingual message with the likely cause.
+      const isNetwork = err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(
+        err instanceof Error ? err.message : String(err)
+      );
+      setError(
+        isNetwork
+          ? locale === "zh-CN"
+            ? "暂时连不上岗位数据源。请确认数据源服务是否在运行，稍后再试一次。"
+            : "Can't reach the job sources right now. Check that the source service is running, then retry."
+          : locale === "zh-CN"
+            ? err instanceof Error ? err.message : "同步失败，请稍后再试"
+            : err instanceof Error ? err.message : "Sync failed"
+      );
     } finally {
       setSyncingId(null);
     }
@@ -188,7 +214,20 @@ export default function JobSourcesPage() {
       }
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sync failed");
+      // Raw fetch errors ("Failed to fetch") read like a bug report — map
+      // them to a friendly, bilingual message with the likely cause.
+      const isNetwork = err instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(
+        err instanceof Error ? err.message : String(err)
+      );
+      setError(
+        isNetwork
+          ? locale === "zh-CN"
+            ? "暂时连不上岗位数据源。请确认数据源服务是否在运行，稍后再试一次。"
+            : "Can't reach the job sources right now. Check that the source service is running, then retry."
+          : locale === "zh-CN"
+            ? err instanceof Error ? err.message : "同步失败，请稍后再试"
+            : err instanceof Error ? err.message : "Sync failed"
+      );
     } finally {
       setSyncAllBusy(false);
     }
