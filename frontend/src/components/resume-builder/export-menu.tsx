@@ -7,6 +7,7 @@ import {
   exportResumePng,
   printResumeToPdf,
 } from "@/lib/resume-builder/export";
+import { useLiteCopy } from "@/lib/lite-i18n";
 import type { RefObject } from "react";
 
 interface ExportMenuProps {
@@ -18,6 +19,17 @@ interface ExportMenuProps {
 }
 
 function ExportMenuBase({ filename, content, themeId, portraitUrl, pageRef }: ExportMenuProps) {
+  const { locale } = useLiteCopy();
+  const zh = locale === "zh-CN";
+  const copy = {
+    trigger: zh ? "导出" : "Export",
+    pdf: zh ? "导出 PDF" : "Export PDF",
+    png: zh ? "导出 PNG" : "Export PNG",
+    markdown: zh ? "导出 Markdown" : "Export Markdown",
+    exportFailed: zh ? "导出失败" : "Export failed",
+    pngFailed: zh ? "PNG 导出失败" : "PNG export failed",
+    previewMissing: zh ? "未找到预览节点" : "Preview node not found",
+  };
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<null | "pdf" | "png" | "md">(null);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +62,7 @@ function ExportMenuBase({ filename, content, themeId, portraitUrl, pageRef }: Ex
     try {
       printResumeToPdf(content, themeId, filename, portraitUrl);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "导出失败");
+      setError(e instanceof Error ? e.message : copy.exportFailed);
     } finally {
       setBusy(null);
       setOpen(false);
@@ -60,7 +72,7 @@ function ExportMenuBase({ filename, content, themeId, portraitUrl, pageRef }: Ex
   const handlePng = async () => {
     const node = pageRef.current;
     if (!node) {
-      setError("未找到预览节点");
+      setError(copy.previewMissing);
       setOpen(false);
       return;
     }
@@ -69,7 +81,7 @@ function ExportMenuBase({ filename, content, themeId, portraitUrl, pageRef }: Ex
     try {
       await exportResumePng(node, filename);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "PNG 导出失败");
+      setError(e instanceof Error ? e.message : copy.pngFailed);
     } finally {
       setBusy(null);
       setOpen(false);
@@ -82,7 +94,7 @@ function ExportMenuBase({ filename, content, themeId, portraitUrl, pageRef }: Ex
     try {
       exportResumeMarkdown(filename, content);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "导出失败");
+      setError(e instanceof Error ? e.message : copy.exportFailed);
     } finally {
       setBusy(null);
       setOpen(false);
@@ -99,7 +111,7 @@ function ExportMenuBase({ filename, content, themeId, portraitUrl, pageRef }: Ex
         aria-expanded={open}
       >
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-        导出
+        {copy.trigger}
       </button>
 
       {open && (
@@ -113,7 +125,7 @@ function ExportMenuBase({ filename, content, themeId, portraitUrl, pageRef }: Ex
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted/40"
           >
             <FileText className="h-4 w-4 text-rose-500" />
-            导出 PDF
+            {copy.pdf}
           </button>
           <button
             onClick={handlePng}
@@ -121,7 +133,7 @@ function ExportMenuBase({ filename, content, themeId, portraitUrl, pageRef }: Ex
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted/40"
           >
             <ImageIcon className="h-4 w-4 text-violet-500" />
-            导出 PNG
+            {copy.png}
           </button>
           <button
             onClick={handleMd}
@@ -129,7 +141,7 @@ function ExportMenuBase({ filename, content, themeId, portraitUrl, pageRef }: Ex
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:bg-muted/40"
           >
             <FileType2 className="h-4 w-4 text-blue-500" />
-            导出 Markdown
+            {copy.markdown}
           </button>
         </div>
       )}

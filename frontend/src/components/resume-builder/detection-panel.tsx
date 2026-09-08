@@ -7,6 +7,7 @@ import {
   type ProofreadCategory,
   type Severity,
 } from "@/lib/resume-builder/proofread";
+import { useLiteCopy } from "@/lib/lite-i18n";
 import { cn } from "@/lib/utils";
 import { Wand2, AlertTriangle, Info, CheckCircle2 } from "lucide-react";
 
@@ -16,11 +17,11 @@ interface DetectionPanelProps {
   onApplyFixes: (fixedContent: string) => void;
 }
 
-const CATEGORY_META: Record<ProofreadCategory, { label: string; color: string }> = {
-  typo: { label: "错别字", color: "text-rose-600" },
-  "english-term": { label: "英文专词", color: "text-violet-600" },
-  punctuation: { label: "标点误用", color: "text-amber-600" },
-  spacing: { label: "中英文间距", color: "text-sky-600" },
+const CATEGORY_COLOR: Record<ProofreadCategory, string> = {
+  typo: "text-rose-600",
+  "english-term": "text-violet-600",
+  punctuation: "text-amber-600",
+  spacing: "text-sky-600",
 };
 
 const SEVERITY_DOT: Record<Severity, string> = {
@@ -30,6 +31,22 @@ const SEVERITY_DOT: Record<Severity, string> = {
 };
 
 function DetectionPanelBase({ content, onJump, onApplyFixes }: DetectionPanelProps) {
+  const { locale } = useLiteCopy();
+  const zh = locale === "zh-CN";
+  const copy = {
+    title: zh ? "智能检测" : "Smart Detection",
+    fixAll: zh ? "一键修正" : "Fix all",
+    clean: zh ? "未发现问题，内容很干净。" : "No issues found — the content is clean.",
+    clickToFix: zh ? "点击修正" : "Click to fix",
+    line: (line: number) => (zh ? `第 ${line} 行` : `Line ${line}`),
+    footer: zh ? "仅作辅助检查，修改请自行判断。" : "Advisory checks only — review changes yourself.",
+  };
+  const categoryLabels: Record<ProofreadCategory, string> = {
+    typo: zh ? "错别字" : "Typos",
+    "english-term": zh ? "英文专词" : "English terms",
+    punctuation: zh ? "标点误用" : "Punctuation",
+    spacing: zh ? "中英文间距" : "CJK-Latin spacing",
+  };
   const result = useMemo(() => proofreadResume(content), [content]);
   const total = result.issues.length;
   const hasAutoFixable = result.issues.some(
@@ -43,7 +60,7 @@ function DetectionPanelBase({ content, onJump, onApplyFixes }: DetectionPanelPro
       <header className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 text-amber-500" />
-          <h3 className="text-sm font-semibold text-foreground">智能检测</h3>
+          <h3 className="text-sm font-semibold text-foreground">{copy.title}</h3>
           <span className="text-xs text-muted-foreground/80">({total})</span>
         </div>
         {hasAutoFixable && (
@@ -52,18 +69,18 @@ function DetectionPanelBase({ content, onJump, onApplyFixes }: DetectionPanelPro
             className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
           >
             <Wand2 className="h-3 w-3" />
-            一键修正
+            {copy.fixAll}
           </button>
         )}
       </header>
 
       <div className="grid grid-cols-4 gap-1 px-3 py-2 border-b border-gray-50 text-center">
-        {(Object.keys(CATEGORY_META) as ProofreadCategory[]).map((cat) => (
+        {(Object.keys(CATEGORY_COLOR) as ProofreadCategory[]).map((cat) => (
           <div key={cat} className="flex flex-col">
-            <span className={cn("text-base font-bold", CATEGORY_META[cat].color)}>
+            <span className={cn("text-base font-bold", CATEGORY_COLOR[cat])}>
               {result.counts[cat]}
             </span>
-            <span className="text-[10px] text-muted-foreground">{CATEGORY_META[cat].label}</span>
+            <span className="text-[10px] text-muted-foreground">{categoryLabels[cat]}</span>
           </div>
         ))}
       </div>
@@ -72,7 +89,7 @@ function DetectionPanelBase({ content, onJump, onApplyFixes }: DetectionPanelPro
         {total === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground/80 gap-2 p-6">
             <CheckCircle2 className="h-8 w-8 text-green-400" />
-            <p className="text-sm">未发现问题，内容很干净。</p>
+            <p className="text-sm">{copy.clean}</p>
           </div>
         ) : (
           <ul className="divide-y divide-gray-50">
@@ -85,10 +102,10 @@ function DetectionPanelBase({ content, onJump, onApplyFixes }: DetectionPanelPro
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className={cn("h-1.5 w-1.5 rounded-full", SEVERITY_DOT[issue.severity])} />
                     <span className="text-[10px] text-muted-foreground/80">
-                      第 {issue.line} 行 · {CATEGORY_META[issue.category].label}
+                      {copy.line(issue.line)} · {categoryLabels[issue.category]}
                     </span>
                     {issue.suggestion && (
-                      <span className="ml-auto text-[10px] text-blue-500">点击修正</span>
+                      <span className="ml-auto text-[10px] text-blue-500">{copy.clickToFix}</span>
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed">{issue.message}</p>
@@ -107,7 +124,7 @@ function DetectionPanelBase({ content, onJump, onApplyFixes }: DetectionPanelPro
 
       <footer className="px-4 py-2 border-t border-gray-100 text-[11px] text-muted-foreground/80 flex items-center gap-1">
         <Info className="h-3 w-3" />
-        仅作辅助检查，修改请自行判断。
+        {copy.footer}
       </footer>
     </aside>
   );

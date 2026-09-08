@@ -3,6 +3,7 @@
 import { memo } from "react";
 import { RESUME_THEMES, getResumeTheme, normalizeResumeThemeId } from "@/lib/resume-builder/themes";
 import { useBuilderStore } from "@/lib/resume-builder/builder-store";
+import { useLiteCopy } from "@/lib/lite-i18n";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +13,15 @@ interface ThemePickerProps {
 }
 
 function ThemePickerBase({ open, onClose }: ThemePickerProps) {
+  const { locale } = useLiteCopy();
+  const zh = locale === "zh-CN";
+  const copy = {
+    title: zh ? "选择主题" : "Choose a theme",
+    close: zh ? "关闭" : "Close",
+    description: zh
+      ? "一份内容，多份简历，多种样式和排版尽收眼底。"
+      : "One resume, many layouts — explore every style and typography at a glance.",
+  };
   const themeId = useBuilderStore((s) => s.themeId);
   const setTheme = useBuilderStore((s) => s.setTheme);
 
@@ -24,7 +34,7 @@ function ThemePickerBase({ open, onClose }: ThemePickerProps) {
       className="fixed inset-0 z-40 bg-black/40 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="选择主题"
+      aria-label={copy.title}
       onClick={onClose}
     >
       <div
@@ -32,16 +42,16 @@ function ThemePickerBase({ open, onClose }: ThemePickerProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-foreground">选择主题</h3>
+          <h3 className="text-lg font-semibold text-foreground">{copy.title}</h3>
           <button
             onClick={onClose}
             className="text-muted-foreground/80 hover:text-muted-foreground text-2xl leading-none"
-            aria-label="关闭"
+            aria-label={copy.close}
           >
             ×
           </button>
         </div>
-        <p className="text-sm text-muted-foreground mb-4">一份内容，多份简历，多种样式和排版尽收眼底。</p>
+        <p className="text-sm text-muted-foreground mb-4">{copy.description}</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {RESUME_THEMES.map((theme) => {
             const active = normalizeResumeThemeId(themeId) === theme.id;
@@ -75,7 +85,7 @@ function ThemePickerBase({ open, onClose }: ThemePickerProps) {
                   <div className="h-1.5 rounded-sm bg-gray-200 w-2/3" />
                 </div>
                 <div className="flex items-center justify-between px-3 py-2 border-t border-gray-100">
-                  <span className="text-sm font-medium text-gray-800">{t.label["zh-CN"]}</span>
+                  <span className="text-sm font-medium text-gray-800">{t.label[locale]}</span>
                   <span
                     className="h-4 w-4 rounded-full border border-border"
                     style={{ background: t.swatch }}

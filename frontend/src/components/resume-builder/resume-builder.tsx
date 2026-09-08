@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isGithubPagesDeployment } from "@/lib/deployment-mode";
+import { useLiteCopy } from "@/lib/lite-i18n";
 
 /**
  * New-canvas scaffold: placeholder slots that are obviously waiting for the
@@ -123,6 +124,48 @@ type SaveState = "idle" | "saving" | "saved" | "unsaved";
 
 export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
   const router = useRouter();
+  const { locale } = useLiteCopy();
+  const zh = locale === "zh-CN";
+  // Locale-aware chrome copy (toolbar, editor placeholder, confirm dialogs).
+  // Resume markdown content is intentionally not translated.
+  const toolbarCopy = {
+    defaultName: zh ? "我的简历" : "My resume",
+    back: zh ? "返回" : "Back",
+    resumeNameLabel: zh ? "简历名称" : "Resume name",
+    resumeNamePlaceholder: zh ? "请命名" : "Name it",
+    sourceMode: zh ? "源码" : "Source",
+    wysiwygMode: zh ? "所见即所得" : "WYSIWYG",
+    theme: zh ? "主题" : "Theme",
+    plugins: zh ? "插件" : "Plugins",
+    icons: zh ? "图标" : "Icons",
+    sample: zh ? "示例" : "Sample",
+    sampleTitle: zh
+      ? "载入一份完整的示例简历（会替换当前内容）"
+      : "Load a complete example resume (replaces the current content)",
+    portrait: zh ? "证件照" : "Portrait",
+    portraitTitle: zh ? "AI 生成商务证件照" : "Generate a business portrait photo with AI",
+    distill: zh ? "项目蒸馏" : "Distill",
+    distillTitle: zh
+      ? "GitHub 项目蒸馏：从仓库链接推断项目经历"
+      : "GitHub project distill: infer project experience from a repo link",
+    detection: zh ? "检测" : "Check",
+    onePage: zh ? "一页" : "One page",
+    onePageTitle: zh
+      ? "智能一页：自动缩放字号让简历刚好一页"
+      : "Smart one page: auto-scale the font size so the resume fits exactly one page",
+    history: zh ? "历史" : "History",
+    unsaved: zh ? "未保存" : "Unsaved",
+    save: zh ? "保存" : "Save",
+    saving: zh ? "保存中" : "Saving…",
+    saved: zh ? "已保存" : "Saved",
+    loadSampleConfirm: zh
+      ? "载入示例会替换当前内容，确定继续吗？"
+      : "Loading the example replaces the current content. Continue?",
+    sourcePlaceholder: zh
+      ? "使用 Markdown 编写简历… 支持 ::: left/right 分栏与 icon:名称 语法"
+      : "Write your resume in Markdown… supports ::: left/right columns and icon:name syntax",
+    githubSnapshotSuffix: zh ? "（GitHub 蒸馏）" : " (GitHub distilled)",
+  };
   const { addResume, updateResume, currentResume } = useAppStore();
   const themeId = useBuilderStore((s) => s.themeId);
   const editMode = useBuilderStore((s) => s.editMode);
@@ -134,7 +177,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
   const pagesMode = isGithubPagesDeployment();
 
   const [content, setContent] = useState(initialResume?.content ?? DEFAULT_RESUME_MARKDOWN);
-  const [name, setName] = useState(initialResume?.name ?? "我的简历");
+  const [name, setName] = useState(initialResume?.name ?? toolbarCopy.defaultName);
   const [resumeId, setResumeId] = useState<string | undefined>(initialResume?.id);
   const [flash, setFlash] = useState<null | "saving" | "saved">(null);
   const [fit, setFit] = useState<OnePageFitResult>({
@@ -255,10 +298,10 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
   const handleLoadSample = useCallback(() => {
     const isUntouched =
       content === DEFAULT_RESUME_MARKDOWN || content.trim() === "";
-    if (isUntouched || window.confirm("载入示例会替换当前内容，确定继续吗？")) {
+    if (isUntouched || window.confirm(toolbarCopy.loadSampleConfirm)) {
       setContent(SAMPLE_RESUME_MARKDOWN);
     }
-  }, [content]);
+  }, [content, toolbarCopy.loadSampleConfirm]);
 
   const onFitChange = useCallback((result: OnePageFitResult) => {
     setFit((prev) =>
@@ -277,9 +320,9 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
     (project: DistilledProject) => {
       const block = buildProjectBlock(project);
       setContent((prev) => mergeSkillsIntoContent(insertProjectBlock(prev, block), project.skills));
-      pushSnapshot(`${project.name}（GitHub 蒸馏）`, content);
+      pushSnapshot(`${project.name}${toolbarCopy.githubSnapshotSuffix}`, content);
     },
-    [content, pushSnapshot],
+    [content, pushSnapshot, toolbarCopy.githubSnapshotSuffix],
   );
 
   const toolbarButton = useMemo(
@@ -298,7 +341,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
         <button
           onClick={() => router.back()}
           className="h-9 w-9 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
-          aria-label="返回"
+          aria-label={toolbarCopy.back}
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
@@ -307,8 +350,8 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="h-9 min-w-0 flex-1 max-w-[220px] px-2 rounded-md border border-transparent hover:border-border focus:border-blue-400 focus:outline-none text-sm font-medium text-gray-800"
-          aria-label="简历名称"
-          placeholder="请命名"
+          aria-label={toolbarCopy.resumeNameLabel}
+          placeholder={toolbarCopy.resumeNamePlaceholder}
         />
 
         <div className="h-5 w-px bg-gray-200 mx-1" />
@@ -322,7 +365,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
               editMode === "source" ? "bg-gray-900 text-white" : "bg-card text-muted-foreground hover:bg-muted/40",
             )}
           >
-            <Code2 className="h-3.5 w-3.5" /> 源码
+            <Code2 className="h-3.5 w-3.5" /> {toolbarCopy.sourceMode}
           </button>
           <button
             onClick={() => setEditMode("wysiwyg")}
@@ -331,7 +374,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
               editMode === "wysiwyg" ? "bg-gray-900 text-white" : "bg-card text-muted-foreground hover:bg-muted/40",
             )}
           >
-            <Eye className="h-3.5 w-3.5" /> 所见即所得
+            <Eye className="h-3.5 w-3.5" /> {toolbarCopy.wysiwygMode}
           </button>
         </div>
 
@@ -339,26 +382,26 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
           onClick={() => setShowTheme(true)}
           className={cn(toolbarButton.base, toolbarButton.idle)}
         >
-          <Palette className="h-4 w-4" /> 主题
+          <Palette className="h-4 w-4" /> {toolbarCopy.theme}
         </button>
         <button
           onClick={() => setShowPlugins(true)}
           className={cn(toolbarButton.base, toolbarButton.idle)}
         >
-          <Puzzle className="h-4 w-4" /> 插件
+          <Puzzle className="h-4 w-4" /> {toolbarCopy.plugins}
         </button>
         <button
           onClick={() => setShowIcons(true)}
           className={cn(toolbarButton.base, toolbarButton.idle)}
         >
-          <Smile className="h-4 w-4" /> 图标
+          <Smile className="h-4 w-4" /> {toolbarCopy.icons}
         </button>
         <button
           onClick={handleLoadSample}
           className={cn(toolbarButton.base, toolbarButton.idle)}
-          title="载入一份完整的示例简历（会替换当前内容）"
+          title={toolbarCopy.sampleTitle}
         >
-          <FileText className="h-4 w-4" /> 示例
+          <FileText className="h-4 w-4" /> {toolbarCopy.sample}
         </button>
         {!pagesMode ? (
           <>
@@ -366,17 +409,17 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
               onClick={() => setShowPortrait(true)}
               className={cn(toolbarButton.base, portraitUrl ? toolbarButton.active : toolbarButton.idle)}
               aria-pressed={!!portraitUrl}
-              title="AI 生成商务证件照"
+              title={toolbarCopy.portraitTitle}
             >
-              <Camera className="h-4 w-4" /> 证件照
+              <Camera className="h-4 w-4" /> {toolbarCopy.portrait}
               {portraitUrl && <span className="h-1.5 w-1.5 rounded-full bg-green-500" />}
             </button>
             <button
               onClick={() => setShowGithub(true)}
               className={cn(toolbarButton.base, toolbarButton.idle)}
-              title="GitHub 项目蒸馏：从仓库链接推断项目经历"
+              title={toolbarCopy.distillTitle}
             >
-              <GitBranch className="h-4 w-4" /> 项目蒸馏
+              <GitBranch className="h-4 w-4" /> {toolbarCopy.distill}
             </button>
           </>
         ) : null}
@@ -385,21 +428,21 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
           className={cn(toolbarButton.base, detectionOn ? toolbarButton.active : toolbarButton.idle)}
           aria-pressed={detectionOn}
         >
-          <ScanText className="h-4 w-4" /> 检测
+          <ScanText className="h-4 w-4" /> {toolbarCopy.detection}
         </button>
         <button
           onClick={() => useBuilderStore.getState().togglePlugin("onePage")}
           className={cn(toolbarButton.base, onePageOn ? toolbarButton.active : toolbarButton.idle)}
           aria-pressed={onePageOn}
-          title="智能一页：自动缩放字号让简历刚好一页"
+          title={toolbarCopy.onePageTitle}
         >
-          <Maximize2 className="h-4 w-4" /> 一页
+          <Maximize2 className="h-4 w-4" /> {toolbarCopy.onePage}
         </button>
         <button
           onClick={() => setShowHistory(true)}
           className={cn(toolbarButton.base, toolbarButton.idle)}
         >
-          <History className="h-4 w-4" /> 历史
+          <History className="h-4 w-4" /> {toolbarCopy.history}
           {snapshots.length > 0 && (
             <span className="text-[10px] text-muted-foreground/80">{snapshots.length}</span>
           )}
@@ -410,7 +453,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
           <PageIndicator fit={fit} onePage={onePageOn} />
           {saveState === "unsaved" && (
             <span className="text-xs text-amber-600 flex items-center gap-1">
-              <AlertTriangle className="h-3 w-3" /> 未保存
+              <AlertTriangle className="h-3 w-3" /> {toolbarCopy.unsaved}
             </span>
           )}
           <button
@@ -425,7 +468,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
             ) : (
               <Save className="h-4 w-4" />
             )}
-            {saveState === "saving" ? "保存中" : saveState === "saved" ? "已保存" : "保存"}
+            {saveState === "saving" ? toolbarCopy.saving : saveState === "saved" ? toolbarCopy.saved : toolbarCopy.save}
           </button>
           <ExportMenu
             filename={name}
@@ -448,7 +491,7 @@ export function ResumeBuilder({ initialResume }: ResumeBuilderProps) {
               ref={sourceRef}
               value={content}
               onChange={handleContentChange}
-              placeholder="使用 Markdown 编写简历… 支持 ::: left/right 分栏与 icon:名称 语法"
+              placeholder={toolbarCopy.sourcePlaceholder}
             />
           ) : (
             <WysiwygEditor
@@ -516,6 +559,8 @@ function PageIndicator({
   fit: OnePageFitResult;
   onePage: boolean;
 }) {
+  const { locale } = useLiteCopy();
+  const zh = locale === "zh-CN";
   const color =
     onePage && fit.state === "overflow"
       ? "text-rose-600"
@@ -525,11 +570,18 @@ function PageIndicator({
           ? "text-amber-600"
           : "text-muted-foreground";
   return (
-    <span className={cn("text-xs flex items-center gap-1", color)} title="页数估算 / 智能一页状态">
+    <span
+      className={cn("text-xs flex items-center gap-1", color)}
+      title={zh ? "页数估算 / 智能一页状态" : "Page estimate / one-page status"}
+    >
       {onePage && fit.scale < 1 && fit.state === "fit"
-        ? `已缩放至 ${(fit.scale * 100) | 0}%`
-        : `${fit.estimatedPages} 页`}
-      {onePage && fit.state === "overflow" && " · 仍超出"}
+        ? zh
+          ? `已缩放至 ${(fit.scale * 100) | 0}%`
+          : `Scaled to ${(fit.scale * 100) | 0}%`
+        : zh
+          ? `${fit.estimatedPages} 页`
+          : `${fit.estimatedPages} ${fit.estimatedPages > 1 ? "pages" : "page"}`}
+      {onePage && fit.state === "overflow" && (zh ? " · 仍超出" : " · still over")}
     </span>
   );
 }
@@ -541,6 +593,15 @@ interface HistoryDrawerProps {
 }
 
 function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawerProps) {
+  const { locale } = useLiteCopy();
+  const zh = locale === "zh-CN";
+  const copy = {
+    title: zh ? "历史记录" : "History",
+    clear: zh ? "清空" : "Clear",
+    close: zh ? "关闭" : "Close",
+    empty: zh ? "每次保存会自动留下一份快照。" : "Each save automatically keeps a snapshot.",
+    restore: zh ? "恢复" : "Restore",
+  };
   const snapshots = useBuilderStore((s) => s.snapshots);
   const clearSnapshots = useBuilderStore((s) => s.clearSnapshots);
   if (!open) {
@@ -551,7 +612,7 @@ function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawerProps) {
       className="fixed inset-0 z-40 bg-black/40 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="历史记录"
+      aria-label={copy.title}
       onClick={onClose}
     >
       <div
@@ -559,20 +620,20 @@ function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawerProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-foreground">历史记录</h3>
+          <h3 className="text-lg font-semibold text-foreground">{copy.title}</h3>
           <div className="flex items-center gap-2">
             {snapshots.length > 0 && (
               <button
                 onClick={clearSnapshots}
                 className="text-xs text-muted-foreground hover:text-rose-600"
               >
-                清空
+                {copy.clear}
               </button>
             )}
             <button
               onClick={onClose}
               className="text-muted-foreground/80 hover:text-muted-foreground text-2xl leading-none"
-              aria-label="关闭"
+              aria-label={copy.close}
             >
               ×
             </button>
@@ -581,7 +642,7 @@ function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawerProps) {
         <div className="max-h-[60vh] overflow-auto">
           {snapshots.length === 0 ? (
             <p className="text-sm text-muted-foreground/80 p-6 text-center">
-              每次保存会自动留下一份快照。
+              {copy.empty}
             </p>
           ) : (
             <ul className="divide-y divide-gray-100">
@@ -590,14 +651,14 @@ function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawerProps) {
                   <div className="min-w-0">
                     <p className="text-sm text-gray-800 truncate">{snap.label}</p>
                     <p className="text-xs text-muted-foreground/80">
-                      {new Date(snap.takenAt).toLocaleString("zh-CN")}
+                      {new Date(snap.takenAt).toLocaleString(locale)}
                     </p>
                   </div>
                   <button
                     onClick={() => onRestore(snap.content)}
                     className="text-xs px-2.5 py-1 rounded-md bg-muted text-muted-foreground hover:bg-gray-200"
                   >
-                    恢复
+                    {copy.restore}
                   </button>
                 </li>
               ))}
